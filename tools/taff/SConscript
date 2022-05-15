@@ -1,0 +1,31 @@
+Import('env idir_bin')
+
+taffEnv = env.Clone()
+
+if env['big_lib']:
+	Import('libdisko_shared')
+	taffEnv.Append(LIBS = ['disko'])
+elif env['static_lib']:
+	Import('libdisko_static')
+	taffEnv.Append(LIBS = ['disko'])
+else:
+	Import('libmmsinfo libmmsconfig libmmstools libmmsgui libmmscore libmmsinput libmmsbase')
+	taffEnv.Append(LIBS = ['mmsinfo', 'mmsconfig', 'mmstools', 'mmsgui', 'mmscore', 'mmsinput', 'mmsbase'])
+	if env['media']:
+		Import('libmmsmedia')
+		taffEnv.Append(LIBS = ['mmsmedia'])
+
+taffEnv.Append(LIBPATH = '../../../lib') 
+taff = taffEnv.Program('../../../bin/taff', Glob('src/*.cpp'))
+
+if env['big_lib']:
+	Depends(taff, [libdisko_shared])
+elif env['static_lib']:
+	Depends(taff, [libdisko_static])
+else:
+	Depends(taff, [libmmsinfo, libmmsconfig, libmmstools, libmmsgui, libmmscore, libmmsinput, libmmsbase])
+	if env['media']:
+		Depends(taff, [libmmsmedia])
+
+env.Install(idir_bin, taff)
+Export('taff')

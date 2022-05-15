@@ -1,0 +1,18 @@
+# ignore objects, archives anywhere
+*.[oa]
+*.os
+# ignore disko.pc
+disko.pc
+# ignore scons files
+.sconsign.dblite
+disko.conf
+bin
+build
+lib
+# ignore doxygen files
+doc/doxygen.log
+doc/html
+# ignore python compilations
+*.pyc
+# ignore mmsinfo.h
+inc/mmsinfo/mmsinfo.h
