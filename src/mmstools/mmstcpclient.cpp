@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -36,6 +36,8 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <cerrno>
+#include <stdlib.h>
+#include <unistd.h>
 
 MMSTCPClient::MMSTCPClient(string host, unsigned int port) {
     this->host = host;
@@ -96,13 +98,16 @@ bool MMSTCPClient::disconnectFromServer() {
 }
 
 bool MMSTCPClient::sendString(string rbuf) {
-	char 	mybuf[128000+1];
+	//char 	mybuf[128000+1];
+	char 	*mybuf;
 	int		len, from;
 
 	if (!isConnected()) {
 		WRITE_ERR("MMSTCPClient", "in send not connected");
 		return false;
 	}
+
+	mybuf = (char *)malloc(rbuf.size() +1);
 
 	// send request
 	from = 0;
@@ -114,14 +119,18 @@ bool MMSTCPClient::sendString(string rbuf) {
 	} while (len>0);
 	send(this->s, "\0", 1, 0);
 	WRITE_MSG("MMSTCPClient", "sent %d bytes", from + 1);
+
+	free(mybuf);
 	return true;
 }
 
 bool MMSTCPClient::receiveString(string *abuf) {
-	char 	mybuf[128000+1];
+	char 	*mybuf;
 	int		len;
 
 	if (!isConnected()) return false;
+
+	mybuf = (char *)malloc(128000 +1);
 
 	// receive answer
 	*abuf = "";
@@ -132,7 +141,7 @@ bool MMSTCPClient::receiveString(string *abuf) {
 			(*abuf)+= mybuf;
 		}
 	} while ((len>0)&&(mybuf[len-1]!=0));
-
+	free(mybuf);
 	return true;
 }
 
@@ -144,7 +153,7 @@ bool MMSTCPClient::receiveString(string *abuf, int buflen) {
 
 	if (!isConnected()) return false;
 
-	mybuf = new char[buflen+1];
+	mybuf = (char*)malloc(buflen+1);
 
 	memset(mybuf,0,buflen+1);
 
@@ -159,8 +168,9 @@ bool MMSTCPClient::receiveString(string *abuf, int buflen) {
 		}
 	} while(received < buflen);
 
-	*abuf= mybuf;
-	delete mybuf;
+	*abuf= string(mybuf);
+	free(mybuf);
+
 	return true;
 }
 
@@ -193,6 +203,7 @@ bool MMSTCPClient::sendAndReceive(string rbuf, string *abuf) {
 	if (!connectToServer()) {
 		return false;
 	}
+
 
 	WRITE_MSG("MMSTCPClient", "send string");
 	if (sendString(rbuf)) {

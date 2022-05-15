@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -117,8 +117,56 @@ MMSWidget *MMSMenuWidget::copyWidget() {
     /* create widget */
     MMSMenuWidget *newWidget = new MMSMenuWidget(this->rootwindow, className);
 
-    /* copy widget */
-    *newWidget = *this;
+    newWidget->className = this->className;
+    newWidget->menuWidgetClass = this->menuWidgetClass;
+    newWidget->myMenuWidgetClass = this->myMenuWidgetClass;
+
+    newWidget->selimage = this->selimage;
+    newWidget->itemTemplate = this->itemTemplate;
+
+    newWidget->item_w = this->item_w;     /* width of an item */
+    newWidget->item_h = this->item_h;     /* height of an item */
+    newWidget->v_items = this->v_items;    /* number of visible vertical items */
+    newWidget->h_items = this->h_items;    /* number of visible horizontal items */
+
+    //! x position of the selected item
+    newWidget->x = this->x;
+    //! y position of the selected item
+    newWidget->y = this->y;
+    //! scroll x-offset
+    newWidget->px = this->px;
+    //! scroll y-offset
+    newWidget->py = this->py;
+
+    newWidget->firstFocus = this->firstFocus;
+    newWidget->firstSelection = this->firstSelection;
+
+    newWidget->zoomsel = this->zoomsel;		/* should the selected item zoomed? */
+    newWidget->zoomselwidth = this->zoomselwidth;	/* this value will be added to item_w for the selected item */
+    newWidget->zoomselheight = this->zoomselheight;	/* this value will be added to item_h for the selected item */
+    newWidget->zoomselshiftx = this->zoomselshiftx;	/* x-move the unselected items around the selected item */
+    newWidget->zoomselshifty = this->zoomselshifty;	/* y-move the unselected items around the selected item */
+    newWidget->smooth_scrolling = this->smooth_scrolling;
+    newWidget->scrolling_offset = this->scrolling_offset;
+    newWidget->smooth_selection = this->smooth_selection;
+    newWidget->selection_offset_x = this->selection_offset_x;
+    newWidget->selection_offset_y = this->selection_offset_y;
+
+    newWidget->frame_delay = this->frame_delay;
+    newWidget->frame_delay_set = this->frame_delay_set;
+
+    newWidget->pulser_mode = this->pulser_mode;
+    newWidget->anim_offset = this->anim_offset;
+    newWidget->anim_jumpover = this->anim_jumpover;
+    newWidget->anim_factor = this->anim_factor;
+
+    newWidget->virtualGeom = this->virtualGeom;
+
+    newWidget->parent_window = this->parent_window;
+    newWidget->iteminfos = this->iteminfos;
+    newWidget->curr_submenu = this->curr_submenu;
+    newWidget->parent_menu = this->parent_menu;
+    newWidget->back_item = this->back_item;
 
     /* copy base widget */
     MMSWidget::copyWidget((MMSWidget*)newWidget);
@@ -181,6 +229,9 @@ void MMSMenuWidget::unlock() {
 bool MMSMenuWidget::draw(bool *backgroundFilled) {
 
     bool myBackgroundFilled = false;
+
+    if(!surface)
+    	return false;
 
     if (backgroundFilled) {
     	if (this->has_own_surface)
@@ -386,7 +437,9 @@ void MMSMenuWidget::drawchildren(bool toRedrawOnly, bool *backgroundFilled, MMSF
                 	wgeom.x-=scrolling_offset;
             }
 			this->surface->setBlittingFlagsByBrightnessAlphaAndOpacity(brightness, 255, opacity);
+			selimage->lock();
 			this->surface->stretchBlit(selimage, NULL, &wgeom);
+			selimage->unlock();
 		}
 	}
 
@@ -1323,6 +1376,9 @@ void MMSMenuWidget::selectItem(MMSWidget *item, bool set, bool refresh, bool ref
 
 
 bool MMSMenuWidget::onBeforeAnimation(MMSPulser *pulser) {
+	//unlock mmsfb as it is not necessary before the first frame draw
+	mmsfb->unlock();
+
 	// init animation
 	switch (this->pulser_mode) {
 	case MMSMENUWIDGET_PULSER_MODE_SCROLL_DOWN:
@@ -1353,7 +1409,6 @@ bool MMSMenuWidget::onBeforeAnimation(MMSPulser *pulser) {
 }
 
 bool MMSMenuWidget::onAnimation(MMSPulser *pulser) {
-
 	// next offset
 	switch (this->pulser_mode) {
 	case MMSMENUWIDGET_PULSER_MODE_SCROLL_DOWN:
@@ -1382,12 +1437,18 @@ bool MMSMenuWidget::onAnimation(MMSPulser *pulser) {
 		break;
 	}
 
-    // refresh is required
+	// lock mmsfb to ensure single thread access to mmsgui
+	mmsfb->lock();
+
+	// refresh is required
     enableRefresh();
 
     // update screen
 	this->refresh();
 
+	// unlock mmsfb to enable other threads to
+	// update the screen between frames
+	mmsfb->unlock();
 	return true;
 }
 
@@ -1410,6 +1471,8 @@ void MMSMenuWidget::onAfterAnimation(MMSPulser *pulser) {
 		break;
 	}
 
+	//relock mmsfb because the last frame unlocked mmsfb
+	mmsfb->lock();
 	return;
 }
 
@@ -2651,7 +2714,7 @@ MMSWidget *MMSMenuWidget::newItem(int item, MMSWidget *widget) {
         // refresh is required
     	enableRefresh();
 
-        this->refresh();
+    	if (this->isVisible()) this->refresh();
     }
 
     // unlock me

@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -36,6 +36,9 @@
 #include <string.h>
 
 MMSThreadServer::MMSThreadServer(int queue_size, string identity, bool blocking) : MMSThread(identity) {
+	// unset id of the server thread
+	this->server_tid = 0;
+
 	// allocate and setup the queue
 	if (queue_size < 100)
 		this->queue_size = 100;
@@ -72,6 +75,9 @@ bool MMSThreadServer::start() {
 }
 
 void MMSThreadServer::threadMain() {
+	// get id of the server thread
+	this->server_tid = pthread_self();
+
 	// server loop
 	while (1) {
 		if (pthread_cond_wait(&this->cond, &this->mutex) == 0) {
@@ -123,6 +129,13 @@ void MMSThreadServer::processData(void *in_data, int in_data_len, void **out_dat
 }
 
 bool MMSThreadServer::trigger(void *in_data, int in_data_len, void **out_data, int *out_data_len) {
+	if (this->server_tid == pthread_self()) {
+		// caution: server thread will trigger itself!!!
+		// we calling the worker routine for data processing directly without locking
+		processData(in_data, in_data_len, out_data, out_data_len);
+		return true;
+	}
+
 	// create new queue item and put data to it
 	MMSTS_QUEUE_ITEM item;
 	item.in_data		= in_data;

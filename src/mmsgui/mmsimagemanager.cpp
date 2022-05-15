@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -230,7 +230,7 @@ MMSFBSurface *MMSImageManager::getImage(const string &path, const string &filena
 /*
 struct  timeval tv;
 gettimeofday(&tv, NULL);
-DEBUGOUT("start > %d\n", tv.tv_usec);
+DEBUGMSG("start > %d\n", tv.tv_usec);
 */
 
 
@@ -245,7 +245,7 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
     		do {
     			if (retry) {
 	    			retry = false;
-	    			DEBUGOUT("ImageManager, retry\n");
+	    			DEBUGMSG("MMSGUI", "ImageManager, retry");
 
     				// have to convert taff with special destination pixelformat
 	    			if (gen_taff) {
@@ -263,7 +263,7 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 	    			if (tafff) {
         				// set external file and requested pixelformat
 	    				tafff->setExternal(imagefile, MMSTAFF_EXTERNAL_TYPE_IMAGE);
-	    				DEBUGOUT("ImageManager, taffpf = %d\n", taffpf);
+	    				DEBUGMSG("MMSGUI", "ImageManager, taffpf = %d", taffpf);
 
 	    				if (config.getGraphicsLayer().outputtype == MMSFB_OT_OGL) {
 							// for ogl we don't need premultiplied images
@@ -384,11 +384,11 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 				    	}
 
 				    	if (img_pixelformat != taffpf) {
-				    		DEBUGOUT("ImageManager, taffpf = %d\n", (int)taffpf);
+				    		DEBUGMSG("MMSGUI", "ImageManager, taffpf = %d", (int)taffpf);
 				    		// the image from the file has not the same pixelformat as the surface
 				    		if (!retry) {
 				    			// retry with surface pixelformat
-				    			DEBUGOUT("ImageManager, request new pixf\n");
+				    			DEBUGMSG("MMSGUI", "ImageManager, request new pixf");
 				    			retry = true;
 				    			delete tafff;
 				    			continue;
@@ -398,11 +398,11 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 				    	}
 				    	else
 				    	if (img_mirror_size != mirror_size) {
-				    		DEBUGOUT("ImageManager, mirror_size = %d\n", (int)mirror_size);
+				    		DEBUGMSG("MMSGUI", "ImageManager, mirror_size = %d", (int)mirror_size);
 				    		// the image from the file has not the same mirror_size
 				    		if (!retry) {
 				    			// retry with given mirror_size
-				    			DEBUGOUT("ImageManager, request new mirror_size\n");
+				    			DEBUGMSG("MMSGUI", "ImageManager, request new mirror_size");
 				    			retry = true;
 				    			delete tafff;
 				    			continue;
@@ -412,11 +412,11 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 				    	}
 				    	else
 						if (img_premultiplied && (config.getGraphicsLayer().outputtype == MMSFB_OT_OGL)) {
-							DEBUGOUT("ImageManager, premultiplied image\n");
+							DEBUGMSG("MMSGUI", "ImageManager, premultiplied image");
 							// for ogl we don't need premultiplied images
 							if (!retry) {
 								// retry without pre-multiplication
-								DEBUGOUT("ImageManager, retry without pre-multiplication\n");
+								DEBUGMSG("MMSGUI", "ImageManager, retry without pre-multiplication");
 								retry = true;
 								delete tafff;
 								continue;
@@ -426,11 +426,11 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 						}
 						else
 						if (!img_premultiplied && (config.getGraphicsLayer().outputtype != MMSFB_OT_OGL)) {
-							DEBUGOUT("ImageManager, image not premultiplied\n");
+							DEBUGMSG("MMSGUI", "ImageManager, image not premultiplied");
 							// we use premultiplied images
 							if (!retry) {
 								// retry with pre-multiplication
-								DEBUGOUT("ImageManager, retry with pre-multiplication\n");
+								DEBUGMSG("MMSGUI", "ImageManager, retry with pre-multiplication");
 								retry = true;
 								delete tafff;
 								continue;
@@ -440,10 +440,10 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 						}
 						else
 						if (img_rotate_180 && !MMSFBBase_rotate180) {
-				    		DEBUGOUT("ImageManager, taff image is rotated by 180 degree, but NOT requested\n");
+							DEBUGMSG("MMSGUI", "ImageManager, taff image is rotated by 180 degree, but NOT requested");
 				    		if (!retry) {
 				    			// reset rotation
-				    			DEBUGOUT("ImageManager, reset rotation\n");
+				    			DEBUGMSG("MMSGUI", "ImageManager, reset rotation");
 				    			retry = true;
 				    			delete tafff;
 				    			continue;
@@ -453,10 +453,10 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 						}
 						else
 						if (!img_rotate_180 && MMSFBBase_rotate180) {
-				    		DEBUGOUT("ImageManager, taff image is NOT rotated by 180 degree, but requested\n");
+				    		DEBUGMSG("MMSGUI", "ImageManager, taff image is NOT rotated by 180 degree, but requested");
 				    		if (!retry) {
 				    			// retry with rotation
-				    			DEBUGOUT("ImageManager, rotate 180 degree\n");
+				    			DEBUGMSG("MMSGUI", "ImageManager, rotate 180 degree");
 				    			retry = true;
 				    			delete tafff;
 				    			continue;
@@ -467,7 +467,7 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 						else
 				    	if ((img_width)&&(img_height)&&(img_pitch)&&(img_size)&&(img_buf)) {
 				        	// successfully read
-//				    		DEBUGOUT("ImageManager, use pixf = %d\n", (int)taffpf);
+//				    		DEBUGMSG("ImageManager, use pixf = %d\n", (int)taffpf);
 				            im_desc->imagefile = imagefile;
 
 				            if (reload_image < 0) {
@@ -654,7 +654,7 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 
 /*
 gettimeofday(&tv, NULL);
-DEBUGOUT("end < %d\n", tv.tv_usec);
+DEBUGMSG("end < %d\n", tv.tv_usec);
 */
 
             DEBUGMSG("MMSGUI", "ImageManager has loaded: '%s'", imagefile.c_str());

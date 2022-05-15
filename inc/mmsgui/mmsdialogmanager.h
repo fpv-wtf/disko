@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -35,9 +35,13 @@
 
 #include "mmsgui/mmswindow.h"
 #include "mmsgui/mmschildwindow.h"
+#include "mmsgui/mmsmenuwidget.h"
+#include "mmsgui/mmscanvaswidget.h"
 
 // support old renamed methods
 #define searchForWidget findWidget
+
+
 
 //! With this class you can load dialog files written in disko's XML syntax.
 /*!
@@ -86,8 +90,10 @@ class MMSDialogManager {
         string getHBoxValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme);
         string getLabelValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme);
         string getButtonValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme);
+        string getCanvasValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme);
         string getImageValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme);
         string getProgressBarValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme);
+        bool   getMenuItems(MMSTaffFile *tafff, MMSMenuWidget *menu, MMSTheme *theme);
         string getMenuValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme);
         string getTextBoxValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme);
         string getArrowValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme);
@@ -110,6 +116,9 @@ class MMSDialogManager {
         MMSWindow* getWindow();
 
         MMSDescriptionClass getDescription();
+
+        MMSWidget *createWidgetFromTemplate(string className, MMSWidget *parentWidget, MMSWindow *rootWindow = NULL, MMSTheme *theme = NULL);
+        MMSWidget *addWidgetFromTemplate(string className, MMSWidget *parentWidget, MMSWindow *rootWindow = NULL, MMSTheme *theme = NULL);
 };
 
 MMS_CREATEERROR(MMSDialogManagerError);

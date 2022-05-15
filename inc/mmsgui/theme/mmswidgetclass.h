@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -109,7 +109,8 @@ namespace MMSGUI_WIDGET_ATTR {
 	{ "return_onscroll", TAFF_ATTRTYPE_BOOL }, \
 	{ "inputmode", TAFF_ATTRTYPE_STRING }, \
 	{ "joined_widget", TAFF_ATTRTYPE_STRING }, \
-	{ "activated", TAFF_ATTRTYPE_BOOL }
+	{ "activated", TAFF_ATTRTYPE_BOOL }, \
+	{ "factoryname", TAFF_ATTRTYPE_STRING }
 
 
 	#define MMSGUI_WIDGET_ATTR_IDS \
@@ -183,7 +184,8 @@ namespace MMSGUI_WIDGET_ATTR {
 		MMSGUI_WIDGET_ATTR_IDS_return_onscroll, \
 		MMSGUI_WIDGET_ATTR_IDS_inputmode, \
 		MMSGUI_WIDGET_ATTR_IDS_joined_widget, \
-		MMSGUI_WIDGET_ATTR_IDS_activated
+		MMSGUI_WIDGET_ATTR_IDS_activated, \
+		MMSGUI_WIDGET_ATTR_IDS_factoryname
 
 	#define MMSGUI_WIDGET_ATTR_INIT { \
 		MMSGUI_BASE_ATTR_ATTRDESC, \
@@ -383,6 +385,9 @@ class MMSWidgetClass {
 	        //! widget is active / inactive
 	        bool            activated;
 
+	        //! widget is active / inactive
+	        bool            isfactoryname;
+
 
     	} id;
 
@@ -461,6 +466,9 @@ class MMSWidgetClass {
 
             //! name of widget which is joined to this widget
             string          *joinedwidget;
+
+            //! name of widget which is joined to this widget
+            string          *factoryname;
     	} ed;
 
     	/* init routines */
@@ -516,6 +524,7 @@ class MMSWidgetClass {
         void initJoinedWidget();
 
         void initActivated();
+        void initFactoryName();
 
 
         /* free routines */
@@ -571,6 +580,7 @@ class MMSWidgetClass {
         void freeJoinedWidget();
 
         void freeActivated();
+        void freeFactoryName();
 
         //! Read and set all attributes from the given TAFF buffer.
         /*!
@@ -1377,6 +1387,12 @@ class MMSWidgetClass {
         //! Mark the activated flag as not set.
         void unsetActivated();
 
+        //! Check if the activated flag is set.
+        bool isFactoryName();
+
+        //! Mark the activated flag as not set.
+        void unsetFactoryName();
+
         //! Set the activated flag.
         /*!
         \param activated  widget is active / inactive
@@ -1390,6 +1406,18 @@ class MMSWidgetClass {
         */
         bool getActivated(bool &activated);
 
+        //! Set the activated flag.
+        /*!
+        \param activated  widget is active / inactive
+        */
+        void setFactoryName(string factoryname);
+
+        //! Get the factoryname
+        /*!
+        \param name for the widget factory map
+        \return true if set
+        */
+        bool getFactoryName(string &factoryname);
 
 
     /* friends */

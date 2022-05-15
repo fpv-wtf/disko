@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -50,12 +50,15 @@
 			yoff = surface->sub_surface_yoff; }
 
 #define GET_OFFS_SRC(surface) \
-		int src_xoff = 0; int src_yoff = 0; \
+		int src_xoff = 0; \
+		int src_yoff = 0; \
+		int src_rootw = surface->config.w; \
+		int src_rooth = surface->config.h; \
 		if (surface->is_sub_surface) { \
 			src_xoff = surface->sub_surface_xoff; \
-			src_yoff = surface->sub_surface_yoff; }
-
-
+			src_yoff = surface->sub_surface_yoff; \
+			src_rootw = surface->root_parent->config.w; \
+			src_rooth = surface->root_parent->config.h; }
 
 
 
@@ -124,20 +127,24 @@
 
 
 #define ENABLE_OGL_DEPTHTEST(surface, readonly) \
-		if (!readonly && surface->config.surface_buffer) \
-			if (!surface->is_sub_surface) \
+		if (!readonly && surface->config.surface_buffer) { \
+			if (!surface->is_sub_surface) { \
 				surface->config.surface_buffer->ogl_unchanged_depth_buffer = false; \
-			else \
+			} else { \
 				surface->root_parent->config.surface_buffer->ogl_unchanged_depth_buffer = surface->config.surface_buffer->ogl_unchanged_depth_buffer = false; \
+			} \
+		} \
 		mmsfbgl.enableDepthTest(readonly);
 
 
 #define DISABLE_OGL_DEPTHTEST(surface, mark_as_unchanged) \
-		if (mark_as_unchanged && surface->config.surface_buffer) \
-			if (!surface->is_sub_surface) \
+		if (mark_as_unchanged && surface->config.surface_buffer) { \
+			if (!surface->is_sub_surface) { \
 				surface->config.surface_buffer->ogl_unchanged_depth_buffer = true; \
-			else \
+			} else { \
 				surface->root_parent->config.surface_buffer->ogl_unchanged_depth_buffer = surface->config.surface_buffer->ogl_unchanged_depth_buffer = true; \
+			} \
+		} \
 		mmsfbgl.disableDepthTest();
 
 
@@ -307,6 +314,21 @@ void MMSFBBackEndInterface::processData(void *in_data, int in_data_len, void **o
 		break;
 	case BEI_REQUEST_TYPE_MERGE:
 		processMerge((BEI_MERGE *)in_data);
+		break;
+	case BEI_REQUEST_TYPE_INITVERTEXBUFFER:
+		processInitVertexBuffer((BEI_INITVERTEXBUFFER *)in_data);
+		break;
+	case BEI_REQUEST_TYPE_INITVERTEXSUBBUFFER:
+		processInitVertexSubBuffer((BEI_INITVERTEXSUBBUFFER *)in_data);
+		break;
+	case BEI_REQUEST_TYPE_INITINDEXBUFFER:
+		processInitIndexBuffer((BEI_INITINDEXBUFFER *)in_data);
+		break;
+	case BEI_REQUEST_TYPE_INITINDEXSUBBUFFER:
+		processInitIndexSubBuffer((BEI_INITINDEXSUBBUFFER *)in_data);
+		break;
+	case BEI_REQUEST_TYPE_DELETEBUFFER:
+		processDeleteBuffer((BEI_DELETEBUFFER *)in_data);
 		break;
 	default:
 		break;
@@ -538,6 +560,42 @@ void MMSFBBackEndInterface::oglBindSurface(MMSFBSurface *surface, int nearZ, int
 }
 
 
+bool MMSFBBackEndInterface::oglDrawBuffer(MMSFBBuffer::BUFFER *buffer,
+										  MMSFBBuffer::INDEX_BUFFER *index_buffer,
+										  MMSFBBuffer::VERTEX_BUFFER *vertex_buffer) {
+	if (!buffer) return false;
+
+	if (!index_buffer || !vertex_buffer) {
+		// get access to index and vertex buffer
+		if (!buffer->getBuffers(&index_buffer, &vertex_buffer)) return false;
+	}
+
+	// check if we have index and vertex buffer
+	if (!index_buffer || !vertex_buffer) return false;
+
+	if (buffer->index_bo.bo && buffer->vertex_bo.bo) {
+		// index and vertex buffer objects are available
+		//TODO...
+		return true;
+	}
+	else
+	if (buffer->vertex_bo.bo) {
+		// vertex buffer object is available
+		for (unsigned int i = 0; i < buffer->vertex_bo.num_buffers; i++) {
+			mmsfbgl.drawElements(&buffer->vertex_bo.buffers[i], NULL, NULL, &buffer->index_bo.buffers[i]);
+		}
+		return true;
+	}
+	else {
+		// buffer objects not available, so we have to put indices/vertices over the bus to GPU
+		for (unsigned int i = 0; i < index_buffer->num_arrays; i++) {
+			mmsfbgl.drawElements(&vertex_buffer->arrays[i], NULL, NULL, &index_buffer->arrays[i]);
+		}
+		return true;
+	}
+
+	return false;
+}
 
 #endif
 
@@ -644,10 +702,10 @@ void MMSFBBackEndInterface::processFillRectangle(BEI_FILLRECTANGLE *req) {
 	OGL_SCISSOR(req->surface, req->rect.x, req->rect.y, req->rect.w, req->rect.h);
 
 	// fill rectangle
-	OGL_FILL_RECTANGLE(req->rect.x,
-					   req->rect.y,
-					   req->rect.x + req->rect.w - 1,
-					   req->rect.y + req->rect.h - 1);
+	mmsfbgl.fillRectangle2Di(req->rect.x,
+							 req->rect.y,
+							 req->rect.x + req->rect.w - 1,
+							 req->rect.y + req->rect.h - 1);
 #endif
 }
 
@@ -699,7 +757,7 @@ void MMSFBBackEndInterface::processFillTriangle(BEI_FILLTRIANGLE *req) {
 	if (req->surface->calcClip(x + xoff, y + yoff, w, h, &crect)) {
 		// inside clipping region
 		OGL_SCISSOR(req->surface, crect.x, crect.y, crect.w, crect.h);
-		glEnable(GL_SCISSOR_TEST);
+//		glEnable(GL_SCISSOR_TEST);
 
 		// fill triangle
 		OGL_FILL_TRIANGLE(req->triangle.x1 + xoff, req->triangle.y1 + yoff,
@@ -709,25 +767,22 @@ void MMSFBBackEndInterface::processFillTriangle(BEI_FILLTRIANGLE *req) {
 #endif
 }
 
-void MMSFBBackEndInterface::drawLine(MMSFBSurface *surface, MMSFBRegion &region) {
+void MMSFBBackEndInterface::drawLine(MMSFBSurface *surface, int x1, int y1, int x2, int y2) {
 	BEI_DRAWLINE req;
 	req.type	= BEI_REQUEST_TYPE_DRAWLINE;
 	req.surface	= surface;
-	req.region	= region;
+	req.x1	= x1;
+	req.y1	= y1;
+	req.x2	= x2;
+	req.y2	= y2;
 	trigger((void*)&req, sizeof(req));
 }
 
 void MMSFBBackEndInterface::processDrawLine(BEI_DRAWLINE *req) {
-#ifdef  __HAVE_GL2__
+#ifdef  __HAVE_OPENGL__
 	// lock destination fbo and prepare it
 	oglBindSurface(req->surface);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_TEXTURE_2D);
 
-/*	printf("%08x, %dx%d, %d,%d,%d,%d DISKO: processDrawLine\n",
-			req->surface,
-			req->surface->config.color.r,req->surface->config.color.g,req->surface->config.color.b,req->surface->config.color.a);
-*/
 	// setup drawing
 	INIT_OGL_DRAWING(req->surface, req->surface->config.drawingflags);
 
@@ -737,33 +792,30 @@ void MMSFBBackEndInterface::processDrawLine(BEI_DRAWLINE *req) {
 	// set the clip to ogl
 	MMSFBRectangle crect;
 	int x, y, w, h;
-	if (req->region.x2 >= req->region.x1) {
-		x = req->region.x1;
-		w = req->region.x2 - req->region.x1 + 1;
+	if (req->x2 >= req->x1) {
+		x = req->x1;
+		w = req->x2 - req->x1 + 1;
 	}
 	else {
-		x = req->region.x2;
-		w = req->region.x1 - req->region.x2 + 1;
+		x = req->x2;
+		w = req->x1 - req->x2 + 1;
 	}
-	if (req->region.y2 >= req->region.y1) {
-		y = req->region.y1;
-		h = req->region.y2 - req->region.y1 + 1;
+	if (req->y2 >= req->y1) {
+		y = req->y1;
+		h = req->y2 - req->y1 + 1;
 	}
 	else {
-		y = req->region.y2;
-		h = req->region.y1 - req->region.y2 + 1;
+		y = req->y2;
+		h = req->y1 - req->y2 + 1;
 	}
 
 	if (req->surface->calcClip(x + xoff, y + yoff, w, h, &crect)) {
 		// inside clipping region
 		OGL_SCISSOR(req->surface, crect.x, crect.y, crect.w, crect.h);
-		glEnable(GL_SCISSOR_TEST);
 
 		// draw line
-		OGL_DRAW_LINE(req->region.x1 + xoff,
-					  req->region.y1 + yoff,
-					  req->region.x2 + xoff,
-					  req->region.y2 + yoff);
+		mmsfbgl.drawLine2Di(req->x1 + xoff, req->y1 + yoff,
+							req->x2 + xoff, req->y2 + yoff);
 	}
 #endif
 }
@@ -850,7 +902,7 @@ void MMSFBBackEndInterface::processDrawTriangle(BEI_DRAWTRIANGLE *req) {
 	if (req->surface->calcClip(x + xoff, y + yoff, w, h, &crect)) {
 		// inside clipping region
 		OGL_SCISSOR(req->surface, crect.x, crect.y, crect.w, crect.h);
-		glEnable(GL_SCISSOR_TEST);
+//		glEnable(GL_SCISSOR_TEST);
 
 		// draw triangle
 		OGL_DRAW_TRIANGLE(req->triangle.x1 + xoff, req->triangle.y1 + yoff,
@@ -881,14 +933,59 @@ void MMSFBBackEndInterface::processBlit(BEI_BLIT *req) {
 	// setup blitting
 	INIT_OGL_BLITTING(req->surface, req->blittingflags);
 
+	// get subsurface offsets
+	GET_OFFS(req->surface);
+	GET_OFFS_SRC(req->source);
+/*
+	// set the clip to ogl
+	MMSFBRectangle crect;
+	if (req->surface->calcClip(req->x + xoff, req->y + yoff, req->src_rect.w, req->src_rect.h, &crect)) {
+		// inside clipping region
+		OGL_SCISSOR(req->surface, crect.x, crect.y, crect.w, crect.h);
+
+		// get source region
+		int sx1 = req->src_rect.x + src_xoff;
+		int sy1 = req->src_rect.y + src_yoff;
+		int sx2 = req->src_rect.x + req->src_rect.w - 1 + src_xoff;
+		int sy2 = req->src_rect.y + req->src_rect.h - 1 + src_yoff;
+
+		// get destination region
+		int dx1 = req->x + xoff;
+		int dy1 = req->y + yoff;
+		int dx2 = req->x + req->src_rect.w - 1 + xoff;
+		int dy2 = req->y + req->src_rect.h - 1 + yoff;
+
+		if (req->source->config.surface_buffer->ogl_tex_initialized) {
+			// blit source texture to the destination
+			mmsfbgl.stretchBliti(req->source->config.surface_buffer->ogl_tex,
+						sx1, sy1, sx2, sy2, src_rootw, src_rooth,
+						dx1, dy1, dx2, dy2);
+		}
+		else {
+			printf("skip blitting from texture which is not initialized\n");
+		}
+	}
+*/
+
+
 	// set ogl clip
 	OGL_SCISSOR(req->surface, req->x, req->y, req->src_rect.w, req->src_rect.h);
+//printf("src: %d,%d,%d,%d %d,%d\n", req->src_rect.x, req->src_rect.y, req->src_rect.w, req->src_rect.h,req->source->config.w, req->source->config.h);
+
+//((!surface->is_sub_surface && surface->config.surface_buffer && surface->config.surface_buffer->ogl_unchanged_depth_buffer)
+//||(surface->is_sub_surface && surface->root_parent->config.surface_buffer && surface->root_parent->config.surface_buffer->ogl_unchanged_depth_buffer))
 
 	if (req->source->config.surface_buffer->ogl_tex_initialized) {
 		// blit source texture to the destination
+//printf("blit: %d,%d,%d,%d %d,%d %d,%d,%d,%d\n",
+//		req->src_rect.x, req->src_rect.y, req->src_rect.x + req->src_rect.w - 1, req->src_rect.y + req->src_rect.h - 1,
+//		src_rootw, src_rooth,
+//		req->x, req->y, req->x + req->src_rect.w - 1, req->y + req->src_rect.h - 1);
+
+
 		mmsfbgl.stretchBliti(req->source->config.surface_buffer->ogl_tex,
 					req->src_rect.x, req->src_rect.y, req->src_rect.x + req->src_rect.w - 1, req->src_rect.y + req->src_rect.h - 1,
-					req->source->config.w, req->source->config.h,
+					src_rootw, src_rooth,
 					req->x, req->y, req->x + req->src_rect.w - 1, req->y + req->src_rect.h - 1);
 	}
 	else {
@@ -942,7 +1039,7 @@ void MMSFBBackEndInterface::processStretchBlit(BEI_STRETCHBLIT *req) {
 		if (req->source->config.surface_buffer->ogl_tex_initialized) {
 			// blit source texture to the destination
 			mmsfbgl.stretchBliti(req->source->config.surface_buffer->ogl_tex,
-						sx1, sy1, sx2, sy2, req->source->config.w, req->source->config.h,
+						sx1, sy1, sx2, sy2, src_rootw, src_rooth,
 						dx1, dy1, dx2, dy2);
 		}
 		else {
@@ -1114,7 +1211,8 @@ void MMSFBBackEndInterface::processDrawString(BEI_DRAWSTRING *req) {
 	// lock destination fbo and bind source texture to it
 	oglBindSurface(req->surface);
 
-	// setup blitting
+#ifndef __HAVE_GLU__
+	// setup texture blitting
 	mmsfbgl.enableBlend();
 	if (req->surface->config.color.a == 0xff)
 		mmsfbgl.setTexEnvReplace(GL_ALPHA);
@@ -1124,33 +1222,63 @@ void MMSFBBackEndInterface::processDrawString(BEI_DRAWSTRING *req) {
 					req->surface->config.color.g,
 					req->surface->config.color.b,
 					req->surface->config.color.a);
+#else
+	// setup drawing
+	INIT_OGL_DRAWING(req->surface, req->surface->config.drawingflags);
+#endif
 
 	// get subsurface offsets
 	GET_OFFS(req->surface);
 
-	// get vertical font settings
-	int DY = 0, desc = 0;
-	req->surface->config.font->getHeight(&DY);
-	req->surface->config.font->getDescender(&desc);
-	DY -= desc + 1;
+	// set the clip to ogl
+	MMSFBRectangle crect;
+	if (req->surface->calcClip(0 + xoff, 0 + yoff, req->surface->config.w, req->surface->config.h, &crect)) {
+		// inside clipping region
+		OGL_SCISSOR(req->surface, crect.x, crect.y, crect.w, crect.h);
 
-	// for all characters
-	MMSFBFONT_GET_UNICODE_CHAR(req->text, req->len) {
+#ifdef __HAVE_GLU__
+		// save and scale current matrix
+		mmsfbgl.pushCurrentMatrix();
+		float scale_coeff = 1.0f;
+		if (req->surface->config.font->getScaleCoeff(&scale_coeff))
+			mmsfbgl.scaleCurrentMatrix(scale_coeff, scale_coeff, 1);
+		int dx1_save = 0;
+		int dy1_save = 0;
+#endif
 
-		// load the glyph
-		MMSFBSURFACE_BLIT_TEXT_LOAD_GLYPH(req->surface->config.font, character);
+		// get vertical font settings
+		int DY = 0;
+		DY = req->surface->config.font->height;
+		DY-= req->surface->config.font->descender + 1;
 
-		// start rendering of glyph to destination
-		if (glyph_loaded) {
-			// calc destination position of the character
-			int dx = req->x + glyph.left;
-			int dy = req->y + DY - glyph.top;
+#ifdef __HAVE_GLU__
+		// calc base position
+		req->x = (int)((float)req->x / scale_coeff + 0.5f);
+		req->y = (int)((float)req->y / scale_coeff + 0.5f);
 
-			// set the clip to ogl
-			MMSFBRectangle crect;
-			if (req->surface->calcClip(dx + xoff, dy + yoff, src_w, src_h, &crect)) {
-				// inside clipping region
-				OGL_SCISSOR(req->surface, crect.x, crect.y, crect.w, crect.h);
+		// calc subsurface offsets
+		xoff = (int)((float)xoff / scale_coeff + 0.5f);
+		yoff = (int)((float)yoff / scale_coeff + 0.5f);
+#endif
+
+		// for all characters
+		MMSFBFONT_GET_UNICODE_CHAR(req->text, req->len) {
+
+			// load the glyph
+			MMSFBSURFACE_BLIT_TEXT_LOAD_GLYPH(req->surface->config.font, character);
+
+			// start rendering of glyph to destination
+			if (glyph_loaded) {
+				// calc destination position of the character
+				int dx = req->x + glyph.left;
+				int dy = req->y + DY - glyph.top;
+
+#ifndef __HAVE_GLU__
+				// get destination region
+				int dx1 = dx + xoff;
+				int dy1 = dy + yoff;
+				int dx2 = dx + src_w - 1 + xoff;
+				int dy2 = dy + src_h - 1 + yoff;
 
 				// get source region
 				int sx1 = 0;
@@ -1158,29 +1286,69 @@ void MMSFBBackEndInterface::processDrawString(BEI_DRAWSTRING *req) {
 				int sx2 = src_w - 1;
 				int sy2 = src_h - 1;
 
-				// get destination region
+				if (glyph.texture) {
+					// blit glyph texture to the destination
+					mmsfbgl.stretchBliti(glyph.texture,
+											sx1, sy1, sx2, sy2, src_pitch_pix, src_h,
+											dx1, dy1, dx2, dy2);
+				}
+#else
+				// get destination offset
 				int dx1 = dx + xoff;
 				int dy1 = dy + yoff;
-				int dx2 = dx + src_w - 1 + xoff;
-				int dy2 = dy + src_h - 1 + yoff;
 
-				// blit glyph texture to the destination
-				mmsfbgl.stretchBliti(glyph.texture,
-										sx1, sy1, sx2, sy2, src_pitch_pix, src_h,
-										dx1, dy1, dx2, dy2);
+				// move to correct position
+				mmsfbgl.translateCurrentMatrix(dx1 - dx1_save, dy1 - dy1_save, 0);
+				dx1_save = dx1;
+				dy1_save = dy1;
+
+				MMSFBBuffer::BUFFER *buffer;
+
+				if (glyph.outline && glyph.outline->getBuffer(&buffer)) {
+					MMSFBBuffer::INDEX_BUFFER *index_buffer;
+					MMSFBBuffer::VERTEX_BUFFER *vertex_buffer;
+					if (buffer->getBuffers(&index_buffer, &vertex_buffer)) {
+						// draw glyph outline
+						if (index_buffer->num_arrays) {
+							// setup special drawing flags
+							// glyph outline is used for soft-focus effect, we draw it with 1/3 alphachannel
+							mmsfbgl.enableBlend();
+							MMSFBColor *color = &req->surface->config.color;
+							mmsfbgl.setColor(color->r, color->g, color->b, color->a / 3);
+
+							// draw primitives: glyph outline
+							oglDrawBuffer(buffer, index_buffer, vertex_buffer);
+
+							// reset drawing flags and color
+							mmsfbgl.disableBlend();
+							mmsfbgl.setColor(color->r, color->g, color->b, color->a);
+						}
+					}
+				}
+
+				if (glyph.meshes && glyph.meshes->getBuffer(&buffer)) {
+					// draw primitives: glyph meshes
+					oglDrawBuffer(buffer);
+				}
+#endif
+
+				// prepare for next loop
+				req->x+= glyph.advanceX;
 			}
+		}}
 
-			// prepare for next loop
-			req->x+=glyph.advanceX >> 6;
-		}
-	}}
+#ifdef __HAVE_GLU__
+		// restore matrix
+		mmsfbgl.popCurrentMatrix();
+#endif
+	}
 
 #endif
 }
 
 void MMSFBBackEndInterface::renderScene(MMSFBSurface *surface,
-										MMS3D_VERTEX_ARRAY	**varrays,
-										MMS3D_INDEX_ARRAY	**iarrays,
+										MMS_VERTEX_ARRAY	**varrays,
+										MMS_INDEX_ARRAY		**iarrays,
 										MMS3D_MATERIAL		*materials,
 										MMSFBSurface		**texsurfaces,
 										MMS3D_OBJECT		**objects) {
@@ -1458,5 +1626,144 @@ void MMSFBBackEndInterface::processMerge(BEI_MERGE *req) {
 	}
 #endif
 }
+
+
+void MMSFBBackEndInterface::initVertexBuffer(unsigned int *buffer, unsigned int size, void *data) {
+	BEI_INITVERTEXBUFFER req;
+	req.type	= BEI_REQUEST_TYPE_INITVERTEXBUFFER;
+	req.buffer	= buffer;
+	req.size	= size;
+	req.data	= data;
+	trigger((void*)&req, sizeof(req));
+}
+
+void MMSFBBackEndInterface::processInitVertexBuffer(BEI_INITVERTEXBUFFER *req) {
+#ifdef  __HAVE_OPENGL__
+
+	// buffer set?
+	if (!req->buffer) return;
+
+	// buffer already initialized?
+	if (*(req->buffer)) return;
+
+	// generate new buffer object
+	if (!mmsfbgl.genBuffer(req->buffer)) return;
+
+	// allocate new vertex buffer and fill it with given data
+	// if no data is given, the buffer will be allocated but not initialized
+	if (!mmsfbgl.initVertexBuffer(*(req->buffer), req->size, req->data)) {
+		// failed
+		mmsfbgl.deleteBuffer(*(req->buffer));
+		*(req->buffer) = 0;
+		return;
+	}
+
+#endif
+}
+
+
+void MMSFBBackEndInterface::initVertexSubBuffer(unsigned int buffer, unsigned int offset,
+												unsigned int size, void *data) {
+	BEI_INITVERTEXSUBBUFFER req;
+	req.type	= BEI_REQUEST_TYPE_INITVERTEXSUBBUFFER;
+	req.buffer	= buffer;
+	req.offset	= offset;
+	req.size	= size;
+	req.data	= data;
+	trigger((void*)&req, sizeof(req));
+}
+
+void MMSFBBackEndInterface::processInitVertexSubBuffer(BEI_INITVERTEXSUBBUFFER *req) {
+#ifdef  __HAVE_OPENGL__
+
+	// buffer initialized?
+	if (!req->buffer) return;
+
+	// initialize a sub region of the vertex buffer
+	mmsfbgl.initVertexSubBuffer(req->buffer, req->offset, req->size, req->data);
+
+#endif
+}
+
+
+void MMSFBBackEndInterface::initIndexBuffer(unsigned int *buffer, unsigned int size, void *data) {
+	BEI_INITINDEXBUFFER req;
+	req.type	= BEI_REQUEST_TYPE_INITINDEXBUFFER;
+	req.buffer	= buffer;
+	req.size	= size;
+	req.data	= data;
+	trigger((void*)&req, sizeof(req));
+}
+
+void MMSFBBackEndInterface::processInitIndexBuffer(BEI_INITINDEXBUFFER *req) {
+#ifdef  __HAVE_OPENGL__
+
+	// buffer set?
+	if (!req->buffer) return;
+
+	// buffer already initialized?
+	if (*(req->buffer)) return;
+
+	// generate new buffer object
+	if (!mmsfbgl.genBuffer(req->buffer)) return;
+
+	// allocate new index buffer and fill it with given data
+	// if no data is given, the buffer will be allocated but not initialized
+	if (!mmsfbgl.initIndexBuffer(*(req->buffer), req->size, req->data)) {
+		// failed
+		mmsfbgl.deleteBuffer(*(req->buffer));
+		*(req->buffer) = 0;
+		return;
+	}
+
+#endif
+}
+
+
+void MMSFBBackEndInterface::initIndexSubBuffer(unsigned int buffer, unsigned int offset,
+											   unsigned int size, void *data) {
+	BEI_INITINDEXSUBBUFFER req;
+	req.type	= BEI_REQUEST_TYPE_INITINDEXSUBBUFFER;
+	req.buffer	= buffer;
+	req.offset	= offset;
+	req.size	= size;
+	req.data	= data;
+	trigger((void*)&req, sizeof(req));
+}
+
+void MMSFBBackEndInterface::processInitIndexSubBuffer(BEI_INITINDEXSUBBUFFER *req) {
+#ifdef  __HAVE_OPENGL__
+
+	// buffer initialized?
+	if (!req->buffer) return;
+
+	// initialize a sub region of the index buffer
+	mmsfbgl.initIndexSubBuffer(req->buffer, req->offset, req->size, req->data);
+
+#endif
+}
+
+
+void MMSFBBackEndInterface::deleteBuffer(unsigned int buffer) {
+	BEI_DELETEBUFFER req;
+	req.type	= BEI_REQUEST_TYPE_DELETEBUFFER;
+	req.buffer	= buffer;
+	trigger((void*)&req, sizeof(req));
+}
+
+void MMSFBBackEndInterface::processDeleteBuffer(BEI_DELETEBUFFER *req) {
+#ifdef  __HAVE_OPENGL__
+
+	// delete a buffer object
+	mmsfbgl.deleteBuffer(req->buffer);
+
+#endif
+}
+
+
+
+
+
+
 
 

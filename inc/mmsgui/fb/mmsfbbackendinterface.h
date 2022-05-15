@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -63,7 +63,12 @@ private:
 		BEI_REQUEST_TYPE_DELETETEXTURE,
 		BEI_REQUEST_TYPE_DRAWSTRING,
 		BEI_REQUEST_TYPE_RENDERSCENE,
-		BEI_REQUEST_TYPE_MERGE
+		BEI_REQUEST_TYPE_MERGE,
+		BEI_REQUEST_TYPE_INITVERTEXBUFFER,
+		BEI_REQUEST_TYPE_INITVERTEXSUBBUFFER,
+		BEI_REQUEST_TYPE_INITINDEXBUFFER,
+		BEI_REQUEST_TYPE_INITINDEXSUBBUFFER,
+		BEI_REQUEST_TYPE_DELETEBUFFER
 	} BEI_REQUEST_TYPE;
 
 	typedef struct {
@@ -112,7 +117,10 @@ private:
 	typedef struct {
 		BEI_REQUEST_TYPE	type;
 		MMSFBSurface		*surface;
-		MMSFBRegion			region;
+		int					x1;
+		int					y1;
+		int					x2;
+		int					y2;
 	} BEI_DRAWLINE;
 
 	typedef struct {
@@ -183,8 +191,8 @@ private:
 	typedef struct {
 		BEI_REQUEST_TYPE	type;
 		MMSFBSurface		*surface;
-		MMS3D_VERTEX_ARRAY	**varrays;
-		MMS3D_INDEX_ARRAY	**iarrays;
+		MMS_VERTEX_ARRAY	**varrays;
+		MMS_INDEX_ARRAY		**iarrays;
 		MMS3D_MATERIAL		*materials;
 		MMSFBSurface		**texsurfaces;
 		MMS3D_OBJECT		**objects;
@@ -197,6 +205,41 @@ private:
 		MMSFBSurface		*source2;
 		MMSFBMergingMode	mergingmode;
 	} BEI_MERGE;
+
+	typedef struct {
+		BEI_REQUEST_TYPE	type;
+		unsigned int		*buffer;
+		unsigned int 		size;
+		void				*data;
+	} BEI_INITVERTEXBUFFER;
+
+	typedef struct {
+		BEI_REQUEST_TYPE	type;
+		unsigned int		buffer;
+		unsigned int		offset;
+		unsigned int 		size;
+		void				*data;
+	} BEI_INITVERTEXSUBBUFFER;
+
+	typedef struct {
+		BEI_REQUEST_TYPE	type;
+		unsigned int		*buffer;
+		unsigned int 		size;
+		void				*data;
+	} BEI_INITINDEXBUFFER;
+
+	typedef struct {
+		BEI_REQUEST_TYPE	type;
+		unsigned int		buffer;
+		unsigned int		offset;
+		unsigned int 		size;
+		void				*data;
+	} BEI_INITINDEXSUBBUFFER;
+
+	typedef struct {
+		BEI_REQUEST_TYPE	type;
+		unsigned int		buffer;
+	} BEI_DELETEBUFFER;
 
 #ifdef __HAVE_OPENGL__
 
@@ -239,6 +282,11 @@ private:
 	//! internal: see oglBindSurface(MMSFBSurface *surface), additionally using nearer and farther depth in conjunction with central_projection flag
 	void oglBindSurface(MMSFBSurface *surface, int nearZ, int farZ, bool central_projection = false);
 
+	//! internal: draw arrays of OpenGL primitives
+	bool oglDrawBuffer(MMSFBBuffer::BUFFER *buffer,
+					   MMSFBBuffer::INDEX_BUFFER *index_buffer = NULL,
+					   MMSFBBuffer::VERTEX_BUFFER *vertex_buffer = NULL);
+
 #endif
 
 
@@ -259,10 +307,13 @@ private:
 	void processCreateAlphaTexture(BEI_CREATEALPHATEXTURE *req);
 	void processDeleteTexture(BEI_DELETETEXTURE *req);
 	void processDrawString(BEI_DRAWSTRING *req);
-
 	void processRenderScene(BEI_RENDERSCENE *req);
 	void processMerge(BEI_MERGE *req);
-
+	void processInitVertexBuffer(BEI_INITVERTEXBUFFER *req);
+	void processInitVertexSubBuffer(BEI_INITVERTEXSUBBUFFER *req);
+	void processInitIndexBuffer(BEI_INITINDEXBUFFER *req);
+	void processInitIndexSubBuffer(BEI_INITINDEXSUBBUFFER *req);
+	void processDeleteBuffer(BEI_DELETEBUFFER *req);
 
 public:
 
@@ -280,7 +331,7 @@ public:
 	void clear(MMSFBSurface *surface, MMSFBColor &color);
 	void fillRectangle(MMSFBSurface *surface, MMSFBRectangle &rect, MMSFBDrawingFlags drawingflags);
 	void fillTriangle(MMSFBSurface *surface, MMSFBTriangle &triangle);
-	void drawLine(MMSFBSurface *surface, MMSFBRegion &region);
+	void drawLine(MMSFBSurface *surface, int x1, int y1, int x2, int y2);
 	void drawRectangle(MMSFBSurface *surface, MMSFBRectangle &rect);
 	void drawTriangle(MMSFBSurface *surface, MMSFBTriangle &triangle);
 	void blit(MMSFBSurface *surface, MMSFBSurface *source, MMSFBRectangle &src_rect, int x, int y, MMSFBBlittingFlags blittingflags);
@@ -289,19 +340,26 @@ public:
 				    int src_width, int src_height, MMSFBRectangle &src_rect, int x, int y, MMSFBBlittingFlags blittingflags);
 	void stretchBlitBuffer(MMSFBSurface *surface, MMSFBSurfacePlanes *src_planes, MMSFBSurfacePixelFormat src_pixelformat,
 						   int src_width, int src_height, MMSFBRectangle &src_rect, MMSFBRectangle &dst_rect, MMSFBBlittingFlags blittingflags);
-
 	void createAlphaTexture(unsigned int *texture, unsigned char *buffer, int width, int height);
 	void deleteTexture(unsigned int texture);
 	void drawString(MMSFBSurface *surface, string &text, int len, int x, int y);
-
 	void renderScene(MMSFBSurface *surface,
-					 MMS3D_VERTEX_ARRAY	**varrays,
-					 MMS3D_INDEX_ARRAY	**iarrays,
+					 MMS_VERTEX_ARRAY	**varrays,
+					 MMS_INDEX_ARRAY	**iarrays,
 					 MMS3D_MATERIAL		*materials,
 					 MMSFBSurface		**texsurfaces,
 					 MMS3D_OBJECT		**objects);
-
 	void merge(MMSFBSurface *surface, MMSFBSurface *source1, MMSFBSurface *source2, MMSFBMergingMode mergingmode);
+	void initVertexBuffer(unsigned int *buffer, unsigned int size, void *data = NULL);
+	void initVertexSubBuffer(unsigned int buffer, unsigned int offset, unsigned int size, void *data);
+	void initIndexBuffer(unsigned int *buffer, unsigned int size, void *data = NULL);
+	void initIndexSubBuffer(unsigned int buffer, unsigned int offset, unsigned int size, void *data);
+	void deleteBuffer(unsigned int buffer);
 };
 
 #endif /* MMSFBBACKENDINTERFACE_H_ */
+
+
+
+
+

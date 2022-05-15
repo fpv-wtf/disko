@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -87,8 +87,21 @@ MMSWidget *MMSInputWidget::copyWidget() {
     // create widget
     MMSInputWidget *newWidget = new MMSInputWidget(this->rootwindow, className);
 
-    // copy widget
-    *newWidget = *this;
+    newWidget->className = this->className;
+    newWidget->inputWidgetClass = this->inputWidgetClass;
+    newWidget->myInputWidgetClass = this->myInputWidgetClass;
+
+    newWidget->lang = this->lang;
+
+    newWidget->cursor_pos = this->cursor_pos;
+    newWidget->cursor_on = this->cursor_on;
+    newWidget->scroll_x = this->scroll_x;
+    newWidget->cursor_rect = this->cursor_rect;
+
+    newWidget->iwt = this->iwt;
+
+    newWidget->current_fgset = this->current_fgset;
+    newWidget->current_fgcolor = this->current_fgcolor;
 
     // copy base widget
     MMSWidget::copyWidget((MMSWidget*)newWidget);
@@ -124,24 +137,12 @@ void MMSInputWidget::loadFont(MMSInputWidget *widget) {
 	if (this->rootwindow) {
 		// get font parameter
 		widget->lang = this->rootwindow->windowmanager->getTranslator()->getTargetLang();
-    	string fontpath = widget->getFontPath();
-    	string fontname = widget->getFontName(widget->lang);
-    	unsigned int fontsize = widget->getFontSize();
-
-    	if (fontpath != widget->fontpath || fontname != widget->fontname || fontsize != widget->fontsize || !widget->font) {
-    		// font parameter changed, (re)load it
-			if (widget->font)
-				this->rootwindow->fm->releaseFont(widget->font);
-			widget->fontpath = fontpath;
-			widget->fontname = fontname;
-			widget->fontsize = fontsize;
-			widget->font = this->rootwindow->fm->getFont(widget->fontpath, widget->fontname, widget->fontsize);
-			if (this->font) this->load_font = false;
-    	}
-    	else {
-    		// font parameter not changed, so we do not reload it
-            this->load_font = false;
-    	}
+		if (widget->font) this->rootwindow->fm->releaseFont(widget->font);
+		widget->fontpath = widget->getFontPath();
+		widget->fontname = widget->getFontName(widget->lang);
+		widget->fontsize = widget->getFontSize();
+		widget->font = this->rootwindow->fm->getFont(widget->fontpath, widget->fontname, widget->fontsize);
+		if (widget->font) widget->load_font = false;
     }
 }
 
@@ -240,6 +241,9 @@ bool MMSInputWidget::checkRefreshStatus() {
 bool MMSInputWidget::draw(bool *backgroundFilled) {
     bool myBackgroundFilled = false;
 
+    if(!surface)
+    	return false;
+
     if (backgroundFilled) {
     	if (this->has_own_surface)
     		*backgroundFilled = false;
@@ -265,6 +269,12 @@ bool MMSInputWidget::draw(bool *backgroundFilled) {
             this->surface->setFont(this->font);
 
             string text = getText();
+
+        	// language specific conversions
+        	MMSLanguage targetlang = this->rootwindow->windowmanager->getTranslator()->getTargetLang();
+        	if ((targetlang == MMSLANG_IL) || (targetlang == MMSLANG_AR)) {
+        		convBidiString(text, text, (targetlang == MMSLANG_AR) ? true : false);
+        	}
 
             // get width and height of the string to be drawn
             this->font->getStringWidth(text, -1, &width);
@@ -429,6 +439,14 @@ void MMSInputWidget::drawCursor(bool cursor_on) {
 	}
 }
 
+void MMSInputWidget::targetLangChanged(MMSLanguage lang) {
+    this->load_font = true;
+    loadFont();
+
+    // recalculate content size for dynamic widgets, because new language can result in new widget size
+    // note: DO NOT REFRESH at this point
+    recalcContentSize(false);
+}
 
 void MMSInputWidget::setCursorPos(int cursor_pos, bool refresh) {
 	if (cursor_pos < 0) {
@@ -448,8 +466,7 @@ void MMSInputWidget::setCursorPos(int cursor_pos, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-		this->refresh();
+	this->refresh(refresh);
 }
 
 bool MMSInputWidget::addTextAfterCursorPos(string text, bool refresh) {
@@ -732,6 +749,7 @@ void MMSInputWidget::handleInput(MMSInputEvent *inputevent) {
 
 			default:
 				processed = false;
+				break;
 		}
 	}
 
@@ -846,8 +864,7 @@ void MMSInputWidget::setFontPath(string fontpath, bool load, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSInputWidget::setFontName(MMSLanguage lang, string fontname, bool load, bool refresh) {
@@ -860,8 +877,7 @@ void MMSInputWidget::setFontName(MMSLanguage lang, string fontname, bool load, b
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSInputWidget::setFontName(string fontname, bool load, bool refresh) {
@@ -878,8 +894,7 @@ void MMSInputWidget::setFontSize(unsigned int fontsize, bool load, bool refresh)
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSInputWidget::setFont(MMSLanguage lang, string fontpath, string fontname, unsigned int fontsize, bool load, bool refresh) {
@@ -894,8 +909,7 @@ void MMSInputWidget::setFont(MMSLanguage lang, string fontpath, string fontname,
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSInputWidget::setFont(string fontpath, string fontname, unsigned int fontsize, bool load, bool refresh) {
@@ -908,8 +922,7 @@ void MMSInputWidget::setAlignment(MMSALIGNMENT alignment, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSInputWidget::setColor(MMSFBColor color, bool refresh) {
@@ -918,8 +931,7 @@ void MMSInputWidget::setColor(MMSFBColor color, bool refresh) {
 	// refresh required?
 	enableRefresh((color != this->current_fgcolor));
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSInputWidget::setSelColor(MMSFBColor selcolor, bool refresh) {
@@ -928,8 +940,7 @@ void MMSInputWidget::setSelColor(MMSFBColor selcolor, bool refresh) {
 	// refresh required?
 	enableRefresh((selcolor != this->current_fgcolor));
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSInputWidget::setColor_p(MMSFBColor color_p, bool refresh) {
@@ -938,8 +949,7 @@ void MMSInputWidget::setColor_p(MMSFBColor color_p, bool refresh) {
 	// refresh required?
 	enableRefresh((color_p != this->current_fgcolor));
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSInputWidget::setSelColor_p(MMSFBColor selcolor_p, bool refresh) {
@@ -948,8 +958,7 @@ void MMSInputWidget::setSelColor_p(MMSFBColor selcolor_p, bool refresh) {
 	// refresh required?
 	enableRefresh((selcolor_p != this->current_fgcolor));
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSInputWidget::setColor_i(MMSFBColor color_i, bool refresh) {
@@ -958,8 +967,7 @@ void MMSInputWidget::setColor_i(MMSFBColor color_i, bool refresh) {
 	// refresh required?
 	enableRefresh((color_i != this->current_fgcolor));
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSInputWidget::setSelColor_i(MMSFBColor selcolor_i, bool refresh) {
@@ -968,8 +976,7 @@ void MMSInputWidget::setSelColor_i(MMSFBColor selcolor_i, bool refresh) {
 	// refresh required?
 	enableRefresh((selcolor_i != this->current_fgcolor));
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSInputWidget::setText(string text, bool refresh, bool reset_cursor) {
@@ -985,8 +992,7 @@ void MMSInputWidget::setText(string text, bool refresh, bool reset_cursor) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSInputWidget::setCursorState(MMSSTATE cursor_state, bool refresh) {
@@ -995,8 +1001,7 @@ void MMSInputWidget::setCursorState(MMSSTATE cursor_state, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSInputWidget::setShadowColor(MMSPOSITION position, MMSFBColor color, bool refresh) {
@@ -1005,8 +1010,7 @@ void MMSInputWidget::setShadowColor(MMSPOSITION position, MMSFBColor color, bool
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSInputWidget::setSelShadowColor(MMSPOSITION position, MMSFBColor selcolor, bool refresh) {
@@ -1015,8 +1019,7 @@ void MMSInputWidget::setSelShadowColor(MMSPOSITION position, MMSFBColor selcolor
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSInputWidget::updateFromThemeClass(MMSInputWidgetClass *themeClass) {

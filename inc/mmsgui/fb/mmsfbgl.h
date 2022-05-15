@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -43,19 +43,24 @@
 #ifdef __HAVE_GL2__
 #include <GL/glew.h>
 #include <GL/gl.h>
+#include <GL/glext.h>
 #endif
 
 #ifdef __HAVE_GLX__
 #include <GL/glx.h>
-#include <GL/glu.h>
 #endif
 
 #ifdef __HAVE_GLES2__
 #include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 #endif
 
 #ifdef __HAVE_EGL__
 #include <EGL/egl.h>
+#endif
+
+#ifdef GL_HALF_FLOAT_OES
+#define __HAVE_OGL_HALF_FLOAT__
 #endif
 
 //! Wrapper class for all supported Open GL versions.
@@ -94,7 +99,14 @@ class MMSFBGL {
     	int screen_width;
     	int screen_height;
 
+    	//! frame buffer object which is currently bound
     	GLuint bound_fbo;
+
+    	//! vertex buffer object which is currently bound
+    	GLuint bound_vbo;
+
+    	//! index buffer object which is currently bound
+    	GLuint bound_ibo;
 
     	//! program handle to the fragment and vertex shader used for drawing primitives
     	GLuint po_draw;
@@ -139,7 +151,7 @@ class MMSFBGL {
     	bool VSTexCoordLoc_initialized;
 
     	//! current matrix
-    	MMS3DMatrix	current_matrix;
+    	MMSMatrix	current_matrix;
 
     	//! current color
     	unsigned char	current_color_r;
@@ -149,18 +161,19 @@ class MMSFBGL {
 
     	class MMSFBGLStackMatrix {
     	public:
-    		MMS3DMatrix matrix;
-    		MMSFBGLStackMatrix(MMS3DMatrix matrix) {
-    			memcpy(this->matrix, matrix, sizeof(MMS3DMatrix));
+    		MMSMatrix matrix;
+    		MMSFBGLStackMatrix(MMSMatrix matrix) {
+    			memcpy(this->matrix, matrix, sizeof(MMSMatrix));
     		}
-    		void getMatrix(MMS3DMatrix matrix) {
-    			memcpy(matrix, this->matrix, sizeof(MMS3DMatrix));
+    		void getMatrix(MMSMatrix matrix) {
+    			memcpy(matrix, this->matrix, sizeof(MMSMatrix));
     		}
     	};
 
     	//! matrix stack
         std::stack<MMSFBGLStackMatrix> matrix_stack;
 
+        void printImplementationInformation();
 
     	bool getError(const char* where, int line = __LINE__);
 
@@ -176,6 +189,12 @@ class MMSFBGL {
     	void deleteShaders();
         bool initShaders();
 
+        bool useShaderProgram4Drawing();
+        bool useShaderProgram4Blitting();
+        bool useShaderProgram4ModulateBlitting();
+        bool useShaderProgram4BlittingFromAlpha();
+        bool useShaderProgram4ModulateBlittingFromAlpha();
+
     public:
         MMSFBGL();
         ~MMSFBGL();
@@ -188,6 +207,18 @@ class MMSFBGL {
     	bool terminate();
     	bool getResolution(int *w, int *h);
     	bool swap();
+
+        bool genBuffer(GLuint *bo);
+        bool deleteBuffer(GLuint bo);
+        bool bindBuffer(GLenum target, GLuint bo);
+        bool initVertexBuffer(GLuint vbo, unsigned int size, const GLvoid *data = NULL);
+        bool initVertexSubBuffer(GLuint vbo, unsigned int offset, unsigned int size, const GLvoid *data);
+        bool enableVertexBuffer(GLuint vbo);
+        void disableVertexBuffer();
+        bool initIndexBuffer(GLuint ibo, unsigned int size, const GLvoid *data = NULL);
+        bool initIndexSubBuffer(GLuint ibo, unsigned int offset, unsigned int size, const GLvoid *data);
+        bool enableIndexBuffer(GLuint ibo);
+        void disableIndexBuffer();
 
         bool genTexture(GLuint *tex);
         bool deleteTexture(GLuint tex);
@@ -223,21 +254,15 @@ class MMSFBGL {
 		void setTexEnvModulate(GLenum format);
 		void disableArrays();
 
-        bool useShaderProgram4Drawing();
-        bool useShaderProgram4Blitting();
-        bool useShaderProgram4ModulateBlitting();
-        bool useShaderProgram4BlittingFromAlpha();
-        bool useShaderProgram4ModulateBlittingFromAlpha();
-
-        bool setCurrentMatrix(MMS3DMatrix matrix);
-        bool getCurrentMatrix(MMS3DMatrix matrix);
+        bool setCurrentMatrix(MMSMatrix matrix);
+        bool getCurrentMatrix(MMSMatrix matrix);
         bool scaleCurrentMatrix(GLfloat sx, GLfloat sy, GLfloat sz);
         bool translateCurrentMatrix(GLfloat tx, GLfloat ty, GLfloat tz);
         bool rotateCurrentMatrix(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
 
-        bool getParallelProjectionMatrix(MMS3DMatrix result, float left, float right, float bottom, float top, float nearZ, float farZ);
-        bool getCentralProjectionMatrix(MMS3DMatrix result, float left, float right, float bottom, float top, float nearZ, float farZ);
-        bool getPerspectiveMatrix(MMS3DMatrix result, float fovy, float aspect, float nearZ, float farZ);
+        bool getParallelProjectionMatrix(MMSMatrix result, float left, float right, float bottom, float top, float nearZ, float farZ);
+        bool getCentralProjectionMatrix(MMSMatrix result, float left, float right, float bottom, float top, float nearZ, float farZ);
+        bool getPerspectiveMatrix(MMSMatrix result, float fovy, float aspect, float nearZ, float farZ);
 
         bool setParallelProjection(float left, float right, float bottom, float top, float nearZ, float farZ);
         bool setCentralProjection(float left, float right, float bottom, float top, float nearZ, float farZ);
@@ -248,6 +273,9 @@ class MMSFBGL {
 
         bool clear(unsigned char r = 0x00, unsigned char g = 0x00, unsigned char b = 0x00, unsigned char a = 0x00);
         bool setColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+
+        bool drawLine2D(float x1, float y1, float x2, float y2);
+        bool drawLine2Di(int x1, int y1, int x2, int y2);
 
         bool drawRectangle2D(float x1, float y1, float x2, float y2);
         bool drawRectangle2Di(int x1, int y1, int x2, int y2);
@@ -282,10 +310,18 @@ class MMSFBGL {
 
         bool blitBuffer2Texture(GLuint dst_tex, bool realloc, void *buffer, int sw, int sh);
 
-        bool drawElements(MMS3D_VERTEX_ARRAY *vertices, MMS3D_VERTEX_ARRAY *normals, MMS3D_VERTEX_ARRAY *texcoords,
-						  MMS3D_INDEX_ARRAY *indices);
+        bool drawElements(MMS_VERTEX_ARRAY *vertices, MMS_VERTEX_ARRAY *normals, MMS_VERTEX_ARRAY *texcoords,
+						  MMS_INDEX_ARRAY *indices);
+
+        bool drawElements(MMS_VERTEX_BUFFER *vertices, MMS_VERTEX_BUFFER *normals, MMS_VERTEX_BUFFER *texcoords,
+						  MMS_INDEX_BUFFER *indices);
 };
 
 #endif
 
 #endif /* MMSFBGL_H_ */
+
+
+
+
+

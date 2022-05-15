@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -35,6 +35,8 @@
 
 #include "mmstools/mmsthread.h"
 
+#include <sigc++/sigc++.h>
+
 //! This class is the base class for all threads which works as a server.
 /*!
 This class includes the base functionality e.g. the handshake between server and client threads.
@@ -43,6 +45,9 @@ You can use the onProcessData() callback if you do not want to derive your own c
 */
 class MMSThreadServer : public MMSThread {
 	private:
+		//! id of the server thread
+		pthread_t server_tid;
+
 		//! describes one item/request in the queue
 		typedef struct {
 			//! variable for conditional handling

@@ -42,8 +42,8 @@
 /** \mainpage Disko
  *
  * \htmlonly
- * <div align="center">
- * <a href="start.html"><img src="disko_claimed_blkontransp.png" alt="More..." border="0"></a>
+ * <div align="center" style="margin:100px;">
+ * <a href="start.html"><img src="disko_claimed_blkontransp.png" alt="More..." border="0" /></a>
  * </div>
  * \endhtmlonly
  */

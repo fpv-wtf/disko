@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -44,7 +44,7 @@ bool MMSButtonWidget::create(MMSWindow *root, string className, MMSTheme *theme)
     this->className = className;
 
     // init attributes for drawable widgets
-	this->da = new MMSWIDGET_DRAWABLE_ATTRIBUTES;
+    this->da = new MMSWIDGET_DRAWABLE_ATTRIBUTES;
     if (theme) this->da->theme = theme; else this->da->theme = globalTheme;
     this->buttonWidgetClass = this->da->theme->getButtonWidgetClass(className);
     this->da->baseWidgetClass = &(this->da->theme->buttonWidgetClass.widgetClass);
@@ -57,8 +57,11 @@ MMSWidget *MMSButtonWidget::copyWidget() {
     /* create widget */
     MMSButtonWidget *newWidget = new MMSButtonWidget(this->rootwindow, className);
 
-    /* copy widget */
-    *newWidget = *this;
+    //copy _only_!!!!!!!! my attributes
+
+    newWidget->className = this->className;
+    newWidget->buttonWidgetClass = this->buttonWidgetClass;
+    newWidget->myButtonWidgetClass = this->myButtonWidgetClass;
 
     /* copy base widget */
     MMSWidget::copyWidget((MMSWidget*)newWidget);
@@ -84,6 +87,9 @@ bool MMSButtonWidget::release() {
 
 bool MMSButtonWidget::draw(bool *backgroundFilled) {
     bool myBackgroundFilled = false;
+
+    if(!surface)
+    	return false;
 
     if (backgroundFilled) {
     	if (this->has_own_surface)

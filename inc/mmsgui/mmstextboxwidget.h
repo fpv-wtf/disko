@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -108,10 +108,14 @@ class MMSTextBoxWidget : public MMSWidget {
         bool calcWordGeom(string &text, unsigned int startWidth, unsigned int startHeight,
                           unsigned int *realWidth, unsigned int *realHeight,
                           unsigned int *scrollDX, unsigned int *scrollDY, unsigned int *lines, unsigned int *paragraphs,
-                          bool wrap = true, bool splitwords = true, MMSALIGNMENT alignment = MMSALIGNMENT_CENTER);
+                          bool wrap = true, bool splitwords = true, MMSALIGNMENT alignment = MMSALIGNMENT_CENTER,
+                          unsigned int *minWidth = NULL, unsigned int *minHeight = NULL, bool force_recalc = false);
 
         bool init();
         bool release();
+
+        bool prepareText(int *width, int *height, bool recalc = false);
+        void calcContentSize();
 
         void getForeground(MMSFBColor *color);
         bool enableRefresh(bool enable = true);

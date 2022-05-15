@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -30,20 +30,27 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA            *
  **************************************************************************/
 
+/**
+ * @file mmsfile.cpp
+ *
+ * Implementation of MMSFile class.
+ *
+ * @ingroup mmstools
+ */
+
 #include <cstdio>
 #include <stdlib.h>
-#include <errno.h>
+#include <unistd.h>
+#include <cerrno>
 #include <cstring>
-
-#ifdef __HAVE_CURL__
-#include <curl/curl.h>
-#endif
 
 #include "mmstools/mmsfile.h"
 #include "mmstools/tools.h"
 
 #ifdef __HAVE_CURL__
-/* curl calls this c-routine to transfer data to the object */
+/**
+ * Curl calls this c-routine to transfer data to the object.
+ */
 size_t c_write_cb(char *buffer, size_t size, size_t nitems, void *outstream) {
     if (outstream)
         return ((MMSFile *)outstream)->write_cb(buffer, size, nitems, outstream);
@@ -1089,18 +1096,22 @@ bool MMSFile::getLine(char **ptr) {
 bool MMSFile::getLine(string &line) {
     int slen;
     char *ptr = NULL;
-    if (getStringEx(&ptr))
-        if (*ptr)
-            if (ptr) {
+    int ret = false;
+
+    if (getStringEx(&ptr)) {
+        if (ptr) {
+            if (*ptr) {
                 slen=strlen(ptr);
                 if ((ptr)[slen-1]=='\n')
                     (ptr)[slen-1]=0;
                 line = ptr;
-				free(ptr);
-                return true;
+                ret = true;
             }
+			free(ptr);
+        }
+    }
 
-    return false;
+    return ret;
 }
 
 bool MMSFile::getChar(char *ptr) {

@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -320,6 +320,9 @@ void MMSThemeManager::throughFile(MMSTaffFile *tafff, MMSTheme *theme) {
 		case MMSGUI_TAGTABLE_TAG_IMAGEWIDGET:
 			getImageWidgetValues(tafff, &(theme->imageWidgetClass), theme);
 			break;
+		case MMSGUI_TAGTABLE_TAG_CANVASWIDGET:
+			getCanvasWidgetValues(tafff, &(theme->canvasWidgetClass), theme);
+			break;
 		case MMSGUI_TAGTABLE_TAG_BUTTONWIDGET:
 			getButtonWidgetValues(tafff, &(theme->buttonWidgetClass), theme);
 			break;
@@ -388,6 +391,9 @@ void MMSThemeManager::throughFile(MMSTaffFile *tafff, MMSTheme *theme) {
             break;
 		case MMSGUI_TAGTABLE_TAG_CLASS_CHECKBOXWIDGET:
 			GET_THEME_CLASS(getCheckBoxWidgetClassValues);
+            break;
+		case MMSGUI_TAGTABLE_TAG_CLASS_CANVASWIDGET:
+			GET_THEME_CLASS(getCanvasWidgetClassValues);
             break;
 		}
 	}
@@ -502,6 +508,17 @@ void  MMSThemeManager::getImageWidgetValues(MMSTaffFile *tafff, MMSImageWidgetCl
     themeClass->setAttributesFromTAFF(tafff, NULL, &themePath, true);
 }
 
+void  MMSThemeManager::getCanvasWidgetValues(MMSTaffFile *tafff, MMSCanvasWidgetClass *themeClass, MMSTheme *theme) {
+
+    string themePath = "";
+    if (theme)
+        themePath = theme->getThemePath();
+
+    themeClass->widgetClass.border.setAttributesFromTAFF(tafff, NULL, &themePath, true);
+    themeClass->widgetClass.setAttributesFromTAFF(tafff, NULL, &themePath, true);
+
+    themeClass->setAttributesFromTAFF(tafff, NULL, &themePath, true);
+}
 
 void  MMSThemeManager::getButtonWidgetValues(MMSTaffFile *tafff, MMSButtonWidgetClass *themeClass, MMSTheme *theme) {
 
@@ -718,6 +735,22 @@ void MMSThemeManager::getImageWidgetClassValues(MMSTaffFile *tafff, MMSTheme *th
     }
     else {
         getImageWidgetValues(tafff, themeClass, theme);
+        themeClass->setClassName(className);
+    }
+}
+
+void MMSThemeManager::getCanvasWidgetClassValues(MMSTaffFile *tafff, MMSTheme *theme, string className) {
+    MMSCanvasWidgetClass *themeClass = theme->getCanvasWidgetClass(className);
+
+    if (!themeClass) {
+        themeClass = new MMSCanvasWidgetClass;
+        getCanvasWidgetValues(tafff, themeClass, theme);
+        themeClass->setClassName(className);
+        if (!theme->addCanvasWidgetClass(themeClass))
+            delete themeClass;
+    }
+    else {
+        getCanvasWidgetValues(tafff, themeClass, theme);
         themeClass->setClassName(className);
     }
 }

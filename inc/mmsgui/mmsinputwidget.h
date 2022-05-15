@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -94,6 +94,9 @@ class MMSInputWidget : public MMSWidget {
 
         bool draw(bool *backgroundFilled = NULL);
         void drawCursor(bool cursor_on);
+
+        //! Internal method: Inform the widget, that the language has changed.
+		void targetLangChanged(MMSLanguage lang);
 
     public:
         MMSInputWidget(MMSWindow *root, string className, MMSTheme *theme = NULL);
@@ -181,6 +184,7 @@ class MMSInputWidget : public MMSWidget {
 
         void updateFromThemeClass(MMSInputWidgetClass *themeClass);
 
+    friend class MMSWindow;
     friend class MMSInputWidgetThread;
 };
 

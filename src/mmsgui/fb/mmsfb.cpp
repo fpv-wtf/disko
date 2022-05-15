@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -36,6 +36,14 @@
 #include "mmsgui/fb/mmsfbsurfacemanager.h"
 #include <string.h>
 #include <stdlib.h>
+
+//#define DEBUG_LOCK_OUTPUT
+#ifdef DEBUG_LOCK_OUTPUT
+#include <sys/syscall.h>
+#define PRINT_LOCK(msg...) printf("%s (%lu)\n", ((string)(msg)).c_str(), (pid_t) syscall (SYS_gettid))
+#else
+#define PRINT_LOCK(msg...)
+#endif
 
 /* initialize the mmsfb object */
 MMSFB *mmsfb = new MMSFB();
@@ -94,7 +102,7 @@ bool MMSFB::init(int argc, char **argv, MMSFBBackend backend, MMSFBRectangle x11
     // save arguments
     this->argc = argc;
     this->argv = argv;
-    this->bin = argv[0];
+    this->bin = ((argc && argv) ? argv[0] : "");
     this->appliconname = appl_icon_name;
     this->applname = appl_name;
     this->fullscreen = fullscreen;
@@ -190,7 +198,10 @@ bool MMSFB::init(int argc, char **argv, MMSFBBackend backend, MMSFBRectangle x11
 bool MMSFB::release() {
 #ifdef __HAVE_OPENGL__
 	// stop backend interface server
-	if (this->bei) delete this->bei;
+	if (this->bei) {
+		delete this->bei;
+		this->bei = NULL;
+	}
 #endif
 
     if (this->backend == MMSFB_BE_DFB) {
@@ -226,13 +237,18 @@ MMSFBBackend MMSFB::getBackend() {
 }
 
 bool MMSFB::lock() {
+	PRINT_LOCK("mmsfb::lock");
 	this->Lock.lock();
 	return true;
 }
 
 bool MMSFB::unlock() {
-	this->Lock.unlock();
-	return true;
+	PRINT_LOCK("mmsfb::unlock");
+
+	if(this->Lock.unlock() == 0)
+		return true;
+	else
+		return false;
 }
 
 bool MMSFB::getLayer(int id, MMSFBLayer **layer, MMSFBOutputType outputtype, bool virtual_console) {

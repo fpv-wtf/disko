@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -40,6 +40,7 @@
 #include "mmsgui/mmsfbmanager.h"
 #include "mmsgui/interfaces/immswindowmanager.h"
 #include "mmstools/mmsmutex.h"
+#include "mmstools/mmspulser.h"
 
 // support old renamed methods
 #define searchForWindow		findWindow
@@ -518,6 +519,9 @@ class MMSWindow {
 
         //! Internal method: Hide the window without animation.
 		void instantHide();
+
+        //! Internal method: Give window a recalculation hint used for next draw().
+		void setWidgetGeometryOnNextDraw();
 
         //! Internal method: Inform the window, that the language has changed.
         void targetLangChanged(MMSLanguage lang, bool refresh = true);
@@ -1670,6 +1674,7 @@ class MMSWindow {
     friend class MMSSliderWidget;
     friend class MMSInputWidget;
     friend class MMSCheckBoxWidget;
+    friend class MMSCanvasWidget;
 };
 
 #endif /*MMSWINDOW_H_*/

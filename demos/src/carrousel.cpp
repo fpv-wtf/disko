@@ -15,7 +15,8 @@ struct timeval perf_stime;
 struct timeval perf_etime;
 
 
-#ifdef __HAVE_MMS3D__
+#if (defined(MMS_VA_SET_VERTEX_3v))
+
 
 typedef enum {
 	MODE_ROTATE_Y = 0,
@@ -131,8 +132,8 @@ class MyScene : public MMSThread {
 
 
         	// render scene...
-        	MMS3D_VERTEX_ARRAY	**varrays;
-        	MMS3D_INDEX_ARRAY	**iarrays;
+        	MMS_VERTEX_ARRAY	**varrays;
+        	MMS_INDEX_ARRAY		**iarrays;
         	MMS3D_MATERIAL		*materials;
         	MMSFBSurface		**textures;
         	MMS3D_OBJECT		**objects;
@@ -159,7 +160,8 @@ class MyScene : public MMSThread {
         		if (fps->getRootWindow()->isShown(true)) {
         			// all my parent windows are shown
 					gettimeofday(&perf_stime, NULL);
-
+					//lock mmsfb to ensure single threaded access to mmsgui
+					mmsfb->lock();
 					fps->setText(iToStr((int)angle_x) + "°, "
 									+ iToStr((int)angle_y) + "°, "
 									+ iToStr((int)angle_z) + "°, "
@@ -168,6 +170,7 @@ class MyScene : public MMSThread {
 		        	if (this->window) {
 		        		window->refresh();
 		        	}
+					mmsfb->unlock();
 
 					process_modes();
 
@@ -219,7 +222,7 @@ class MyScene : public MMSThread {
         	// setup the base matrix for scene
 			int w, h;
 			window->getSurface()->getSize(&w, &h);
-			MMS3DMatrix matrix;
+			MMSMatrix matrix;
 			loadIdentityMatrix(matrix);
 			frustumMatrix(matrix, -w/2, w/2, -h/2, h/2, 200, 1700);
     		scene.setBaseMatrix(matrix);
@@ -401,7 +404,7 @@ Carrousel::Carrousel(MMSDialogManager &dm, string name) {
 
 		fps = (MMSLabelWidget *)this->controlwin->findWidget("fps");
 
-#ifdef __HAVE_MMS3D__
+#if (defined(MMS_VA_SET_VERTEX_3v))
 		MyScene *myscene = new MyScene(this->controlwin->findWindow("scene_window"));
 		myscene->start();
 #endif
@@ -417,7 +420,7 @@ Carrousel::~Carrousel() {
 
 
 void Carrousel::onReturn(MMSWidget* widget) {
-#ifdef __HAVE_MMS3D__
+#if (defined(MMS_VA_SET_VERTEX_3v))
 	if (widget->getType()!=MMSWIDGETTYPE_MENU)
 		return;
 

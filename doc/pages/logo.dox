@@ -1,4 +1,11 @@
 /** \page logo Logo
- *
+ * <DIV style="margin:100px;">
  * \image html disko_claimed_blkontransp.png
+ * </DIV>
+ */
+
+/** \page toplogo Top-Logo
+ * <DIV style="width:100%;background:#262929;">
+ * \image html disko-logo.png
+ * </DIV>
  */

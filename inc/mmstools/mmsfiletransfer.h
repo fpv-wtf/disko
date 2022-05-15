@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -33,12 +33,17 @@
 #ifndef MMSFILETRANSFER_H_
 #define MMSFILETRANSFER_H_
 #ifdef __HAVE_CURL__
-#include "mmstools/base.h"
 
+using namespace std;
+
+#include <string>
+#include <sigc++/sigc++.h>
+
+extern "C" {
 #include <curl/curl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sigc++/sigc++.h>
+}
 
 /** Specifies a structure for file operations */
 typedef struct {

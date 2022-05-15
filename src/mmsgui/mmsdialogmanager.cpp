@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -33,9 +33,60 @@
 #include "mmsgui/mmsdialogmanager.h"
 #include "mmsgui/mmswindows.h"
 #include "mmsgui/mmswidgets.h"
+#include "mmsgui/mmscanvasfactory.h"
 #include "mmsgui/theme/mmsthememanager.h"
 #include <string.h>
 #include <algorithm>
+
+// read widget attributes from TAFF which are not defined in theme classes
+#define READ_DM_SPECIFIC_WIDGET_ATTRIBUTES(name, size, min_width, min_height, max_width, max_height) \
+	case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name: \
+		name = attrval_str; \
+		break; \
+	case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_size: \
+		size = attrval_str; \
+		break; \
+	case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_min_width: \
+		min_width = attrval_str; \
+		break; \
+	case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_min_height: \
+		min_height = attrval_str; \
+		break; \
+	case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_max_width: \
+		max_width = attrval_str; \
+		break; \
+	case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_max_height: \
+		max_height = attrval_str; \
+		break;
+
+
+// set widget attributes which are not defined in theme classes
+#define SET_DM_SPECIFIC_WIDGET_ATTRIBUTES(widget, name, size, min_width, min_height, max_width, max_height) \
+    if (!name.empty()) { \
+		widget->setName(name); \
+		insertNamedWidget(widget); \
+	} \
+    if (!size.empty()) { \
+		if (!widget->setSizeHint(size)) \
+            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'"); \
+    } \
+	if (!min_width.empty()) { \
+	    if (!widget->setMinWidth(min_width)) \
+            throw MMSDialogManagerError(1, "invalid widget min_width '" + min_width + "'"); \
+	} \
+	if (!min_height.empty()) { \
+	    if (!widget->setMinHeight(min_height)) \
+            throw MMSDialogManagerError(1, "invalid widget min_height '" + min_height + "'"); \
+	} \
+	if (!max_width.empty()) { \
+	    if (!widget->setMaxWidth(max_width)) \
+            throw MMSDialogManagerError(1, "invalid widget max_width '" + max_width + "'"); \
+	} \
+	if (!max_height.empty()) { \
+	    if (!widget->setMaxHeight(max_height)) \
+            throw MMSDialogManagerError(1, "invalid widget max_height '" + max_height + "'"); \
+	}
+
 
 MMSDialogManager::MMSDialogManager(bool leave_window) :
 	leave_window(leave_window),
@@ -285,6 +336,9 @@ void MMSDialogManager::throughDoc(MMSTaffFile *tafff, MMSWidget *currentWidget, 
                     break;
         		case MMSGUI_TAGTABLE_TAG_GAPWIDGET:
                     widgetName = getGapValues(tafff, currentWidget, rootWindow, theme);
+                    break;
+                case MMSGUI_TAGTABLE_TAG_CANVASWIDGET:
+        	        widgetName = getCanvasValues(tafff, currentWidget, rootWindow, theme);
                     break;
         		}
 
@@ -645,8 +699,7 @@ void MMSDialogManager::getChildWindowValues(MMSTaffFile *tafff, MMSWindow *rootW
 
 string MMSDialogManager::getTemplateValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
     MMSTemplateClass    themeClass, *templateClass = NULL;
-    string              name = "";
-    string              size = "";
+    string              name, size, min_width, min_height, max_width, max_height;
     bool				show = false;
     MMSTaffFile        	*tf;
     vector<string>      widgetNames;
@@ -682,13 +735,10 @@ string MMSDialogManager::getTemplateValues(MMSTaffFile *tafff, MMSWidget *curren
     startTAFFScan
     {
         switch (attrid) {
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
-            name = attrval_str;
-			break;
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_size:
-	        size = attrval_str;
-			break;
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_show:
+        // read widget attributes from TAFF which are not defined in theme classes
+        READ_DM_SPECIFIC_WIDGET_ATTRIBUTES(name, size, min_width, min_height, max_width, max_height);
+
+        case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_show:
 	        show = (attrval_int)?true:false;
 			break;
         }
@@ -723,16 +773,8 @@ string MMSDialogManager::getTemplateValues(MMSTaffFile *tafff, MMSWidget *curren
 		MMSWidget *newWidget = (!currentWidget)?((*rootWindow)[""]):currentWidget->getLastWidget();
 
 		if (newWidget) {
-		    if (!name.empty()) {
-		    	// add to widget vector if named
-		    	newWidget->setName(name);
-		        insertNamedWidget(newWidget);
-		    }
-
-			if (!size.empty()) {
-			    // set size within parent widget
-				newWidget->setSizeHint(size);
-			}
+			// set widget attributes which are not defined in theme classes
+			SET_DM_SPECIFIC_WIDGET_ATTRIBUTES(newWidget, name, size, min_width, min_height, max_width, max_height);
 
 			// for each child widget which is named by attribute
 			vector<string>::iterator i;
@@ -774,32 +816,21 @@ string MMSDialogManager::getTemplateValues(MMSTaffFile *tafff, MMSWidget *curren
 
 string MMSDialogManager::getVBoxValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
     MMSVBoxWidget *vbox;
-    string  name = "";
-    string  size = "";
+    string name, size, min_width, min_height, max_width, max_height;
 
     startTAFFScan
     {
         switch (attrid) {
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
-            name = attrval_str;
-			break;
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_size:
-	        size = attrval_str;
-			break;
+        // read widget attributes from TAFF which are not defined in theme classes
+        READ_DM_SPECIFIC_WIDGET_ATTRIBUTES(name, size, min_width, min_height, max_width, max_height);
 	    }
     }
     endTAFFScan
 
 	vbox = new MMSVBoxWidget(rootWindow);
 
-    // add to widget vector if named
-    if(!name.empty()) {
-        vbox->setName(name);
-        insertNamedWidget(vbox);
-    }
-
-	if(!size.empty())
-	    vbox->setSizeHint(size);
+	// set widget attributes which are not defined in theme classes
+	SET_DM_SPECIFIC_WIDGET_ATTRIBUTES(vbox, name, size, min_width, min_height, max_width, max_height);
 
 	if (currentWidget)
         currentWidget->add(vbox);
@@ -814,32 +845,21 @@ string MMSDialogManager::getVBoxValues(MMSTaffFile *tafff, MMSWidget *currentWid
 
 string MMSDialogManager::getHBoxValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
     MMSHBoxWidget *hbox;
-    string  name = "";
-    string  size = "";
+    string name, size, min_width, min_height, max_width, max_height;
 
     startTAFFScan
     {
         switch (attrid) {
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
-            name = attrval_str;
-			break;
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_size:
-	        size = attrval_str;
-			break;
+        // read widget attributes from TAFF which are not defined in theme classes
+        READ_DM_SPECIFIC_WIDGET_ATTRIBUTES(name, size, min_width, min_height, max_width, max_height);
 	    }
     }
     endTAFFScan
 
 	hbox = new MMSHBoxWidget(rootWindow);
 
-    // add to widget vector if named
-    if(!name.empty()) {
-        hbox->setName(name);
-        insertNamedWidget(hbox);
-    }
-
-	if(!size.empty())
-	    hbox->setSizeHint(size);
+	// set widget attributes which are not defined in theme classes
+	SET_DM_SPECIFIC_WIDGET_ATTRIBUTES(hbox, name, size, min_width, min_height, max_width, max_height);
 
     if (currentWidget)
         currentWidget->add(hbox);
@@ -856,8 +876,7 @@ string MMSDialogManager::getHBoxValues(MMSTaffFile *tafff, MMSWidget *currentWid
 string MMSDialogManager::getLabelValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
     MMSLabelWidgetClass   themeClass;
     MMSLabelWidget  *label;
-    string          name = "";
-    string          size = "";
+    string name, size, min_width, min_height, max_width, max_height;
 
     // get themepath
     string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
@@ -877,26 +896,14 @@ string MMSDialogManager::getLabelValues(MMSTaffFile *tafff, MMSWidget *currentWi
     startTAFFScan
     {
         switch (attrid) {
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
-            name = attrval_str;
-			break;
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_size:
-	        size = attrval_str;
-			break;
+        // read widget attributes from TAFF which are not defined in theme classes
+        READ_DM_SPECIFIC_WIDGET_ATTRIBUTES(name, size, min_width, min_height, max_width, max_height);
 	    }
     }
     endTAFFScan
 
-    // add to widget vector if named
-    if(!name.empty()) {
-        label->setName(name);
-        insertNamedWidget(label);
-    }
-
-    if(!size.empty()) {
-        if (!label->setSizeHint(size))
-            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
-    }
+	// set widget attributes which are not defined in theme classes
+	SET_DM_SPECIFIC_WIDGET_ATTRIBUTES(label, name, size, min_width, min_height, max_width, max_height);
 
     if (currentWidget)
         currentWidget->add(label);
@@ -914,8 +921,7 @@ string MMSDialogManager::getLabelValues(MMSTaffFile *tafff, MMSWidget *currentWi
 string MMSDialogManager::getButtonValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
     MMSButtonWidgetClass  themeClass;
     MMSButtonWidget *button;
-    string          name = "";
-    string          size = "";
+    string name, size, min_width, min_height, max_width, max_height;
 
     // get themepath
     string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
@@ -935,26 +941,14 @@ string MMSDialogManager::getButtonValues(MMSTaffFile *tafff, MMSWidget *currentW
     startTAFFScan
     {
         switch (attrid) {
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
-            name = attrval_str;
-			break;
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_size:
-	        size = attrval_str;
-			break;
+        // read widget attributes from TAFF which are not defined in theme classes
+        READ_DM_SPECIFIC_WIDGET_ATTRIBUTES(name, size, min_width, min_height, max_width, max_height);
 	    }
     }
     endTAFFScan
 
-    // add to widget vector if named
-    if(!name.empty()) {
-        button->setName(name);
-        insertNamedWidget(button);
-    }
-
-    if(!size.empty()) {
-        if (!button->setSizeHint(size))
-            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
-    }
+	// set widget attributes which are not defined in theme classes
+	SET_DM_SPECIFIC_WIDGET_ATTRIBUTES(button, name, size, min_width, min_height, max_width, max_height);
 
     if (currentWidget)
         currentWidget->add(button);
@@ -967,11 +961,68 @@ string MMSDialogManager::getButtonValues(MMSTaffFile *tafff, MMSWidget *currentW
     return name;
 }
 
+string MMSDialogManager::getCanvasValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
+    MMSCanvasWidgetClass  themeClass;
+    MMSCanvasWidget *canvas;
+    string name, size, min_width, min_height, max_width, max_height, factoryname;
+
+    // get themepath
+    string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
+
+    // read settings from dialog
+    themeClass.widgetClass.border.setAttributesFromTAFF(tafff, NULL, &themePath);
+    themeClass.widgetClass.setAttributesFromTAFF(tafff,  NULL, &themePath);
+    themeClass.setAttributesFromTAFF(tafff, NULL, &themePath);
+
+
+    themeClass.widgetClass.getFactoryName(factoryname);
+    // create new canvas from factory with theme class
+    if(factoryname.empty()) {
+		throw MMSDialogManagerError(1, "canvas without factoryname is not allowed!");
+    }
+
+    MMSCanvasFactory factory;
+	canvas = factory.constructCanvas(factoryname.c_str(), rootWindow, themeClass.getClassName(), theme);
+
+	if(!canvas) {
+		throw MMSDialogManagerError(1, "canvas with factoryname = '" + factoryname + "' is not registered!");
+	}
+
+	// apply settings from dialog
+    canvas->updateFromThemeClass(canvas->canvasWidgetClass);
+
+    // apply settings from dialog
+    canvas->updateFromThemeClass(&themeClass);
+
+    // search for attributes which are only supported within dialog
+    startTAFFScan
+    {
+        switch (attrid) {
+        // read widget attributes from TAFF which are not defined in theme classes
+        READ_DM_SPECIFIC_WIDGET_ATTRIBUTES(name, size, min_width, min_height, max_width, max_height);
+	    }
+    }
+    endTAFFScan
+
+	// set widget attributes which are not defined in theme classes
+	SET_DM_SPECIFIC_WIDGET_ATTRIBUTES(canvas, name, size, min_width, min_height, max_width, max_height);
+
+
+    if (currentWidget)
+        currentWidget->add(canvas);
+    else
+        rootWindow->add(canvas);
+
+    throughDoc(tafff, canvas, rootWindow, theme);
+
+    // return the name of the widget
+    return name;
+}
+
 string MMSDialogManager::getImageValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
     MMSImageWidgetClass   themeClass;
     MMSImageWidget  *image;
-    string          name = "";
-    string          size = "";
+    string name, size, min_width, min_height, max_width, max_height;
 
     // get themepath
     string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
@@ -991,26 +1042,14 @@ string MMSDialogManager::getImageValues(MMSTaffFile *tafff, MMSWidget *currentWi
     startTAFFScan
     {
         switch (attrid) {
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
-            name = attrval_str;
-			break;
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_size:
-	        size = attrval_str;
-			break;
+        // read widget attributes from TAFF which are not defined in theme classes
+        READ_DM_SPECIFIC_WIDGET_ATTRIBUTES(name, size, min_width, min_height, max_width, max_height);
 	    }
     }
     endTAFFScan
 
-    // add to widget vector if named
-    if(!name.empty()) {
-        image->setName(name);
-        insertNamedWidget(image);
-    }
-
-    if(!size.empty()) {
-        if (!image->setSizeHint(size))
-            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
-    }
+	// set widget attributes which are not defined in theme classes
+	SET_DM_SPECIFIC_WIDGET_ATTRIBUTES(image, name, size, min_width, min_height, max_width, max_height);
 
     if (currentWidget)
         currentWidget->add(image);
@@ -1027,8 +1066,7 @@ string MMSDialogManager::getImageValues(MMSTaffFile *tafff, MMSWidget *currentWi
 string MMSDialogManager::getProgressBarValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
     MMSProgressBarWidgetClass 	themeClass;
     MMSProgressBarWidget	*pBar;
-    string              	name = "";
-    string              	size = "";
+    string name, size, min_width, min_height, max_width, max_height;
 
     // get themepath
     string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
@@ -1048,26 +1086,14 @@ string MMSDialogManager::getProgressBarValues(MMSTaffFile *tafff, MMSWidget *cur
     startTAFFScan
     {
         switch (attrid) {
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
-            name = attrval_str;
-			break;
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_size:
-	        size = attrval_str;
-			break;
+        // read widget attributes from TAFF which are not defined in theme classes
+        READ_DM_SPECIFIC_WIDGET_ATTRIBUTES(name, size, min_width, min_height, max_width, max_height);
 	    }
     }
     endTAFFScan
 
-    // add to widget vector if named
-    if(!name.empty()) {
-        pBar->setName(name);
-        insertNamedWidget(pBar);
-    }
-
-    if(!size.empty()) {
-        if (!pBar->setSizeHint(size))
-            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
-    }
+	// set widget attributes which are not defined in theme classes
+	SET_DM_SPECIFIC_WIDGET_ATTRIBUTES(pBar, name, size, min_width, min_height, max_width, max_height);
 
     if (currentWidget)
         currentWidget->add(pBar);
@@ -1081,11 +1107,138 @@ string MMSDialogManager::getProgressBarValues(MMSTaffFile *tafff, MMSWidget *cur
 }
 
 
+bool MMSDialogManager::getMenuItems(MMSTaffFile *tafff, MMSMenuWidget *menu, MMSTheme *theme) {
+	bool haveItems = false;
+	bool returntag = true;
+
+	// iterate through children
+	while (1) {
+		bool eof;
+		int tid = tafff->getNextTag(eof);
+		if (eof) break;
+		if (tid < 0) {
+			if (returntag) break;
+			returntag = true;
+			continue;
+		}
+		else
+			returntag = false;
+
+		// check if a <menuitem/> is given
+        if (tid == MMSGUI_TAGTABLE_TAG_MENUITEM) {
+			// new menu item
+        	MMSWidget *item = NULL;
+            haveItems = true;
+
+			if (tafff->hasAttributes()) {
+				// menu item has attributes, so we assume that the new item should be created with item template style
+				// create new menu item
+				item = menu->newItem();
+
+				// here we must loop for n widgets
+				vector<string> wgs;
+				bool wg_break = false;
+				while (!wg_break) {
+					wg_break = true;
+					startTAFFScan_WITHOUT_ID
+					{
+						if (memcmp(attrname, "widget.", 7)==0) {
+							// search for attributes which are to be set for menu items child widgets
+							string widgetName = &attrname[7];
+							int pos = (int)widgetName.find(".");
+							if (pos > 0) {
+								// widget name found
+								widgetName = widgetName.substr(0, pos);
+
+								// check if i have already processed this widget
+								if(find(wgs.begin(), wgs.end(), widgetName) != wgs.end()) {
+									widgetName = "";
+									continue;
+								}
+								wg_break = false;
+								wgs.push_back(widgetName);
+
+								// okay, searching for the widget within the new item
+								MMSWidget *widget;
+								if (item->getName() == widgetName) {
+									widget = item;
+								}else {
+									widget = item->findWidget(widgetName);
+								}
+
+								updateTAFFAttributes(tafff, widget, widgetName);
+							}
+						}
+					}
+					endTAFFScan_WITHOUT_ID
+				}
+
+				startTAFFScan_WITHOUT_ID
+				{
+					if (memcmp(attrname, "childwindow", 11)==0) {
+						// there is a child window given which represents a sub menu
+						menu->setSubMenuName(menu->getSize()-1, attrval_str);
+					}
+					else
+					if (memcmp(attrname, "goback", 6)==0) {
+						// if true, this item should be the go-back-item
+						//! if the user enters this item, the parent menu (if does exist) will be shown
+						if (memcmp(attrval_str, "true", 4)==0)
+							menu->setBackItem(menu->getSize()-1);
+					}
+				}
+				endTAFFScan_WITHOUT_ID
+
+				startTAFFScan
+				{
+					switch (attrid) {
+					case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
+						if (*attrval_str)
+							item->setName(attrval_str);
+						break;
+					}
+				}
+				endTAFFScan
+			}
+			else {
+				// menu item has NO attributes, so we try to read a specific item style from the <menuitem/> children
+				// checking for tags within <menuitem/>
+				MMSHBoxWidget *tmpWidget = new MMSHBoxWidget(NULL);
+
+				// parse the childs from dialog file
+				throughDoc(tafff, tmpWidget, NULL, theme);
+				returntag = true;
+
+				// here we create a new menu item based on disconnected child (if != NULL) or item template style
+				item = menu->newItem(-1, tmpWidget->disconnectChild());
+
+				// delete the temporary container
+				delete tmpWidget;
+			}
+        }
+        else {
+        	// any other widgets given in the menu
+        	printf("Warning: Tag <%s/> is not supported within <menu/>.\n", tafff->getCurrentTagName());
+
+        	// we need a temporary widget
+            MMSHBoxWidget *tmpWidget = new MMSHBoxWidget(NULL);
+
+            // parse the childs from dialog file
+        	throughDoc(tafff, tmpWidget, NULL, theme);
+        	returntag = true;
+
+        	// delete the widget, we cannot use it
+            delete tmpWidget;
+        }
+	}
+
+	return haveItems;
+}
+
 string MMSDialogManager::getMenuValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
     MMSMenuWidgetClass    themeClass;
     MMSMenuWidget   *menu;
-    string          name = "";
-    string          size = "";
+    string name, size, min_width, min_height, max_width, max_height;
     MMSTaffFile    	*tf;
 
     // get themepath
@@ -1106,28 +1259,16 @@ string MMSDialogManager::getMenuValues(MMSTaffFile *tafff, MMSWidget *currentWid
     startTAFFScan
     {
         switch (attrid) {
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
-            name = attrval_str;
-			break;
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_size:
-	        size = attrval_str;
-			break;
+        // read widget attributes from TAFF which are not defined in theme classes
+        READ_DM_SPECIFIC_WIDGET_ATTRIBUTES(name, size, min_width, min_height, max_width, max_height);
 	    }
     }
     endTAFFScan
 
-    // add to widget vector if named
-    if(!name.empty()) {
-        menu->setName(name);
-        insertNamedWidget(menu);
-    }
+	// set widget attributes which are not defined in theme classes
+	SET_DM_SPECIFIC_WIDGET_ATTRIBUTES(menu, name, size, min_width, min_height, max_width, max_height);
 
-    if(!size.empty()) {
-        if (!menu->setSizeHint(size))
-            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
-    }
-
-    if (currentWidget)
+	if (currentWidget)
         currentWidget->add(menu);
     else
         rootWindow->add(menu);
@@ -1138,7 +1279,7 @@ string MMSDialogManager::getMenuValues(MMSTaffFile *tafff, MMSWidget *currentWid
     // are there any childs stored in the theme?
     if ((tf = menu->getTAFF())) {
         // yes, parse the childs from theme
-        throughDoc(tf, tmpWidget, NULL, theme);
+        throughDoc(tf, tmpWidget, NULL, theme, true);
     }
     else {
         // no, parse the childs from dialog file
@@ -1154,7 +1295,7 @@ string MMSDialogManager::getMenuValues(MMSTaffFile *tafff, MMSWidget *currentWid
     else {
         if (tf) {
             // try with theme failed, retry with childs from dialog file
-            throughDoc(tafff, tmpWidget, NULL, theme);
+            throughDoc(tafff, tmpWidget, NULL, theme, true);
             MMSWidget *itemTemplate = tmpWidget->disconnectChild();
             if (itemTemplate) {
                 menu->setItemTemplate(itemTemplate);
@@ -1166,134 +1307,20 @@ string MMSDialogManager::getMenuValues(MMSTaffFile *tafff, MMSWidget *currentWid
     delete tmpWidget;
 
     if (haveItemTemplate) {
-        // have a template - search for menu items which are set in the dialog file
-        bool haveItems = false;
-        bool returntag = true;
+		// have a template
+		bool haveItems;
 
-        // iterate through childs
-    	while (1) {
-    		bool eof;
-    		int tid = tafff->getNextTag(eof);
-    		if (eof) break;
-    		if (tid < 0) {
-    			if (returntag) break;
-    			returntag = true;
-    			continue;
-    		}
-    		else
-    			returntag = false;
+    	// searching for menu items which are set in the THEME file
+		haveItems = getMenuItems(tf, menu, theme);
 
-    		// check if a <menuitem/> is given
-            if (tid == MMSGUI_TAGTABLE_TAG_MENUITEM)
-            {
-				// new menu item
-            	MMSWidget *item = NULL;
-	            haveItems = true;
+    	// searching for menu items which are set in the DIALOG file
+		if (getMenuItems(tafff, menu, theme)) {
+			haveItems = true;
+		}
 
-				if (tafff->hasAttributes()) {
-					// menu item has attributes, so we assume that the new item should be created with item template style
-					// create new menu item
-					item = menu->newItem();
-
-					// here we must loop for n widgets
-					vector<string> wgs;
-					bool wg_break = false;
-					while (!wg_break) {
-						wg_break = true;
-						startTAFFScan_WITHOUT_ID
-						{
-							if (memcmp(attrname, "widget.", 7)==0) {
-								// search for attributes which are to be set for menu items child widgets
-								string widgetName = &attrname[7];
-								int pos = (int)widgetName.find(".");
-								if (pos > 0) {
-									// widget name found
-									widgetName = widgetName.substr(0, pos);
-
-									// check if i have already processed this widget
-									if(find(wgs.begin(), wgs.end(), widgetName) != wgs.end()) {
-										widgetName = "";
-										continue;
-									}
-									wg_break = false;
-									wgs.push_back(widgetName);
-
-									// okay, searching for the widget within the new item
-									MMSWidget *widget;
-									if (item->getName() == widgetName) {
-										widget = item;
-									}else {
-										widget = item->findWidget(widgetName);
-									}
-
-									updateTAFFAttributes(tafff, widget, widgetName);
-								}
-							}
-						}
-						endTAFFScan_WITHOUT_ID
-					}
-
-					startTAFFScan_WITHOUT_ID
-					{
-						if (memcmp(attrname, "childwindow", 11)==0) {
-							// there is a child window given which represents a sub menu
-							menu->setSubMenuName(menu->getSize()-1, attrval_str);
-						}
-						else
-						if (memcmp(attrname, "goback", 6)==0) {
-							// if true, this item should be the go-back-item
-							//! if the user enters this item, the parent menu (if does exist) will be shown
-							if (memcmp(attrval_str, "true", 4)==0)
-								menu->setBackItem(menu->getSize()-1);
-						}
-					}
-					endTAFFScan_WITHOUT_ID
-
-					startTAFFScan
-					{
-						switch (attrid) {
-						case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
-							if (*attrval_str)
-								item->setName(attrval_str);
-							break;
-						}
-					}
-					endTAFFScan
-				}
-				else {
-					// menu item has NO attributes, so we try to read a specific item style from the <menuitem/> children
-					// checking for tags within <menuitem/>
-					MMSHBoxWidget *tmpWidget = new MMSHBoxWidget(NULL);
-
-					// parse the childs from dialog file
-					throughDoc(tafff, tmpWidget, NULL, theme);
-					returntag = true;
-
-					// here we create a new menu item based on disconnected child (if != NULL) or item template style
-					item = menu->newItem(-1, tmpWidget->disconnectChild());
-
-					// delete the temporary container
-					delete tmpWidget;
-				}
-            }
-            else {
-            	// any other widgets given in the menu
-            	printf("Warning: Tag <%s/> is not supported within <menu/>.\n", tafff->getCurrentTagName());
-
-            	// we need a temporary widget
-                MMSHBoxWidget *tmpWidget = new MMSHBoxWidget(NULL);
-
-                // parse the childs from dialog file
-            	throughDoc(tafff, tmpWidget, NULL, theme);
-            	returntag = true;
-
-            	// delete the widget, we cannot use it
-                delete tmpWidget;
-            }
-    	}
-
-        if (haveItems)
+        if (haveItems) {
             menu->setFocus(false, false);
+        }
     }
 
     // return the name of the widget
@@ -1304,8 +1331,7 @@ string MMSDialogManager::getMenuValues(MMSTaffFile *tafff, MMSWidget *currentWid
 string MMSDialogManager::getTextBoxValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
     MMSTextBoxWidgetClass 	themeClass;
     MMSTextBoxWidget	*textbox;
-    string          	name = "";
-    string          	size = "";
+    string name, size, min_width, min_height, max_width, max_height;
 
     // get themepath
     string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
@@ -1325,26 +1351,14 @@ string MMSDialogManager::getTextBoxValues(MMSTaffFile *tafff, MMSWidget *current
     startTAFFScan
     {
         switch (attrid) {
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
-            name = attrval_str;
-			break;
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_size:
-	        size = attrval_str;
-			break;
+        // read widget attributes from TAFF which are not defined in theme classes
+        READ_DM_SPECIFIC_WIDGET_ATTRIBUTES(name, size, min_width, min_height, max_width, max_height);
 	    }
     }
     endTAFFScan
 
-    // add to widget vector if named
-    if(!name.empty()) {
-        textbox->setName(name);
-        insertNamedWidget(textbox);
-    }
-
-    if(!size.empty()) {
-        if (!textbox->setSizeHint(size))
-            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
-    }
+	// set widget attributes which are not defined in theme classes
+	SET_DM_SPECIFIC_WIDGET_ATTRIBUTES(textbox, name, size, min_width, min_height, max_width, max_height);
 
     if (currentWidget)
         currentWidget->add(textbox);
@@ -1360,8 +1374,7 @@ string MMSDialogManager::getTextBoxValues(MMSTaffFile *tafff, MMSWidget *current
 string MMSDialogManager::getArrowValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
     MMSArrowWidgetClass   themeClass;
     MMSArrowWidget  *arrow;
-    string          name = "";
-    string          size = "";
+    string name, size, min_width, min_height, max_width, max_height;
 
     // get themepath
     string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
@@ -1381,26 +1394,14 @@ string MMSDialogManager::getArrowValues(MMSTaffFile *tafff, MMSWidget *currentWi
     startTAFFScan
     {
         switch (attrid) {
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
-            name = attrval_str;
-			break;
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_size:
-	        size = attrval_str;
-			break;
+        // read widget attributes from TAFF which are not defined in theme classes
+        READ_DM_SPECIFIC_WIDGET_ATTRIBUTES(name, size, min_width, min_height, max_width, max_height);
 	    }
     }
     endTAFFScan
 
-    // add to widget vector if named
-    if(!name.empty()) {
-        arrow->setName(name);
-        insertNamedWidget(arrow);
-    }
-
-    if(!size.empty()) {
-        if (!arrow->setSizeHint(size))
-            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
-    }
+	// set widget attributes which are not defined in theme classes
+	SET_DM_SPECIFIC_WIDGET_ATTRIBUTES(arrow, name, size, min_width, min_height, max_width, max_height);
 
     if (currentWidget)
         currentWidget->add(arrow);
@@ -1416,8 +1417,7 @@ string MMSDialogManager::getArrowValues(MMSTaffFile *tafff, MMSWidget *currentWi
 string MMSDialogManager::getSliderValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
     MMSSliderWidgetClass  themeClass;
     MMSSliderWidget *slider;
-    string          name = "";
-    string          size = "";
+    string name, size, min_width, min_height, max_width, max_height;
 
     // get themepath
     string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
@@ -1437,26 +1437,14 @@ string MMSDialogManager::getSliderValues(MMSTaffFile *tafff, MMSWidget *currentW
     startTAFFScan
     {
         switch (attrid) {
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
-            name = attrval_str;
-			break;
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_size:
-	        size = attrval_str;
-			break;
+        // read widget attributes from TAFF which are not defined in theme classes
+        READ_DM_SPECIFIC_WIDGET_ATTRIBUTES(name, size, min_width, min_height, max_width, max_height);
 	    }
     }
     endTAFFScan
 
-    // add to widget vector if named
-    if(!name.empty()) {
-        slider->setName(name);
-        insertNamedWidget(slider);
-    }
-
-    if(!size.empty()) {
-        if (!slider->setSizeHint(size))
-            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
-    }
+	// set widget attributes which are not defined in theme classes
+	SET_DM_SPECIFIC_WIDGET_ATTRIBUTES(slider, name, size, min_width, min_height, max_width, max_height);
 
     if (currentWidget)
         currentWidget->add(slider);
@@ -1472,8 +1460,7 @@ string MMSDialogManager::getSliderValues(MMSTaffFile *tafff, MMSWidget *currentW
 string MMSDialogManager::getInputValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
     MMSInputWidgetClass   themeClass;
     MMSInputWidget  *input;
-    string          name = "";
-    string          size = "";
+    string name, size, min_width, min_height, max_width, max_height;
 
     // get themepath
     string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
@@ -1493,28 +1480,16 @@ string MMSDialogManager::getInputValues(MMSTaffFile *tafff, MMSWidget *currentWi
     startTAFFScan
     {
         switch (attrid) {
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
-            name = attrval_str;
-			break;
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_size:
-	        size = attrval_str;
-			break;
+        // read widget attributes from TAFF which are not defined in theme classes
+        READ_DM_SPECIFIC_WIDGET_ATTRIBUTES(name, size, min_width, min_height, max_width, max_height);
 	    }
     }
     endTAFFScan
 
-    // add to widget vector if named
-    if(!name.empty()) {
-        input->setName(name);
-        insertNamedWidget(input);
-    }
+	// set widget attributes which are not defined in theme classes
+	SET_DM_SPECIFIC_WIDGET_ATTRIBUTES(input, name, size, min_width, min_height, max_width, max_height);
 
-    if(!size.empty()) {
-        if (!input->setSizeHint(size))
-            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
-    }
-
-    if (currentWidget)
+	if (currentWidget)
         currentWidget->add(input);
     else
         rootWindow->add(input);
@@ -1529,8 +1504,7 @@ string MMSDialogManager::getInputValues(MMSTaffFile *tafff, MMSWidget *currentWi
 string MMSDialogManager::getCheckBoxValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
     MMSCheckBoxWidgetClass 	themeClass;
     MMSCheckBoxWidget		*checkbox;
-    string          		name = "";
-    string          		size = "";
+    string name, size, min_width, min_height, max_width, max_height;
 
     // get themepath
     string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
@@ -1550,28 +1524,16 @@ string MMSDialogManager::getCheckBoxValues(MMSTaffFile *tafff, MMSWidget *curren
     startTAFFScan
     {
         switch (attrid) {
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
-            name = attrval_str;
-			break;
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_size:
-	        size = attrval_str;
-			break;
+        // read widget attributes from TAFF which are not defined in theme classes
+        READ_DM_SPECIFIC_WIDGET_ATTRIBUTES(name, size, min_width, min_height, max_width, max_height);
 	    }
     }
     endTAFFScan
 
-    // add to widget vector if named
-    if(!name.empty()) {
-        checkbox->setName(name);
-        insertNamedWidget(checkbox);
-    }
+	// set widget attributes which are not defined in theme classes
+	SET_DM_SPECIFIC_WIDGET_ATTRIBUTES(checkbox, name, size, min_width, min_height, max_width, max_height);
 
-    if(!size.empty()) {
-        if (!checkbox->setSizeHint(size))
-            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
-    }
-
-    if (currentWidget)
+	if (currentWidget)
         currentWidget->add(checkbox);
     else
         rootWindow->add(checkbox);
@@ -1584,32 +1546,21 @@ string MMSDialogManager::getCheckBoxValues(MMSTaffFile *tafff, MMSWidget *curren
 
 string MMSDialogManager::getGapValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
     MMSGapWidget *gap;
-    string  name = "";
-    string  size = "";
+    string name, size, min_width, min_height, max_width, max_height;
 
     startTAFFScan
     {
         switch (attrid) {
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
-            name = attrval_str;
-			break;
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_size:
-	        size = attrval_str;
-			break;
+        // read widget attributes from TAFF which are not defined in theme classes
+        READ_DM_SPECIFIC_WIDGET_ATTRIBUTES(name, size, min_width, min_height, max_width, max_height);
 	    }
     }
     endTAFFScan
 
 	gap = new MMSGapWidget(rootWindow);
 
-    // add to widget vector if named
-    if(!name.empty()) {
-        gap->setName(name);
-        insertNamedWidget(gap);
-    }
-
-	if(!size.empty())
-	    gap->setSizeHint(size);
+	// set widget attributes which are not defined in theme classes
+	SET_DM_SPECIFIC_WIDGET_ATTRIBUTES(gap, name, size, min_width, min_height, max_width, max_height);
 
 	if (currentWidget)
         currentWidget->add(gap);
@@ -1731,7 +1682,67 @@ void MMSDialogManager::updateTAFFAttributes(MMSTaffFile *tafff, MMSWidget *widge
                 ((MMSCheckBoxWidget*)widget)->updateFromThemeClass(&themeCls);
             }
             break;
+        case MMSWIDGETTYPE_CANVAS:
+            {
+                // read attributes from node
+                MMSCanvasWidgetClass themeCls;
+                themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.setAttributesFromTAFF(tafff, &prefix);
+                // apply settings from node
+                ((MMSCanvasWidget*)widget)->updateFromThemeClass(&themeCls);
+            }
+            break;
         case MMSWIDGETTYPE_GAP:
             break;
     }
+}
+
+
+MMSWidget *MMSDialogManager::createWidgetFromTemplate(string className, MMSWidget *parentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
+
+	// prepare input
+	if (!parentWidget) return NULL;
+	if (!rootWindow) rootWindow = this->rootWindow;
+	if (!theme) theme = globalTheme;
+
+	// find template class
+	MMSTemplateClass *tc = theme->getTemplateClass(className);
+	if (!tc) return NULL;
+
+	// get TAFF buffer from template
+	MMSTaffFile *tf = tc->getTAFF();
+	if (!tf) return NULL;
+
+	// we need a temporary parent widget
+	MMSHBoxWidget *tmpWidget = new MMSHBoxWidget(NULL);
+
+	// parse the childs from theme
+	throughDoc(tf, tmpWidget, NULL, theme, true);
+
+	// get real template tree
+	MMSWidget *tmp = tmpWidget->disconnectChild();
+	delete tmpWidget;
+
+	if (!tmp) return NULL;
+
+	// init widget
+	tmp->setParent(parentWidget);
+	tmp->setRootWindow(rootWindow);
+
+	// return widget
+	// note: the widget is NOT added to parent widget!!!
+	return tmp;
+}
+
+
+MMSWidget *MMSDialogManager::addWidgetFromTemplate(string className, MMSWidget *parentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
+
+	MMSWidget *widget = createWidgetFromTemplate(className, parentWidget, rootWindow, theme);
+
+	if (widget) {
+		parentWidget->add(widget);
+	}
+
+	return widget;
 }

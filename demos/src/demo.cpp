@@ -36,6 +36,10 @@ Demo::Demo() : currwindow(0),
 			   dragstarted(false) {
 	try {
 		mainwindow     = dm.loadDialog(config.getData() + "/main.xml");
+/*mainwindow->show();
+sleep(5);
+exit(0);
+*/
 		mainmenubar    = mainwindow->findWindow("mainmenubar");
 		MMSWindow *win = mainwindow->findWindow("greetings_clipping");
 		win->onBeforeHandleInput->connect(sigc::mem_fun(this,&Demo::handleWindowInput));
@@ -155,8 +159,8 @@ bool Demo::showExitWindow_onBeforeAnimation(MMSPulser *pulser) {
 	// prepare animation
 	if (this->animshow) {
 		this->exit_window->hide();
-		this->exit_window->setOpacity(220);
 		this->exit_window->stretch(20,130,130,20);
+		this->exit_window->setOpacity(220, false);
 		this->exit_window->show();
 		this->exit_window->waitUntilShown();
 		this->exit_window->setFocus();
@@ -165,6 +169,7 @@ bool Demo::showExitWindow_onBeforeAnimation(MMSPulser *pulser) {
 		this->exit_window->stretch();
 		this->exit_window->setOpacity(180);
 	}
+
 	return true;
 }
 
@@ -195,6 +200,7 @@ void Demo::showExitWindow_onAfterAnimation(MMSPulser *pulser) {
 }
 
 void Demo::showExitWindow() {
+
 	MMSWindow *win = controls.at(currwindow);
 	win->setFadeOut(false);
 	win->setMoveOut(MMSDIRECTION_DOWN);

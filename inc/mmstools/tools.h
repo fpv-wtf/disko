@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -33,14 +33,17 @@
 #ifndef TOOLS_H_
 #define TOOLS_H_
 
-#include "mmstools/base.h"
-#include "mmstools/mmserror.h"
 #include "mmstools/mmstypes.h"
+
+#include <vector>
+
+extern "C" {
 #include <stdarg.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <sys/time.h>
 #include <sys/types.h>
+}
 
 #ifdef __ENABLE_LOG__
 #define DEBUGMSG(ident, msg...) writeDebugMessage(ident, __FILE__, __LINE__, msg)
@@ -119,6 +122,8 @@ void writeMessage(const char *ctrl,...);
 
 int strToInt(string s);
 
+unsigned int strToUInt(string s);
+
 string iToStr(int i);
 
 string fToStr(double i);
@@ -181,7 +186,8 @@ void print_trace(char *prefix);
 \return true if successfully converted
 \note in_str and out_str can be the same
 */
-bool convBidiString(const string &in_str, string &out_str);
+bool convBidiString(const string &in_str, string &out_str, bool bArabic=false);
 
+string XMLencode( const string &Source );
 
 #endif /*TOOLS_H_*/

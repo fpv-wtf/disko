@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -97,6 +97,7 @@ MMSWidgetClass::MMSWidgetClass() {
     initJoinedWidget();
 
     initActivated();
+    initFactoryName();
 }
 
 MMSWidgetClass::~MMSWidgetClass() {
@@ -152,6 +153,7 @@ MMSWidgetClass::~MMSWidgetClass() {
     freeJoinedWidget();
 
     freeActivated();
+    freeFactoryName();
 }
 
 MMSWidgetClass &MMSWidgetClass::operator=(const MMSWidgetClass &c) {
@@ -212,6 +214,8 @@ MMSWidgetClass &MMSWidgetClass::operator=(const MMSWidgetClass &c) {
 			this->ed.inputmode = new string(*c.ed.inputmode);
 		if (c.id.isjoinedwidget)
 			this->ed.joinedwidget = new string(*c.ed.joinedwidget);
+		if (c.id.isfactoryname)
+			this->ed.factoryname = new string(*c.ed.factoryname);
 	}
 	return *this;
 }
@@ -269,6 +273,7 @@ void MMSWidgetClass::unsetAll() {
     unsetJoinedWidget();
 
     unsetActivated();
+    unsetFactoryName();
 }
 
 void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path, bool reset_paths) {
@@ -614,6 +619,9 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_activated:
 	            setActivated((attrval_int) ? true : false);
+	            break;
+			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_factoryname:
+	            setFactoryName(attrval_str);
 	            break;
 			}
 		}
@@ -1034,6 +1042,10 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
             else
             if (ISATTRNAME(activated)) {
 				setActivated((attrval_int) ? true : false);
+            }
+            else
+            if (ISATTRNAME(factoryname)) {
+				setFactoryName(attrval_str);
             }
     	}
     	endTAFFScan_WITHOUT_ID
@@ -1696,6 +1708,36 @@ void MMSWidgetClass::setData(const string &data) {
 bool MMSWidgetClass::getData(string &data) {
 	MMSTHEMECLASS_GET_STRING(data);
 }
+
+
+
+void MMSWidgetClass::initFactoryName() {
+	MMSTHEMECLASS_INIT_STRING(factoryname);
+}
+
+void MMSWidgetClass::freeFactoryName() {
+	MMSTHEMECLASS_FREE_STRING(factoryname);
+}
+
+bool MMSWidgetClass::isFactoryName() {
+	MMSTHEMECLASS_ISSET(factoryname);
+}
+
+void MMSWidgetClass::unsetFactoryName() {
+	MMSTHEMECLASS_UNSET(factoryname);
+}
+
+void MMSWidgetClass::setFactoryName(string factoryname) {
+	MMSTHEMECLASS_SET_STRING(factoryname);
+}
+
+
+bool MMSWidgetClass::getFactoryName(string &factoryname) {
+	MMSTHEMECLASS_GET_STRING(factoryname);
+}
+
+
+
 
 void MMSWidgetClass::initNavigateUp() {
 	MMSTHEMECLASS_INIT_STRING(navigateup);

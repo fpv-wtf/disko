@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -95,6 +95,19 @@ MMSPluginData& MMSPluginData::operator=(const MMSPluginData &pd) {
 
 MMSPluginData::~MMSPluginData() {
 	this->properties.clear();
+}
+
+void MMSPluginData::clear() {
+	for(vector<MMSPropertyData *>::iterator it = this->properties.begin(); it != this->properties.end();it++) {
+		if ((*it))
+			delete (*it);
+	}
+	this->properties.clear();
+
+	if (this->category)
+		delete this->category;
+	if (this->type)
+		delete this->type;
 }
 
 int MMSPluginData::getId() {

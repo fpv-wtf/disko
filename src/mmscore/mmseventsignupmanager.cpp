@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -33,6 +33,7 @@
 #include "mmscore/mmseventsignupmanager.h"
 #include "mmstools/tools.h"
 #include <string.h>
+#include <algorithm>
 
 MMSEventSignupManager::MMSEventSignupManager() {
 }
@@ -50,55 +51,53 @@ void MMSEventSignupManager::signup(IMMSEventSignup *signup) {
 vector<MMSPluginData *> MMSEventSignupManager::getReceiverPlugins(_IMMSEvent *event) {
     vector<MMSPluginData *> mydata;
 
-    vector<string *> subscriptions;
-    vector<string *>::iterator subsit;
+    vector<string> subscriptions;
     vector<MMSEventSignup *>::iterator signit;
 
+    string heading = event->getHeading();
+
     for(signit = this->signups.begin();signit != this->signups.end();signit++) {
+    	(*signit)->lock();
     	subscriptions = (*signit)->getSubScriptions();
-        for(subsit=subscriptions.begin();subsit!= subscriptions.end();subsit++){
-      		 DEBUGMSG("MMSEventSignupManager", "compare %s to %s - size: %d", (*subsit)->c_str(), event->getHeading().c_str(), (*subsit)->size());
-            /*compare heading of event with subsciptions */
-            if(strncmp((*subsit)->c_str(),
-                       event->getHeading().c_str(),
-                       (*subsit)->size())==0) {
 
-                /* add plugindata to return vector*/
-                MMSPluginData *myplugin = new MMSPluginData;
-                *myplugin = (*signit)->getPluginData();
-
-                mydata.push_back(myplugin);
-            }
-        }
-        subscriptions.clear();
+    	for(vector<string>::iterator it = subscriptions.begin(); it != subscriptions.end(); ++it) {
+    		//DEBUGMSG("MMSEventSignupManager", "comparing %s - %s - %d\n", (*it).c_str(), heading.c_str(), (*it).size());
+    		if(heading.compare(0, (*it).size(), *it) == 0) {
+				MMSPluginData *myplugin = new MMSPluginData;
+				*myplugin = (*signit)->getPluginData();
+				mydata.push_back(myplugin);
+    		}
+    	}
+    	(*signit)->unlock();
     }
+
     if(mydata.empty())
-        throw MMSEventSignupManagerError(0,"no subscriptions found");
+        throw MMSEventSignupManagerError(0,"no subscriptions found for " + heading);
 
     return mydata;
 }
 
 vector<sigc::signal<void, _IMMSEvent*> *> MMSEventSignupManager::getReceiverSignals(_IMMSEvent *event) {
 	vector<sigc::signal<void, _IMMSEvent*> *> mysignals;
-    vector<string *> subscriptions;
-    vector<string *>::iterator subsit;
+    vector<string> subscriptions;
     vector<MMSEventSignup *>::iterator signupsit;
 
-    for(signupsit= this->signals.begin();signupsit != this->signals.end();signupsit++) {
-    	subscriptions = (*signupsit)->getSubScriptions();
-        for(subsit = subscriptions.begin();subsit != subscriptions.end();subsit++) {
-      		 DEBUGMSG("MMSEventSignupManager", "compare %s to %s - size: %d", (*subsit)->c_str(), event->getHeading().c_str(), (*subsit)->size());
-            /*compare heading of event with subsciptions */
-            if(strncmp((*subsit)->c_str(),
-                       event->getHeading().c_str(),
-                       (*subsit)->size())==0) {
+    string heading = event->getHeading();
 
-                mysignals.push_back((*signupsit)->getSignal());
-            }
-        }
-        subscriptions.clear();
+    for(signupsit= this->signals.begin();signupsit != this->signals.end();++signupsit) {
+    	(*signupsit)->lock();
+    	subscriptions = (*signupsit)->getSubScriptions();
+
+    	for(vector<string>::iterator it = subscriptions.begin(); it != subscriptions.end(); ++it) {
+    		//DEBUGMSG("MMSEventSignupManager", "comparing %s - %s - %d\n", (*it).c_str(), heading.c_str(), (*it).size());
+    		if(heading.compare(0, (*it).size(), *it) == 0) {
+				mysignals.push_back((*signupsit)->getSignal());
+    		}
+    	}
+    	(*signupsit)->unlock();
     }
-    if(mysignals.empty())
+
+	if(mysignals.empty())
         throw MMSEventSignupManagerError(0,"no subscriptions found");
 
     return mysignals;

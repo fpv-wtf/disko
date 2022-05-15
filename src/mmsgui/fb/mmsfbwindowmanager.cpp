@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -34,6 +34,15 @@
 #include "mmsgui/fb/mmsfbwindowmanager.h"
 #include "mmsinfo/mmsinfo.h"
 #include "mmsgui/fb/mmsfb.h"
+
+//#define DEBUG_LOCK_OUTPUT
+#ifdef DEBUG_LOCK_OUTPUT
+#include <sys/syscall.h>
+#define PRINT_LOCK(msg...) printf("%s %s - %d (%lu)\n", ((string)(msg)).c_str(),__FUNCTION__,__LINE__,(pid_t) syscall (SYS_gettid))
+#else
+#define PRINT_LOCK(msg...)
+#endif
+
 
 /* initialize the mmsfbwindowmanager object */
 MMSFBWindowManager *mmsfbwindowmanager = new MMSFBWindowManager();
@@ -313,8 +322,12 @@ bool MMSFBWindowManager::raiseToTop(MMSFBWindow *window, int zlevel) {
                         }
                 }
 
+                PRINT_LOCK("flipSurface");
                 // draw the window
+                vw.surface->lock();
                 flipSurface(vw.surface, NULL, true);
+                PRINT_LOCK("end flipSurface");
+                vw.surface->unlock();
             }
 
             // unlock
@@ -323,6 +336,7 @@ bool MMSFBWindowManager::raiseToTop(MMSFBWindow *window, int zlevel) {
         }
 
 
+    PRINT_LOCK("not found");
     // not found
     lock.unlock();
     return false;
@@ -356,8 +370,10 @@ bool MMSFBWindowManager::lowerToBottom(MMSFBWindow *window) {
                             this->vwins.erase(this->vwins.begin()+j);
                             this->vwins.insert(this->vwins.begin(), vw);
 
+                            PRINT_LOCK("flipSurface");
                             /* draw the window */
                             flipSurface(vw.surface, NULL, true);
+                            PRINT_LOCK("end flipSurface");
                         }
                     }
             }
@@ -469,8 +485,10 @@ bool MMSFBWindowManager::showWindow(MMSFBWindow *window, bool locked, bool refre
                 /* insert at the end (this is the top) */
                 this->vwins.push_back(vwin);
 
+            PRINT_LOCK("flipSurface");
             /* draw the window */
             flipSurface(vwin.surface, NULL, true, refresh);
+            PRINT_LOCK("end flipSurface");
 
             /* unlock */
             if (!locked)
@@ -499,7 +517,9 @@ bool MMSFBWindowManager::hideWindow(MMSFBWindow *window, bool locked, bool refre
             /* redraw the window with no opacity because must redrawing other windows */
             this->vwins.at(i).opacity = 0;
 
+            PRINT_LOCK("flipSurface");
             flipSurface(this->vwins.at(i).surface, NULL, true, refresh);
+            PRINT_LOCK("end flipSurface");
 
             if (this->high_freq_surface==this->vwins.at(i).surface) {
                 /* i was the high_freq_surface */
@@ -535,6 +555,8 @@ bool MMSFBWindowManager::flipSurface(MMSFBSurface *surface, MMSFBRegion *region,
     /* check if initialized */
     INITCHECK;
 
+    PRINT_LOCK("enter flipSurface");
+
     /* stop parallel processing */
     if (!locked)
         lock.lock();
@@ -543,10 +565,10 @@ bool MMSFBWindowManager::flipSurface(MMSFBSurface *surface, MMSFBRegion *region,
     	// running in OpenGL mode
     	// note: GLX can only flip the complete screen!!!
     	//       EGL too, but currently we run EGL with FRONTONLY, so we do not need a layer flip
-#ifdef  __HAVE_GLX__
+//#ifdef  __HAVE_GLX__
 		surface = NULL;
 		region = NULL;
-#endif
+//#endif
     }
 
 /*
@@ -630,6 +652,7 @@ printf("#1winman: region = NULL\n");
             /* not found */
             if (!locked)
                 lock.unlock();
+            PRINT_LOCK("leave flipSurface");
             return false;
         }
     }
@@ -644,6 +667,7 @@ printf("#1winman: region = NULL\n");
         	if (!this->dst_surface->getSize(&ls_region.x2, &ls_region.y2)) {
 				if (!locked)
 					lock.unlock();
+				PRINT_LOCK("leave flipSurface");
 				return false;
         	}
 
@@ -707,6 +731,7 @@ printf("#1winman: region = NULL\n");
                 /* yes, have to flip nothing */
                 if (!locked)
                     lock.unlock();
+                PRINT_LOCK("leave flipSurface");
                 return true;
             }
         }
@@ -718,9 +743,9 @@ printf("#1winman: region = NULL\n");
     }
 
 
+    this->dst_surface->lock();
     // set the region of the layer surface
     this->dst_surface->setClip(&ls_region);
-
 
     // check if i have to clear the background
     if (!vw)
@@ -769,6 +794,40 @@ printf("#1winman: region = NULL\n");
 				}
 				else {
 					// SECOND loop: blit affected window
+
+					// check for locking on blit
+					if (aw->islayersurface) {
+						if (aw->saved_surface) {
+							if (!aw->saved_surface->tryToLock()) {
+								printf("try lock failed - add to queue\n");
+								if (mmsfbwinmanthread) {
+									MMSFBWindowManagerThread::FLIP_STRUCT tmpFlipStruct = {NULL, NULL, refresh};
+									mmsfbwinmanthread->flipQueue.push(tmpFlipStruct);
+								}
+								// reset the clip
+							    this->dst_surface->setClip(NULL);
+								this->dst_surface->unlock();
+					            if (!locked)
+					                lock.unlock();
+								return false;
+							}
+						}
+					}
+					else {
+						if (!aw->surface->tryToLock()) {
+							printf("try lock failed - add to queue\n");
+							if (mmsfbwinmanthread) {
+								MMSFBWindowManagerThread::FLIP_STRUCT tmpFlipStruct = {NULL, NULL, refresh};
+								mmsfbwinmanthread->flipQueue.push(tmpFlipStruct);
+							}
+							// reset the clip
+						    this->dst_surface->setClip(NULL);
+							this->dst_surface->unlock();
+				            if (!locked)
+				                lock.unlock();
+							return false;
+						}
+					}
 
 					// calc source and destination
 					MMSFBRectangle src_rect;
@@ -867,17 +926,17 @@ printf("#3winman: flip window id = %d, opaque = %d, src_rect = %d,%d %dx%d, dst 
 					if (aw->islayersurface) {
 						if (aw->saved_surface) {
 							this->dst_surface->blit(aw->saved_surface, &src_rect, dst_x, dst_y);
+							this->dst_surface->unlock();
 						}
 					}
 					else {
 						this->dst_surface->blit(aw->surface, &src_rect, dst_x, dst_y);
+						aw->surface->unlock();
 					}
 				}
 			}
 		}
 	}
-
-
 
     if (!win_found) {
         // if no window is drawn, check if we have to clear the layer region
@@ -892,13 +951,19 @@ printf("#3winman: flip window id = %d, opaque = %d, src_rect = %d,%d %dx%d, dst 
     this->dst_surface->setClip(NULL);
 
     // make changes visible
-    if (refresh)
+    if (refresh) {
+    	PRINT_LOCK("enter flip");
     	this->dst_surface->flip(&ls_region);
+    	PRINT_LOCK("leave flip");
+    }
 
+    this->dst_surface->unlock();
 
     // unlock
     if (!locked)
         lock.unlock();
+
+    PRINT_LOCK("leave flipSurface");
 
     return true;
 }
@@ -917,8 +982,10 @@ bool MMSFBWindowManager::setWindowOpacity(MMSFBWindow *window) {
             /* reload windows config */
             loadWindowConfig(window, &(this->vwins.at(i)));
 
+            PRINT_LOCK("flipSurface");
             /* redraw the window */
             flipSurface(this->vwins.at(i).surface, NULL, true);
+            PRINT_LOCK("end flipSurface");
 
             /* unlock */
             lock.unlock();
@@ -964,14 +1031,18 @@ bool MMSFBWindowManager::setWindowPosition(MMSFBWindow *window, MMSFBRectangle *
             /* moving high_freq_surface? */
             if (this->high_freq_surface == this->vwins.at(i).surface) {
                 /* yes, reset it */
+            	PRINT_LOCK("flipSurface");
                 mmsfbwindowmanager->flipSurface(this->high_freq_surface, NULL, true);
+                PRINT_LOCK("end flipSurface");
                 this->high_freq_surface = NULL;
                 this->high_freq_saved_surface = NULL;
                 this->high_freq_lastflip = 0;
             }
 
+            PRINT_LOCK("flipSurface");
             /* redraw the window */
             flipSurface(this->vwins.at(i).surface, NULL, true);
+            PRINT_LOCK("end flipSurface");
 
             /* redraw the old rects */
             if (old_vwin.region.y1 < this->vwins.at(i).region.y1) {
@@ -980,7 +1051,9 @@ bool MMSFBWindowManager::setWindowPosition(MMSFBWindow *window, MMSFBRectangle *
                 region = old_vwin.region;
                 if (region.y2 >= this->vwins.at(i).region.y1)
                     region.y2 = this->vwins.at(i).region.y1 - 1;
+                PRINT_LOCK("flipSurface");
                 flipSurface(NULL, &region, true);
+                PRINT_LOCK("end flipSurface");
             }
             else
             if (old_vwin.region.y1 > this->vwins.at(i).region.y1) {
@@ -989,7 +1062,9 @@ bool MMSFBWindowManager::setWindowPosition(MMSFBWindow *window, MMSFBRectangle *
                 region = old_vwin.region;
                 if (region.y1 <= this->vwins.at(i).region.y2)
                     region.y1 = this->vwins.at(i).region.y2 + 1;
+                PRINT_LOCK("flipSurface");
                 flipSurface(NULL, &region, true);
+                PRINT_LOCK("end flipSurface");
             }
             if (old_vwin.region.x1 < this->vwins.at(i).region.x1) {
                 /* redraw left side */
@@ -1001,7 +1076,9 @@ bool MMSFBWindowManager::setWindowPosition(MMSFBWindow *window, MMSFBRectangle *
                         region.x2 = this->vwins.at(i).region.x1 - 1;
                     region.y1 = this->vwins.at(i).region.y1;
                     region.y2 = this->vwins.at(i).region.y2;
+                    PRINT_LOCK("flipSurface");
                     flipSurface(NULL, &region, true);
+                    PRINT_LOCK("end flipSurface");
                 }
             }
             else
@@ -1015,7 +1092,9 @@ bool MMSFBWindowManager::setWindowPosition(MMSFBWindow *window, MMSFBRectangle *
                         region.x1 = this->vwins.at(i).region.x2 + 1;
                     region.y1 = this->vwins.at(i).region.y1;
                     region.y2 = this->vwins.at(i).region.y2;
+                    PRINT_LOCK("flipSurface");
                     flipSurface(NULL, &region, true);
+                    PRINT_LOCK("end flipSurface");
                 }
             }
 
@@ -1054,7 +1133,9 @@ bool MMSFBWindowManager::setWindowSize(MMSFBWindow *window, int w, int h) {
                 /* resizing surface */
                 MMSFBSurface *surface;
                 window->getSurface(&surface);
+                surface->lock();
                 surface->resize(w, h);
+                surface->unlock();
 
                 /* search for item in the window list */
                 for (unsigned int j=0; j < this->windows.size(); j++)
@@ -1075,8 +1156,10 @@ bool MMSFBWindowManager::setWindowSize(MMSFBWindow *window, int w, int h) {
                     /* new window is less than the old one */
                     showWindow(window, true, false);
 
+                    PRINT_LOCK("flipSurface");
                     /* flip the old region */
                     flipSurface(NULL, &old_vwin.region, true, true);
+                    PRINT_LOCK("end flipSurface");
                 }
             }
 
@@ -1093,7 +1176,9 @@ bool MMSFBWindowManager::setWindowSize(MMSFBWindow *window, int w, int h) {
             /* resizing surface */
             MMSFBSurface *surface;
             window->getSurface(&surface);
+            surface->lock();
             surface->resize(w, h);
+            surface->unlock();
 
             // reset the visible region
         	this->windows.at(i).vrect.x = 0;
@@ -1145,8 +1230,10 @@ bool MMSFBWindowManager::setWindowVisibleRectangle(MMSFBWindow *window, MMSFBRec
             // reload windows config
             loadWindowConfig(window, &(this->vwins.at(i)));
 
+            PRINT_LOCK("flipSurface");
         	// redraw the window
             flipSurface(this->vwins.at(i).surface, NULL, true);
+            PRINT_LOCK("end flipSurface");
 
             ret = true;
             break;
@@ -1205,7 +1292,9 @@ bool MMSFBWindowManager::getScreenshot(MMSFBWindow *window) {
         		region.y1 = 0;
         		region.x2-= 1;
         		region.y2-= 1;
+        		PRINT_LOCK("flipSurface");
 				flipSurface(NULL, &region, true, false);
+				PRINT_LOCK("end flipSurface");
         	}
 
         	// restore the dst_surface
@@ -1256,10 +1345,12 @@ void MMSFBWindowManager::setPointerPosition(int pointer_posx, int pointer_posy, 
 			this->pointer_rect.w = 21;
 			this->pointer_rect.h = 21;
 		    if (this->layer->createSurface(&this->pointer_surface, this->pointer_rect.w, this->pointer_rect.h)) {
+		    	pointer_surface->lock();
 		    	this->pointer_surface->clear();
 			    this->pointer_surface->setColor(255,255,255,255);
 			    this->pointer_surface->drawLine(0,this->pointer_rect.h/2,this->pointer_rect.w-1,this->pointer_rect.h/2);
 			    this->pointer_surface->drawLine(this->pointer_rect.w/2,0,this->pointer_rect.w/2,this->pointer_rect.h-1);
+			    pointer_surface->unlock();
 		    }
 		    else
 		    	this->pointer_surface = NULL;
@@ -1286,9 +1377,14 @@ void MMSFBWindowManager::setPointerPosition(int pointer_posx, int pointer_posy, 
 		||(old_region.x2 < this->pointer_region.x1)
 		||(old_region.y2 < this->pointer_region.y1)) {
 		// two regions to be updated
+		PRINT_LOCK("flipSurface");
 		flipSurface(NULL, &this->pointer_region, false);
-		if (old_region.x1 != old_region.x2)
+		PRINT_LOCK("end flipSurface");
+		if (old_region.x1 != old_region.x2) {
+			PRINT_LOCK("flipSurface");
 			flipSurface(NULL, &old_region, false);
+			PRINT_LOCK("end flipSurface");
+		}
 	}
 	else {
 		// one region
@@ -1300,7 +1396,9 @@ void MMSFBWindowManager::setPointerPosition(int pointer_posx, int pointer_posy, 
 			old_region.y1 = this->pointer_region.y1;
 		else
 			old_region.y2 = this->pointer_region.y2;
+		PRINT_LOCK("flipSurface");
 		flipSurface(NULL, &old_region, false);
+		PRINT_LOCK("end flipSurface");
 	}
 }
 
@@ -1416,9 +1514,11 @@ bool MMSFBWindowManager::loadPointer() {
 							return false;
 						}
 
+						this->pointer_surface->lock();
 						// blit from external buffer to surface
 						this->pointer_surface->blitBuffer(img_buf, img_pitch, this->pixelformat,
 															img_width, img_height, NULL, 0, 0);
+						this->pointer_surface->unlock();
 
 						// free
 						delete tafff;
@@ -1493,6 +1593,9 @@ void MMSFBWindowManager::drawPointer(MMSFBRegion *region) {
 	if (this->pointer_opacity == 0)
 		return;
 
+	this->layer_surface->lock();
+	this->pointer_surface->lock();
+
 	// blit the pointer surface with given opacity
 	if (this->pointer_opacity < 255) {
 		this->layer_surface->setBlittingFlags((MMSFBBlittingFlags) (MMSFB_BLIT_BLEND_ALPHACHANNEL|MMSFB_BLIT_BLEND_COLORALPHA));
@@ -1503,6 +1606,8 @@ void MMSFBWindowManager::drawPointer(MMSFBRegion *region) {
 	this->layer_surface->blit(this->pointer_surface, NULL, this->pointer_rect.x, this->pointer_rect.y);
 	this->layer_surface->setBlittingFlags((MMSFBBlittingFlags) MMSFB_BLIT_NOFX);
     this->layer_surface->setColor(0, 0, 0, 0);
+    this->pointer_surface->unlock();
+    this->layer_surface->unlock();
 }
 
 unsigned char MMSFBWindowManager::getPointerOpacity() {
@@ -1513,7 +1618,9 @@ void MMSFBWindowManager::setPointerOpacity(unsigned char opacity) {
 	// set it
 	this->pointer_opacity = opacity;
 	this->pointer_fadecnt = 0;
+	PRINT_LOCK("flipSurface");
 	flipSurface(NULL, &this->pointer_region, false);
+	PRINT_LOCK("end flipSurface");
 }
 
 void MMSFBWindowManager::fadePointer() {
@@ -1530,7 +1637,9 @@ void MMSFBWindowManager::fadePointer() {
 					this->pointer_opacity-= this->pointer_fadecnt / 3;
 				else
 					this->pointer_opacity = 0;
+				PRINT_LOCK("flipSurface");
 				flipSurface(NULL, &this->pointer_region, false);
+				PRINT_LOCK("end flipSurface");
 			}
 		}
 	}

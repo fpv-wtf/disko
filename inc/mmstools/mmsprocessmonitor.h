@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -33,7 +33,6 @@
 #ifndef MMSPROCESSMONITOR_H_
 #define MMSPROCESSMONITOR_H_
 
-#include "mmstools/mmstools.h"
 #include "mmsthread.h"
 #include <vector>
 #include <string>
@@ -58,7 +57,7 @@ class MMSProcessMonitor : public MMSThread {
 
 	public:
 		MMSProcessMonitor(unsigned int interval = 5);
-		~MMSProcessMonitor();
+		virtual ~MMSProcessMonitor();
 		void commenceShutdown();
 		void addProcess(std::string process);
 		void addProcess(const char *process);

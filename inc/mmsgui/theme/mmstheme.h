@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -51,6 +51,7 @@
 #include "mmsgui/theme/mmssliderwidgetclass.h"
 #include "mmsgui/theme/mmsinputwidgetclass.h"
 #include "mmsgui/theme/mmscheckboxwidgetclass.h"
+#include "mmsgui/theme/mmscanvaswidgetclass.h"
 
 
 MMS_CREATEERROR(MMSThemeError);
@@ -95,7 +96,9 @@ typedef enum {
 	MMSGUI_TAGTABLE_TAG_CLASS_INPUTWIDGET,
 	MMSGUI_TAGTABLE_TAG_CHECKBOXWIDGET,
 	MMSGUI_TAGTABLE_TAG_CLASS_CHECKBOXWIDGET,
-	MMSGUI_TAGTABLE_TAG_GAPWIDGET
+	MMSGUI_TAGTABLE_TAG_CANVASWIDGET,
+	MMSGUI_TAGTABLE_TAG_CLASS_CANVASWIDGET,
+	MMSGUI_TAGTABLE_TAG_GAPWIDGET,
 } MMSGUI_TAGTABLE_TAG;
 
 
@@ -128,6 +131,7 @@ class MMSTheme {
         vector<MMSChildWindowClass*>    	childWindowClasses;
         vector<MMSLabelWidgetClass*>    	labelWidgetClasses;
         vector<MMSImageWidgetClass*>    	imageWidgetClasses;
+        vector<MMSCanvasWidgetClass*>    	canvasWidgetClasses;
         vector<MMSButtonWidgetClass*>   	buttonWidgetClasses;
         vector<MMSProgressBarWidgetClass*>  progressBarWidgetClasses;
         vector<MMSMenuWidgetClass*>         menuWidgetClasses;
@@ -144,6 +148,7 @@ class MMSTheme {
         bool addChildWindowClass(MMSChildWindowClass *themeClass);
         bool addLabelWidgetClass(MMSLabelWidgetClass *themeClass);
         bool addImageWidgetClass(MMSImageWidgetClass *themeClass);
+        bool addCanvasWidgetClass(MMSCanvasWidgetClass *themeClass);
         bool addButtonWidgetClass(MMSButtonWidgetClass *themeClass);
         bool addProgressBarWidgetClass(MMSProgressBarWidgetClass *themeClass);
         bool addMenuWidgetClass(MMSMenuWidgetClass *themeClass);
@@ -161,6 +166,7 @@ class MMSTheme {
         MMSChildWindowClass 		childWindowClass;
         MMSLabelWidgetClass       	labelWidgetClass;
         MMSImageWidgetClass       	imageWidgetClass;
+        MMSCanvasWidgetClass       	canvasWidgetClass;
         MMSButtonWidgetClass      	buttonWidgetClass;
         MMSProgressBarWidgetClass	progressBarWidgetClass;
         MMSMenuWidgetClass       	menuWidgetClass;
@@ -177,6 +183,7 @@ class MMSTheme {
         MMSChildWindowClass*    	getChildWindowClass(string className = "");
         MMSLabelWidgetClass*      	getLabelWidgetClass(string className = "");
         MMSImageWidgetClass*        getImageWidgetClass(string className = "");
+        MMSCanvasWidgetClass*       getCanvasWidgetClass(string className = "");
         MMSButtonWidgetClass*       getButtonWidgetClass(string className = "");
         MMSProgressBarWidgetClass*	getProgressBarWidgetClass(string className = "");
         MMSMenuWidgetClass*         getMenuWidgetClass(string className = "");

@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -78,11 +78,13 @@ TAFF_TAGTABLE mmsgui_taff_tagtable[] = {
 	{	"class", 		"type",	"input",		MMSGUI_INPUTWIDGET_ATTR_I		},
 	{	"checkbox",		NULL, 	NULL,			MMSGUI_CHECKBOXWIDGET_ATTR_I	},
 	{	"class", 		"type",	"checkbox",		MMSGUI_CHECKBOXWIDGET_ATTR_I	},
+	{	"canvas",		NULL, 	NULL,			MMSGUI_CANVASWIDGET_ATTR_I		},
+	{	"class", 		"type",	"canvas",		MMSGUI_CANVASWIDGET_ATTR_I	    },
 	{	"gap",			NULL, 	NULL,			MMSGUI_BASE_ATTR_I				},
 	{	NULL, 			NULL, 	NULL,			NULL							}
 };
 
-TAFF_DESCRIPTION mmsgui_taff_description = { "mmsgui", 29, mmsgui_taff_tagtable };
+TAFF_DESCRIPTION mmsgui_taff_description = { "mmsgui", 31, mmsgui_taff_tagtable };
 
 
 
@@ -157,6 +159,17 @@ bool MMSTheme::addImageWidgetClass(MMSImageWidgetClass *themeClass) {
     imageWidgetClasses.push_back(themeClass);
     return true;
 }
+
+bool MMSTheme::addCanvasWidgetClass(MMSCanvasWidgetClass *themeClass) {
+    string className = themeClass->getClassName();
+    if (className == "") return false;
+    for (unsigned int i = 0; i < canvasWidgetClasses.size(); i++)
+        if (canvasWidgetClasses.at(i)->getClassName() == className)
+            return false;
+    canvasWidgetClasses.push_back(themeClass);
+    return true;
+}
+
 
 bool MMSTheme::addButtonWidgetClass(MMSButtonWidgetClass *themeClass) {
     string className = themeClass->getClassName();
@@ -342,6 +355,16 @@ MMSImageWidgetClass* MMSTheme::getImageWidgetClass(string className) {
     for (unsigned int i = 0; i < imageWidgetClasses.size(); i++)
         if (imageWidgetClasses.at(i)->getClassName() == className)
             return imageWidgetClasses.at(i);
+    return NULL;
+}
+
+MMSCanvasWidgetClass* MMSTheme::getCanvasWidgetClass(string className) {
+    if (className=="") return NULL;
+    for (unsigned int i = 0; i < canvasWidgetClasses.size(); i++) {
+        if (canvasWidgetClasses.at(i)->getClassName() == className) {
+            return canvasWidgetClasses.at(i);
+        }
+    }
     return NULL;
 }
 
@@ -1346,6 +1369,66 @@ MMSTheme::MMSTheme(bool initial_load, bool debug) {
         this->checkBoxWidgetClass.setChecked(false);
     }
 
+
+    /* MMSCanvasWidget */
+    {
+        /* base widget settings */
+        this->canvasWidgetClass.widgetClass.setBgColor(color);
+        this->canvasWidgetClass.widgetClass.setSelBgColor(color);
+        this->canvasWidgetClass.widgetClass.setBgColor_p(color);
+        this->canvasWidgetClass.widgetClass.setSelBgColor_p(color);
+        this->canvasWidgetClass.widgetClass.setBgColor_i(color);
+        this->canvasWidgetClass.widgetClass.setSelBgColor_i(color);
+        this->canvasWidgetClass.widgetClass.setBgImagePath("");
+        this->canvasWidgetClass.widgetClass.setBgImageName("");
+        this->canvasWidgetClass.widgetClass.setSelBgImagePath("");
+        this->canvasWidgetClass.widgetClass.setSelBgImageName("");
+        this->canvasWidgetClass.widgetClass.setBgImagePath_p("");
+        this->canvasWidgetClass.widgetClass.setBgImageName_p("");
+        this->canvasWidgetClass.widgetClass.setSelBgImagePath_p("");
+        this->canvasWidgetClass.widgetClass.setSelBgImageName_p("");
+        this->canvasWidgetClass.widgetClass.setBgImagePath_i("");
+        this->canvasWidgetClass.widgetClass.setBgImageName_i("");
+        this->canvasWidgetClass.widgetClass.setSelBgImagePath_i("");
+        this->canvasWidgetClass.widgetClass.setSelBgImageName_i("");
+        this->canvasWidgetClass.widgetClass.setMargin(0);
+        this->canvasWidgetClass.widgetClass.setFocusable(true);
+        this->canvasWidgetClass.widgetClass.setSelectable(true);
+        this->canvasWidgetClass.widgetClass.setUpArrow("");
+        this->canvasWidgetClass.widgetClass.setDownArrow("");
+        this->canvasWidgetClass.widgetClass.setLeftArrow("");
+        this->canvasWidgetClass.widgetClass.setRightArrow("");
+        this->canvasWidgetClass.widgetClass.setData("");
+        this->canvasWidgetClass.widgetClass.setNavigateUp("");
+        this->canvasWidgetClass.widgetClass.setNavigateDown("");
+        this->canvasWidgetClass.widgetClass.setNavigateLeft("");
+        this->canvasWidgetClass.widgetClass.setNavigateRight("");
+        this->canvasWidgetClass.widgetClass.setVSlider("");
+        this->canvasWidgetClass.widgetClass.setHSlider("");
+        this->canvasWidgetClass.widgetClass.setImagesOnDemand(false);
+        this->canvasWidgetClass.widgetClass.setBlend(0);
+        this->canvasWidgetClass.widgetClass.setBlendFactor(0);
+        this->canvasWidgetClass.widgetClass.setScrollOnFocus(false);
+        this->canvasWidgetClass.widgetClass.setClickable(true);
+        this->canvasWidgetClass.widgetClass.setReturnOnScroll(true);
+        this->canvasWidgetClass.widgetClass.setInputMode("");
+        this->canvasWidgetClass.widgetClass.setJoinedWidget("");
+        this->canvasWidgetClass.widgetClass.setActivated(true);
+
+        /* base widget border settings */
+        this->canvasWidgetClass.widgetClass.border.setColor(color);
+        this->canvasWidgetClass.widgetClass.border.setSelColor(color);
+        this->canvasWidgetClass.widgetClass.border.setImagePath("");
+        this->canvasWidgetClass.widgetClass.border.setImageNames("", "", "", "", "", "", "", "");
+        this->canvasWidgetClass.widgetClass.border.setSelImagePath("");
+        this->canvasWidgetClass.widgetClass.border.setSelImageNames("", "", "", "", "", "", "", "");
+        this->canvasWidgetClass.widgetClass.border.setThickness(0);
+        this->canvasWidgetClass.widgetClass.border.setMargin(0);
+        this->canvasWidgetClass.widgetClass.border.setRCorners(false);
+
+        /* canvas settings */
+        this->canvasWidgetClass.setAttributes("");
+    }
 
 }
 

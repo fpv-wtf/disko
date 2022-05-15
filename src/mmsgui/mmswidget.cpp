@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -45,6 +45,20 @@ MMSWidget::MMSWidget() :
 	initialized(false),
 	name(""),
 	sizehint(""),
+	min_width(""),
+	min_width_pix(0),
+	min_height(""),
+	min_height_pix(0),
+	max_width(""),
+	max_width_pix(0),
+	max_height(""),
+	max_height_pix(0),
+	minmax_set(false),
+	content_size_initialized(false),
+	content_width(0),
+	content_height(0),
+	content_width_child(0),
+	content_height_child(0),
 	bindata(NULL),
 	rootwindow(NULL),
 	parent_rootwindow(NULL),
@@ -82,9 +96,8 @@ MMSWidget::MMSWidget() :
 
 	MMSIdFactory factory;
     this->id = factory.getId();
-
-
 }
+
 
 MMSWidget::~MMSWidget() {
 
@@ -104,15 +117,18 @@ MMSWidget::~MMSWidget() {
     }
 
     // remove me from root window list
-    if (this->rootwindow)
+    if (this->rootwindow) {
         this->rootwindow->remove(this);
+    }
 
-    if(this->surface)
+    if(this->surface) {
         delete this->surface;
+    }
 
     // delete attributes which are set for drawable widgets
-    if (this->da)
+    if (this->da) {
     	delete this->da;
+    }
 }
 
 MMSWIDGETTYPE MMSWidget::getType() {
@@ -192,14 +208,14 @@ bool MMSWidget::create(MMSWindow *root, bool drawable, bool needsparentdraw, boo
 
 	    this->da->joinedWidget = NULL;
 
-	    if(!onSelect) {
+	    if(!onSelect && selectable) {
 	    	onSelect = new sigc::signal<void, MMSWidget*>;
 	    }
-	    if(!onFocus)
+	    if(!onFocus && focusable)
 	    	onFocus  = new sigc::signal<void, MMSWidget*, bool>;
-	    if(!onReturn)
+	    if(!onReturn && selectable)
 	    	onReturn = new sigc::signal<void, MMSWidget*>;
-	    if(!onClick)
+	    if(!onClick && clickable)
 	    	onClick  = new sigc::signal<void, MMSWidget*, int, int, int, int>;
 	}
 	else {
@@ -237,6 +253,12 @@ bool MMSWidget::create(MMSWindow *root, bool drawable, bool needsparentdraw, boo
         this->windowSurface = this->rootwindow->getSurface();
     }
     this->sizehint.clear();
+    this->min_width.clear();
+    this->min_height.clear();
+    this->max_width.clear();
+    this->max_height.clear();
+    this->minmax_set = false;
+
     this->geomset=false;
 
 
@@ -248,30 +270,60 @@ bool MMSWidget::create(MMSWindow *root, bool drawable, bool needsparentdraw, boo
 }
 
 void MMSWidget::copyWidget(MMSWidget *newWidget) {
-    /* get new id */
-    MMSIdFactory factory;
-    newWidget->id = factory.getId();
 
-    /* copy my children */
+	/* copy my basic attributes */
+	newWidget->initialized = this->initialized;
+	newWidget->name = this->name;
+	newWidget->sizehint = this->sizehint;
+	newWidget->bindata=NULL;
+    newWidget->rootwindow = this->rootwindow;
+    newWidget->parent_rootwindow = this->parent_rootwindow;
+    newWidget->drawable = this->drawable;
+    newWidget->needsparentdraw = this->needsparentdraw;
+    newWidget->focusable_initial = this->focusable_initial;
+    newWidget->selectable_initial = this->selectable_initial;
+    newWidget->clickable_initial = this->clickable_initial;
+    newWidget->canhavechildren = this->canhavechildren;
+    newWidget->canselectchildren = this->canselectchildren;
+    newWidget->visible = this->visible;
+    newWidget->focused = false;
+    newWidget->selected = false;
+    newWidget->pressed = false;
+    newWidget->brightness = this->brightness;
+    newWidget->opacity = this->opacity;
+    newWidget->has_own_surface = this->has_own_surface;
+    newWidget->skip_refresh = false;
+    newWidget->current_bgset = this->current_bgset;
+    newWidget->current_bgcolor = this->current_bgcolor;
+    newWidget->current_bgimage = this->current_bgimage;
+    newWidget->geomset = this->geomset;
+    newWidget->toRedraw = this->toRedraw;
+    newWidget->redrawChildren = this->redrawChildren;
+
+    newWidget->windowSurface = this->windowSurface;
+
+    // todo: really assign surface pointer in copy?
+    newWidget->surface = NULL;
+
+    newWidget->surfaceGeom = this->surfaceGeom;
+
+    newWidget->parent = this->parent;
+    newWidget->children = this->children;
+
+    newWidget->geom = this->geom;
+    newWidget->innerGeom = this->innerGeom;
+
+	/* copy my children */
     unsigned int size = children.size();
     for (unsigned int i = 0; i < size; i++)
         newWidget->children.at(i) = children.at(i)->copyWidget();
 
     if (drawable) {
     	// copy attributes for drawable widgets
-    	newWidget->da = new MMSWIDGET_DRAWABLE_ATTRIBUTES;
     	*(newWidget->da) = *(this->da);
     }
 
-    /* initialize the callbacks */
-    onSelect = new sigc::signal<void, MMSWidget*>;
-    onFocus  = new sigc::signal<void, MMSWidget*, bool>;
-    onReturn = new sigc::signal<void, MMSWidget*>;
-    onClick  = new sigc::signal<void, MMSWidget*, int, int, int, int>;
-
     if (drawable) {
-    	// reset skip refresh flag
-        this->skip_refresh = false;
 
         // reload my images
 		newWidget->da->bgimage = NULL;
@@ -532,7 +584,6 @@ MMSFBRectangle MMSWidget::getInnerGeometry() {
 void MMSWidget::setGeometry(MMSFBRectangle geom) {
     MMSFBRectangle oldgeom;
     bool dimChanged = true;
-
 
     if (this->geomset) {
         /* dimension has changed? */
@@ -996,6 +1047,121 @@ bool MMSWidget::release() {
 
 
 
+bool MMSWidget::setContentSize(int content_width, int content_height) {
+	if (!this->minmax_set) {
+		return false;
+	}
+
+	if (!this->parent)
+		return false;
+
+	this->content_width = content_width;
+	this->content_height = content_height;
+	this->parent->setContentSizeFromChildren();
+	return true;
+}
+
+
+void MMSWidget::setContentSizeFromChildren() {
+	if (!this->minmax_set) {
+		return;
+	}
+
+	if (!this->parent)
+		return;
+
+	int content_width;
+	int content_height;
+	if (children.at(0)->getContentSize(&content_width, &content_height)) {
+		this->content_width_child = content_width;
+		this->content_height_child = content_height;
+		this->parent->setContentSizeFromChildren();
+	}
+}
+
+
+bool MMSWidget::getContentSize(int *content_width, int *content_height) {
+	if (!this->minmax_set) {
+		return false;
+	}
+
+	if (this->content_width <= 0 || this->content_height <= 0) {
+		if (this->content_width_child <= 0 || this->content_height_child <= 0)
+			return false;
+
+		*content_width = this->content_width_child;
+		*content_height = this->content_height_child;
+
+		return true;
+	}
+
+	*content_width = this->content_width;
+	*content_height = this->content_height;
+
+	return true;
+}
+
+
+void MMSWidget::initContentSize() {
+	if (this->content_size_initialized) {
+		// already initialized
+		return;
+	}
+
+	if (this->minmax_set) {
+		// widget should calculate and set it's content size
+		calcContentSize();
+	}
+
+	this->content_size_initialized = true;
+
+	// for all my children
+	for (int i=0; i < children.size(); i++) {
+		children.at(i)->initContentSize();
+	}
+}
+
+void MMSWidget::calcContentSize() {
+	// empty method, have to override by specific widget class
+}
+
+
+bool MMSWidget::recalcContentSize(bool refresh) {
+	if (!this->minmax_set || !this->content_size_initialized) return false;
+
+	// get size of old content
+	int old_cwidth = -1;
+	int old_cheight = -1;
+	getContentSize(&old_cwidth, &old_cheight);
+
+	// widget should calculate and set it's new content size
+	calcContentSize();
+
+	// get size of new content
+	int new_cwidth = -1;
+	int new_cheight = -1;
+	getContentSize(&new_cwidth, &new_cheight);
+
+	if (old_cwidth == new_cwidth && old_cheight == new_cheight) {
+		// size of content has not changed
+		return false;
+	}
+
+	// give window a recalculation hint used for next draw()
+	this->rootwindow->setWidgetGeometryOnNextDraw();
+
+	if (refresh) {
+		// we have to refresh whole window, because widget geometry has to be recalculated
+		if (this->rootwindow->isShown(true)) {
+			// refresh is only required for visible windows
+			this->rootwindow->refresh();
+		}
+	}
+
+	return true;
+}
+
+
 void MMSWidget::getBackground(MMSFBColor *color, MMSFBSurface **image) {
 	color->a = 0;
 	*image = NULL;
@@ -1065,13 +1231,21 @@ bool MMSWidget::checkRefreshStatus() {
 
 	if (this->current_bgset) {
 		// current background initialized
-		MMSFBColor color;
-		MMSFBSurface *image;
-		getBackground(&color, &image);
+		// check if border will be drawn
+		unsigned int borderthickness;
+	    if (!getBorderThickness(borderthickness))
+	    	borderthickness = 0;
+		if (!borderthickness) {
+			// no border
+			// check if background color or image will be changed
+			MMSFBColor color;
+			MMSFBSurface *image;
+			getBackground(&color, &image);
 
-		if (color == this->current_bgcolor && image == this->current_bgimage) {
-			// background color and image not changed, so we do not enable refreshing
-			return false;
+			if (color == this->current_bgcolor && image == this->current_bgimage) {
+				// background color and image not changed, so we do not enable refreshing
+				return false;
+			}
 		}
 	}
 
@@ -1091,6 +1265,9 @@ bool MMSWidget::draw(bool *backgroundFilled) {
 
     // init widget (e.g. load images, fonts, ...)
     init();
+
+    if(!surface)
+    	return false;
 
     if (backgroundFilled) {
     	if (this->has_own_surface)
@@ -1482,7 +1659,7 @@ MMSWidget *MMSWidget::getDrawableParent(bool mark2Redraw, bool markChildren2Redr
     return NULL;
 }
 
-void MMSWidget::refresh() {
+void MMSWidget::refresh(bool required) {
     MMSFBRectangle tobeupdated;
     unsigned int margin = 0;
     MMSWindow *myroot = this->rootwindow;
@@ -1499,12 +1676,24 @@ void MMSWidget::refresh() {
    		return;
     }
 
+	// recalculate content size for dynamic widgets
+	if (recalcContentSize()) {
+		// content size has changed and window refreshed
+		return;
+	}
+
+	// widget with fixed geometry or geometry has not changed
+	if (!required) {
+		// refresh not required
+		return;
+	}
+
 	if (this->skip_refresh) {
 //		printf("   MMSWidget::refresh() - %s <<< skipped\n", name.c_str());
 		return;
 	}
 
-	// lock the window because only one thread can do this at the same time
+	// refresh widget, only a part of window will be refreshed
     this->parent_rootwindow->lock();
 
     // we have to check if the window is hidden while lock()
@@ -1533,6 +1722,10 @@ void MMSWidget::refresh() {
     if (this->type == MMSWIDGETTYPE_MENU) {
     	if (((MMSMenuWidget *)this)->getSmoothScrolling())
     		recalculateChildren();
+    }
+    else
+    if (this->type == MMSWIDGETTYPE_CANVAS) {
+   		recalculateChildren();
     }
 
     // inform the window that the widget want to redraw
@@ -1714,7 +1907,7 @@ void MMSWidget::setName(string name) {
 
 
 void MMSWidget::setFocus(bool set, bool refresh, MMSInputEvent *inputevent) {
-    /* switch focused on/off if possible */
+	/* switch focused on/off if possible */
 	bool b;
     if (!getFocusable(b))
         return;
@@ -1798,8 +1991,9 @@ bool MMSWidget::setSelected(bool set, bool refresh, bool *changed, bool joined) 
 			this->da->joinedWidget->getJoinedWigdets(caller_stack);
 			int i = 16;
 			while (i-- > 1) {
-				if (caller_stack[i])
+				if (caller_stack[i]) {
 					caller_stack[i]->setSelected(set, refresh, NULL, true);
+				}
 			}
 		}
 	}
@@ -1936,8 +2130,7 @@ bool MMSWidget::setPressed(bool set, bool refresh, bool joined) {
 	}
 
     // refresh widget
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     // status changed
     return true;
@@ -2002,7 +2195,6 @@ void MMSWidget::resetPressed() {
 
 void MMSWidget::handleInput(MMSInputEvent *inputevent) {
 	bool b;
-
 	if (inputevent->type == MMSINPUTEVENTTYPE_KEYPRESS) {
 		// keyboard inputs
 
@@ -2220,6 +2412,94 @@ bool MMSWidget::setSizeHint(string &hint) {
         return false;
 }
 
+string MMSWidget::getMinWidth() {
+    return this->min_width;
+}
+
+int MMSWidget::getMinWidthPix() {
+    return this->min_width_pix;
+}
+
+bool MMSWidget::setMinWidth(string &min_width) {
+	int pix, base_pix = 10000;
+	if (this->rootwindow) base_pix = this->rootwindow->geom.w;
+
+	if (getPixelFromSizeHint(&pix, min_width, base_pix, 0)) {
+        this->min_width = min_width;
+        this->min_width_pix = pix;
+        this->minmax_set = true;
+        return true;
+    }
+    else
+        return false;
+}
+
+string MMSWidget::getMinHeight() {
+    return this->min_height;
+}
+
+int MMSWidget::getMinHeightPix() {
+    return this->min_height_pix;
+}
+
+bool MMSWidget::setMinHeight(string &min_height) {
+	int pix, base_pix = 10000;
+	if (this->rootwindow) base_pix = this->rootwindow->geom.h;
+
+	if (getPixelFromSizeHint(&pix, min_height, base_pix, 0)) {
+        this->min_height = min_height;
+        this->min_height_pix = pix;
+        this->minmax_set = true;
+        return true;
+    }
+    else
+        return false;
+}
+
+string MMSWidget::getMaxWidth() {
+    return this->max_width;
+}
+
+int MMSWidget::getMaxWidthPix() {
+    return this->max_width_pix;
+}
+
+bool MMSWidget::setMaxWidth(string &max_width) {
+	int pix, base_pix = 10000;
+	if (this->rootwindow) base_pix = this->rootwindow->geom.w;
+
+	if (getPixelFromSizeHint(&pix, max_width, base_pix, 0)) {
+        this->max_width = max_width;
+        this->max_width_pix = pix;
+        this->minmax_set = true;
+        return true;
+    }
+    else
+        return false;
+}
+
+string MMSWidget::getMaxHeight() {
+    return this->max_height;
+}
+
+int MMSWidget::getMaxHeightPix() {
+    return this->max_height_pix;
+}
+
+bool MMSWidget::setMaxHeight(string &max_height) {
+	int pix, base_pix = 10000;
+	if (this->rootwindow) base_pix = this->rootwindow->geom.h;
+
+	if (getPixelFromSizeHint(&pix, max_height, base_pix, 0)) {
+        this->max_height = max_height;
+        this->max_height_pix = pix;
+        this->minmax_set = true;
+        return true;
+    }
+    else
+        return false;
+}
+
 bool MMSWidget::isGeomSet() {
     return this->geomset;
 }
@@ -2272,8 +2552,7 @@ void MMSWidget::setVisible(bool visible, bool refresh) {
 	// refresh is required
 	enableRefresh();
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 unsigned char MMSWidget::getBrightness() {
@@ -2290,8 +2569,7 @@ void MMSWidget::setBrightness(unsigned char brightness, bool refresh) {
 	// refresh is required
 	enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 unsigned char MMSWidget::getOpacity() {
@@ -2308,8 +2586,7 @@ void MMSWidget::setOpacity(unsigned char opacity, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 
@@ -2637,8 +2914,7 @@ bool MMSWidget::setBgColor(MMSFBColor bgcolor, bool refresh) {
 	// refresh required?
 	enableRefresh((bgcolor != this->current_bgcolor));
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2650,8 +2926,7 @@ bool MMSWidget::setSelBgColor(MMSFBColor selbgcolor, bool refresh) {
 	// refresh required?
 	enableRefresh((selbgcolor != this->current_bgcolor));
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2663,8 +2938,7 @@ bool MMSWidget::setBgColor_p(MMSFBColor bgcolor_p, bool refresh) {
 	// refresh required?
 	enableRefresh((bgcolor_p != this->current_bgcolor));
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2676,8 +2950,7 @@ bool MMSWidget::setSelBgColor_p(MMSFBColor selbgcolor_p, bool refresh) {
 	// refresh required?
 	enableRefresh((selbgcolor_p != this->current_bgcolor));
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2689,8 +2962,7 @@ bool MMSWidget::setBgColor_i(MMSFBColor bgcolor_i, bool refresh) {
 	// refresh required?
 	enableRefresh((bgcolor_i != this->current_bgcolor));
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2702,8 +2974,7 @@ bool MMSWidget::setSelBgColor_i(MMSFBColor selbgcolor_i, bool refresh) {
 	// refresh required?
 	enableRefresh((selbgcolor_i != this->current_bgcolor));
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2724,8 +2995,7 @@ bool MMSWidget::setBgImagePath(string bgimagepath, bool load, bool refresh) {
         }
     }
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2746,8 +3016,7 @@ bool MMSWidget::setBgImageName(string bgimagename, bool load, bool refresh) {
         }
     }
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2768,8 +3037,7 @@ bool MMSWidget::setSelBgImagePath(string selbgimagepath, bool load, bool refresh
         }
     }
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2790,8 +3058,7 @@ bool MMSWidget::setSelBgImageName(string selbgimagename, bool load, bool refresh
         }
     }
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2812,8 +3079,7 @@ bool MMSWidget::setBgImagePath_p(string bgimagepath_p, bool load, bool refresh) 
         }
     }
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2834,8 +3100,7 @@ bool MMSWidget::setBgImageName_p(string bgimagename_p, bool load, bool refresh) 
         }
     }
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2856,8 +3121,7 @@ bool MMSWidget::setSelBgImagePath_p(string selbgimagepath_p, bool load, bool ref
         }
     }
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2878,8 +3142,7 @@ bool MMSWidget::setSelBgImageName_p(string selbgimagename_p, bool load, bool ref
         }
     }
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2900,8 +3163,7 @@ bool MMSWidget::setBgImagePath_i(string bgimagepath_i, bool load, bool refresh) 
         }
     }
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2922,8 +3184,7 @@ bool MMSWidget::setBgImageName_i(string bgimagename_i, bool load, bool refresh) 
         }
     }
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2944,8 +3205,7 @@ bool MMSWidget::setSelBgImagePath_i(string selbgimagepath_i, bool load, bool ref
         }
     }
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2966,8 +3226,7 @@ bool MMSWidget::setSelBgImageName_i(string selbgimagename_i, bool load, bool ref
         }
     }
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -2981,9 +3240,9 @@ bool MMSWidget::setMargin(unsigned int margin, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
-    return true;
+	this->refresh(refresh);
+
+	return true;
 }
 
 bool MMSWidget::setFocusable(bool focusable, bool refresh) {
@@ -3025,8 +3284,7 @@ bool MMSWidget::setUpArrow(string uparrow, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -3039,8 +3297,7 @@ bool MMSWidget::setDownArrow(string downarrow, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -3053,8 +3310,7 @@ bool MMSWidget::setLeftArrow(string leftarrow, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -3067,8 +3323,7 @@ bool MMSWidget::setRightArrow(string rightarrow, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -3149,8 +3404,7 @@ bool MMSWidget::setBlend(unsigned int blend, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -3165,8 +3419,7 @@ bool MMSWidget::setBlendFactor(double blendfactor, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -3201,6 +3454,8 @@ bool MMSWidget::setJoinedWidget(string joinedwidget) {
     this->da->joinedWidget = NULL;
     if ((this->rootwindow)&&(!joinedwidget.empty()))
         this->da->joinedWidget = this->rootwindow->findWidget(joinedwidget);
+
+
     return true;
 }
 
@@ -3219,13 +3474,10 @@ bool MMSWidget::setActivated(bool activated, bool refresh) {
 	checkRefreshStatus();
 
     // refresh widget
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
-
-
 
 bool MMSWidget::setBorderColor(MMSFBColor bordercolor, bool refresh) {
 	if (!this->da) return false;
@@ -3234,8 +3486,7 @@ bool MMSWidget::setBorderColor(MMSFBColor bordercolor, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -3247,8 +3498,7 @@ bool MMSWidget::setBorderSelColor(MMSFBColor borderselcolor, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -3271,8 +3521,7 @@ bool MMSWidget::setBorderImagePath(string borderimagepath, bool load, bool refre
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -3298,8 +3547,7 @@ bool MMSWidget::setBorderImageNames(string imagename_1, string imagename_2, stri
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -3322,8 +3570,7 @@ bool MMSWidget::setBorderSelImagePath(string borderselimagepath, bool load, bool
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -3350,8 +3597,7 @@ bool MMSWidget::setBorderSelImageNames(string selimagename_1, string selimagenam
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -3365,8 +3611,7 @@ bool MMSWidget::setBorderThickness(unsigned int borderthickness, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -3380,8 +3625,7 @@ bool MMSWidget::setBorderMargin(unsigned int bordermargin, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
@@ -3393,14 +3637,12 @@ bool MMSWidget::setBorderRCorners(bool borderrcorners, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 
     return true;
 }
 
 void MMSWidget::updateFromThemeClass(MMSWidgetClass *themeClass) {
-
 	bool 			b;
 	MMSFBColor		c;
 	string 			s;

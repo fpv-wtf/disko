@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -62,17 +62,20 @@ private:
 
 	MMS3D_OBJECT *getObject(int object);
 
-	bool getResultMatrix(MMS3DMatrix result);
+	bool getResultMatrix(MMSMatrix result);
 
 public:
 
 	MMS3DScene();
 
-	void getMeshArrays(MMS3D_VERTEX_ARRAY ***varrays, MMS3D_INDEX_ARRAY ***iarrays);
+	bool setPrimitives(string id, MMS_VERTEX_ARRAY *vertices, MMS_VERTEX_ARRAY *normals,
+					   MMS_VERTEX_ARRAY *texcoords, MMS_INDEX_ARRAY *indices);
+
+	void getMeshArrays(MMS_VERTEX_ARRAY ***varrays, MMS_INDEX_ARRAY ***iarrays);
 
 	void getObjects(MMS3D_OBJECT ***objects);
 
-	void setBaseMatrix(MMS3DMatrix matrix);
+	void setBaseMatrix(MMSMatrix matrix);
 
 	void reset();
 
@@ -89,6 +92,8 @@ public:
 	friend class MMS3DSphere;
 	friend class MMS3DTorus;
 	friend class MMS3DCylinder;
+	friend class MMS3DPrimitives;
 };
 
 #endif /* MMS3DSCENE_H_ */
+

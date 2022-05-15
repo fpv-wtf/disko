@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -56,6 +56,7 @@ void drawBorder(unsigned int borderThickness, bool borderRCorners, MMSFBSurface 
     /* FIRST: corners */
     /* image #1 (top-left) */
     if (borderimages[0]) {
+    	borderimages[0]->lock();
         if (!*bordergeomset) {
             int ww, hh;
             borderimages[0]->getSize(&ww, &hh);
@@ -65,6 +66,7 @@ void drawBorder(unsigned int borderThickness, bool borderRCorners, MMSFBSurface 
             bordergeom[0].h = hh;
         }
         surface->stretchBlit(borderimages[0], NULL, &bordergeom[0]);
+        borderimages[0]->unlock();
         bic--;
     }
     else {
@@ -83,6 +85,7 @@ void drawBorder(unsigned int borderThickness, bool borderRCorners, MMSFBSurface 
     }
     /* image #3 (top-right) */
     if (borderimages[2]) {
+    	borderimages[2]->lock();
         if (!*bordergeomset) {
             int ww, hh;
             borderimages[2]->getSize(&ww, &hh);
@@ -93,6 +96,7 @@ void drawBorder(unsigned int borderThickness, bool borderRCorners, MMSFBSurface 
         }
         surface->stretchBlit(borderimages[2], NULL, &bordergeom[2]);
         bic--;
+        borderimages[2]->unlock();
     }
     else {
         if (borderRCorners) {
@@ -110,6 +114,7 @@ void drawBorder(unsigned int borderThickness, bool borderRCorners, MMSFBSurface 
     }
     /* image #5 (bottom-right) */
     if (borderimages[4]) {
+    	borderimages[4]->lock();
         if (!*bordergeomset) {
             int ww, hh;
             borderimages[4]->getSize(&ww, &hh);
@@ -119,6 +124,7 @@ void drawBorder(unsigned int borderThickness, bool borderRCorners, MMSFBSurface 
             bordergeom[4].h = hh;
         }
         surface->stretchBlit(borderimages[4], NULL, &bordergeom[4]);
+        borderimages[4]->unlock();
         bic--;
     }
     else {
@@ -136,6 +142,7 @@ void drawBorder(unsigned int borderThickness, bool borderRCorners, MMSFBSurface 
     }
     /* image #7 (bottom-left) */
     if (borderimages[6]) {
+    	borderimages[6]->lock();
         if (!*bordergeomset) {
             int ww, hh;
             borderimages[6]->getSize(&ww, &hh);
@@ -145,6 +152,7 @@ void drawBorder(unsigned int borderThickness, bool borderRCorners, MMSFBSurface 
             bordergeom[6].h = hh;
         }
         surface->stretchBlit(borderimages[6], NULL, &bordergeom[6]);
+        borderimages[6]->unlock();
         bic--;
     }
     else {
@@ -164,6 +172,7 @@ void drawBorder(unsigned int borderThickness, bool borderRCorners, MMSFBSurface 
     /* SECOND: horizontal/vertical lines */
     /* image #2 (top) */
     if (borderimages[1]) {
+    	borderimages[1]->lock();
         if (!*bordergeomset) {
             int ww, hh;
             borderimages[1]->getSize(&ww, &hh);
@@ -173,6 +182,7 @@ void drawBorder(unsigned int borderThickness, bool borderRCorners, MMSFBSurface 
             bordergeom[1].h = hh;
         }
         surface->stretchBlit(borderimages[1], NULL, &bordergeom[1]);
+        borderimages[1]->unlock();
         bic--;
     }
     else {
@@ -183,6 +193,7 @@ void drawBorder(unsigned int borderThickness, bool borderRCorners, MMSFBSurface 
     }
     /* image #4 (right) */
     if (borderimages[3]) {
+    	borderimages[3]->lock();
         if (!*bordergeomset) {
             int ww, hh;
             borderimages[3]->getSize(&ww, &hh);
@@ -192,6 +203,7 @@ void drawBorder(unsigned int borderThickness, bool borderRCorners, MMSFBSurface 
             bordergeom[3].h = bordergeom[4].y - bordergeom[3].y;
         }
         surface->stretchBlit(borderimages[3], NULL, &bordergeom[3]);
+        borderimages[3]->unlock();
         bic--;
     }
     else {
@@ -202,6 +214,7 @@ void drawBorder(unsigned int borderThickness, bool borderRCorners, MMSFBSurface 
     }
     /* image #6 (bottom) */
     if (borderimages[5]) {
+    	borderimages[5]->lock();
         if (!*bordergeomset) {
             int ww, hh;
             borderimages[5]->getSize(&ww, &hh);
@@ -211,6 +224,7 @@ void drawBorder(unsigned int borderThickness, bool borderRCorners, MMSFBSurface 
             bordergeom[5].h = hh;
         }
         surface->stretchBlit(borderimages[5], NULL, &bordergeom[5]);
+        borderimages[5]->unlock();
         bic--;
     }
     else {
@@ -221,6 +235,7 @@ void drawBorder(unsigned int borderThickness, bool borderRCorners, MMSFBSurface 
     }
     /* image #8 (left) */
     if (borderimages[7]) {
+    	borderimages[7]->lock();
         if (!*bordergeomset) {
             int ww, hh;
             borderimages[7]->getSize(&ww, &hh);
@@ -230,6 +245,7 @@ void drawBorder(unsigned int borderThickness, bool borderRCorners, MMSFBSurface 
             bordergeom[7].h = bordergeom[6].y - bordergeom[7].y;
         }
         surface->stretchBlit(borderimages[7], NULL, &bordergeom[7]);
+        borderimages[7]->unlock();
         bic--;
     }
     else {
@@ -257,6 +273,7 @@ pixelformat=DSPF_ALUT44;
         if (!borderimages[0]) {
             /* create newImage surface */
             if ((borderimages[0] = im->newImage("", bordergeom[0].w, bordergeom[0].h))) {
+            	borderimages[0]->lock();
                 borderimages[0]->clear();
                 if (color.a) {
                     borderimages[0]->setColor(color.r, color.g, color.b, 255);
@@ -285,12 +302,14 @@ pixelformat=DSPF_ALUT44;
 
                 /* blit the first time */
                 surface->stretchBlit(borderimages[0], NULL, &bordergeom[0]);
+                borderimages[0]->unlock();
             }
         }
         /* (top-right) */
         if (!borderimages[2]) {
-            /* create newImage surface */
+        	/* create newImage surface */
             if ((borderimages[2] = im->newImage("", bordergeom[2].w, bordergeom[2].h))) {
+            	borderimages[2]->lock();
                 borderimages[2]->clear();
                 if (color.a) {
                     borderimages[2]->setColor(color.r, color.g, color.b, 255);
@@ -319,12 +338,14 @@ pixelformat=DSPF_ALUT44;
 
                 /* blit the first time */
                 surface->stretchBlit(borderimages[2], NULL, &bordergeom[2]);
+                borderimages[2]->unlock();
             }
         }
         /* (bottom-right) */
         if (!borderimages[4]) {
             /* create newImage surface */
             if ((borderimages[4] = im->newImage("", bordergeom[4].w, bordergeom[4].h))) {
+            	borderimages[4]->lock();
                 borderimages[4]->clear();
                 if (color.a) {
                     borderimages[4]->setColor(color.r, color.g, color.b, 255);
@@ -352,12 +373,14 @@ pixelformat=DSPF_ALUT44;
 
                 /* blit the first time */
                 surface->stretchBlit(borderimages[4], NULL, &bordergeom[4]);
+                borderimages[4]->unlock();
             }
         }
         /* (bottom-left) */
         if (!borderimages[6]) {
             /* create newImage surface */
             if ((borderimages[6] = im->newImage("", bordergeom[6].w, bordergeom[6].h))) {
+            	borderimages[6]->lock();
                 borderimages[6]->clear();
                 if (color.a) {
                     borderimages[6]->setColor(color.r, color.g, color.b, 255);
@@ -386,6 +409,7 @@ pixelformat=DSPF_ALUT44;
 
                 /* blit the first time */
                 surface->stretchBlit(borderimages[6], NULL, &bordergeom[6]);
+                borderimages[6]->unlock();
             }
         }
 
@@ -394,6 +418,7 @@ pixelformat=DSPF_ALUT44;
         if (!borderimages[1]) {
             /* create newImage surface */
             if ((borderimages[1] = im->newImage("", bordergeom[1].w, bordergeom[1].h))) {
+            	borderimages[1]->lock();
                 borderimages[1]->clear();
                 if (color.a) {
                     borderimages[1]->setColor(color.r, color.g, color.b, 255);
@@ -405,12 +430,14 @@ pixelformat=DSPF_ALUT44;
 
                 /* blit the first time */
                 surface->stretchBlit(borderimages[1], NULL, &bordergeom[1]);
+                borderimages[1]->unlock();
             }
         }
         /* (right) */
         if (!borderimages[3]) {
             /* create newImage surface */
             if ((borderimages[3] = im->newImage("", bordergeom[3].w, bordergeom[3].h))) {
+            	borderimages[3]->lock();
                 borderimages[3]->clear();
                 if (color.a) {
                     borderimages[3]->setColor(color.r, color.g, color.b, 255);
@@ -422,12 +449,14 @@ pixelformat=DSPF_ALUT44;
 
                 /* blit the first time */
                 surface->stretchBlit(borderimages[3], NULL, &bordergeom[3]);
+                borderimages[3]->unlock();
             }
         }
         /* (bottom) */
         if (!borderimages[5]) {
             /* create newImage surface */
             if ((borderimages[5] = im->newImage("", bordergeom[5].w, bordergeom[5].h))) {
+            	borderimages[5]->lock();
                 borderimages[5]->clear();
                 if (color.a) {
                     borderimages[5]->setColor(color.r, color.g, color.b, 255);
@@ -439,12 +468,14 @@ pixelformat=DSPF_ALUT44;
 
                 /* blit the first time */
                 surface->stretchBlit(borderimages[5], NULL, &bordergeom[5]);
+                borderimages[5]->unlock();
             }
         }
         /* (left) */
         if (!borderimages[7]) {
             /* create newImage surface */
             if ((borderimages[7] = im->newImage("", bordergeom[7].w, bordergeom[7].h))) {
+            	borderimages[7]->lock();
                 borderimages[7]->clear();
                 if (color.a) {
                     borderimages[7]->setColor(color.r, color.g, color.b, 255);
@@ -456,6 +487,7 @@ pixelformat=DSPF_ALUT44;
 
                 /* blit the first time */
                 surface->stretchBlit(borderimages[7], NULL, &bordergeom[7]);
+                borderimages[7]->unlock();
             }
         }
     }

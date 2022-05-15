@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -32,6 +32,7 @@
 
 #include "mmstools/mmspulser.h"
 #include "mmstools/tools.h"
+#include "mmstools/mmserror.h"
 #include <math.h>
 
 MMSPulser::MMSPulser() : MMSThread("MMSPulser") {
@@ -205,8 +206,6 @@ void MMSPulser::calcCurve(double &offset, double &offset_curve) {
 }
 
 void MMSPulser::threadMain() {
-	// reset all values
-	reset();
 
 	// call connected onBeforeAnimation callbacks
     if (!this->onBeforeAnimation.emit(this)) {
@@ -390,6 +389,9 @@ bool MMSPulser::start(bool separate_thread, bool wait) {
 		}
 	}
 
+	// reset all values
+	reset();
+
 	if (separate_thread) {
 		// start animation in a separate thread context
 		bool ret = MMSThread::start();
@@ -428,7 +430,9 @@ bool MMSPulser::isRunning() {
 }
 
 void MMSPulser::stop() {
+	this->startlock.lock();
 	this->cancel = true;
+	this->startlock.unlock();
 }
 
 bool MMSPulser::setStepsPerSecond(int steps_per_second) {

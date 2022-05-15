@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -60,13 +60,13 @@ private:
 	int ms_cnt;
 
 	//! base matrix (matrix before stack operations)
-	MMS3DMatrix base_matrix;
+	MMSMatrix base_matrix;
 
 	//! is base matrix set?
 	bool base_matrix_set;
 
 	//! result matrix (matrix after stack operations)
-	MMS3DMatrix result_matrix;
+	MMSMatrix result_matrix;
 
 	//! is result matrix set?
 	bool result_matrix_set;
@@ -79,9 +79,9 @@ public:
 
 	void clear();
 
-	void setBaseMatrix(MMS3DMatrix base_matrix);
+	void setBaseMatrix(MMSMatrix base_matrix);
 
-	bool getResultMatrix(MMS3DMatrix result_matrix);
+	bool getResultMatrix(MMSMatrix result_matrix);
 
 	bool scale(float sx, float sy, float sz);
 
@@ -91,3 +91,4 @@ public:
 };
 
 #endif /* MMS3DMATRIXSTACK_H_ */
+

@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -38,6 +38,7 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <cstring>
+#include <iostream>
 
 #ifdef __HAVE_PNG__
 #include <png.h>
@@ -564,8 +565,35 @@ bool MMSTaffFile::readJPEG(const char *filename, void **buf, int *width, int *he
 	JSAMPARRAY 						rowBuf;		/**< Output row buffer */
 	int 							rowStride;	/**< physical row width in output buffer */
 
-	if((fp = fopen(filename, "rb")) == NULL) {
-		return false;
+	MMSFile			*file=NULL;
+	size_t ritems = 0;
+	char *fileBuffer=NULL;
+
+	if (strToUpr(string(filename).substr(0,7)) == "HTTP://") {
+		// check if file does exist and if it is an png format
+		file = new MMSFile(filename);
+		if (!file) {
+			return false;
+		}
+		if (file->getLastError()) {
+			return false;
+		}
+
+		if (!file->readBufferEx((void **)&fileBuffer, &ritems)) {
+			delete file;
+			return false;
+		}
+
+		if((fp = fmemopen(fileBuffer, ritems, "rb")) == NULL) {
+			free(fileBuffer);
+			fileBuffer = NULL;
+			delete file;
+			return false;
+		}
+	} else {
+		if((fp = fopen(filename, "rb")) == NULL) {
+			return false;
+		}
 	}
 
 	cinfo.err = jpeg_std_error(&jerr.pub);
@@ -573,6 +601,12 @@ bool MMSTaffFile::readJPEG(const char *filename, void **buf, int *width, int *he
 	if(setjmp(jerr.setjmpBuffer)) {
 		jpeg_destroy_decompress(&cinfo);
 		fclose(fp);
+		if (file) {
+			if (fileBuffer)
+				free(fileBuffer);
+			fileBuffer = NULL;
+			delete file;
+		}
 		return false;
 	}
 	jpeg_create_decompress(&cinfo);
@@ -580,6 +614,12 @@ bool MMSTaffFile::readJPEG(const char *filename, void **buf, int *width, int *he
 
 	if(jpeg_read_header(&cinfo, TRUE) != JPEG_HEADER_OK) {
 		fclose(fp);
+		if (file) {
+			if (fileBuffer)
+				free(fileBuffer);
+			fileBuffer = NULL;
+			delete file;
+		}
 		return false;
 	}
 
@@ -608,6 +648,12 @@ bool MMSTaffFile::readJPEG(const char *filename, void **buf, int *width, int *he
     	jpeg_finish_decompress(&cinfo);
     	jpeg_destroy_decompress(&cinfo);
     	fclose(fp);
+		if (file) {
+			if (fileBuffer)
+				free(fileBuffer);
+			fileBuffer = NULL;
+			delete file;
+		}
     	return false;
     }
 
@@ -625,6 +671,12 @@ bool MMSTaffFile::readJPEG(const char *filename, void **buf, int *width, int *he
 	jpeg_finish_decompress(&cinfo);
 	jpeg_destroy_decompress(&cinfo);
 	fclose(fp);
+	if (file) {
+		if (fileBuffer)
+			free(fileBuffer);
+		fileBuffer = NULL;
+		delete file;
+	}
 
     /* create mirror, rotate and convert to target pixelformat */
     return postprocessImage(buf, width, height, pitch, size, alphachannel);

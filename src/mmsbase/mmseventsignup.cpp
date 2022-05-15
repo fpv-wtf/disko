@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -32,6 +32,8 @@
 
 #include "mmsbase/mmseventsignup.h"
 
+#include <algorithm>
+
 MMSEventSignup::MMSEventSignup(MMSPluginData data) : plugindataset(true), onSubscription(NULL) {
     this->data = data;
 }
@@ -41,8 +43,9 @@ MMSEventSignup::MMSEventSignup() : plugindataset(false) {
 }
 
 MMSEventSignup::~MMSEventSignup() {
-   this->subscriptions.clear();
-
+	lock();
+	this->subscriptions.clear();
+	unlock();
 }
 
 IMMSEventSignupManager *MMSEventSignup::getManager() {
@@ -53,18 +56,22 @@ void MMSEventSignup::setManager(IMMSEventSignupManager *manager) {
     this->manager = manager;
 }
 
+void MMSEventSignup::lock() {
+	this->_lock.lock();
+}
+
+void MMSEventSignup::unlock() {
+	this->_lock.unlock();
+}
+
 void MMSEventSignup::add(string subscription) {
-
-   /* check for doublettes */
-   if (this->subscriptions.size() > 0) {
-        for(unsigned int i=0; i<this->subscriptions.size();i++) {
-            //subscriptions.at(i)->
-            if(subscription.compare(*(subscriptions.at(i)))==0)
-                throw MMSEventSignupError(0,"subscription already made");
-        }
-   }
-   this->subscriptions.push_back(new string(subscription));
-
+    /* check for doublettes */
+    if(find(this->subscriptions.begin(), this->subscriptions.end(), subscription) != this->subscriptions.end()) {
+        throw MMSEventSignupError(0,"subscription already made");
+    }
+    lock();
+    this->subscriptions.push_back(subscription);
+    unlock();
 }
 
 void MMSEventSignup::executeSignup() {
@@ -77,7 +84,7 @@ MMSPluginData MMSEventSignup::getPluginData() {
 
 IMMSEventSignupManager *MMSEventSignup::manager = NULL;
 
-vector<string *> MMSEventSignup::getSubScriptions() {
+vector<string>& MMSEventSignup::getSubScriptions() {
     return this->subscriptions;
 }
 

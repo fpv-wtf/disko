@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -73,13 +73,6 @@ bool MMSFBManager::init(int argc, char **argv, string appl_name, string appl_ico
 	for(i=0;i<argc;i++)
 		myargv[i]=strdup(argv[i]);
 
-#ifdef  __HAVE_DIRECTFB__
-	if(config.getOutputType() == MMSFB_OT_X11) {
-		myargv[myargc]=strdup("--dfb:system=x11");
-		myargc++;
-	}
-#endif
-
     DEBUGMSG("MMSGUI", "init mmsfb");
     bool ea = config.getExtendedAccel();
 #ifdef  __HAVE_DIRECTFB__
@@ -97,6 +90,15 @@ bool MMSFBManager::init(int argc, char **argv, string appl_name, string appl_ico
 	// get layer settings from config
 	MMSConfigDataLayer videolayer_conf = this->config.getVideoLayer();
 	MMSConfigDataLayer graphicslayer_conf = this->config.getGraphicsLayer();
+
+#ifdef  __HAVE_DIRECTFB__
+	if(videolayer_conf.outputtype == MMSFB_OT_X11) {
+		myargv[myargc++] = strdup("--dfb:system=x11");
+		char mode[24];
+		snprintf(mode, 24, "--dfb:mode=%dx%d", graphicslayer_conf.rect.w, graphicslayer_conf.rect.h);
+		myargv[myargc++] = strdup(mode);
+	}
+#endif
 
 	// init the MMSFB class
     if (!mmsfb->init(myargc, myargv, config.getBackend(), graphicslayer_conf.rect,
@@ -189,6 +191,7 @@ void MMSFBManager::applySettings() {
 			// so switch all indexed pixelformats to ARGB
 			window_pixelformat = MMSFB_PF_ARGB;
 		}
+		break;
 	}
 
 	// get the surface pixelformat
@@ -219,6 +222,7 @@ void MMSFBManager::applySettings() {
 			// so switch all indexed pixelformats to ARGB
 			surface_pixelformat = MMSFB_PF_ARGB;
 		}
+		break;
 	}
 
 	// set exclusive access to the graphics layer

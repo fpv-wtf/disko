@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -1318,8 +1318,10 @@ bool MMSFBLayer::getSurface(MMSFBSurface **surface, bool clear) {
 
         if (clear) {
     		// clear the display
+        	this->surface->lock();
 			this->surface->clear();
 			this->surface->flip();
+			this->surface->unlock();
     	}
 
     	return true;
@@ -1464,6 +1466,7 @@ bool MMSFBLayer::getSurface(MMSFBSurface **surface, bool clear) {
     this->surface = *surface;
 
     if (this->surface) {
+    	this->surface->lock();
     	// mark this surface as a layer surface
     	this->surface->setLayerSurface();
 
@@ -1476,6 +1479,8 @@ bool MMSFBLayer::getSurface(MMSFBSurface **surface, bool clear) {
 	    // initialize the flip flags for the layer surface
 	    this->surface->setFlipFlags(this->flipflags);
 
+	    this->surface->unlock();
+
 	    return true;
     }
 
@@ -1486,8 +1491,11 @@ bool MMSFBLayer::setFlipFlags(MMSFBFlipFlags flags) {
 	this->flipflags = flags;
 
 	/* if the layer surface does exist, update it */
-	if (this->surface)
+	if (this->surface) {
+		this->surface->lock();
 	    this->surface->setFlipFlags(this->flipflags);
+	    this->surface->unlock();
+	}
 
 	return true;
 }

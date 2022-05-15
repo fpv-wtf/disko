@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -31,6 +31,14 @@
  **************************************************************************/
 
 #include "mmsbase/mmsevent.h"
+
+/**
+ * @file mmsevent.cpp
+ *
+ * Implementation of MMSEvent class.
+ *
+ * @ingroup mmsbase
+ */
 
 MMSEvent::MMSEvent(string heading) {
     this->heading = heading;
@@ -62,11 +70,13 @@ void MMSEvent::clear() {
 }
 
 void MMSEvent::send() {
-    this->dispatcher->raise(this);
+    if(this->dispatcher)
+    	this->dispatcher->raise(this);
 }
 
 void MMSEvent::sendTo(int pluginid) {
-    this->dispatcher->raise(this,pluginid);
+    if(this->dispatcher)
+    	this->dispatcher->raise(this,pluginid);
 }
 
 void MMSEvent::setDispatcher(IMMSEventDispatcher *dispatcher) {

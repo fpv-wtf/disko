@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -72,7 +72,10 @@ typedef enum {
     //! A MMSCheckBoxWidget can get the focus and therefore can process inputs. You can display an on/off switch.
     MMSWIDGETTYPE_CHECKBOX,
 	//! A MMSGapWidget is a spacer. It cannot have any children.
-    MMSWIDGETTYPE_GAP
+    MMSWIDGETTYPE_GAP,
+	//! A MMSCanvasWidget is a canvas that enables to add custom widgets to dialogs.
+    MMSWIDGETTYPE_CANVAS,
+
 } MMSWIDGETTYPE;
 
 
@@ -186,8 +189,6 @@ class MMSWidget {
         //! save attributes for drawable widgets
         MMSWIDGET_DRAWABLE_ATTRIBUTES	*da;
 
-        //! is widget initialized?
-        bool	initialized;
 
         //! id of the widget
         int		id;
@@ -197,6 +198,50 @@ class MMSWidget {
 
         //! size of the widget
     	string	sizehint;
+
+    	//! if true, at least one of min/max values set and widget is marked as a dynamic widget
+    	bool	minmax_set;
+
+    	//! dynamic widget: minimum width
+    	string	min_width;
+
+    	//! dynamic widget: minimum width in pixel
+    	int		min_width_pix;
+
+    	//! dynamic widget: minimum height
+    	string	min_height;
+
+    	//! dynamic widget: minimum height in pixel
+    	int		min_height_pix;
+
+    	//! dynamic widget: maximum width
+    	string	max_width;
+
+    	//! dynamic widget: maximum width in pixel
+    	int		max_width_pix;
+
+    	//! dynamic widget: maximum height
+    	string	max_height;
+
+    	//! dynamic widget: maximum height in pixel
+    	int		max_height_pix;
+
+    	//! dynamic widget: first initialization of content width/height is done
+    	bool 	content_size_initialized;
+
+    	//! dynamic widget: width of content in pixel
+    	int content_width;
+
+    	//! dynamic widget: height of content in pixel
+    	int content_height;
+
+    	//! dynamic widget: width of the content of a child in pixel
+    	int content_width_child;
+
+    	//! dynamic widget: height of the content of a child in pixel
+    	int content_height_child;
+
+
 
     	//! optional & application specific pointer to any data
     	void *bindata;
@@ -273,6 +318,26 @@ class MMSWidget {
 
         virtual bool init();
         virtual bool release();
+
+
+        //! Internal method: Set width and height of the content.
+        bool setContentSize(int content_width, int content_height);
+
+        //! Internal method: Can be overridden by a specific widget which calculate it's own size from children.
+        virtual void setContentSizeFromChildren();
+
+        //! Internal method: Get width and height of the content, return false if content size is not set.
+        bool getContentSize(int *content_width, int *content_height);
+
+        //! Internal method: First setup of the content size, called during initialization of a window.
+        void initContentSize();
+
+        //! Internal method: Should be overridden by widgets which have a dynamic size based on content.
+        virtual void calcContentSize();
+
+        //! Internal method: Recalculate content size and refresh window if requested.
+        bool recalcContentSize(bool refresh = true);
+
 
 
         //! Internal method: get the color or/and image of widget's background dependent on the current state
@@ -354,8 +419,20 @@ class MMSWidget {
 
         void setBinData(void *data);
         void *getBinData();
-        bool setSizeHint(string &hint);
         string getSizeHint();
+        bool setSizeHint(string &hint);
+        string getMinWidth();
+        int getMinWidthPix();
+        bool setMinWidth(string &min_width);
+        string getMinHeight();
+        int getMinHeightPix();
+        bool setMinHeight(string &min_height);
+        string getMaxWidth();
+        int getMaxWidthPix();
+        bool setMaxWidth(string &max_width);
+        string getMaxHeight();
+        int getMaxHeightPix();
+        bool setMaxHeight(string &max_height);
         bool isGeomSet();
         void setGeomSet(bool set);
 
@@ -424,6 +501,9 @@ class MMSWidget {
 
         bool geomset;
 
+        //! is widget initialized?
+        bool	initialized;
+
 
         bool toRedraw;
         bool redrawChildren;
@@ -452,7 +532,7 @@ class MMSWidget {
         MMSFBRectangle innerGeom;
 
     public:
-    	void refresh();
+    	void refresh(bool required = true);
 
         /* theme access methods */
         bool 	getBgColor(MMSFBColor &bgcolor);
@@ -566,7 +646,8 @@ class MMSWidget {
 
         void updateFromThemeClass(MMSWidgetClass *themeClass);
 
-    /* friends */
+    // friends
+    friend class MMSDialogManager;
     friend class MMSWindow;
     friend class MMSHBoxWidget;
     friend class MMSVBoxWidget;
@@ -581,6 +662,7 @@ class MMSWidget {
     friend class MMSInputWidget;
     friend class MMSCheckBoxWidget;
     friend class MMSGapWidget;
+    friend class MMSCanvasWidget;
 };
 
 #include "mmswindow.h"

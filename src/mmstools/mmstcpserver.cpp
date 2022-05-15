@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -35,6 +35,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/select.h>
+#include <fcntl.h>
 #include <string.h>
 #include <cerrno>
 
@@ -102,6 +103,8 @@ void MMSTCPServer::threadMain() {
 	if(setsockopt(this->s, SOL_SOCKET, SO_REUSEADDR, &optbuf, sizeof(optbuf)) < 0) {
 		WRITE_ERRI("socket error: cannot set socket option");
 	}
+
+	fcntl(this->s, F_SETFD, FD_CLOEXEC);
 
 	if(bind(this->s, (struct sockaddr *)&sa, sizeof(struct sockaddr_in))!=0) {
 		WRITE_ERRI("Error while binding at %s:%d: %s", this->hostip.c_str(), this->port, strerror(errno));

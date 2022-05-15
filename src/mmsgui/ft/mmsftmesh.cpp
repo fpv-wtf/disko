@@ -10,7 +10,7 @@
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -30,29 +30,29 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA            *
  **************************************************************************/
 
-#ifndef MMSDBACCESS_H
-#define MMSDBACCESS_H
+#include "mmsgui/ft/mmsftmesh.h"
 
-#include "mmstools/mmsrecordset.h"
-#include "mmstools/mmsdbconnmgr.h"
+MMSFTMesh::MMSFTMesh(unsigned int m) {
+	this->meshType = m;
+	this->vertices.reserve(128);
+}
 
-typedef struct {
-    string name;
-    string pluginid;
-    string desc;
-} dbinfo;
+MMSFTMesh::~MMSFTMesh() {
+	this->vertices.clear();
+}
 
-class MMSDBAccess {
+void MMSFTMesh::addVertex(const double x, const double y, const double z) {
+	this->vertices.push_back(MMSFTVertex(x, y, z));
+}
 
-    public:
-        MMSDBAccess();
-        ~MMSDBAccess();
-        dbinfo *getDBInfo();
-        dbinfo *findDB(string name);
-        bool   nextDB();
-        bool   previusDB();
-        bool   createDB(string dbname);
-        bool   removeDB(string dbname);
-};
+unsigned int MMSFTMesh::getVertexCount() const {
+	return this->vertices.size();
+}
 
-#endif /* MMSDBACCESS_H */
+const MMSFTVertex &MMSFTMesh::getVertex(unsigned int index) const {
+	return this->vertices[index];
+}
+
+unsigned int MMSFTMesh::getMeshType() const {
+	return this->meshType;
+}

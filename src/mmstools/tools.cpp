@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -33,6 +33,7 @@
 #include "mmstools/tools.h"
 #include "mmstools/mmsmutex.h"
 #include "mmsconfig/mmsconfigdata.h"
+#include "mmstools/mmserror.h"
 #ifdef __HAVE_WORDEXP__
 #include <wordexp.h>
 #endif
@@ -335,6 +336,11 @@ void writeMessage(const char *ctrl,...) {
 int strToInt(string s) {
 	return atoi(s.c_str());
 }
+
+unsigned int strToUInt(string s){
+	return (unsigned int)atoi(s.c_str());
+}
+
 
 string iToStr(int i) {
     char mychar[24];
@@ -833,7 +839,7 @@ void print_trace(char *prefix) {
 
 
 
-bool convBidiString(const string &in_str, string &out_str) {
+bool convBidiString(const string &in_str, string &out_str, bool bArabic) {
 #ifdef __HAVE_FRIBIDI__
 	bool ret = false;
 	const char *char_set = "UTF-8";
@@ -867,6 +873,48 @@ bool convBidiString(const string &in_str, string &out_str) {
 		// create a bidi visual string
 		FriBidiCharType base = FRIBIDI_TYPE_ON;
 		if ((ret = fribidi_log2vis(logical, len, &base, visual, NULL, NULL, NULL))) {
+
+			if (bArabic) {
+				FriBidiLevel *embedding_levels = (FriBidiLevel *)malloc(sizeof(FriBidiLevel) * len);
+				if (!embedding_levels) {
+					printf("DISKO: FriBidi error, embedding_levels malloc failed\n");
+					ret = false;
+				}
+
+				FriBidiCharType ctype = FRIBIDI_TYPE_AL;
+				FriBidiParType ptype = FRIBIDI_PAR_ON;
+
+				if (ret) {
+					if (!fribidi_get_par_embedding_levels(&ctype, len, &ptype, embedding_levels)) {
+						printf("DISKO: FriBidi error, fribidi_get_par_embedding_levels() failed\n");
+						ret = false;
+					}
+				}
+
+				FriBidiJoiningType *join_types = NULL;
+				if (ret) {
+					join_types = (FriBidiJoiningType *) malloc(sizeof(FriBidiJoiningType) * len);
+					if (!join_types) {
+						printf("DISKO: FriBidi error, join_types malloc failed\n");
+						ret = false;
+					}
+				}
+
+				if (ret) {
+					fribidi_get_joining_types(visual, len, join_types);
+
+					fribidi_join_arabic(&ctype, len, embedding_levels, join_types);
+
+					/* Actually modify the string */
+					fribidi_shape(FRIBIDI_FLAGS_DEFAULT | FRIBIDI_FLAGS_ARABIC,
+							embedding_levels, len, join_types, visual);
+				}
+
+				/* clean up */
+				if (embedding_levels) free(embedding_levels);
+				if (join_types) free(join_types);
+			}
+
 			// convert it back to output string
 			FriBidiStrIndex new_len = fribidi_unicode_to_charset(char_set_num, visual, len, ostr);
 			if (new_len <= 0) {
@@ -891,3 +939,26 @@ bool convBidiString(const string &in_str, string &out_str) {
 #endif
 }
 
+string XMLencode( const string &source ) {
+    string dest;
+
+    for( string::const_iterator iter = source.begin(); iter!=source.end(); iter++ )
+    {
+         unsigned char c = (unsigned char)*iter;
+
+         switch( c )
+         {
+             case '&': dest += "&amp;"; break;
+             case '<': dest += "&lt;"; break;
+             case '>': dest += "&gt;"; break;
+             case '"': dest += "&quot;"; break;
+             case '\'': dest += "&apos;"; break;
+
+             default:
+            	  dest += c;
+            	  break;
+         }
+    }
+
+    return dest;
+}

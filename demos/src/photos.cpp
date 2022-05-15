@@ -102,9 +102,8 @@ bool Photos::onBeforeAnimation(MMSPulser *pulser) {
 			this->photos_fimage_caption->setText((label)?label->getText():"");
 		}
 
-		this->photos_menuwin->setOpacity(192);
-
 		this->photos_zoomwin->stretch(this->sleft, this->sup, this->sright, this->sdown);
+		this->photos_menuwin->setOpacity(192, false);
 		this->photos_zoomwin->show();
 		this->photos_zoomwin->waitUntilShown();
 	}
@@ -150,7 +149,6 @@ void Photos::onAfterAnimation(MMSPulser *pulser) {
 	// animation finished
 	if (this->animMode == ANIM_MODE_ZOOM_IN) {
 		// set window to final state
-		this->photos_finalwin->setOpacity(255);
 		this->photos_finalwin->show();
 		this->photos_finalwin->waitUntilShown();
 		this->photos_zoomwin->hide();

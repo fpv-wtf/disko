@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -30,741 +30,721 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA            *
  **************************************************************************/
 
-/*
- * mmsinbutkeys.cpp
- *
- *  Created on: 28.10.2008
- *      Author: sxs
- */
-
 #include "mmsinput/mmskeymap.h"
 
-std::map<MMSKeySymbol, std::string> MMSKeyMap::keymap;
-std::map<std::string,MMSKeySymbol> MMSKeyMap::namemap;
+const std::map<MMSKeySymbol, std::string>::value_type keymapData[] = {
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_UNKNOWN,"UNKNOWN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_BACKSPACE,"BACKSPACE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_TAB,"TAB"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_RETURN,"RETURN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CANCEL,"CANCEL"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_ESCAPE,"ESCAPE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SPACE,"SPACE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_EXCLAMATION_MARK,"EXCLAMATION_MARK"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_QUOTATION,"QUOTATION"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_NUMBER_SIGN,"NUMBER_SIGN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DOLLAR_SIGN,"DOLLAR_SIGN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PERCENT_SIGN,"PERCENT_SIGN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_AMPERSAND,"AMPERSAND"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_APOSTROPHE,"APOSTROPHE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PARENTHESIS_LEFT,"PARENTHESIS_LEFT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PARENTHESIS_RIGHT,"PARENTHESIS_RIGHT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_ASTERISK,"ASTERISK"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PLUS_SIGN,"PLUS_SIGN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_COMMA,"COMMA"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_MINUS_SIGN,"MINUS_SIGN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PERIOD,"PERIOD"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SLASH,"SLASH"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_0,"0"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_1,"1"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_2,"2"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_3,"3"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_4,"4"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_5,"5"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_6,"6"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_7,"7"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_8,"8"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_9,"9"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_COLON,"COLON"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SEMICOLON,"SEMICOLON"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_LESS_THAN_SIGN,"LESS_THAN_SIGN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_EQUALS_SIGN,"EQUALS_SIGN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_GREATER_THAN_SIGN,"GREATER_THAN_SIGN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_QUESTION_MARK,"QUESTION_MARK"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_AT,"AT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_A,"CAPITAL_A"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_B,"CAPITAL_B"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_C,"CAPITAL_C"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_D,"CAPITAL_D"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_E,"CAPITAL_E"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_F,"CAPITAL_F"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_G,"CAPITAL_G"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_H,"CAPITAL_H"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_I,"CAPITAL_I"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_J,"CAPITAL_J"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_K,"CAPITAL_K"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_L,"CAPITAL_L"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_M,"CAPITAL_M"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_N,"CAPITAL_N"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_O,"CAPITAL_O"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_P,"CAPITAL_P"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_Q,"CAPITAL_Q"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_R,"CAPITAL_R"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_S,"CAPITAL_S"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_T,"CAPITAL_T"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_U,"CAPITAL_U"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_V,"CAPITAL_V"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_W,"CAPITAL_W"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_X,"CAPITAL_X"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_Y,"CAPITAL_Y"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPITAL_Z,"CAPITAL_Z"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SQUARE_BRACKET_LEFT,"SQUARE_BRACKET_LEFT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_BACKSLASH,"BACKSLASH"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SQUARE_BRACKET_RIGHT,"SQUARE_BRACKET_RIGHT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CIRCUMFLEX_ACCENT,"CIRCUMFLEX_ACCENT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_UNDERSCORE,"UNDERSCORE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_GRAVE_ACCENT,"GRAVE_ACCENT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_A,"SMALL_A"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_B,"SMALL_B"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_C,"SMALL_C"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_D,"SMALL_D"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_E,"SMALL_E"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_F,"SMALL_F"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_G,"SMALL_G"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_H,"SMALL_H"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_I,"SMALL_I"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_J,"SMALL_J"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_K,"SMALL_K"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_L,"SMALL_L"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_M,"SMALL_M"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_N,"SMALL_N"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_O,"SMALL_O"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_P,"SMALL_P"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_Q,"SMALL_Q"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_R,"SMALL_R"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_S,"SMALL_S"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_T,"SMALL_T"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_U,"SMALL_U"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_V,"SMALL_V"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_W,"SMALL_W"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_X,"SMALL_X"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_Y,"SMALL_Y"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SMALL_Z,"SMALL_Z"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CURLY_BRACKET_LEFT,"CURLY_BRACKET_LEFT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_VERTICAL_BAR,"VERTICAL_BAR"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CURLY_BRACKET_RIGHT,"CURLY_BRACKET_RIGHT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_TILDE,"TILDE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DELETE,"DELETE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CURSOR_LEFT,"CURSOR_LEFT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CURSOR_RIGHT,"CURSOR_RIGHT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CURSOR_UP,"CURSOR_UP"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CURSOR_DOWN,"CURSOR_DOWN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_INSERT,"INSERT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_HOME,"HOME"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_END,"END"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PAGE_UP,"PAGE_UP"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PAGE_DOWN,"PAGE_DOWN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PRINT,"PRINT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PAUSE,"PAUSE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_OK,"OK"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SELECT,"SELECT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_GOTO,"GOTO"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CLEAR,"CLEAR"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_POWER,"POWER"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_POWER2,"POWER2"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_OPTION,"OPTION"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_MENU,"MENU"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_HELP,"HELP"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_INFO,"INFO"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_TIME,"TIME"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_VENDOR,"VENDOR"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_ARCHIVE,"ARCHIVE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PROGRAM,"PROGRAM"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CHANNEL,"CHANNEL"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_FAVORITES,"FAVORITES"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_EPG,"EPG"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PVR,"PVR"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_MHP,"MHP"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_LANGUAGE,"LANGUAGE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_TITLE,"TITLE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SUBTITLE,"SUBTITLE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_ANGLE,"ANGLE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_ZOOM,"ZOOM"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_MODE,"MODE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_KEYBOARD,"KEYBOARD"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PC,"PC"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SCREEN,"SCREEN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_TV,"TV"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_TV2,"TV2"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_VCR,"VCR"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_VCR2,"VCR2"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SAT,"SAT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SAT2,"SAT2"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CD,"CD"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_TAPE,"TAPE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_RADIO,"RADIO"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_TUNER,"TUNER"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PLAYER,"PLAYER"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_TEXT,"TEXT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DVD,"DVD"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_AUX,"AUX"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_MP3,"MP3"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PHONE,"PHONE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_AUDIO,"AUDIO"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_VIDEO,"VIDEO"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_INTERNET,"INTERNET"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_MAIL,"MAIL"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_NEWS,"NEWS"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DIRECTORY,"DIRECTORY"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_LIST,"LIST"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CALCULATOR,"CALCULATOR"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_MEMO,"MEMO"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CALENDAR,"CALENDAR"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_EDITOR,"EDITOR"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_RED,"RED"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_GREEN,"GREEN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_YELLOW,"YELLOW"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_BLUE,"BLUE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CHANNEL_UP,"CHANNEL_UP"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CHANNEL_DOWN,"CHANNEL_DOWN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_BACK,"BACK"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_FORWARD,"FORWARD"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_FIRST,"FIRST"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_LAST,"LAST"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_VOLUME_UP,"VOLUME_UP"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_VOLUME_DOWN,"VOLUME_DOWN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_MUTE,"MUTE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_AB,"AB"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PLAYPAUSE,"PLAYPAUSE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PLAY,"PLAY"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_STOP,"STOP"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_RESTART,"RESTART"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SLOW,"SLOW"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_FAST,"FAST"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_RECORD,"RECORD"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_EJECT,"EJECT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SHUFFLE,"SHUFFLE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_REWIND,"REWIND"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_FASTFORWARD,"FASTFORWARD"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_PREVIOUS,"PREVIOUS"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_NEXT,"NEXT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_BEGIN,"BEGIN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DIGITS,"DIGITS"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_TEEN,"TEEN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_TWEN,"TWEN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_BREAK,"BREAK"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_EXIT,"EXIT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SETUP,"SETUP"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CURSOR_LEFT_UP,"CURSOR_LEFT_UP"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CURSOR_LEFT_DOWN,"CURSOR_LEFT_DOWN"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CURSOR_UP_RIGHT,"CURSOR_UP_RIGHT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CURSOR_DOWN_RIGHT,"CURSOR_DOWN_RIGHT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_F1,"F1"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_F2,"F2"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_F3,"F3"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_F4,"F4"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_F5,"F5"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_F6,"F6"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_F7,"F7"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_F8,"F8"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_F9,"F9"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_F10,"F10"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_F11,"F11"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_F12,"F12"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SHIFT,"SHIFT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CONTROL,"CONTROL"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_ALT,"ALT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_ALTGR,"ALTGR"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_META,"META"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SUPER,"SUPER"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_HYPER,"HYPER"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CAPS_LOCK,"CAPS_LOCK"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_NUM_LOCK,"NUM_LOCK"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_SCROLL_LOCK,"SCROLL_LOCK"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DEAD_ABOVEDOT,"DEAD_ABOVEDOT"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DEAD_ABOVERING,"DEAD_ABOVERING"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DEAD_ACUTE,"DEAD_ACUTE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DEAD_BREVE,"DEAD_BREVE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DEAD_CARON,"DEAD_CARON"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DEAD_CEDILLA,"DEAD_CEDILLA"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DEAD_CIRCUMFLEX,"DEAD_CIRCUMFLEX"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DEAD_DIAERESIS,"DEAD_DIAERESIS"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DEAD_DOUBLEACUTE,"DEAD_DOUBLEACUTE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DEAD_GRAVE,"DEAD_GRAVE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DEAD_IOTA,"DEAD_IOTA"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DEAD_MACRON,"DEAD_MACRON"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DEAD_OGONEK,"DEAD_OGONEK"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DEAD_SEMIVOICED_SOUND,"DEAD_SEMIVOICED_SOUND"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DEAD_TILDE,"DEAD_TILDE"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_DEAD_VOICED_SOUND,"DEAD_VOICED_SOUND"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM0,"CUSTOM0"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM1,"CUSTOM1"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM2,"CUSTOM2"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM3,"CUSTOM3"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM4,"CUSTOM4"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM5,"CUSTOM5"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM6,"CUSTOM6"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM7,"CUSTOM7"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM8,"CUSTOM8"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM9,"CUSTOM9"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM10,"CUSTOM10"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM11,"CUSTOM11"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM12,"CUSTOM12"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM13,"CUSTOM13"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM14,"CUSTOM14"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM15,"CUSTOM15"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM16,"CUSTOM16"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM17,"CUSTOM17"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM18,"CUSTOM18"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM19,"CUSTOM19"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM20,"CUSTOM20"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM21,"CUSTOM21"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM22,"CUSTOM22"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM23,"CUSTOM23"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM24,"CUSTOM24"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM25,"CUSTOM25"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM26,"CUSTOM26"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM27,"CUSTOM27"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM28,"CUSTOM28"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM29,"CUSTOM29"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM30,"CUSTOM30"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM31,"CUSTOM31"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM32,"CUSTOM32"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM33,"CUSTOM33"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM34,"CUSTOM34"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM35,"CUSTOM35"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM36,"CUSTOM36"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM37,"CUSTOM37"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM38,"CUSTOM38"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM39,"CUSTOM39"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM40,"CUSTOM40"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM41,"CUSTOM41"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM42,"CUSTOM42"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM43,"CUSTOM43"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM44,"CUSTOM44"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM45,"CUSTOM45"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM46,"CUSTOM46"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM47,"CUSTOM47"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM48,"CUSTOM48"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM49,"CUSTOM49"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM50,"CUSTOM50"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM51,"CUSTOM51"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM52,"CUSTOM52"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM53,"CUSTOM53"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM54,"CUSTOM54"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM55,"CUSTOM55"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM56,"CUSTOM56"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM57,"CUSTOM57"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM58,"CUSTOM58"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM59,"CUSTOM59"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM60,"CUSTOM60"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM61,"CUSTOM61"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM62,"CUSTOM62"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM63,"CUSTOM63"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM64,"CUSTOM64"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM65,"CUSTOM65"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM66,"CUSTOM66"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM67,"CUSTOM67"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM68,"CUSTOM68"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM69,"CUSTOM69"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM70,"CUSTOM70"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM71,"CUSTOM71"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM72,"CUSTOM72"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM73,"CUSTOM73"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM74,"CUSTOM74"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM75,"CUSTOM75"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM76,"CUSTOM76"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM77,"CUSTOM77"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM78,"CUSTOM78"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM79,"CUSTOM79"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM80,"CUSTOM80"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM81,"CUSTOM81"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM82,"CUSTOM82"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM83,"CUSTOM83"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM84,"CUSTOM84"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM85,"CUSTOM85"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM86,"CUSTOM86"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM87,"CUSTOM87"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM88,"CUSTOM88"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM89,"CUSTOM89"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM90,"CUSTOM90"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM91,"CUSTOM91"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM92,"CUSTOM92"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM93,"CUSTOM93"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM94,"CUSTOM94"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM95,"CUSTOM95"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM96,"CUSTOM96"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM97,"CUSTOM97"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM98,"CUSTOM98"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_CUSTOM99,"CUSTOM99"),
+	std::map<MMSKeySymbol, std::string>::value_type(MMSKEY_NULL,"NULL"),
+};
 
+const std::map<std::string, MMSKeySymbol>::value_type namemapData[] = {
+	std::map<std::string, MMSKeySymbol>::value_type("UNKNOWN",MMSKEY_UNKNOWN),
+	std::map<std::string, MMSKeySymbol>::value_type("BACKSPACE",MMSKEY_BACKSPACE),
+	std::map<std::string, MMSKeySymbol>::value_type("TAB",MMSKEY_TAB),
+	std::map<std::string, MMSKeySymbol>::value_type("RETURN",MMSKEY_RETURN),
+	std::map<std::string, MMSKeySymbol>::value_type("CANCEL",MMSKEY_CANCEL),
+	std::map<std::string, MMSKeySymbol>::value_type("ESCAPE",MMSKEY_ESCAPE),
+	std::map<std::string, MMSKeySymbol>::value_type("SPACE",MMSKEY_SPACE),
+	std::map<std::string, MMSKeySymbol>::value_type("EXCLAMATION_MARK",MMSKEY_EXCLAMATION_MARK),
+	std::map<std::string, MMSKeySymbol>::value_type("QUOTATION",MMSKEY_QUOTATION),
+	std::map<std::string, MMSKeySymbol>::value_type("NUMBER_SIGN",MMSKEY_NUMBER_SIGN),
+	std::map<std::string, MMSKeySymbol>::value_type("DOLLAR_SIGN",MMSKEY_DOLLAR_SIGN),
+	std::map<std::string, MMSKeySymbol>::value_type("PERCENT_SIGN",MMSKEY_PERCENT_SIGN),
+	std::map<std::string, MMSKeySymbol>::value_type("AMPERSAND",MMSKEY_AMPERSAND),
+	std::map<std::string, MMSKeySymbol>::value_type("APOSTROPHE",MMSKEY_APOSTROPHE),
+	std::map<std::string, MMSKeySymbol>::value_type("PARENTHESIS_LEFT",MMSKEY_PARENTHESIS_LEFT),
+	std::map<std::string, MMSKeySymbol>::value_type("PARENTHESIS_RIGHT",MMSKEY_PARENTHESIS_RIGHT),
+	std::map<std::string, MMSKeySymbol>::value_type("ASTERISK",MMSKEY_ASTERISK),
+	std::map<std::string, MMSKeySymbol>::value_type("PLUS_SIGN",MMSKEY_PLUS_SIGN),
+	std::map<std::string, MMSKeySymbol>::value_type("COMMA",MMSKEY_COMMA),
+	std::map<std::string, MMSKeySymbol>::value_type("MINUS_SIGN",MMSKEY_MINUS_SIGN),
+	std::map<std::string, MMSKeySymbol>::value_type("PERIOD",MMSKEY_PERIOD),
+	std::map<std::string, MMSKeySymbol>::value_type("SLASH",MMSKEY_SLASH),
+	std::map<std::string, MMSKeySymbol>::value_type("0",MMSKEY_0),
+	std::map<std::string, MMSKeySymbol>::value_type("1",MMSKEY_1),
+	std::map<std::string, MMSKeySymbol>::value_type("2",MMSKEY_2),
+	std::map<std::string, MMSKeySymbol>::value_type("3",MMSKEY_3),
+	std::map<std::string, MMSKeySymbol>::value_type("4",MMSKEY_4),
+	std::map<std::string, MMSKeySymbol>::value_type("5",MMSKEY_5),
+	std::map<std::string, MMSKeySymbol>::value_type("6",MMSKEY_6),
+	std::map<std::string, MMSKeySymbol>::value_type("7",MMSKEY_7),
+	std::map<std::string, MMSKeySymbol>::value_type("8",MMSKEY_8),
+	std::map<std::string, MMSKeySymbol>::value_type("9",MMSKEY_9),
+	std::map<std::string, MMSKeySymbol>::value_type("COLON",MMSKEY_COLON),
+	std::map<std::string, MMSKeySymbol>::value_type("SEMICOLON",MMSKEY_SEMICOLON),
+	std::map<std::string, MMSKeySymbol>::value_type("LESS_THAN_SIGN",MMSKEY_LESS_THAN_SIGN),
+	std::map<std::string, MMSKeySymbol>::value_type("EQUALS_SIGN",MMSKEY_EQUALS_SIGN),
+	std::map<std::string, MMSKeySymbol>::value_type("GREATER_THAN_SIGN",MMSKEY_GREATER_THAN_SIGN),
+	std::map<std::string, MMSKeySymbol>::value_type("QUESTION_MARK",MMSKEY_QUESTION_MARK),
+	std::map<std::string, MMSKeySymbol>::value_type("AT",MMSKEY_AT),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_A",MMSKEY_CAPITAL_A),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_B",MMSKEY_CAPITAL_B),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_C",MMSKEY_CAPITAL_C),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_D",MMSKEY_CAPITAL_D),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_E",MMSKEY_CAPITAL_E),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_F",MMSKEY_CAPITAL_F),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_G",MMSKEY_CAPITAL_G),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_H",MMSKEY_CAPITAL_H),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_I",MMSKEY_CAPITAL_I),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_J",MMSKEY_CAPITAL_J),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_K",MMSKEY_CAPITAL_K),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_L",MMSKEY_CAPITAL_L),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_M",MMSKEY_CAPITAL_M),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_N",MMSKEY_CAPITAL_N),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_O",MMSKEY_CAPITAL_O),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_P",MMSKEY_CAPITAL_P),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_Q",MMSKEY_CAPITAL_Q),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_R",MMSKEY_CAPITAL_R),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_S",MMSKEY_CAPITAL_S),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_T",MMSKEY_CAPITAL_T),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_U",MMSKEY_CAPITAL_U),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_V",MMSKEY_CAPITAL_V),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_W",MMSKEY_CAPITAL_W),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_X",MMSKEY_CAPITAL_X),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_Y",MMSKEY_CAPITAL_Y),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPITAL_Z",MMSKEY_CAPITAL_Z),
+	std::map<std::string, MMSKeySymbol>::value_type("SQUARE_BRACKET_LEFT",MMSKEY_SQUARE_BRACKET_LEFT),
+	std::map<std::string, MMSKeySymbol>::value_type("BACKSLASH",MMSKEY_BACKSLASH),
+	std::map<std::string, MMSKeySymbol>::value_type("SQUARE_BRACKET_RIGHT",MMSKEY_SQUARE_BRACKET_RIGHT),
+	std::map<std::string, MMSKeySymbol>::value_type("CIRCUMFLEX_ACCENT",MMSKEY_CIRCUMFLEX_ACCENT),
+	std::map<std::string, MMSKeySymbol>::value_type("UNDERSCORE",MMSKEY_UNDERSCORE),
+	std::map<std::string, MMSKeySymbol>::value_type("GRAVE_ACCENT",MMSKEY_GRAVE_ACCENT),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_A",MMSKEY_SMALL_A),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_B",MMSKEY_SMALL_B),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_C",MMSKEY_SMALL_C),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_D",MMSKEY_SMALL_D),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_E",MMSKEY_SMALL_E),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_F",MMSKEY_SMALL_F),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_G",MMSKEY_SMALL_G),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_H",MMSKEY_SMALL_H),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_I",MMSKEY_SMALL_I),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_J",MMSKEY_SMALL_J),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_K",MMSKEY_SMALL_K),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_L",MMSKEY_SMALL_L),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_M",MMSKEY_SMALL_M),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_N",MMSKEY_SMALL_N),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_O",MMSKEY_SMALL_O),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_P",MMSKEY_SMALL_P),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_Q",MMSKEY_SMALL_Q),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_R",MMSKEY_SMALL_R),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_S",MMSKEY_SMALL_S),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_T",MMSKEY_SMALL_T),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_U",MMSKEY_SMALL_U),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_V",MMSKEY_SMALL_V),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_W",MMSKEY_SMALL_W),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_X",MMSKEY_SMALL_X),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_Y",MMSKEY_SMALL_Y),
+	std::map<std::string, MMSKeySymbol>::value_type("SMALL_Z",MMSKEY_SMALL_Z),
+	std::map<std::string, MMSKeySymbol>::value_type("CURLY_BRACKET_LEFT",MMSKEY_CURLY_BRACKET_LEFT),
+	std::map<std::string, MMSKeySymbol>::value_type("VERTICAL_BAR",MMSKEY_VERTICAL_BAR),
+	std::map<std::string, MMSKeySymbol>::value_type("CURLY_BRACKET_RIGHT",MMSKEY_CURLY_BRACKET_RIGHT),
+	std::map<std::string, MMSKeySymbol>::value_type("TILDE",MMSKEY_TILDE),
+	std::map<std::string, MMSKeySymbol>::value_type("DELETE",MMSKEY_DELETE),
+	std::map<std::string, MMSKeySymbol>::value_type("CURSOR_LEFT",MMSKEY_CURSOR_LEFT),
+	std::map<std::string, MMSKeySymbol>::value_type("CURSOR_RIGHT",MMSKEY_CURSOR_RIGHT),
+	std::map<std::string, MMSKeySymbol>::value_type("CURSOR_UP",MMSKEY_CURSOR_UP),
+	std::map<std::string, MMSKeySymbol>::value_type("CURSOR_DOWN",MMSKEY_CURSOR_DOWN),
+	std::map<std::string, MMSKeySymbol>::value_type("INSERT",MMSKEY_INSERT),
+	std::map<std::string, MMSKeySymbol>::value_type("HOME",MMSKEY_HOME),
+	std::map<std::string, MMSKeySymbol>::value_type("END",MMSKEY_END),
+	std::map<std::string, MMSKeySymbol>::value_type("PAGE_UP",MMSKEY_PAGE_UP),
+	std::map<std::string, MMSKeySymbol>::value_type("PAGE_DOWN",MMSKEY_PAGE_DOWN),
+	std::map<std::string, MMSKeySymbol>::value_type("PRINT",MMSKEY_PRINT),
+	std::map<std::string, MMSKeySymbol>::value_type("PAUSE",MMSKEY_PAUSE),
+	std::map<std::string, MMSKeySymbol>::value_type("OK",MMSKEY_OK),
+	std::map<std::string, MMSKeySymbol>::value_type("SELECT",MMSKEY_SELECT),
+	std::map<std::string, MMSKeySymbol>::value_type("GOTO",MMSKEY_GOTO),
+	std::map<std::string, MMSKeySymbol>::value_type("CLEAR",MMSKEY_CLEAR),
+	std::map<std::string, MMSKeySymbol>::value_type("POWER",MMSKEY_POWER),
+	std::map<std::string, MMSKeySymbol>::value_type("POWER2",MMSKEY_POWER2),
+	std::map<std::string, MMSKeySymbol>::value_type("OPTION",MMSKEY_OPTION),
+	std::map<std::string, MMSKeySymbol>::value_type("MENU",MMSKEY_MENU),
+	std::map<std::string, MMSKeySymbol>::value_type("HELP",MMSKEY_HELP),
+	std::map<std::string, MMSKeySymbol>::value_type("INFO",MMSKEY_INFO),
+	std::map<std::string, MMSKeySymbol>::value_type("TIME",MMSKEY_TIME),
+	std::map<std::string, MMSKeySymbol>::value_type("VENDOR",MMSKEY_VENDOR),
+	std::map<std::string, MMSKeySymbol>::value_type("ARCHIVE",MMSKEY_ARCHIVE),
+	std::map<std::string, MMSKeySymbol>::value_type("PROGRAM",MMSKEY_PROGRAM),
+	std::map<std::string, MMSKeySymbol>::value_type("CHANNEL",MMSKEY_CHANNEL),
+	std::map<std::string, MMSKeySymbol>::value_type("FAVORITES",MMSKEY_FAVORITES),
+	std::map<std::string, MMSKeySymbol>::value_type("EPG",MMSKEY_EPG),
+	std::map<std::string, MMSKeySymbol>::value_type("PVR",MMSKEY_PVR),
+	std::map<std::string, MMSKeySymbol>::value_type("MHP",MMSKEY_MHP),
+	std::map<std::string, MMSKeySymbol>::value_type("LANGUAGE",MMSKEY_LANGUAGE),
+	std::map<std::string, MMSKeySymbol>::value_type("TITLE",MMSKEY_TITLE),
+	std::map<std::string, MMSKeySymbol>::value_type("SUBTITLE",MMSKEY_SUBTITLE),
+	std::map<std::string, MMSKeySymbol>::value_type("ANGLE",MMSKEY_ANGLE),
+	std::map<std::string, MMSKeySymbol>::value_type("ZOOM",MMSKEY_ZOOM),
+	std::map<std::string, MMSKeySymbol>::value_type("MODE",MMSKEY_MODE),
+	std::map<std::string, MMSKeySymbol>::value_type("KEYBOARD",MMSKEY_KEYBOARD),
+	std::map<std::string, MMSKeySymbol>::value_type("PC",MMSKEY_PC),
+	std::map<std::string, MMSKeySymbol>::value_type("SCREEN",MMSKEY_SCREEN),
+	std::map<std::string, MMSKeySymbol>::value_type("TV",MMSKEY_TV),
+	std::map<std::string, MMSKeySymbol>::value_type("TV2",MMSKEY_TV2),
+	std::map<std::string, MMSKeySymbol>::value_type("VCR",MMSKEY_VCR),
+	std::map<std::string, MMSKeySymbol>::value_type("VCR2",MMSKEY_VCR2),
+	std::map<std::string, MMSKeySymbol>::value_type("SAT",MMSKEY_SAT),
+	std::map<std::string, MMSKeySymbol>::value_type("SAT2",MMSKEY_SAT2),
+	std::map<std::string, MMSKeySymbol>::value_type("CD",MMSKEY_CD),
+	std::map<std::string, MMSKeySymbol>::value_type("TAPE",MMSKEY_TAPE),
+	std::map<std::string, MMSKeySymbol>::value_type("RADIO",MMSKEY_RADIO),
+	std::map<std::string, MMSKeySymbol>::value_type("TUNER",MMSKEY_TUNER),
+	std::map<std::string, MMSKeySymbol>::value_type("PLAYER",MMSKEY_PLAYER),
+	std::map<std::string, MMSKeySymbol>::value_type("TEXT",MMSKEY_TEXT),
+	std::map<std::string, MMSKeySymbol>::value_type("DVD",MMSKEY_DVD),
+	std::map<std::string, MMSKeySymbol>::value_type("AUX",MMSKEY_AUX),
+	std::map<std::string, MMSKeySymbol>::value_type("MP3",MMSKEY_MP3),
+	std::map<std::string, MMSKeySymbol>::value_type("PHONE",MMSKEY_PHONE),
+	std::map<std::string, MMSKeySymbol>::value_type("AUDIO",MMSKEY_AUDIO),
+	std::map<std::string, MMSKeySymbol>::value_type("VIDEO",MMSKEY_VIDEO),
+	std::map<std::string, MMSKeySymbol>::value_type("INTERNET",MMSKEY_INTERNET),
+	std::map<std::string, MMSKeySymbol>::value_type("MAIL",MMSKEY_MAIL),
+	std::map<std::string, MMSKeySymbol>::value_type("NEWS",MMSKEY_NEWS),
+	std::map<std::string, MMSKeySymbol>::value_type("DIRECTORY",MMSKEY_DIRECTORY),
+	std::map<std::string, MMSKeySymbol>::value_type("LIST",MMSKEY_LIST),
+	std::map<std::string, MMSKeySymbol>::value_type("CALCULATOR",MMSKEY_CALCULATOR),
+	std::map<std::string, MMSKeySymbol>::value_type("MEMO",MMSKEY_MEMO),
+	std::map<std::string, MMSKeySymbol>::value_type("CALENDAR",MMSKEY_CALENDAR),
+	std::map<std::string, MMSKeySymbol>::value_type("EDITOR",MMSKEY_EDITOR),
+	std::map<std::string, MMSKeySymbol>::value_type("RED",MMSKEY_RED),
+	std::map<std::string, MMSKeySymbol>::value_type("GREEN",MMSKEY_GREEN),
+	std::map<std::string, MMSKeySymbol>::value_type("YELLOW",MMSKEY_YELLOW),
+	std::map<std::string, MMSKeySymbol>::value_type("BLUE",MMSKEY_BLUE),
+	std::map<std::string, MMSKeySymbol>::value_type("CHANNEL_UP",MMSKEY_CHANNEL_UP),
+	std::map<std::string, MMSKeySymbol>::value_type("CHANNEL_DOWN",MMSKEY_CHANNEL_DOWN),
+	std::map<std::string, MMSKeySymbol>::value_type("BACK",MMSKEY_BACK),
+	std::map<std::string, MMSKeySymbol>::value_type("FORWARD",MMSKEY_FORWARD),
+	std::map<std::string, MMSKeySymbol>::value_type("FIRST",MMSKEY_FIRST),
+	std::map<std::string, MMSKeySymbol>::value_type("LAST",MMSKEY_LAST),
+	std::map<std::string, MMSKeySymbol>::value_type("VOLUME_UP",MMSKEY_VOLUME_UP),
+	std::map<std::string, MMSKeySymbol>::value_type("VOLUME_DOWN",MMSKEY_VOLUME_DOWN),
+	std::map<std::string, MMSKeySymbol>::value_type("MUTE",MMSKEY_MUTE),
+	std::map<std::string, MMSKeySymbol>::value_type("AB",MMSKEY_AB),
+	std::map<std::string, MMSKeySymbol>::value_type("PLAYPAUSE",MMSKEY_PLAYPAUSE),
+	std::map<std::string, MMSKeySymbol>::value_type("PLAY",MMSKEY_PLAY),
+	std::map<std::string, MMSKeySymbol>::value_type("STOP",MMSKEY_STOP),
+	std::map<std::string, MMSKeySymbol>::value_type("RESTART",MMSKEY_RESTART),
+	std::map<std::string, MMSKeySymbol>::value_type("SLOW",MMSKEY_SLOW),
+	std::map<std::string, MMSKeySymbol>::value_type("FAST",MMSKEY_FAST),
+	std::map<std::string, MMSKeySymbol>::value_type("RECORD",MMSKEY_RECORD),
+	std::map<std::string, MMSKeySymbol>::value_type("EJECT",MMSKEY_EJECT),
+	std::map<std::string, MMSKeySymbol>::value_type("SHUFFLE",MMSKEY_SHUFFLE),
+	std::map<std::string, MMSKeySymbol>::value_type("REWIND",MMSKEY_REWIND),
+	std::map<std::string, MMSKeySymbol>::value_type("FASTFORWARD",MMSKEY_FASTFORWARD),
+	std::map<std::string, MMSKeySymbol>::value_type("PREVIOUS",MMSKEY_PREVIOUS),
+	std::map<std::string, MMSKeySymbol>::value_type("NEXT",MMSKEY_NEXT),
+	std::map<std::string, MMSKeySymbol>::value_type("BEGIN",MMSKEY_BEGIN),
+	std::map<std::string, MMSKeySymbol>::value_type("DIGITS",MMSKEY_DIGITS),
+	std::map<std::string, MMSKeySymbol>::value_type("TEEN",MMSKEY_TEEN),
+	std::map<std::string, MMSKeySymbol>::value_type("TWEN",MMSKEY_TWEN),
+	std::map<std::string, MMSKeySymbol>::value_type("BREAK",MMSKEY_BREAK),
+	std::map<std::string, MMSKeySymbol>::value_type("EXIT",MMSKEY_EXIT),
+	std::map<std::string, MMSKeySymbol>::value_type("SETUP",MMSKEY_SETUP),
+	std::map<std::string, MMSKeySymbol>::value_type("CURSOR_LEFT_UP",MMSKEY_CURSOR_LEFT_UP),
+	std::map<std::string, MMSKeySymbol>::value_type("CURSOR_LEFT_DOWN",MMSKEY_CURSOR_LEFT_DOWN),
+	std::map<std::string, MMSKeySymbol>::value_type("CURSOR_UP_RIGHT",MMSKEY_CURSOR_UP_RIGHT),
+	std::map<std::string, MMSKeySymbol>::value_type("CURSOR_DOWN_RIGHT",MMSKEY_CURSOR_DOWN_RIGHT),
+	std::map<std::string, MMSKeySymbol>::value_type("F1",MMSKEY_F1),
+	std::map<std::string, MMSKeySymbol>::value_type("F2",MMSKEY_F2),
+	std::map<std::string, MMSKeySymbol>::value_type("F3",MMSKEY_F3),
+	std::map<std::string, MMSKeySymbol>::value_type("F4",MMSKEY_F4),
+	std::map<std::string, MMSKeySymbol>::value_type("F5",MMSKEY_F5),
+	std::map<std::string, MMSKeySymbol>::value_type("F6",MMSKEY_F6),
+	std::map<std::string, MMSKeySymbol>::value_type("F7",MMSKEY_F7),
+	std::map<std::string, MMSKeySymbol>::value_type("F8",MMSKEY_F8),
+	std::map<std::string, MMSKeySymbol>::value_type("F9",MMSKEY_F9),
+	std::map<std::string, MMSKeySymbol>::value_type("F10",MMSKEY_F10),
+	std::map<std::string, MMSKeySymbol>::value_type("F11",MMSKEY_F11),
+	std::map<std::string, MMSKeySymbol>::value_type("F12",MMSKEY_F12),
+	std::map<std::string, MMSKeySymbol>::value_type("SHIFT",MMSKEY_SHIFT),
+	std::map<std::string, MMSKeySymbol>::value_type("CONTROL",MMSKEY_CONTROL),
+	std::map<std::string, MMSKeySymbol>::value_type("ALT",MMSKEY_ALT),
+	std::map<std::string, MMSKeySymbol>::value_type("ALTGR",MMSKEY_ALTGR),
+	std::map<std::string, MMSKeySymbol>::value_type("META",MMSKEY_META),
+	std::map<std::string, MMSKeySymbol>::value_type("SUPER",MMSKEY_SUPER),
+	std::map<std::string, MMSKeySymbol>::value_type("HYPER",MMSKEY_HYPER),
+	std::map<std::string, MMSKeySymbol>::value_type("CAPS_LOCK",MMSKEY_CAPS_LOCK),
+	std::map<std::string, MMSKeySymbol>::value_type("NUM_LOCK",MMSKEY_NUM_LOCK),
+	std::map<std::string, MMSKeySymbol>::value_type("SCROLL_LOCK",MMSKEY_SCROLL_LOCK),
+	std::map<std::string, MMSKeySymbol>::value_type("DEAD_ABOVEDOT",MMSKEY_DEAD_ABOVEDOT),
+	std::map<std::string, MMSKeySymbol>::value_type("DEAD_ABOVERING",MMSKEY_DEAD_ABOVERING),
+	std::map<std::string, MMSKeySymbol>::value_type("DEAD_ACUTE",MMSKEY_DEAD_ACUTE),
+	std::map<std::string, MMSKeySymbol>::value_type("DEAD_BREVE",MMSKEY_DEAD_BREVE),
+	std::map<std::string, MMSKeySymbol>::value_type("DEAD_CARON",MMSKEY_DEAD_CARON),
+	std::map<std::string, MMSKeySymbol>::value_type("DEAD_CEDILLA",MMSKEY_DEAD_CEDILLA),
+	std::map<std::string, MMSKeySymbol>::value_type("DEAD_CIRCUMFLEX",MMSKEY_DEAD_CIRCUMFLEX),
+	std::map<std::string, MMSKeySymbol>::value_type("DEAD_DIAERESIS",MMSKEY_DEAD_DIAERESIS),
+	std::map<std::string, MMSKeySymbol>::value_type("DEAD_DOUBLEACUTE",MMSKEY_DEAD_DOUBLEACUTE),
+	std::map<std::string, MMSKeySymbol>::value_type("DEAD_GRAVE",MMSKEY_DEAD_GRAVE),
+	std::map<std::string, MMSKeySymbol>::value_type("DEAD_IOTA",MMSKEY_DEAD_IOTA),
+	std::map<std::string, MMSKeySymbol>::value_type("DEAD_MACRON",MMSKEY_DEAD_MACRON),
+	std::map<std::string, MMSKeySymbol>::value_type("DEAD_OGONEK",MMSKEY_DEAD_OGONEK),
+	std::map<std::string, MMSKeySymbol>::value_type("DEAD_SEMIVOICED_SOUND",MMSKEY_DEAD_SEMIVOICED_SOUND),
+	std::map<std::string, MMSKeySymbol>::value_type("DEAD_TILDE",MMSKEY_DEAD_TILDE),
+	std::map<std::string, MMSKeySymbol>::value_type("DEAD_VOICED_SOUND",MMSKEY_DEAD_VOICED_SOUND),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM0",MMSKEY_CUSTOM0),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM1",MMSKEY_CUSTOM1),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM2",MMSKEY_CUSTOM2),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM3",MMSKEY_CUSTOM3),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM4",MMSKEY_CUSTOM4),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM5",MMSKEY_CUSTOM5),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM6",MMSKEY_CUSTOM6),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM7",MMSKEY_CUSTOM7),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM8",MMSKEY_CUSTOM8),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM9",MMSKEY_CUSTOM9),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM10",MMSKEY_CUSTOM10),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM11",MMSKEY_CUSTOM11),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM12",MMSKEY_CUSTOM12),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM13",MMSKEY_CUSTOM13),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM14",MMSKEY_CUSTOM14),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM15",MMSKEY_CUSTOM15),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM16",MMSKEY_CUSTOM16),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM17",MMSKEY_CUSTOM17),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM18",MMSKEY_CUSTOM18),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM19",MMSKEY_CUSTOM19),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM20",MMSKEY_CUSTOM20),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM21",MMSKEY_CUSTOM21),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM22",MMSKEY_CUSTOM22),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM23",MMSKEY_CUSTOM23),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM24",MMSKEY_CUSTOM24),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM25",MMSKEY_CUSTOM25),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM26",MMSKEY_CUSTOM26),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM27",MMSKEY_CUSTOM27),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM28",MMSKEY_CUSTOM28),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM29",MMSKEY_CUSTOM29),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM30",MMSKEY_CUSTOM30),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM31",MMSKEY_CUSTOM31),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM32",MMSKEY_CUSTOM32),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM33",MMSKEY_CUSTOM33),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM34",MMSKEY_CUSTOM34),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM35",MMSKEY_CUSTOM35),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM36",MMSKEY_CUSTOM36),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM37",MMSKEY_CUSTOM37),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM38",MMSKEY_CUSTOM38),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM39",MMSKEY_CUSTOM39),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM40",MMSKEY_CUSTOM40),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM41",MMSKEY_CUSTOM41),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM42",MMSKEY_CUSTOM42),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM43",MMSKEY_CUSTOM43),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM44",MMSKEY_CUSTOM44),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM45",MMSKEY_CUSTOM45),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM46",MMSKEY_CUSTOM46),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM47",MMSKEY_CUSTOM47),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM48",MMSKEY_CUSTOM48),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM49",MMSKEY_CUSTOM49),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM50",MMSKEY_CUSTOM50),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM51",MMSKEY_CUSTOM51),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM52",MMSKEY_CUSTOM52),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM53",MMSKEY_CUSTOM53),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM54",MMSKEY_CUSTOM54),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM55",MMSKEY_CUSTOM55),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM56",MMSKEY_CUSTOM56),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM57",MMSKEY_CUSTOM57),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM58",MMSKEY_CUSTOM58),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM59",MMSKEY_CUSTOM59),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM60",MMSKEY_CUSTOM60),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM61",MMSKEY_CUSTOM61),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM62",MMSKEY_CUSTOM62),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM63",MMSKEY_CUSTOM63),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM64",MMSKEY_CUSTOM64),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM65",MMSKEY_CUSTOM65),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM66",MMSKEY_CUSTOM66),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM67",MMSKEY_CUSTOM67),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM68",MMSKEY_CUSTOM68),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM69",MMSKEY_CUSTOM69),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM70",MMSKEY_CUSTOM70),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM71",MMSKEY_CUSTOM71),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM72",MMSKEY_CUSTOM72),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM73",MMSKEY_CUSTOM73),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM74",MMSKEY_CUSTOM74),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM75",MMSKEY_CUSTOM75),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM76",MMSKEY_CUSTOM76),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM77",MMSKEY_CUSTOM77),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM78",MMSKEY_CUSTOM78),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM79",MMSKEY_CUSTOM79),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM80",MMSKEY_CUSTOM80),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM81",MMSKEY_CUSTOM81),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM82",MMSKEY_CUSTOM82),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM83",MMSKEY_CUSTOM83),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM84",MMSKEY_CUSTOM84),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM85",MMSKEY_CUSTOM85),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM86",MMSKEY_CUSTOM86),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM87",MMSKEY_CUSTOM87),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM88",MMSKEY_CUSTOM88),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM89",MMSKEY_CUSTOM89),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM90",MMSKEY_CUSTOM90),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM91",MMSKEY_CUSTOM91),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM92",MMSKEY_CUSTOM92),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM93",MMSKEY_CUSTOM93),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM94",MMSKEY_CUSTOM94),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM95",MMSKEY_CUSTOM95),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM96",MMSKEY_CUSTOM96),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM97",MMSKEY_CUSTOM97),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM98",MMSKEY_CUSTOM98),
+	std::map<std::string, MMSKeySymbol>::value_type("CUSTOM99",MMSKEY_CUSTOM99),
+	std::map<std::string, MMSKeySymbol>::value_type("NULL",MMSKEY_NULL),
+};
 
-MMSKeyMap::MMSKeyMap() {
-	if(keymap.empty()) {
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_UNKNOWN,"UNKNOWN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_BACKSPACE,"BACKSPACE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_TAB,"TAB"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_RETURN,"RETURN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CANCEL,"CANCEL"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_ESCAPE,"ESCAPE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SPACE,"SPACE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_EXCLAMATION_MARK,"EXCLAMATION_MARK"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_QUOTATION,"QUOTATION"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_NUMBER_SIGN,"NUMBER_SIGN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DOLLAR_SIGN,"DOLLAR_SIGN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PERCENT_SIGN,"PERCENT_SIGN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_AMPERSAND,"AMPERSAND"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_APOSTROPHE,"APOSTROPHE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PARENTHESIS_LEFT,"PARENTHESIS_LEFT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PARENTHESIS_RIGHT,"PARENTHESIS_RIGHT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_ASTERISK,"ASTERISK"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PLUS_SIGN,"PLUS_SIGN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_COMMA,"COMMA"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_MINUS_SIGN,"MINUS_SIGN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PERIOD,"PERIOD"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SLASH,"SLASH"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_0,"0"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_1,"1"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_2,"2"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_3,"3"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_4,"4"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_5,"5"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_6,"6"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_7,"7"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_8,"8"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_9,"9"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_COLON,"COLON"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SEMICOLON,"SEMICOLON"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_LESS_THAN_SIGN,"LESS_THAN_SIGN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_EQUALS_SIGN,"EQUALS_SIGN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_GREATER_THAN_SIGN,"GREATER_THAN_SIGN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_QUESTION_MARK,"QUESTION_MARK"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_AT,"AT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_A,"CAPITAL_A"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_B,"CAPITAL_B"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_C,"CAPITAL_C"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_D,"CAPITAL_D"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_E,"CAPITAL_E"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_F,"CAPITAL_F"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_G,"CAPITAL_G"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_H,"CAPITAL_H"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_I,"CAPITAL_I"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_J,"CAPITAL_J"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_K,"CAPITAL_K"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_L,"CAPITAL_L"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_M,"CAPITAL_M"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_N,"CAPITAL_N"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_O,"CAPITAL_O"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_P,"CAPITAL_P"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_Q,"CAPITAL_Q"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_R,"CAPITAL_R"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_S,"CAPITAL_S"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_T,"CAPITAL_T"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_U,"CAPITAL_U"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_V,"CAPITAL_V"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_W,"CAPITAL_W"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_X,"CAPITAL_X"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_Y,"CAPITAL_Y"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPITAL_Z,"CAPITAL_Z"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SQUARE_BRACKET_LEFT,"SQUARE_BRACKET_LEFT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_BACKSLASH,"BACKSLASH"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SQUARE_BRACKET_RIGHT,"SQUARE_BRACKET_RIGHT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CIRCUMFLEX_ACCENT,"CIRCUMFLEX_ACCENT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_UNDERSCORE,"UNDERSCORE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_GRAVE_ACCENT,"GRAVE_ACCENT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_A,"SMALL_A"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_B,"SMALL_B"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_C,"SMALL_C"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_D,"SMALL_D"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_E,"SMALL_E"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_F,"SMALL_F"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_G,"SMALL_G"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_H,"SMALL_H"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_I,"SMALL_I"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_J,"SMALL_J"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_K,"SMALL_K"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_L,"SMALL_L"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_M,"SMALL_M"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_N,"SMALL_N"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_O,"SMALL_O"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_P,"SMALL_P"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_Q,"SMALL_Q"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_R,"SMALL_R"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_S,"SMALL_S"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_T,"SMALL_T"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_U,"SMALL_U"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_V,"SMALL_V"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_W,"SMALL_W"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_X,"SMALL_X"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_Y,"SMALL_Y"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SMALL_Z,"SMALL_Z"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CURLY_BRACKET_LEFT,"CURLY_BRACKET_LEFT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_VERTICAL_BAR,"VERTICAL_BAR"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CURLY_BRACKET_RIGHT,"CURLY_BRACKET_RIGHT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_TILDE,"TILDE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DELETE,"DELETE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CURSOR_LEFT,"CURSOR_LEFT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CURSOR_RIGHT,"CURSOR_RIGHT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CURSOR_UP,"CURSOR_UP"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CURSOR_DOWN,"CURSOR_DOWN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_INSERT,"INSERT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_HOME,"HOME"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_END,"END"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PAGE_UP,"PAGE_UP"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PAGE_DOWN,"PAGE_DOWN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PRINT,"PRINT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PAUSE,"PAUSE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_OK,"OK"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SELECT,"SELECT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_GOTO,"GOTO"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CLEAR,"CLEAR"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_POWER,"POWER"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_POWER2,"POWER2"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_OPTION,"OPTION"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_MENU,"MENU"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_HELP,"HELP"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_INFO,"INFO"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_TIME,"TIME"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_VENDOR,"VENDOR"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_ARCHIVE,"ARCHIVE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PROGRAM,"PROGRAM"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CHANNEL,"CHANNEL"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_FAVORITES,"FAVORITES"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_EPG,"EPG"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PVR,"PVR"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_MHP,"MHP"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_LANGUAGE,"LANGUAGE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_TITLE,"TITLE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SUBTITLE,"SUBTITLE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_ANGLE,"ANGLE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_ZOOM,"ZOOM"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_MODE,"MODE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_KEYBOARD,"KEYBOARD"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PC,"PC"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SCREEN,"SCREEN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_TV,"TV"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_TV2,"TV2"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_VCR,"VCR"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_VCR2,"VCR2"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SAT,"SAT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SAT2,"SAT2"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CD,"CD"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_TAPE,"TAPE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_RADIO,"RADIO"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_TUNER,"TUNER"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PLAYER,"PLAYER"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_TEXT,"TEXT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DVD,"DVD"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_AUX,"AUX"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_MP3,"MP3"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PHONE,"PHONE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_AUDIO,"AUDIO"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_VIDEO,"VIDEO"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_INTERNET,"INTERNET"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_MAIL,"MAIL"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_NEWS,"NEWS"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DIRECTORY,"DIRECTORY"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_LIST,"LIST"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CALCULATOR,"CALCULATOR"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_MEMO,"MEMO"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CALENDAR,"CALENDAR"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_EDITOR,"EDITOR"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_RED,"RED"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_GREEN,"GREEN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_YELLOW,"YELLOW"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_BLUE,"BLUE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CHANNEL_UP,"CHANNEL_UP"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CHANNEL_DOWN,"CHANNEL_DOWN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_BACK,"BACK"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_FORWARD,"FORWARD"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_FIRST,"FIRST"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_LAST,"LAST"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_VOLUME_UP,"VOLUME_UP"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_VOLUME_DOWN,"VOLUME_DOWN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_MUTE,"MUTE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_AB,"AB"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PLAYPAUSE,"PLAYPAUSE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PLAY,"PLAY"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_STOP,"STOP"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_RESTART,"RESTART"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SLOW,"SLOW"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_FAST,"FAST"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_RECORD,"RECORD"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_EJECT,"EJECT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SHUFFLE,"SHUFFLE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_REWIND,"REWIND"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_FASTFORWARD,"FASTFORWARD"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_PREVIOUS,"PREVIOUS"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_NEXT,"NEXT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_BEGIN,"BEGIN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DIGITS,"DIGITS"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_TEEN,"TEEN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_TWEN,"TWEN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_BREAK,"BREAK"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_EXIT,"EXIT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SETUP,"SETUP"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CURSOR_LEFT_UP,"CURSOR_LEFT_UP"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CURSOR_LEFT_DOWN,"CURSOR_LEFT_DOWN"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CURSOR_UP_RIGHT,"CURSOR_UP_RIGHT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CURSOR_DOWN_RIGHT,"CURSOR_DOWN_RIGHT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_F1,"F1"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_F2,"F2"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_F3,"F3"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_F4,"F4"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_F5,"F5"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_F6,"F6"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_F7,"F7"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_F8,"F8"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_F9,"F9"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_F10,"F10"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_F11,"F11"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_F12,"F12"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SHIFT,"SHIFT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CONTROL,"CONTROL"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_ALT,"ALT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_ALTGR,"ALTGR"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_META,"META"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SUPER,"SUPER"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_HYPER,"HYPER"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CAPS_LOCK,"CAPS_LOCK"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_NUM_LOCK,"NUM_LOCK"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_SCROLL_LOCK,"SCROLL_LOCK"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DEAD_ABOVEDOT,"DEAD_ABOVEDOT"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DEAD_ABOVERING,"DEAD_ABOVERING"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DEAD_ACUTE,"DEAD_ACUTE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DEAD_BREVE,"DEAD_BREVE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DEAD_CARON,"DEAD_CARON"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DEAD_CEDILLA,"DEAD_CEDILLA"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DEAD_CIRCUMFLEX,"DEAD_CIRCUMFLEX"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DEAD_DIAERESIS,"DEAD_DIAERESIS"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DEAD_DOUBLEACUTE,"DEAD_DOUBLEACUTE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DEAD_GRAVE,"DEAD_GRAVE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DEAD_IOTA,"DEAD_IOTA"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DEAD_MACRON,"DEAD_MACRON"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DEAD_OGONEK,"DEAD_OGONEK"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DEAD_SEMIVOICED_SOUND,"DEAD_SEMIVOICED_SOUND"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DEAD_TILDE,"DEAD_TILDE"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_DEAD_VOICED_SOUND,"DEAD_VOICED_SOUND"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM0,"CUSTOM0"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM1,"CUSTOM1"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM2,"CUSTOM2"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM3,"CUSTOM3"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM4,"CUSTOM4"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM5,"CUSTOM5"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM6,"CUSTOM6"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM7,"CUSTOM7"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM8,"CUSTOM8"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM9,"CUSTOM9"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM10,"CUSTOM10"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM11,"CUSTOM11"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM12,"CUSTOM12"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM13,"CUSTOM13"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM14,"CUSTOM14"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM15,"CUSTOM15"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM16,"CUSTOM16"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM17,"CUSTOM17"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM18,"CUSTOM18"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM19,"CUSTOM19"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM20,"CUSTOM20"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM21,"CUSTOM21"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM22,"CUSTOM22"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM23,"CUSTOM23"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM24,"CUSTOM24"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM25,"CUSTOM25"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM26,"CUSTOM26"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM27,"CUSTOM27"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM28,"CUSTOM28"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM29,"CUSTOM29"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM30,"CUSTOM30"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM31,"CUSTOM31"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM32,"CUSTOM32"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM33,"CUSTOM33"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM34,"CUSTOM34"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM35,"CUSTOM35"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM36,"CUSTOM36"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM37,"CUSTOM37"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM38,"CUSTOM38"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM39,"CUSTOM39"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM40,"CUSTOM40"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM41,"CUSTOM41"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM42,"CUSTOM42"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM43,"CUSTOM43"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM44,"CUSTOM44"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM45,"CUSTOM45"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM46,"CUSTOM46"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM47,"CUSTOM47"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM48,"CUSTOM48"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM49,"CUSTOM49"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM50,"CUSTOM50"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM51,"CUSTOM51"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM52,"CUSTOM52"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM53,"CUSTOM53"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM54,"CUSTOM54"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM55,"CUSTOM55"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM56,"CUSTOM56"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM57,"CUSTOM57"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM58,"CUSTOM58"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM59,"CUSTOM59"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM60,"CUSTOM60"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM61,"CUSTOM61"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM62,"CUSTOM62"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM63,"CUSTOM63"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM64,"CUSTOM64"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM65,"CUSTOM65"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM66,"CUSTOM66"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM67,"CUSTOM67"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM68,"CUSTOM68"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM69,"CUSTOM69"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM70,"CUSTOM70"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM71,"CUSTOM71"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM72,"CUSTOM72"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM73,"CUSTOM73"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM74,"CUSTOM74"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM75,"CUSTOM75"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM76,"CUSTOM76"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM77,"CUSTOM77"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM78,"CUSTOM78"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM79,"CUSTOM79"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM80,"CUSTOM80"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM81,"CUSTOM81"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM82,"CUSTOM82"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM83,"CUSTOM83"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM84,"CUSTOM84"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM85,"CUSTOM85"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM86,"CUSTOM86"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM87,"CUSTOM87"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM88,"CUSTOM88"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM89,"CUSTOM89"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM90,"CUSTOM90"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM91,"CUSTOM91"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM92,"CUSTOM92"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM93,"CUSTOM93"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM94,"CUSTOM94"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM95,"CUSTOM95"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM96,"CUSTOM96"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM97,"CUSTOM97"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM98,"CUSTOM98"));
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_CUSTOM99,"CUSTOM99"));
-
-		keymap.insert(std::make_pair<MMSKeySymbol, std::string>(MMSKEY_NULL,"NULL"));
-	}
-	if(namemap.empty()) {
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("UNKNOWN",MMSKEY_UNKNOWN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("BACKSPACE",MMSKEY_BACKSPACE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("TAB",MMSKEY_TAB));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("RETURN",MMSKEY_RETURN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CANCEL",MMSKEY_CANCEL));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("ESCAPE",MMSKEY_ESCAPE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SPACE",MMSKEY_SPACE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("EXCLAMATION_MARK",MMSKEY_EXCLAMATION_MARK));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("QUOTATION",MMSKEY_QUOTATION));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("NUMBER_SIGN",MMSKEY_NUMBER_SIGN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DOLLAR_SIGN",MMSKEY_DOLLAR_SIGN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PERCENT_SIGN",MMSKEY_PERCENT_SIGN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("AMPERSAND",MMSKEY_AMPERSAND));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("APOSTROPHE",MMSKEY_APOSTROPHE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PARENTHESIS_LEFT",MMSKEY_PARENTHESIS_LEFT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PARENTHESIS_RIGHT",MMSKEY_PARENTHESIS_RIGHT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("ASTERISK",MMSKEY_ASTERISK));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PLUS_SIGN",MMSKEY_PLUS_SIGN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("COMMA",MMSKEY_COMMA));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("MINUS_SIGN",MMSKEY_MINUS_SIGN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PERIOD",MMSKEY_PERIOD));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SLASH",MMSKEY_SLASH));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("0",MMSKEY_0));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("1",MMSKEY_1));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("2",MMSKEY_2));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("3",MMSKEY_3));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("4",MMSKEY_4));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("5",MMSKEY_5));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("6",MMSKEY_6));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("7",MMSKEY_7));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("8",MMSKEY_8));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("9",MMSKEY_9));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("COLON",MMSKEY_COLON));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SEMICOLON",MMSKEY_SEMICOLON));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("LESS_THAN_SIGN",MMSKEY_LESS_THAN_SIGN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("EQUALS_SIGN",MMSKEY_EQUALS_SIGN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("GREATER_THAN_SIGN",MMSKEY_GREATER_THAN_SIGN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("QUESTION_MARK",MMSKEY_QUESTION_MARK));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("AT",MMSKEY_AT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_A",MMSKEY_CAPITAL_A));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_B",MMSKEY_CAPITAL_B));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_C",MMSKEY_CAPITAL_C));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_D",MMSKEY_CAPITAL_D));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_E",MMSKEY_CAPITAL_E));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_F",MMSKEY_CAPITAL_F));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_G",MMSKEY_CAPITAL_G));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_H",MMSKEY_CAPITAL_H));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_I",MMSKEY_CAPITAL_I));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_J",MMSKEY_CAPITAL_J));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_K",MMSKEY_CAPITAL_K));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_L",MMSKEY_CAPITAL_L));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_M",MMSKEY_CAPITAL_M));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_N",MMSKEY_CAPITAL_N));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_O",MMSKEY_CAPITAL_O));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_P",MMSKEY_CAPITAL_P));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_Q",MMSKEY_CAPITAL_Q));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_R",MMSKEY_CAPITAL_R));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_S",MMSKEY_CAPITAL_S));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_T",MMSKEY_CAPITAL_T));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_U",MMSKEY_CAPITAL_U));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_V",MMSKEY_CAPITAL_V));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_W",MMSKEY_CAPITAL_W));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_X",MMSKEY_CAPITAL_X));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_Y",MMSKEY_CAPITAL_Y));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPITAL_Z",MMSKEY_CAPITAL_Z));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SQUARE_BRACKET_LEFT",MMSKEY_SQUARE_BRACKET_LEFT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("BACKSLASH",MMSKEY_BACKSLASH));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SQUARE_BRACKET_RIGHT",MMSKEY_SQUARE_BRACKET_RIGHT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CIRCUMFLEX_ACCENT",MMSKEY_CIRCUMFLEX_ACCENT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("UNDERSCORE",MMSKEY_UNDERSCORE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("GRAVE_ACCENT",MMSKEY_GRAVE_ACCENT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_A",MMSKEY_SMALL_A));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_B",MMSKEY_SMALL_B));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_C",MMSKEY_SMALL_C));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_D",MMSKEY_SMALL_D));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_E",MMSKEY_SMALL_E));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_F",MMSKEY_SMALL_F));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_G",MMSKEY_SMALL_G));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_H",MMSKEY_SMALL_H));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_I",MMSKEY_SMALL_I));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_J",MMSKEY_SMALL_J));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_K",MMSKEY_SMALL_K));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_L",MMSKEY_SMALL_L));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_M",MMSKEY_SMALL_M));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_N",MMSKEY_SMALL_N));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_O",MMSKEY_SMALL_O));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_P",MMSKEY_SMALL_P));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_Q",MMSKEY_SMALL_Q));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_R",MMSKEY_SMALL_R));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_S",MMSKEY_SMALL_S));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_T",MMSKEY_SMALL_T));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_U",MMSKEY_SMALL_U));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_V",MMSKEY_SMALL_V));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_W",MMSKEY_SMALL_W));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_X",MMSKEY_SMALL_X));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_Y",MMSKEY_SMALL_Y));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SMALL_Z",MMSKEY_SMALL_Z));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CURLY_BRACKET_LEFT",MMSKEY_CURLY_BRACKET_LEFT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("VERTICAL_BAR",MMSKEY_VERTICAL_BAR));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CURLY_BRACKET_RIGHT",MMSKEY_CURLY_BRACKET_RIGHT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("TILDE",MMSKEY_TILDE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DELETE",MMSKEY_DELETE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CURSOR_LEFT",MMSKEY_CURSOR_LEFT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CURSOR_RIGHT",MMSKEY_CURSOR_RIGHT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CURSOR_UP",MMSKEY_CURSOR_UP));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CURSOR_DOWN",MMSKEY_CURSOR_DOWN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("INSERT",MMSKEY_INSERT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("HOME",MMSKEY_HOME));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("END",MMSKEY_END));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PAGE_UP",MMSKEY_PAGE_UP));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PAGE_DOWN",MMSKEY_PAGE_DOWN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PRINT",MMSKEY_PRINT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PAUSE",MMSKEY_PAUSE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("OK",MMSKEY_OK));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SELECT",MMSKEY_SELECT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("GOTO",MMSKEY_GOTO));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CLEAR",MMSKEY_CLEAR));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("POWER",MMSKEY_POWER));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("POWER2",MMSKEY_POWER2));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("OPTION",MMSKEY_OPTION));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("MENU",MMSKEY_MENU));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("HELP",MMSKEY_HELP));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("INFO",MMSKEY_INFO));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("TIME",MMSKEY_TIME));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("VENDOR",MMSKEY_VENDOR));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("ARCHIVE",MMSKEY_ARCHIVE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PROGRAM",MMSKEY_PROGRAM));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CHANNEL",MMSKEY_CHANNEL));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("FAVORITES",MMSKEY_FAVORITES));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("EPG",MMSKEY_EPG));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PVR",MMSKEY_PVR));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("MHP",MMSKEY_MHP));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("LANGUAGE",MMSKEY_LANGUAGE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("TITLE",MMSKEY_TITLE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SUBTITLE",MMSKEY_SUBTITLE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("ANGLE",MMSKEY_ANGLE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("ZOOM",MMSKEY_ZOOM));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("MODE",MMSKEY_MODE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("KEYBOARD",MMSKEY_KEYBOARD));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PC",MMSKEY_PC));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SCREEN",MMSKEY_SCREEN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("TV",MMSKEY_TV));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("TV2",MMSKEY_TV2));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("VCR",MMSKEY_VCR));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("VCR2",MMSKEY_VCR2));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SAT",MMSKEY_SAT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SAT2",MMSKEY_SAT2));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CD",MMSKEY_CD));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("TAPE",MMSKEY_TAPE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("RADIO",MMSKEY_RADIO));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("TUNER",MMSKEY_TUNER));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PLAYER",MMSKEY_PLAYER));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("TEXT",MMSKEY_TEXT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DVD",MMSKEY_DVD));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("AUX",MMSKEY_AUX));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("MP3",MMSKEY_MP3));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PHONE",MMSKEY_PHONE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("AUDIO",MMSKEY_AUDIO));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("VIDEO",MMSKEY_VIDEO));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("INTERNET",MMSKEY_INTERNET));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("MAIL",MMSKEY_MAIL));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("NEWS",MMSKEY_NEWS));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DIRECTORY",MMSKEY_DIRECTORY));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("LIST",MMSKEY_LIST));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CALCULATOR",MMSKEY_CALCULATOR));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("MEMO",MMSKEY_MEMO));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CALENDAR",MMSKEY_CALENDAR));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("EDITOR",MMSKEY_EDITOR));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("RED",MMSKEY_RED));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("GREEN",MMSKEY_GREEN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("YELLOW",MMSKEY_YELLOW));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("BLUE",MMSKEY_BLUE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CHANNEL_UP",MMSKEY_CHANNEL_UP));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CHANNEL_DOWN",MMSKEY_CHANNEL_DOWN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("BACK",MMSKEY_BACK));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("FORWARD",MMSKEY_FORWARD));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("FIRST",MMSKEY_FIRST));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("LAST",MMSKEY_LAST));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("VOLUME_UP",MMSKEY_VOLUME_UP));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("VOLUME_DOWN",MMSKEY_VOLUME_DOWN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("MUTE",MMSKEY_MUTE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("AB",MMSKEY_AB));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PLAYPAUSE",MMSKEY_PLAYPAUSE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PLAY",MMSKEY_PLAY));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("STOP",MMSKEY_STOP));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("RESTART",MMSKEY_RESTART));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SLOW",MMSKEY_SLOW));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("FAST",MMSKEY_FAST));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("RECORD",MMSKEY_RECORD));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("EJECT",MMSKEY_EJECT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SHUFFLE",MMSKEY_SHUFFLE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("REWIND",MMSKEY_REWIND));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("FASTFORWARD",MMSKEY_FASTFORWARD));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("PREVIOUS",MMSKEY_PREVIOUS));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("NEXT",MMSKEY_NEXT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("BEGIN",MMSKEY_BEGIN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DIGITS",MMSKEY_DIGITS));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("TEEN",MMSKEY_TEEN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("TWEN",MMSKEY_TWEN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("BREAK",MMSKEY_BREAK));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("EXIT",MMSKEY_EXIT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SETUP",MMSKEY_SETUP));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CURSOR_LEFT_UP",MMSKEY_CURSOR_LEFT_UP));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CURSOR_LEFT_DOWN",MMSKEY_CURSOR_LEFT_DOWN));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CURSOR_UP_RIGHT",MMSKEY_CURSOR_UP_RIGHT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CURSOR_DOWN_RIGHT",MMSKEY_CURSOR_DOWN_RIGHT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("F1",MMSKEY_F1));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("F2",MMSKEY_F2));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("F3",MMSKEY_F3));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("F4",MMSKEY_F4));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("F5",MMSKEY_F5));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("F6",MMSKEY_F6));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("F7",MMSKEY_F7));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("F8",MMSKEY_F8));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("F9",MMSKEY_F9));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("F10",MMSKEY_F10));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("F11",MMSKEY_F11));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("F12",MMSKEY_F12));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SHIFT",MMSKEY_SHIFT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CONTROL",MMSKEY_CONTROL));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("ALT",MMSKEY_ALT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("ALTGR",MMSKEY_ALTGR));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("META",MMSKEY_META));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SUPER",MMSKEY_SUPER));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("HYPER",MMSKEY_HYPER));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CAPS_LOCK",MMSKEY_CAPS_LOCK));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("NUM_LOCK",MMSKEY_NUM_LOCK));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("SCROLL_LOCK",MMSKEY_SCROLL_LOCK));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DEAD_ABOVEDOT",MMSKEY_DEAD_ABOVEDOT));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DEAD_ABOVERING",MMSKEY_DEAD_ABOVERING));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DEAD_ACUTE",MMSKEY_DEAD_ACUTE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DEAD_BREVE",MMSKEY_DEAD_BREVE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DEAD_CARON",MMSKEY_DEAD_CARON));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DEAD_CEDILLA",MMSKEY_DEAD_CEDILLA));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DEAD_CIRCUMFLEX",MMSKEY_DEAD_CIRCUMFLEX));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DEAD_DIAERESIS",MMSKEY_DEAD_DIAERESIS));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DEAD_DOUBLEACUTE",MMSKEY_DEAD_DOUBLEACUTE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DEAD_GRAVE",MMSKEY_DEAD_GRAVE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DEAD_IOTA",MMSKEY_DEAD_IOTA));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DEAD_MACRON",MMSKEY_DEAD_MACRON));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DEAD_OGONEK",MMSKEY_DEAD_OGONEK));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DEAD_SEMIVOICED_SOUND",MMSKEY_DEAD_SEMIVOICED_SOUND));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DEAD_TILDE",MMSKEY_DEAD_TILDE));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("DEAD_VOICED_SOUND",MMSKEY_DEAD_VOICED_SOUND));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM0",MMSKEY_CUSTOM0));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM1",MMSKEY_CUSTOM1));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM2",MMSKEY_CUSTOM2));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM3",MMSKEY_CUSTOM3));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM4",MMSKEY_CUSTOM4));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM5",MMSKEY_CUSTOM5));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM6",MMSKEY_CUSTOM6));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM7",MMSKEY_CUSTOM7));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM8",MMSKEY_CUSTOM8));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM9",MMSKEY_CUSTOM9));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM10",MMSKEY_CUSTOM10));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM11",MMSKEY_CUSTOM11));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM12",MMSKEY_CUSTOM12));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM13",MMSKEY_CUSTOM13));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM14",MMSKEY_CUSTOM14));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM15",MMSKEY_CUSTOM15));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM16",MMSKEY_CUSTOM16));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM17",MMSKEY_CUSTOM17));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM18",MMSKEY_CUSTOM18));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM19",MMSKEY_CUSTOM19));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM20",MMSKEY_CUSTOM20));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM21",MMSKEY_CUSTOM21));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM22",MMSKEY_CUSTOM22));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM23",MMSKEY_CUSTOM23));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM24",MMSKEY_CUSTOM24));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM25",MMSKEY_CUSTOM25));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM26",MMSKEY_CUSTOM26));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM27",MMSKEY_CUSTOM27));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM28",MMSKEY_CUSTOM28));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM29",MMSKEY_CUSTOM29));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM30",MMSKEY_CUSTOM30));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM31",MMSKEY_CUSTOM31));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM32",MMSKEY_CUSTOM32));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM33",MMSKEY_CUSTOM33));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM34",MMSKEY_CUSTOM34));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM35",MMSKEY_CUSTOM35));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM36",MMSKEY_CUSTOM36));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM37",MMSKEY_CUSTOM37));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM38",MMSKEY_CUSTOM38));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM39",MMSKEY_CUSTOM39));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM40",MMSKEY_CUSTOM40));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM41",MMSKEY_CUSTOM41));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM42",MMSKEY_CUSTOM42));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM43",MMSKEY_CUSTOM43));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM44",MMSKEY_CUSTOM44));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM45",MMSKEY_CUSTOM45));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM46",MMSKEY_CUSTOM46));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM47",MMSKEY_CUSTOM47));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM48",MMSKEY_CUSTOM48));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM49",MMSKEY_CUSTOM49));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM50",MMSKEY_CUSTOM50));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM51",MMSKEY_CUSTOM51));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM52",MMSKEY_CUSTOM52));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM53",MMSKEY_CUSTOM53));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM54",MMSKEY_CUSTOM54));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM55",MMSKEY_CUSTOM55));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM56",MMSKEY_CUSTOM56));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM57",MMSKEY_CUSTOM57));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM58",MMSKEY_CUSTOM58));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM59",MMSKEY_CUSTOM59));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM60",MMSKEY_CUSTOM60));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM61",MMSKEY_CUSTOM61));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM62",MMSKEY_CUSTOM62));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM63",MMSKEY_CUSTOM63));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM64",MMSKEY_CUSTOM64));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM65",MMSKEY_CUSTOM65));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM66",MMSKEY_CUSTOM66));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM67",MMSKEY_CUSTOM67));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM68",MMSKEY_CUSTOM68));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM69",MMSKEY_CUSTOM69));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM70",MMSKEY_CUSTOM70));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM71",MMSKEY_CUSTOM71));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM72",MMSKEY_CUSTOM72));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM73",MMSKEY_CUSTOM73));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM74",MMSKEY_CUSTOM74));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM75",MMSKEY_CUSTOM75));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM76",MMSKEY_CUSTOM76));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM77",MMSKEY_CUSTOM77));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM78",MMSKEY_CUSTOM78));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM79",MMSKEY_CUSTOM79));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM80",MMSKEY_CUSTOM80));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM81",MMSKEY_CUSTOM81));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM82",MMSKEY_CUSTOM82));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM83",MMSKEY_CUSTOM83));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM84",MMSKEY_CUSTOM84));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM85",MMSKEY_CUSTOM85));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM86",MMSKEY_CUSTOM86));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM87",MMSKEY_CUSTOM87));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM88",MMSKEY_CUSTOM88));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM89",MMSKEY_CUSTOM89));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM90",MMSKEY_CUSTOM90));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM91",MMSKEY_CUSTOM91));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM92",MMSKEY_CUSTOM92));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM93",MMSKEY_CUSTOM93));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM94",MMSKEY_CUSTOM94));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM95",MMSKEY_CUSTOM95));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM96",MMSKEY_CUSTOM96));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM97",MMSKEY_CUSTOM97));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM98",MMSKEY_CUSTOM98));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("CUSTOM99",MMSKEY_CUSTOM99));
-		namemap.insert(std::make_pair<std::string,MMSKeySymbol>("NULL",MMSKEY_NULL));
-	}
-}
+std::map<MMSKeySymbol, std::string> MMSKeyMap::keymap(keymapData, keymapData + (sizeof(keymapData) / sizeof(keymapData[0])));
+std::map<std::string,MMSKeySymbol> MMSKeyMap::namemap(namemapData, namemapData + (sizeof(namemapData) / sizeof(namemapData[0])));
 
 MMSKeySymbol MMSKeyMap::operator[](const char* val) {
-	std::map<std::string,MMSKeySymbol>::iterator it;
-	it = namemap.find(val);
-	if(it!=namemap.end()) {
-		return it->second;
-	} else
-		return MMSKEY_UNKNOWN;
+	std::map<std::string,MMSKeySymbol>::iterator it = this->namemap.find(val);
+	return (it == this->namemap.end() ? MMSKEY_UNKNOWN : it->second);
 }
 
 MMSKeySymbol MMSKeyMap::operator[](std::string &val) {
-	std::map<std::string,MMSKeySymbol>::iterator it;
-	it = namemap.find(val);
-	if(it!=namemap.end()) {
-		return it->second;
-	} else
-		return MMSKEY_UNKNOWN;
+	return this->operator [](val.c_str());
 }
 
 std::string  &MMSKeyMap::operator[](MMSKeySymbol key) {
-	std::map<MMSKeySymbol, std::string>::iterator it;
-	it = keymap.find(key);
-	if(it!=keymap.end()) {
+	std::map<MMSKeySymbol, std::string>::iterator it = this->keymap.find(key);
+	if(it != this->keymap.end()) {
 		return it->second;
 	} else {
-		return keymap.find(MMSKEY_UNKNOWN)->second;
+		return this->keymap.find(MMSKEY_UNKNOWN)->second;
 	}
 }

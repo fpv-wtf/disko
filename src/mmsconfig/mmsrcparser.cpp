@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -29,6 +29,10 @@
  *   Free Software Foundation, Inc.,                                       *
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA            *
  **************************************************************************/
+
+using namespace std;
+
+#include <iostream>
 
 #include <cstring>
 #include "mmsconfig/mmsrcparser.h"
@@ -322,6 +326,7 @@ void MMSRcParser::check_outputtype(MMSFBOutputType outputtype, xmlChar *parname,
 			break;
 		default:
 			WRONG_VALUE(parname, val, MMSFB_OT_VALID_VALUES_BE_DFB, "-> this depends on backend=\"DFB\"");
+			break;
 		}
 	}
 	else
@@ -335,6 +340,7 @@ void MMSRcParser::check_outputtype(MMSFBOutputType outputtype, xmlChar *parname,
 			break;
 		default:
 			WRONG_VALUE(parname, val, MMSFB_OT_VALID_VALUES_BE_X11, "-> this depends on backend=\"X11\"");
+			break;
 		}
 	}
 	else
@@ -349,6 +355,7 @@ void MMSRcParser::check_outputtype(MMSFBOutputType outputtype, xmlChar *parname,
 			break;
 		default:
 			WRONG_VALUE(parname, val, MMSFB_OT_VALID_VALUES_BE_FBDEV, "-> this depends on backend=\"FBDEV\"");
+			break;
 		}
 	}
 }

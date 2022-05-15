@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -49,13 +49,27 @@ void MMSFBWindowManagerThread::threadMain() {
 
 	while (1) {
 
+		if (!this->flipQueue.empty()) {
+			FLIP_STRUCT tmpFlipStruct;
+			tmpFlipStruct = this->flipQueue.front();
+			this->flipQueue.pop();
+
+			lock->lock();
+	        mmsfbwindowmanager->flipSurface(tmpFlipStruct.surface, tmpFlipStruct.region,
+	                                       MMSFB_FLIP_NONE, tmpFlipStruct.refresh);
+	        lock->unlock();
+
+	        msleep(100);
+	        continue;
+		}
+
 		// fade out the pointer
 		mmsfbwindowmanager->fadePointer();
 
 
         if (!*(this->high_freq_surface)) {
             /* have no region */
-            sleep(1);
+        	msleep(200);
             continue;
         }
 
@@ -77,9 +91,13 @@ void MMSFBWindowManagerThread::threadMain() {
             continue;
         }
         if (*(this->high_freq_saved_surface)) {
+        	(*(this->high_freq_surface))->lock();
+        	(*(this->high_freq_saved_surface))->lock();
             /* copy saved surface because window works direct with layer */
             (*(this->high_freq_surface))->setBlittingFlags(MMSFB_BLIT_NOFX);
             (*(this->high_freq_surface))->blit(*(this->high_freq_saved_surface), NULL, 0, 0);
+            (*(this->high_freq_saved_surface))->unlock();
+            (*(this->high_freq_surface))->unlock();
         }
         DEBUGOUT("flipped not fast enough");
         mmsfbwindowmanager->flipSurface(*(this->high_freq_surface), NULL,

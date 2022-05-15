@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -38,6 +38,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+
+//#define DEBUG_LOCK_OUTPUT
+#ifdef DEBUG_LOCK_OUTPUT
+#include <sys/syscall.h>
+#define PRINT_LOCK(msg...) printf("%s %s - %d (%lu)\n", ((string)(msg)).c_str(),__FUNCTION__,__LINE__,(pid_t) syscall (SYS_gettid))
+#else
+#define PRINT_LOCK(msg...)
+#endif
 
 
 #include "mmscore/mmsinit.h"
@@ -141,8 +149,14 @@ MMSWindow::MMSWindow() {
 
 MMSWindow::~MMSWindow() {
 	// wait until show/hide actions are finished
+	PRINT_LOCK("mmsfb unlock");
+	bool rc = mmsfb->unlock();
+
 	while(this->action->getAction() != MMSWACTION_NONE)
 		msleep(100);
+
+	if(rc)
+		mmsfb->lock();
 
 	// hide the window if shown
 	instantHide();
@@ -691,7 +705,9 @@ bool MMSWindow::resize(bool refresh) {
 
             // normal window
 			DEBUGMSG("MMSGUI", "setting blitting flags for window");
+			this->surface->lock();
 			this->surface->setBlittingFlags(MMSFB_BLIT_BLEND_ALPHACHANNEL);
+			this->surface->unlock();
 
 			/* set the window to bottom */
 //            this->window->lowerToBottom();
@@ -725,7 +741,9 @@ bool MMSWindow::resize(bool refresh) {
 				// working with subsurface
             	DEBUGMSG("MMSGUI", "re-positioning/-sizing window subsurface (" + iToStr(this->geom.x) + "," + iToStr(this->geom.y) + ","
                                                                         + iToStr(this->geom.w) + "," + iToStr(this->geom.h) + ")");
+            	this->surface->lock();
 				this->surface->setSubSurface(&this->geom);
+				this->surface->unlock();
 			}
         }
     }
@@ -782,7 +800,9 @@ bool MMSWindow::resize(bool refresh) {
 	            this->surface = this->parent->surface->getSubSurface(&rect);
 	        }
 
+        	this->surface->lock();
             this->surface->setBlittingFlags(MMSFB_BLIT_BLEND_ALPHACHANNEL);
+            this->surface->unlock();
 
             /* set the window to bottom */
 //            this->window->lowerToBottom();
@@ -987,8 +1007,8 @@ bool MMSWindow::removeChildWindow(MMSWindow *childwin) {
     		}
 
     		int childwinsize = this->childwins.size()-1;
-    		if ((this->focusedChildWin > childwinsize) && (childwinsize >= 0))
-    			this->focusedChildWin = childwinsize;
+			if ((this->focusedChildWin > childwinsize) && (childwinsize >= 0))
+				this->focusedChildWin = childwinsize;
 
             unlock();
     		return true;
@@ -1011,7 +1031,9 @@ bool MMSWindow::setChildWindowOpacity(MMSWindow *childwin, unsigned char opacity
             this->childwins.at(i).oldopacity = this->childwins.at(i).opacity;
            	this->childwins.at(i).opacity = opacity;
            	if (refresh) {
+           		PRINT_LOCK("call flipWindow");
            		flipWindow(childwin, NULL, MMSFB_FLIP_NONE, false, true);
+           		PRINT_LOCK("end flipWindow");
            	}
 			unlock();
 			return true;
@@ -1058,7 +1080,9 @@ bool MMSWindow::setChildWindowRegion(MMSWindow *childwin, bool refresh) {
             		if   ((oldregion.x2 - oldregion.x1 + 1 != childwin->geom.w)
 	                    ||(oldregion.y2 - oldregion.y1 + 1 != childwin->geom.h)) {
 	                    // resize surface
+            			childwin->surface->lock();
 	                    childwin->surface->resize(childwin->geom.w, childwin->geom.h);
+	                    childwin->surface->unlock();
 
 	                    // call resize recursive for new regions of my child windows
 	                    for (unsigned int j = 0; j < childwin->childwins.size(); j++) {
@@ -1068,7 +1092,9 @@ bool MMSWindow::setChildWindowRegion(MMSWindow *childwin, bool refresh) {
             	}
             	else {
             		// working with sub surface
+            		childwin->surface->lock();
 					childwin->surface->setSubSurface(&(childwin->geom));
+					childwin->surface->unlock();
 
 	                // call resize recursive for new regions of my child windows
 	                for (unsigned int j = 0; j < childwin->childwins.size(); j++) {
@@ -1083,7 +1109,9 @@ bool MMSWindow::setChildWindowRegion(MMSWindow *childwin, bool refresh) {
                 }
 
                 // draw at new pos
+                PRINT_LOCK("call flipWindow");
                 flipWindow(childwin, NULL, MMSFB_FLIP_NONE, false, false);
+                PRINT_LOCK("end flipWindow");
 
                 // redraw the old rects
                 if (oldregion.y1 < currregion->y1) {
@@ -1097,7 +1125,9 @@ bool MMSWindow::setChildWindowRegion(MMSWindow *childwin, bool refresh) {
                     region.x2-= currregion->x1;
                     region.y1-=currregion->y1;
                     region.y2-=currregion->y1;
+                    PRINT_LOCK("call flipWindow");
                     flipWindow(childwin, &region, MMSFB_FLIP_NONE, false, false);
+                    PRINT_LOCK("end flipWindow");
                 }
                 if (oldregion.y2 > currregion->y2) {
                     // redraw below
@@ -1110,7 +1140,9 @@ bool MMSWindow::setChildWindowRegion(MMSWindow *childwin, bool refresh) {
                     region.x2-= currregion->x1;
                     region.y1-=currregion->y1;
                     region.y2-=currregion->y1;
+                    PRINT_LOCK("call flipWindow");
                     flipWindow(childwin, &region, MMSFB_FLIP_NONE, false, false);
+                    PRINT_LOCK("end flipWindow");
                 }
                 if (oldregion.x1 < currregion->x1) {
                     // redraw left side
@@ -1125,7 +1157,9 @@ bool MMSWindow::setChildWindowRegion(MMSWindow *childwin, bool refresh) {
                         region.y2 = currregion->y2 - currregion->y1;
                         region.x1-=currregion->x1;
                         region.x2-=currregion->x1;
+                        PRINT_LOCK("call flipWindow");
                         flipWindow(childwin, &region, MMSFB_FLIP_NONE, false, false);
+                        PRINT_LOCK("end flipWindow");
                     }
                 }
                 if (oldregion.x2 > currregion->x2) {
@@ -1141,7 +1175,9 @@ bool MMSWindow::setChildWindowRegion(MMSWindow *childwin, bool refresh) {
                         region.y2 = currregion->y2 - currregion->y1;
                         region.x1-=currregion->x1;
                         region.x2-=currregion->x1;
+                        PRINT_LOCK("call flipWindow");
                         flipWindow(childwin, &region, MMSFB_FLIP_NONE, false, false);
+                        PRINT_LOCK("end flipWindow");
                     }
                 }
             }
@@ -1297,6 +1333,9 @@ void MMSWindow::drawChildWindows(MMSFBSurface *dst_surface, MMSFBRegion *region,
         		}
         		cw->special_blit = special_blit;
 
+        		dst_surface->lock();
+        		cw->window->surface->lock();
+
                 if (special_blit) {
                 	// special mode
                 	// we MUST draw (the background) to the surface of this window
@@ -1391,6 +1430,9 @@ void MMSWindow::drawChildWindows(MMSFBSurface *dst_surface, MMSFBRegion *region,
 													 dst_x + offsX - reg.x1, dst_y + offsY - reg.y1);
 					}
                 }
+
+                cw->window->surface->unlock();
+                dst_surface->unlock();
         	}
 			else {
 				// no own surface
@@ -1459,7 +1501,11 @@ bool MMSWindow::flipWindow(MMSWindow *win, MMSFBRegion *region, MMSFBFlipFlags f
 					if (os) {
 						// the child window has an own surface which we have to flip
 						// if the child window has NO own surface, the window will be redrawed by the parent automatically
+						win->surface->lock();
+						PRINT_LOCK("call flip");
 						win->surface->flip(region);
+						PRINT_LOCK("end flip");
+						win->surface->unlock();
 					}
                 }
 
@@ -1537,7 +1583,9 @@ bool MMSWindow::flipWindow(MMSWindow *win, MMSFBRegion *region, MMSFBFlipFlags f
         	this->draw(true, &rect);
         } else {
             // i am also a child, call recursive to the top level parent
+        	PRINT_LOCK("call flipWindow");
             bool ret = this->parent->flipWindow(win->parent, &pw_region, flags, false, false);
+            PRINT_LOCK("end flipWindow");
 
             // unlock
             if (!locked)
@@ -1555,18 +1603,20 @@ bool MMSWindow::flipWindow(MMSWindow *win, MMSFBRegion *region, MMSFBFlipFlags f
 
     // lock
 //PUP    pw_surface->lock();
-    lock();
+//    lock();
 
 
 	// draw all affected child windows
     drawChildWindows(pw_surface, &pw_region);
 
 	// do the flip
+    pw_surface->lock();
     pw_surface->flip(&pw_region);
+    pw_surface->unlock();
 
     // unlock
 //PUP    pw_surface->unlock();
-    unlock();
+//    unlock();
 
     // unlock
     if (!locked)
@@ -1764,10 +1814,18 @@ void MMSWindow::switchArrowWidgets() {
 
 
 bool MMSWindow::flip(void) {
-    if (getType()==MMSWINDOWTYPE_CHILDWINDOW)
+    if (getType()==MMSWINDOWTYPE_CHILDWINDOW) {
+    	PRINT_LOCK("call flipWindow");
     	this->parent->flipWindow(this);
-    else
+    	PRINT_LOCK("end flipWindow");
+    }
+    else {
+    	this->surface->lock();
+    	PRINT_LOCK("call flip");
     	this->surface->flip();
+    	PRINT_LOCK("end flip");
+    	this->surface->unlock();
+    }
     return true;
 }
 
@@ -1882,6 +1940,7 @@ void MMSWindow::draw(bool toRedrawOnly, MMSFBRectangle *rect2update, bool clear,
 
 	// lock
 	lock();
+	this->surface->lock();
 
     if (rect2update) {
         /* use a small rectangle */
@@ -1900,6 +1959,7 @@ void MMSWindow::draw(bool toRedrawOnly, MMSFBRectangle *rect2update, bool clear,
 		MMSFBColor bgcolor;
 		getBgColor(bgcolor);
 		if (this->bgimage) {
+			this->bgimage->lock();
 			// clear all or a part of the surface
 			if (clear) {
 				if ((bgcolor.a && bgcolor.a != 255) || opacity != 255 || !this->bgimage->isOpaque()) {
@@ -1913,6 +1973,7 @@ void MMSWindow::draw(bool toRedrawOnly, MMSFBRectangle *rect2update, bool clear,
 
 			// draw background with bgimage
 			this->surface->stretchBlit(this->bgimage, NULL, &(this->innerGeom));
+			this->bgimage->unlock();
 		}
 		else
 		if (bgcolor.a) {
@@ -1945,7 +2006,17 @@ void MMSWindow::draw(bool toRedrawOnly, MMSFBRectangle *rect2update, bool clear,
     		}
 
 			if (this->draw_setgeom) {
+//printf(">>>>>>>>>>>>>>>AAAAAAAAAAAAAA>>>>>>>>>>>>>>>\n");
+
+				if (!this->children.at(0)->content_size_initialized) {
+					// first time, init content size an geometry
+					this->children.at(0)->setGeometry(this->innerGeom);
+					this->children.at(0)->initContentSize();
+				}
+
 				this->children.at(0)->setGeometry(this->innerGeom);
+
+//printf("<<<<<<<<<<<<<<<AAAAAAAAAAAAAA>>>>>>>>>>>>>>>\n");
 				this->draw_setgeom = false;
 			}
 			this->children.at(0)->drawchildren(toRedrawOnly, &backgroundFilled, rect2update);
@@ -1955,6 +2026,7 @@ void MMSWindow::draw(bool toRedrawOnly, MMSFBRectangle *rect2update, bool clear,
 	// reset the clip
     this->surface->setClip(NULL);
 
+    this->surface->unlock();
 	// unlock
 //PUP    this->surface->unlock();
     unlock();
@@ -1982,7 +2054,9 @@ void MMSWindow::drawMyBorder(unsigned char opacity) {
 
 bool MMSWindow::show() {
 
-    // the window will be hidden in a few seconds (hideAction thread is running), wait for it
+	PRINT_LOCK("mmsfb unlock");
+	bool rc = mmsfb->unlock();
+	// the window will be hidden in a few seconds (hideAction thread is running), wait for it
     while (this->willhide)
         msleep(100);
 
@@ -2001,6 +2075,9 @@ bool MMSWindow::show() {
         }
         break;
     }
+
+    if(rc)
+    	mmsfb->lock();
 
     // start the show process
     this->willshow = true;
@@ -2052,7 +2129,7 @@ bool MMSWindow::show() {
 	this->pulser.setStepsPerSecond(MMSWINDOW_ANIM_MAX_OFFSET * 4);
 	this->pulser.setMaxOffset(MMSWINDOW_ANIM_MAX_OFFSET, MMSPULSER_SEQ_LOG_SOFT_END, MMSWINDOW_ANIM_MAX_OFFSET / 2);
 	this->pulser_mode = MMSWINDOW_PULSER_MODE_SHOW;
-	this->pulser.start(true, true);
+	this->pulser.start(false, true);
 
 
     ////////////
@@ -2075,12 +2152,12 @@ void MMSWindow::showBufferedShown() {
 
 //printf("show4-0 - %s\n", name.c_str());
 
+	lock();
+
     for (unsigned int i = 0; i < childwins.size(); i++) {
 		MMSWindow *w = childwins.at(i).window;
 
 		if (w->shown) {
-			lock();
-
 		    if (!w->buffered_shown) {
 		    	// it is not the first time, so one draw is enough
 		    	// do it only for child windows with own surfaces
@@ -2088,7 +2165,9 @@ void MMSWindow::showBufferedShown() {
 				w->getOwnSurface(os);
 				if (os) {
 					w->draw();
+					PRINT_LOCK("call flipWindow");
 					w->parent->flipWindow(w);
+					PRINT_LOCK("end flipWindow");
 				}
 		    }
 		    else {
@@ -2112,7 +2191,9 @@ void MMSWindow::showBufferedShown() {
 				bool os;
 				w->getOwnSurface(os);
 				if (os) {
+					PRINT_LOCK("call flipWindow");
 					w->parent->flipWindow(w);
+					PRINT_LOCK("end flipWindow");
 				}
 
 				if ((w->parent)||((!w->parent)&&(w->window))) {
@@ -2129,25 +2210,30 @@ void MMSWindow::showBufferedShown() {
 				// go recursive to the child windows
 				w->showBufferedShown();
 		    }
-
-			unlock();
 		}
 	}
+
+	unlock();
 }
 
 
 
 bool MMSWindow::raiseToTop(int zlevel) {
+
+	lock();
+
     if (!this->parent) {
         // normal parent window, set the window to top
         if (this->window) {
-            return this->window->raiseToTop(zlevel);
+        	bool ret = this->window->raiseToTop(zlevel);
+        	unlock();
+            return ret;
         }
+        unlock();
         return false;
     }
 
     // child window, change the childwins vector
-	lock();
 	for (unsigned int i = 0; i < this->parent->childwins.size(); i++) {
 		if (this->parent->childwins.at(i).window == this) {
 			// child window found, move it to the end of the vector
@@ -2234,7 +2320,9 @@ bool MMSWindow::raiseToTop(int zlevel) {
 
 				// redraw the window stack if child window and parent is shown
 				if ((this->parent->childwins.at(i).window->shown)&&(this->parent->shown)) {
+					PRINT_LOCK("call flipWindow");
 					this->parent->flipWindow(this->parent->childwins.at(i).window, NULL, MMSFB_FLIP_NONE, false, true);
+					PRINT_LOCK("end flipWindow");
 				}
 
 			}
@@ -2297,7 +2385,9 @@ bool MMSWindow::lowerToBottom() {
 
 				// redraw the window stack if child window and parent is shown
 				if ((this->parent->childwins.at(i).window->shown)&&(this->parent->shown)) {
+					PRINT_LOCK("call flipWindow");
 					this->parent->flipWindow(this->parent->childwins.at(i).window, NULL, MMSFB_FLIP_NONE, false, true);
+					PRINT_LOCK("end flipWindow");
 				}
 			}
 
@@ -2328,12 +2418,16 @@ bool MMSWindow::moveTo(int x, int y, bool refresh) {
 				firsttime = false;
 			}
 
+			this->surface->lock();
 			// clear
 			this->surface->clear();
+			PRINT_LOCK("call flip");
 			this->surface->flip();
+			PRINT_LOCK("end flip");
 
 			// move subsurface
 			this->surface->moveTo(x, y);
+			this->surface->unlock();
 
 			// move visible rectangle
 			MMSFBRectangle vrect;
@@ -2386,36 +2480,70 @@ bool MMSWindow::stretch(double left, double up, double right, double down) {
 }
 
 bool MMSWindow::onBeforeAnimation(MMSPulser *pulser) {
+	bool rc = false;
+	mmsfb->lock();
 	switch (this->pulser_mode) {
 	case MMSWINDOW_PULSER_MODE_SHOW:
-		return beforeShowAction(pulser);
+		PRINT_LOCK("enter beforeShowAction");
+		rc = beforeShowAction(pulser);
+		PRINT_LOCK("leave beforeShowAction");
+		PRINT_LOCK("mmsfb unlock");
+		mmsfb->unlock();
+		return rc;
 	case MMSWINDOW_PULSER_MODE_HIDE:
-		return beforeHideAction(pulser);
+		rc = beforeHideAction(pulser);
+		PRINT_LOCK("mmsfb unlock");
+		mmsfb->unlock();
+		return rc;
 	}
+
+	PRINT_LOCK("mmsfb unlock");
+	mmsfb->unlock();
+
 	return false;
 }
 
 bool MMSWindow::onAnimation(MMSPulser *pulser) {
+	mmsfb->lock();
+	bool rc = false;
 	switch (this->pulser_mode) {
 	case MMSWINDOW_PULSER_MODE_SHOW:
-		return showAction(pulser);
+		PRINT_LOCK("enter showAction");
+		rc = showAction(pulser);
+		PRINT_LOCK("leave showAction");
+		PRINT_LOCK("mmsfb unlock");
+		mmsfb->unlock();
+		return rc;
 	case MMSWINDOW_PULSER_MODE_HIDE:
-		return hideAction(pulser);
+		rc = hideAction(pulser);
+		PRINT_LOCK("mmsfb unlock");
+		mmsfb->unlock();
+		return rc;
 	}
+	PRINT_LOCK("mmsfb unlock");
+	mmsfb->unlock();
 	return false;
 }
 
 void MMSWindow::onAfterAnimation(MMSPulser *pulser) {
+	mmsfb->lock();
+
 	switch (this->pulser_mode) {
 	case MMSWINDOW_PULSER_MODE_SHOW:
-		return afterShowAction(pulser);
+		PRINT_LOCK("enter afterShowAction");
+		afterShowAction(pulser);
+		PRINT_LOCK("leave afterShowAction");
+		break;
 	case MMSWINDOW_PULSER_MODE_HIDE:
-		return afterHideAction(pulser);
+		afterHideAction(pulser);
+		break;
 	}
+
+	PRINT_LOCK("mmsfb unlock");
+	mmsfb->unlock();
 }
 
 bool MMSWindow::beforeShowAction(MMSPulser *pulser) {
-
 	if(shown==true) {
 		// call onAfterShow callback with already shown flag
 		this->onAfterShow->emit(this, true);
@@ -2437,6 +2565,11 @@ bool MMSWindow::beforeShowAction(MMSPulser *pulser) {
     	}
     }
 
+    PRINT_LOCK("try to lock beforeshow");
+    // lock during draw
+    lock();
+    PRINT_LOCK("got lock beforeshow");
+
     // optimized shown
    	showBufferedShown();
 
@@ -2445,8 +2578,6 @@ bool MMSWindow::beforeShowAction(MMSPulser *pulser) {
     if (this->parent)
 		really_shown = this->parent->isShown(true);
 
-    // lock during draw
-    lock();
 
     if (getType() == MMSWINDOWTYPE_ROOTWINDOW) {
         // hide the current root window
@@ -2463,10 +2594,12 @@ bool MMSWindow::beforeShowAction(MMSPulser *pulser) {
         if (!this->parent) {
             // normal parent window (main or popup)
             if (this->windowmanager) {
+            	PRINT_LOCK("call raiseToTop");
             	this->windowmanager->raiseToTop(this);
             }
             else {
-            	raiseToTop();
+            	PRINT_LOCK("call raiseToTop");
+            	raiseToTop(0);
             }
         }
         else {
@@ -2474,7 +2607,8 @@ bool MMSWindow::beforeShowAction(MMSPulser *pulser) {
         	bool staticzorder = false;
         	this->parent->getStaticZOrder(staticzorder);
         	if (!staticzorder) {
-        		raiseToTop();
+        		PRINT_LOCK("call raiseToTop");
+        		raiseToTop(0);
         	}
         }
     }
@@ -2511,10 +2645,16 @@ bool MMSWindow::beforeShowAction(MMSPulser *pulser) {
     }
 
     // make it visible
-    if (!this->parent)
+    if (!this->parent) {
+    	PRINT_LOCK("call flipWindow");
         flipWindow(this);
-    else
+        PRINT_LOCK("end flipWindow");
+    }
+    else {
+    	PRINT_LOCK("call flipWindow");
         this->parent->flipWindow(this);
+        PRINT_LOCK("end flipWindow");
+    }
 
     // drawing finished, unlock
     unlock();
@@ -2596,6 +2736,8 @@ bool MMSWindow::beforeShowAction(MMSPulser *pulser) {
 
 bool MMSWindow::showAction(MMSPulser *pulser) {
 
+	PRINT_LOCK("enter ShowAction");
+
 	// do the animation
 	double offs = MMSWINDOW_ANIM_MAX_OFFSET - pulser->getOffset();
 
@@ -2635,10 +2777,14 @@ bool MMSWindow::showAction(MMSPulser *pulser) {
 			this->parent->setChildWindowOpacity(this, this->anim_opacity);
 	}
 
+	PRINT_LOCK("leave ShowAction");
+
 	return true;
 }
 
 void MMSWindow::afterShowAction(MMSPulser *pulser) {
+	PRINT_LOCK("enter afterShowAction");
+
 	if (pulser) {
 		// animation finished
 		// set final position
@@ -2670,6 +2816,8 @@ void MMSWindow::afterShowAction(MMSPulser *pulser) {
 
 	// call onAfterShow callback without already shown flag
 	this->onAfterShow->emit(this, false);
+
+	PRINT_LOCK("leave afterShowAction");
 }
 
 bool MMSWindow::beforeHideAction(MMSPulser *pulser) {
@@ -2694,9 +2842,13 @@ bool MMSWindow::beforeHideAction(MMSPulser *pulser) {
 	if (!((this->parent)||((!this->parent)&&(this->window)))) {
         // no, check if i have the surface from layer
         if (this->surface) {
+        	this->surface->lock();
             // clear it
             this->surface->clear();
+            PRINT_LOCK("call flip");
             this->surface->flip();
+            PRINT_LOCK("end flip");
+            this->surface->unlock();
         }
 		afterHideAction(NULL);
 		return false;
@@ -2819,7 +2971,9 @@ void MMSWindow::afterHideAction(MMSPulser *pulser) {
 }
 
 bool MMSWindow::hide(bool goback, bool wait) {
-
+	//give the other threads a chance to do their part
+	PRINT_LOCK("mmsfb unlock");
+	bool rc = mmsfb->unlock();
     /* the window will be shown in a few seconds (showAction thread is running), wait for it */
     while (this->willshow)
         msleep(100);
@@ -2836,7 +2990,11 @@ bool MMSWindow::hide(bool goback, bool wait) {
         break;
     }
 
-    /* starting hide process */
+	//back to locking if applicable
+	if(rc)
+		mmsfb->lock();
+
+	/* starting hide process */
     this->willhide = true;
 
     /* call onBeforeHide callback */
@@ -3016,13 +3174,29 @@ bool MMSWindow::hideAction(bool *stopaction) {
 }*/
 
 void MMSWindow::waitUntilShown() {
+	//ensure that a show action can take place
+	PRINT_LOCK("mmsfb unlock");
+	bool rc = mmsfb->unlock();
+
 	while ((!isShown())||(willshow))
 		msleep(10);
+
+	//ensure that a show action can take place
+	if(rc)
+		mmsfb->lock();
 }
 
 void MMSWindow::waitUntilHidden() {
+	//ensure that a show action can take place
+	PRINT_LOCK("mmsfb unlock");
+	bool rc = mmsfb->unlock();
+
 	while ((isShown())||(willhide))
 		msleep(10);
+
+	//ensure that a show action can take place
+	if(rc)
+		mmsfb->lock();
 }
 
 void MMSWindow::add(MMSWidget *child) {
@@ -3198,12 +3372,17 @@ void MMSWindow::refreshFromChild(MMSWidget *child, MMSFBRectangle *rect2update, 
     }
 
 	// flip region
-    if (!this->parent)
+    if (!this->parent) {
+    	PRINT_LOCK("call flipWindow");
         flipWindow(this, &region, MMSFB_FLIP_ONSYNC);
+        PRINT_LOCK("end flipWindow");
+    }
     else {
     	if (!stretchmode) {
     		// normal flip
+    		PRINT_LOCK("call flipWindow");
             this->parent->flipWindow(this, &region, MMSFB_FLIP_ONSYNC);
+            PRINT_LOCK("end flipWindow");
     	}
     	else {
     		// flip src region and call flipWindow with stretched region
@@ -3212,8 +3391,14 @@ void MMSWindow::refreshFromChild(MMSWidget *child, MMSFBRectangle *rect2update, 
     	    rg.x2 = flip_rect.x + flip_rect.w-1;
     	    rg.y1 = flip_rect.y;
     	    rg.y2 = flip_rect.y + flip_rect.h-1;
+    	    this->surface->lock();
+    	    PRINT_LOCK("call flip");
     	    this->surface->flip(&rg);
+    	    PRINT_LOCK("end flip");
+    	    this->surface->unlock();
+    	    PRINT_LOCK("call flipWindow");
             this->parent->flipWindow(this, &region, MMSFB_FLIP_ONSYNC, false);
+            PRINT_LOCK("end flipWindow");
     	}
     }
 
@@ -3234,7 +3419,7 @@ void MMSWindow::refresh(MMSFBRegion *region) {
     lock();
 
     // draw window
-    this->draw_setgeom = true;
+    setWidgetGeometryOnNextDraw();
     if (region) {
     	// draw a region
 		MMSFBRectangle rect2update;
@@ -3251,10 +3436,14 @@ void MMSWindow::refresh(MMSFBRegion *region) {
 
     // make it visible
     if (!this->parent) {
+    	PRINT_LOCK("call flipWindow");
         flipWindow(this, region);
+        PRINT_LOCK("end flipWindow");
     }
     else {
+    	PRINT_LOCK("call flipWindow");
         this->parent->flipWindow(this, region);
+        PRINT_LOCK("end flipWindow");
     }
 
     // unlock drawing
@@ -4000,8 +4189,10 @@ void MMSWindow::setFocus() {
 	// change the z-order of child windows?
 	bool staticzorder = false;
 	this->parent->getStaticZOrder(staticzorder);
-	if (!staticzorder)
-		raiseToTop();
+	if (!staticzorder) {
+		PRINT_LOCK("call raiseToTop");
+		raiseToTop(0);
+	}
 }
 
 bool MMSWindow::getFocus(bool checkparents) {
@@ -4403,7 +4594,7 @@ bool MMSWindow::handleInput(MMSInputEvent *inputevent) {
 	                    case MMSKEY_CURSOR_UP:
 	                        // set the arrow widgets
 	                        switchArrowWidgets();
-
+	                        break;
                         default:
                             break;
 	                }
@@ -4858,6 +5049,10 @@ void MMSWindow::instantHide() {
 }
 
 
+void MMSWindow::setWidgetGeometryOnNextDraw() {
+	this->draw_setgeom = true;
+}
+
 void MMSWindow::targetLangChanged(MMSLanguage lang, bool refresh) {
     // for all child windows
     for (unsigned int i = 0; i < this->childwins.size(); i++) {
@@ -4872,6 +5067,9 @@ void MMSWindow::targetLangChanged(MMSLanguage lang, bool refresh) {
         	break;
         case MMSWIDGETTYPE_TEXTBOX:
         	((MMSTextBoxWidget *)this->children.at(i))->targetLangChanged(lang);
+        	break;
+        case MMSWIDGETTYPE_INPUT:
+        	((MMSInputWidget *)this->children.at(i))->targetLangChanged(lang);
         	break;
         default:
         	break;
@@ -5374,8 +5572,16 @@ void MMSWindow::setBgImage(MMSFBSurface *bgimage, bool refresh) {
 
 
 void MMSWindow::setOpacity(unsigned int opacity, bool refresh) {
+	unsigned int op = 0;
+
+	getOpacity(op);
+
+	if (op == opacity)
+		return;
+
     myWindowClass.setOpacity(opacity);
-	if (!this->parent) {
+
+    if (!this->parent) {
 		if (this->window)
 			this->window->setOpacity(opacity);
 	}
@@ -5496,6 +5702,7 @@ void MMSWindow::setAlwaysOnTop(bool alwaysontop) {
     myWindowClass.setAlwaysOnTop(alwaysontop);
 
     // raise the window to the top of "normal" or "always on top" area in the childwins list
+    PRINT_LOCK("call raiseToTop");
     raiseToTop();
 
 	unlock();

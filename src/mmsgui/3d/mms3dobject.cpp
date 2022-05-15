@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -43,7 +43,7 @@ MMS3DObject::MMS3DObject(MMS3DScene *scene) {
 	this->parent = NULL;
 
 	// set the base matrix of the object
-	MMS3DMatrix base_matrix;
+	MMSMatrix base_matrix;
 	if (this->scene->getResultMatrix(base_matrix))
 		this->matrixStack.setBaseMatrix(base_matrix);
 }
@@ -65,7 +65,7 @@ MMS3DObject::MMS3DObject(MMS3DScene *scene, int material, int texture) {
 	this->parent = NULL;
 
 	// set the base matrix of the object
-	MMS3DMatrix base_matrix;
+	MMSMatrix base_matrix;
 	if (this->scene->getResultMatrix(base_matrix))
 		this->matrixStack.setBaseMatrix(base_matrix);
 }
@@ -83,7 +83,7 @@ bool MMS3DObject::addObject(MMS3DObject *object) {
 	object->parent = this;
 
 	// set the base matrix of the object
-	MMS3DMatrix base_matrix;
+	MMSMatrix base_matrix;
 	if (object->parent->getResultMatrix(base_matrix))
 		object->matrixStack.setBaseMatrix(base_matrix);
 
@@ -123,11 +123,11 @@ bool MMS3DObject::cullFace(bool cullface) {
 }
 
 
-void MMS3DObject::setBaseMatrix(MMS3DMatrix matrix) {
+void MMS3DObject::setBaseMatrix(MMSMatrix matrix) {
 	this->matrixStack.setBaseMatrix(matrix);
 }
 
-bool MMS3DObject::getResultMatrix(MMS3DMatrix result) {
+bool MMS3DObject::getResultMatrix(MMSMatrix result) {
 	if (!this->matrixStack.getResultMatrix(result))
 		return false;
 
@@ -142,7 +142,7 @@ bool MMS3DObject::getResultMatrix(MMS3DMatrix result) {
 
 bool MMS3DObject::genMatrices() {
 	// get result matrix of object used as base matrix for children
-	MMS3DMatrix base_matrix;
+	MMSMatrix base_matrix;
 	if (!getResultMatrix(base_matrix)) return false;
 
 	// through children
@@ -173,4 +173,5 @@ bool MMS3DObject::translate(float tx, float ty, float tz) {
 bool MMS3DObject::rotate(float angle, float x, float y, float z) {
 	return this->matrixStack.rotate(angle, x, y, z);
 }
+
 

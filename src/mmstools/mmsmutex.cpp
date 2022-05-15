@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -32,10 +32,10 @@
 
 #include "mmstools/mmsmutex.h"
 
-MMSMutex::MMSMutex() {
+MMSMutex::MMSMutex(int attr) {
     pthread_mutexattr_init( &mutex_attr );
 
-    pthread_mutexattr_settype( &mutex_attr, PTHREAD_MUTEX_ERRORCHECK );
+    pthread_mutexattr_settype( &mutex_attr, attr );
 
     pthread_mutex_init(&this->mutex, &mutex_attr);
 }

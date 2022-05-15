@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -33,7 +33,9 @@
 #include "mmscore/mmstranslator.h"
 #include "mmsconfig/mmsconfigdata.h"
 #include "mmsconfig/mmspluginservice.h"
+#include "mmstools/tools.h"
 #include "mmstools/mmsfile.h"
+#include "mmstools/mmsfilesearch.h"
 
 #include <string.h>
 #include <stdexcept>
@@ -91,8 +93,18 @@ void MMSTranslator::loadTranslations() {
 			MMSFILEENTRY_LIST ret =  search.execute();
 			for(MMSFILEENTRY_LIST::iterator it2 = ret.begin(); it2 != ret.end();it2++) {
 				processFile((*it2)->name);
+				// clean
+				delete (*it2);
 			}
+			ret.clear();
 		}
+		// clean
+		for(vector<MMSPluginData *>::iterator it = data.begin();it!=data.end();it++) {
+			(*it)->clear();
+			delete (*it);
+		}
+		data.clear();
+
 	} catch (MMSError &err) {
 		DEBUGMSG("MMSTranslator", "No plugins database found for translation.");
 	}
@@ -101,7 +113,10 @@ void MMSTranslator::loadTranslations() {
 	MMSFILEENTRY_LIST ret =  search.execute();
 	for(MMSFILEENTRY_LIST::iterator it2 = ret.begin(); it2 != ret.end();it2++) {
 		processFile((*it2)->name);
+		// clean
+		delete (*it2);
 	}
+	ret.clear();
 
 //	this->sourceIdx = this->transIdx.find(this->sourcelang)->second;
 	this->targetIdx = this->transIdx.find(this->targetlang)->second;
@@ -160,8 +175,12 @@ void MMSTranslator::translate(const string &source, string &dest) {
 			addMissing(source, true);
 		}
 	} else {
-		dest = it->second.at(this->targetIdx);
-		if(dest.empty()) {
+		if(it->second.size() > this->targetIdx) {
+			dest = it->second.at(this->targetIdx);
+			if(dest.empty()) {
+				dest = source;
+			}
+		} else {
 			dest = source;
 		}
 	}

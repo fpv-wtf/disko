@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -33,11 +33,12 @@
 #ifndef MMSSWITCHER_H_
 #define MMSSWITCHER_H_
 
-#include <mmsbase/interfaces/immsswitcher.h>
-#include <mmscore/mmspluginmanager.h>
-#include <mmscore/mmsswitcherthread.h>
-#include <mmsinput/mmsinput.h>
-#include <mmsgui/mmsgui.h>
+#include "mmsbase/interfaces/immsswitcher.h"
+#include "mmscore/mmspluginmanager.h"
+#include "mmscore/mmsswitcherthread.h"
+#include "mmsinput/mmsinput.h"
+#include "mmsgui/mmsdialogmanager.h"
+#include "mmsgui/mmsmainwindow.h"
 
 typedef struct {
     MMSPluginData 				plugindata;

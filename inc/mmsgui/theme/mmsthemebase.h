@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -235,6 +235,10 @@ namespace MMSGUI_BASE_ATTR {
 		{ "type", TAFF_ATTRTYPE_NE_STRING }, \
 		{ "class", TAFF_ATTRTYPE_NE_STRING }, \
 		{ "size", TAFF_ATTRTYPE_STRING }, \
+		{ "min_width", TAFF_ATTRTYPE_STRING }, \
+		{ "min_height", TAFF_ATTRTYPE_STRING }, \
+		{ "max_width", TAFF_ATTRTYPE_STRING }, \
+		{ "max_height", TAFF_ATTRTYPE_STRING }, \
 		{ "show", TAFF_ATTRTYPE_BOOL }
 
 	#define MMSGUI_BASE_ATTR_IDS \
@@ -242,6 +246,10 @@ namespace MMSGUI_BASE_ATTR {
 		MMSGUI_BASE_ATTR_IDS_type, \
 		MMSGUI_BASE_ATTR_IDS_class, \
 		MMSGUI_BASE_ATTR_IDS_size, \
+		MMSGUI_BASE_ATTR_IDS_min_width, \
+		MMSGUI_BASE_ATTR_IDS_min_height, \
+		MMSGUI_BASE_ATTR_IDS_max_width, \
+		MMSGUI_BASE_ATTR_IDS_max_height, \
 		MMSGUI_BASE_ATTR_IDS_show
 
 	#define MMSGUI_BASE_ATTR_INIT { \

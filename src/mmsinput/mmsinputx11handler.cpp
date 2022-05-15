@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -110,6 +110,7 @@ static MMSKeySymbol getKeyFromX11(KeySym xSymbol) {
 		case XK_Print            : return MMSKEY_PRINT;
 		case XK_Pause            : return MMSKEY_PAUSE;
 		case XK_minus            : return MMSKEY_MINUS_SIGN;
+		case XK_plus             : return MMSKEY_PLUS_SIGN;
 		case XK_equal            : return MMSKEY_EQUALS_SIGN;
 		case XK_backslash        : return MMSKEY_BACKSLASH;
 		case XK_semicolon        : return MMSKEY_SEMICOLON;

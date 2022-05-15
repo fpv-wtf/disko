@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -44,11 +44,13 @@
 	printf("  %s = %x\n", str, value);
 
 
-#define OGL_CALC_COORD(v1, v2) (((v1)<(v2)) ? (float)(v1) : (float)(v1) + 0.99)
-#define OGL_CALC_2X_N(v1, v2, width)	(OGL_CALC_COORD(v1, v2) / (width))
-#define OGL_CALC_2Y_N(v1, v2, height)	(OGL_CALC_COORD(v1, v2) / (height))
+#define OGL_CALC_COORD_MIDDLE(v1, v2) (((v1)<=(v2)) ? (float)(v1) + 0.49f : (float)(v1) + 0.51f)
 
-#define OGL_CALC_COORD_MIDDLE(v1, v2) (((v1)<(v2)) ? (float)(v1) + 0.49 : (float)(v1) + 0.51)
+#define OGL_CALC_COORD_F(v1, v2) (((v1)<(v2)) ? (float)(v1) : ((v1)>(v2)) ? (float)(v1) + 0.99f : (float)(v1))
+#define OGL_CALC_COORD_S(v1, v2) (((v1)<(v2)) ? (float)(v1) : ((v1)>(v2)) ? (float)(v1) + 0.99f : (float)(v1) + 0.99f)
+
+#define OGL_CALC_TEXCOORD_F(v1, v2, size)	(((v1)>(v2)&&(v1==size)) ? 1.0f : OGL_CALC_COORD_F(v1, v2) / (size))
+#define OGL_CALC_TEXCOORD_S(v1, v2, size)	(((v1)>(v2)&&(v1==size)) ? 1.0f : OGL_CALC_COORD_S(v1, v2) / (size))
 
 
 MMSFBGL::MMSFBGL() {
@@ -61,6 +63,10 @@ MMSFBGL::MMSFBGL() {
 
 	// default framebuffer object is always 0, so set bound_fbo to 0
 	this->bound_fbo = 0;
+
+	// no vertex/index buffer object is currently bound
+	this->bound_vbo = 0;
+	this->bound_ibo = 0;
 }
 
 MMSFBGL::~MMSFBGL() {
@@ -99,6 +105,67 @@ MMSFBGL::~MMSFBGL() {
 
 //////////////////////////////
 
+void MMSFBGL::printImplementationInformation() {
+	GLint int_params[32];
+
+	printf("\nOpenGL Implementation Information:\n");
+	printf("----------------------------------------------------------------------\n");
+	printf("Vendor..............................: %s\n", glGetString(GL_VENDOR));
+	printf("Renderer............................: %s\n", glGetString(GL_RENDERER));
+	printf("Version.............................: %s\n", glGetString(GL_VERSION));
+	printf("Version of Shading Language.........: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+	glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, int_params);
+	printf("GL_NUM_COMPRESSED_TEXTURE_FORMATS...: %d\n", int_params[0]);
+	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, int_params);
+	printf("GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS.: %d\n", int_params[0]);
+	glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, int_params);
+	printf("GL_MAX_CUBE_MAP_TEXTURE_SIZE........: %d\n", int_params[0]);
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, int_params);
+	printf("GL_MAX_TEXTURE_IMAGE_UNITS..........: %d\n", int_params[0]);
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, int_params);
+	printf("GL_MAX_TEXTURE_SIZE.................: %d\n", int_params[0]);
+	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, int_params);
+	printf("GL_MAX_VERTEX_ATTRIBS...............: %d\n", int_params[0]);
+	glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, int_params);
+	printf("GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS...: %d\n", int_params[0]);
+	glGetIntegerv(GL_MAX_VIEWPORT_DIMS, int_params);
+	printf("GL_MAX_VIEWPORT_DIMS................: %dx%d\n", int_params[0], int_params[1]);
+
+	// prepare extension string and print it
+	printf("Extensions..........................: ");
+	unsigned int linelen = 38;
+	char buffer[32768];
+	char *bufptr = buffer;
+	char *extstr = (char*)glGetString(GL_EXTENSIONS);
+	while (*extstr) {
+		// get next value
+		char *start = extstr;
+		while (*extstr && *extstr != ' ') extstr++;
+		unsigned int vlen = extstr - start;
+		while (*extstr == ' ') extstr++;
+
+		if (bufptr != buffer) {
+			if (linelen + vlen + 2 < 79) {
+				memcpy(bufptr, ", ", 2);
+				bufptr+= 2;
+				linelen+= 2;
+			}
+			else {
+				memcpy(bufptr, ",\n", 2);
+				bufptr+= 2;
+				linelen = 0;
+			}
+		}
+
+		memcpy(bufptr, start, vlen);
+		bufptr+= vlen;
+		linelen+= vlen;
+	}
+	*bufptr = 0;
+	printf(buffer);
+	printf("\n");
+	printf("----------------------------------------------------------------------\n\n");
+}
 
 bool MMSFBGL::getError(const char* where, int line) {
 #ifdef __HAVE_OPENGL__
@@ -499,7 +566,6 @@ void MMSFBGL::deleteShaders() {
 #endif
 }
 
-
 #ifdef __HAVE_XLIB__
 bool MMSFBGL::init(Display *x_display, int x_screen, Window x_window, int w, int h) {
 
@@ -508,14 +574,15 @@ bool MMSFBGL::init(Display *x_display, int x_screen, Window x_window, int w, int
 		return false;
 	}
 
-	printf("initializing...\n");
-
 #ifdef __HAVE_EGL__
 	//TODO: implement EGL for XLIB
 	return false;
 #endif
 
 #ifdef __HAVE_GLX__
+
+	printf("\nInitializing GLX:\n");
+	printf("----------------------------------------------------------------------\n");
 
 	this->x_display = x_display;
 	this->x_window = x_window;
@@ -583,6 +650,9 @@ bool MMSFBGL::init(Display *x_display, int x_screen, Window x_window, int w, int
 	this->screen_width = w;
 	this->screen_height = h;
 	printf("SCREEN WIDTH = %d, HEIGHT = %d\n", this->screen_width, this->screen_height);
+	printf("----------------------------------------------------------------------\n");
+
+	printImplementationInformation();
 
 	return true;
 
@@ -600,9 +670,11 @@ bool MMSFBGL::init() {
 		return false;
 	}
 
-	printf("initializing...\n");
-
 #ifdef __HAVE_EGL__
+
+	printf("\nInitializing EGL:\n");
+	printf("----------------------------------------------------------------------\n");
+
 	/*
 		Step 1 - Get the default display.
 		EGL uses the concept of a "display" which in most environments
@@ -699,7 +771,6 @@ bool MMSFBGL::init() {
 		   GET_ATTR(EGL_NATIVE_RENDERABLE, "EGL_NATIVE_RENDERABLE");
 		   GET_ATTR(EGL_NATIVE_VISUAL_ID, "EGL_NATIVE_VISUAL_ID");
 		   GET_ATTR(EGL_NATIVE_VISUAL_TYPE, "EGL_NATIVE_VISUAL_TYPE");
-		   GET_ATTR(EGL_PRESERVED_RESOURCES, "EGL_PRESERVED_RESOURCES");
 		   GET_ATTR(EGL_SAMPLES, "EGL_SAMPLES");
 		   GET_ATTR(EGL_SAMPLE_BUFFERS, "EGL_SAMPLE_BUFFERS");
 		   GET_ATTR(EGL_SURFACE_TYPE, "EGL_SURFACE_TYPE");
@@ -784,7 +855,9 @@ bool MMSFBGL::init() {
 	this->screen_width = wh[2];
 	this->screen_height = wh[3];
 	printf("SCREEN WIDTH = %d, HEIGHT = %d\n", this->screen_width, this->screen_height);
+	printf("----------------------------------------------------------------------\n");
 
+	printImplementationInformation();
 
 	// init fragment and vertex shaders
 	if (initShaders()) {
@@ -862,6 +935,19 @@ bool MMSFBGL::swap() {
 
 #ifdef __HAVE_EGL__
 
+/*glFlush();
+glFinish();
+eglWaitClient();
+eglWaitNative(EGL_CORE_NATIVE_ENGINE);
+sleep(1);
+glFlush();
+glFinish();
+eglWaitClient();
+eglWaitNative(EGL_CORE_NATIVE_ENGINE);
+sleep(1);*/
+
+	eglWaitClient();
+
 	eglSwapBuffers(this->eglDisplay, this->eglSurface);
 	ERROR_CHECK_BOOL("eglSwapBuffers()");
 
@@ -875,6 +961,185 @@ bool MMSFBGL::swap() {
 }
 
 
+bool MMSFBGL::genBuffer(GLuint *bo) {
+
+	INITCHECK;
+
+	// generate a unique buffer id
+	glGenBuffers(1, bo);
+	ERROR_CHECK_BOOL("glGenBuffers()");
+
+    return true;
+}
+
+bool MMSFBGL::deleteBuffer(GLuint bo) {
+
+	INITCHECK;
+
+	if (bo) {
+		// finishing all operations
+		glFinish();
+		ERROR_CHECK_BOOL("glFinish()");
+
+		// detach buffers
+		bindBuffer(GL_ARRAY_BUFFER, 0);
+		bindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		// now it's safe to delete the buffer
+		glDeleteBuffers(1, &bo);
+		ERROR_CHECK_BOOL("glDeleteBuffers()");
+
+		return true;
+	}
+
+	return false;
+}
+
+bool MMSFBGL::bindBuffer(GLenum target, GLuint bo) {
+
+	INITCHECK;
+
+	switch (target) {
+	case GL_ARRAY_BUFFER:
+		if (this->bound_vbo != bo) {
+			// going to change the vertex buffer object
+			this->bound_vbo = bo;
+
+			// flush all queued commands to the OpenGL server
+			// but do NOT wait until all queued commands are finished by the OpenGL server
+//			glFlush();
+//			ERROR_CHECK_BOOL("glFlush()");
+//printf("this->bound_vbo = %d\n",this->bound_vbo);
+
+			// activate buffer
+			glBindBuffer(target, this->bound_vbo);
+			ERROR_CHECK_BOOL("glBindBuffer(GL_ARRAY_BUFFER...)");
+		}
+		return true;
+	case GL_ELEMENT_ARRAY_BUFFER:
+		if (this->bound_ibo != bo) {
+			// going to change the index buffer object
+			this->bound_ibo = bo;
+
+			// flush all queued commands to the OpenGL server
+			// but do NOT wait until all queued commands are finished by the OpenGL server
+//			glFlush();
+//			ERROR_CHECK_BOOL("glFlush()");
+
+			// activate buffer
+			glBindBuffer(target, this->bound_ibo);
+			ERROR_CHECK_BOOL("glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,...)");
+		}
+		return true;
+	default:
+		return false;
+	}
+}
+
+
+bool MMSFBGL::initVertexBuffer(GLuint vbo, unsigned int size, const GLvoid *data) {
+
+	INITCHECK;
+
+	if (vbo) {
+		// activate buffer
+		bindBuffer(GL_ARRAY_BUFFER, vbo);
+
+		// initializing buffer
+		glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+		ERROR_CHECK_BOOL("glBufferData(GL_ARRAY_BUFFER,...)");
+
+		return true;
+	}
+
+	return false;
+}
+
+bool MMSFBGL::initVertexSubBuffer(GLuint vbo, unsigned int offset, unsigned int size, const GLvoid *data) {
+
+	INITCHECK;
+
+	if (vbo) {
+		// activate buffer
+		bindBuffer(GL_ARRAY_BUFFER, vbo);
+
+		// initializing a part of buffer
+		glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
+		ERROR_CHECK_BOOL("glBufferSubData(GL_ARRAY_BUFFER,...)");
+
+		return true;
+	}
+
+	return false;
+}
+
+bool MMSFBGL::enableVertexBuffer(GLuint vbo) {
+
+	if (vbo) {
+		// activate buffer
+		bindBuffer(GL_ARRAY_BUFFER, vbo);
+		return true;
+	}
+
+	return false;
+}
+
+void MMSFBGL::disableVertexBuffer() {
+	// detach current buffer
+	bindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+bool MMSFBGL::initIndexBuffer(GLuint ibo, unsigned int size, const GLvoid *data) {
+
+	INITCHECK;
+
+	if (ibo) {
+		// activate buffer
+		bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+		// initializing buffer
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+		ERROR_CHECK_BOOL("glBufferData(GL_ELEMENT_BUFFER,...)");
+
+		return true;
+	}
+
+	return false;
+}
+
+bool MMSFBGL::initIndexSubBuffer(GLuint ibo, unsigned int offset, unsigned int size, const GLvoid *data) {
+
+	INITCHECK;
+
+	if (ibo) {
+		// activate buffer
+		bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+		// initializing a part of buffer
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, size, data);
+		ERROR_CHECK_BOOL("glBufferSubData(GL_ELEMENT_BUFFER,...)");
+
+		return true;
+	}
+
+	return false;
+}
+
+bool MMSFBGL::enableIndexBuffer(GLuint ibo) {
+
+	if (ibo) {
+		// activate buffer
+		bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+		return true;
+	}
+
+	return false;
+}
+
+void MMSFBGL::disableIndexBuffer() {
+	// detach current buffer
+	bindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
 
 bool MMSFBGL::genTexture(GLuint *tex) {
 
@@ -911,65 +1176,75 @@ bool MMSFBGL::deleteTexture(GLuint tex) {
 		glBindTexture(GL_TEXTURE_2D, 0);
 		ERROR_CHECK_BOOL("glBindTexture(GL_TEXTURE_2D, 0)");
 
-		// now is safe to delete the texture
+		// now it's safe to delete the texture
 		glDeleteTextures(1, &tex);
 		ERROR_CHECK_BOOL("glDeleteTextures()");
 
 		// switch back to the saved fbo
 		bindFrameBuffer(fbo);
+
+		return true;
 	}
 
-	return true;
+	return false;
 }
 
 bool MMSFBGL::bindTexture2D(GLuint tex) {
 
 	INITCHECK;
 
-	// flush all queued commands to the OpenGL server
-	// but do NOT wait until all queued commands are finished by the OpenGL server
-	glFlush();
-	ERROR_CHECK_BOOL("glFlush()");
+	if (tex) {
+		// flush all queued commands to the OpenGL server
+		// but do NOT wait until all queued commands are finished by the OpenGL server
+//		glFlush();
+//		ERROR_CHECK_BOOL("glFlush()");
 
-	// activate texture
-    glBindTexture(GL_TEXTURE_2D, tex);
-	ERROR_CHECK_BOOL("glBindTexture(GL_TEXTURE_2D, tex)");
+		// activate texture
+		glBindTexture(GL_TEXTURE_2D, tex);
+		ERROR_CHECK_BOOL("glBindTexture(GL_TEXTURE_2D, tex)");
 
-    // set min and max filter
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	ERROR_CHECK_BOOL("glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)");
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	ERROR_CHECK_BOOL("glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)");
+		// set min and max filter
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		ERROR_CHECK_BOOL("glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)");
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		ERROR_CHECK_BOOL("glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)");
 
-    // the texture wraps over at the edges (repeat)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	ERROR_CHECK_BOOL("glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)");
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	ERROR_CHECK_BOOL("glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)");
+		// the texture wraps over at the edges (repeat)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		ERROR_CHECK_BOOL("glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)");
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		ERROR_CHECK_BOOL("glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)");
 
-    return true;
+		return true;
+	}
+
+	return false;
 }
 
 bool MMSFBGL::initTexture2D(GLuint tex, GLenum texture_format, void *buffer, GLenum buffer_format, int sw, int sh) {
 
 	INITCHECK;
 
-	// activate texture
-	bindTexture2D(tex);
+	if (tex) {
+		// activate texture
+		bindTexture2D(tex);
 
-    // initializing texture from buffer
-	glTexImage2D(GL_TEXTURE_2D,
-	 	0,
-	 	texture_format,
-	 	sw,
-	 	sh,
-	 	0,
-	 	buffer_format,
-	 	GL_UNSIGNED_BYTE,
-	 	buffer);
-	ERROR_CHECK_BOOL("glTexImage2D(GL_TEXTURE_2D,...)");
+		// initializing texture from buffer
+		glTexImage2D(GL_TEXTURE_2D,
+			0,
+			texture_format,
+			sw,
+			sh,
+			0,
+			buffer_format,
+			GL_UNSIGNED_BYTE,
+			buffer);
+		ERROR_CHECK_BOOL("glTexImage2D(GL_TEXTURE_2D,...)");
 
-	return true;
+		return true;
+	}
+
+	return false;
 }
 
 
@@ -977,22 +1252,26 @@ bool MMSFBGL::initSubTexture2D(GLuint tex, void *buffer, GLenum buffer_format, i
 
 	INITCHECK;
 
-	// activate texture
-	bindTexture2D(tex);
+	if (tex) {
+		// activate texture
+		bindTexture2D(tex);
 
-	// overwrite existing texture memory
-	glTexSubImage2D(GL_TEXTURE_2D,
-					0,
-					dx,
-					dy,
-					sw,
-					sh,
-					buffer_format,
-					GL_UNSIGNED_BYTE,
-					buffer);
-	ERROR_CHECK_BOOL("glTexSubImage2D(GL_TEXTURE_2D,...)");
+		// overwrite existing texture memory
+		glTexSubImage2D(GL_TEXTURE_2D,
+						0,
+						dx,
+						dy,
+						sw,
+						sh,
+						buffer_format,
+						GL_UNSIGNED_BYTE,
+						buffer);
+		ERROR_CHECK_BOOL("glTexSubImage2D(GL_TEXTURE_2D,...)");
 
-	return true;
+		return true;
+	}
+
+	return false;
 }
 
 bool MMSFBGL::enableTexture2D(GLuint tex) {
@@ -1543,7 +1822,7 @@ bool MMSFBGL::useShaderProgram4ModulateBlittingFromAlpha() {
 }
 
 
-bool MMSFBGL::setCurrentMatrix(MMS3DMatrix matrix) {
+bool MMSFBGL::setCurrentMatrix(MMSMatrix matrix) {
 
 	INITCHECK;
 
@@ -1581,7 +1860,7 @@ bool MMSFBGL::setCurrentMatrix(MMS3DMatrix matrix) {
 }
 
 
-bool MMSFBGL::getCurrentMatrix(MMS3DMatrix matrix) {
+bool MMSFBGL::getCurrentMatrix(MMSMatrix matrix) {
 
 	INITCHECK;
 
@@ -1619,12 +1898,12 @@ bool MMSFBGL::rotateCurrentMatrix(GLfloat angle, GLfloat x, GLfloat y, GLfloat z
 
 
 
-bool MMSFBGL::getParallelProjectionMatrix(MMS3DMatrix result, float left, float right, float bottom, float top, float nearZ, float farZ) {
+bool MMSFBGL::getParallelProjectionMatrix(MMSMatrix result, float left, float right, float bottom, float top, float nearZ, float farZ) {
 
 	INITCHECK;
 
 	// calculate the new matrix
-	MMS3DMatrix matrix;
+	MMSMatrix matrix;
 	loadIdentityMatrix(matrix);
 	orthoMatrix(matrix, left, right, bottom, top, nearZ, farZ);
 
@@ -1635,12 +1914,12 @@ bool MMSFBGL::getParallelProjectionMatrix(MMS3DMatrix result, float left, float 
 }
 
 
-bool MMSFBGL::getCentralProjectionMatrix(MMS3DMatrix result, float left, float right, float bottom, float top, float nearZ, float farZ) {
+bool MMSFBGL::getCentralProjectionMatrix(MMSMatrix result, float left, float right, float bottom, float top, float nearZ, float farZ) {
 
 	INITCHECK;
 
 	// calculate the new matrix
-	MMS3DMatrix matrix;
+	MMSMatrix matrix;
 	loadIdentityMatrix(matrix);
 	frustumMatrix(matrix, left, right, bottom, top, nearZ, farZ);
 
@@ -1651,12 +1930,12 @@ bool MMSFBGL::getCentralProjectionMatrix(MMS3DMatrix result, float left, float r
 }
 
 
-bool MMSFBGL::getPerspectiveMatrix(MMS3DMatrix result, float fovy, float aspect, float nearZ, float farZ) {
+bool MMSFBGL::getPerspectiveMatrix(MMSMatrix result, float fovy, float aspect, float nearZ, float farZ) {
 
 	INITCHECK;
 
 	// calculate the new matrix
-	MMS3DMatrix matrix;
+	MMSMatrix matrix;
 	loadIdentityMatrix(matrix);
 	perspectiveMatrix(matrix, fovy, aspect, nearZ, farZ);
 
@@ -1673,7 +1952,7 @@ bool MMSFBGL::setParallelProjection(float left, float right, float bottom, float
 	INITCHECK;
 
 	// set the model view matrix for the shader
-	MMS3DMatrix matrix;
+	MMSMatrix matrix;
 	getParallelProjectionMatrix(matrix, left, right, bottom, top, nearZ, farZ);
 	glViewport(0, 0, (left<right)?right-left:left-right, (bottom<top)?top-bottom:bottom-top);
 	ERROR_CHECK_BOOL("glViewport()");
@@ -1686,7 +1965,7 @@ bool MMSFBGL::setCentralProjection(float left, float right, float bottom, float 
 	INITCHECK;
 
 	// set the projection matrix for the shader
-	MMS3DMatrix matrix;
+	MMSMatrix matrix;
 	getCentralProjectionMatrix(matrix, left, right, bottom, top, nearZ, farZ);
 	glViewport(0, 0, (left<right)?right-left:left-right, (bottom<top)?top-bottom:bottom-top);
 	ERROR_CHECK_BOOL("glViewport()");
@@ -1699,10 +1978,10 @@ bool MMSFBGL::setPerspective(float fovy, float aspect, float nearZ, float farZ) 
 	INITCHECK;
 
 	// set the perspective (based on projection matrix) for the shader
-	MMS3DMatrix matrix;
+	MMSMatrix matrix;
 	getPerspectiveMatrix(matrix, fovy, aspect, nearZ, farZ);
 	GLfloat w, h;
-	h = tanf(fovy / 360.0f * MMS3D_PI) * nearZ;
+	h = tanf(fovy / 360.0f * MMS_PI) * nearZ;
 	w = h * aspect;
 	glViewport(0, 0, w*2, h*2);
 	ERROR_CHECK_BOOL("glViewport()");
@@ -1725,7 +2004,7 @@ bool MMSFBGL::popCurrentMatrix() {
 
 	if (this->matrix_stack.size() > 0) {
 		// restore current matrix from stack
-		MMS3DMatrix matrix;
+		MMSMatrix matrix;
 		this->matrix_stack.top().getMatrix(matrix);
 		this->matrix_stack.pop();
 		setCurrentMatrix(matrix);
@@ -1810,10 +2089,60 @@ bool MMSFBGL::setColor(unsigned char r, unsigned char g, unsigned char b, unsign
 }
 
 
+bool MMSFBGL::drawLine2D(float x1, float y1, float x2, float y2) {
+
+	INITCHECK;
+
+	disableVertexBuffer();
+
+#ifdef __HAVE_GL2__
+printf("drawline2d %f,%f,%f,%f\n", x1,y1,x2,y2);
+	glBegin(GL_LINES);
+		glVertex2f(x1, y1);
+		glVertex2f(x2, y2);
+	glEnd();
+	ERROR_CHECK_BOOL("glBegin(GL_LINES)");
+
+#endif
+
+#ifdef __HAVE_GLES2__
+
+	// configure generic vertex attribute array
+	GLfloat vertices[] = {x1,y1,x2,y2};
+	glEnableVertexAttribArray(MMSFBGL_VSV_LOC);
+	ERROR_CHECK_BOOL("glEnableVertexAttribArray(MMSFBGL_VSV_LOC)");
+
+	glVertexAttribPointer(MMSFBGL_VSV_LOC, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), vertices);
+	ERROR_CHECK_BOOL("glVertexAttribPointer(MMSFBGL_VSV_LOC,...)");
+
+	// draw it
+	glDrawArrays(GL_LINES, 0, 3);
+	ERROR_CHECK_BOOL("glDrawArrays(GL_LINES,...)");
+
+#endif
+
+	return true;
+}
+
+
+bool MMSFBGL::drawLine2Di(int x1, int y1, int x2, int y2) {
+	if (x1 == x2 || y1 == y2) {
+		// horizontal or vertical line or only one pixel
+		return fillRectangle2Di(x1, y1, x2, y2);
+	}
+	else {
+		// change pixel based values to float values and draw it
+		return drawLine2D(OGL_CALC_COORD_MIDDLE(x1, x2), OGL_CALC_COORD_MIDDLE(y1, y2),
+						  OGL_CALC_COORD_MIDDLE(x2, x1), OGL_CALC_COORD_MIDDLE(y2, y1));
+	}
+}
+
 
 bool MMSFBGL::drawRectangle2D(float x1, float y1, float x2, float y2) {
 
 	INITCHECK;
+
+	disableVertexBuffer();
 
 #ifdef __HAVE_GL2__
 
@@ -1865,6 +2194,8 @@ bool MMSFBGL::fillTriangle(float x1, float y1, float z1,
 
 	INITCHECK;
 
+	disableVertexBuffer();
+
 	// configure generic vertex attribute array
 	GLfloat vertices[] = {x1,y1,z1,x2,y2,z2,x3,y3,z3};
 	glEnableVertexAttribArray(MMSFBGL_VSV_LOC);
@@ -1884,6 +2215,21 @@ bool MMSFBGL::fillTriangle2D(float x1, float y1, float x2, float y2, float x3, f
 
 	INITCHECK;
 
+	disableVertexBuffer();
+
+#ifdef __HAVE_GL2__
+
+	glBegin(GL_POLYGON);
+	glVertex2f(x1, y1);
+	glVertex2f(x2, y2);
+	glVertex2f(x3, y3);
+	glEnd();
+	ERROR_CHECK_BOOL("glBegin(GL_POLYGON)");
+
+#endif
+
+#ifdef __HAVE_GLES2__
+
 	// configure generic vertex attribute array
 	GLfloat vertices[] = {x1,y1,x2,y2,x3,y3};
 	glEnableVertexAttribArray(MMSFBGL_VSV_LOC);
@@ -1896,6 +2242,8 @@ bool MMSFBGL::fillTriangle2D(float x1, float y1, float x2, float y2, float x3, f
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 	ERROR_CHECK_BOOL("glDrawArrays(GL_TRIANGLES,...)");
 
+#endif
+
 	return true;
 }
 
@@ -1904,6 +2252,8 @@ bool MMSFBGL::fillTriangle2D(float x1, float y1, float x2, float y2, float x3, f
 bool MMSFBGL::fillRectangle2D(float x1, float y1, float x2, float y2) {
 
 	INITCHECK;
+
+	disableVertexBuffer();
 
 #ifdef __HAVE_GL2__
 
@@ -1934,8 +2284,8 @@ bool MMSFBGL::fillRectangle2D(float x1, float y1, float x2, float y2) {
 
 bool MMSFBGL::fillRectangle2Di(int x1, int y1, int x2, int y2) {
 	// change pixel based values to float values and draw it
-	return fillRectangle2D(OGL_CALC_COORD(x1, x2), OGL_CALC_COORD(y1, y2),
-							OGL_CALC_COORD(x2, x1), OGL_CALC_COORD(y2, y1));
+	return fillRectangle2D(OGL_CALC_COORD_F(x1, x2), OGL_CALC_COORD_F(y1, y2),
+						   OGL_CALC_COORD_S(x2, x1), OGL_CALC_COORD_S(y2, y1));
 }
 
 
@@ -1948,21 +2298,21 @@ bool MMSFBGL::stretchBlit3D(GLuint src_tex, float sx1, float sy1, float sx2, flo
 
 	INITCHECK;
 
+	disableVertexBuffer();
+
 	// setup blitting
 	enableTexture2D(src_tex);
 
 	// setup vertex array and indices
-	GLfloat vVertices[] = { dx1,  dy1, dz1,  // Position 0
-							sx1,  sy1,        // TexCoord 0
-						    dx2, dy2, dz2,  // Position 1
-							sx2,  sy1,        // TexCoord 1
-							dx3, dy3, dz3,  // Position 2
-							sx2,  sy2,        // TexCoord 2
-							dx4,  dy4, dz4,  // Position 3
-							sx1,  sy2         // TexCoord 3
+	GLfloat vVertices[] = { dx1,  dy1, dz1,	// Position 0
+							sx1,  sy1,		// TexCoord 0
+						    dx2, dy2, dz2,	// Position 1
+							sx2,  sy1,		// TexCoord 1
+							dx3, dy3, dz3,	// Position 2
+							sx2,  sy2,		// TexCoord 2
+							dx4,  dy4, dz4,	// Position 3
+							sx1,  sy2		// TexCoord 3
 						 };
-
-	GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
 
 #ifdef __HAVE_GL2__
 
@@ -2008,8 +2358,11 @@ bool MMSFBGL::stretchBlit3D(GLuint src_tex, float sx1, float sy1, float sx2, flo
 #endif
 
 	// finally draw the triangles...
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices);
-	ERROR_CHECK_BOOL("glDrawElements(GL_TRIANGLES,...)");
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	ERROR_CHECK_BOOL("glDrawArrays(GL_TRIANGLE_FAN,...)");
+
+	// cleanup
+	disableTexture2D();
 
 	return true;
 }
@@ -2018,9 +2371,11 @@ bool MMSFBGL::stretchBlit3D(GLuint src_tex, float sx1, float sy1, float sx2, flo
 
 
 bool MMSFBGL::stretchBlit(GLuint src_tex, float sx1, float sy1, float sx2, float sy2,
-										   float dx1, float dy1, float dx2, float dy2) {
+										  float dx1, float dy1, float dx2, float dy2) {
 
 	INITCHECK;
+
+	disableVertexBuffer();
 
 	// setup blitting
 	enableTexture2D(src_tex);
@@ -2043,21 +2398,19 @@ bool MMSFBGL::stretchBlit(GLuint src_tex, float sx1, float sy1, float sx2, float
 
 #ifdef __HAVE_GLES2__
 
-	GLfloat vVertices[] = { dx1,  dy1, 0.0f,  // Position 0
-							sx1,  sy1,        // TexCoord 0
-						    dx2, dy1, 0.0f,  // Position 1
-							sx2,  sy1,        // TexCoord 1
-							dx2, dy2, 0.0f,  // Position 2
-							sx2,  sy2,        // TexCoord 2
-							dx1,  dy2, 0.0f,  // Position 3
-							sx1,  sy2         // TexCoord 3
+	GLfloat vVertices[] = { dx1, dy1,	// Position 0
+							sx1, sy1,	// TexCoord 0
+						    dx2, dy1,	// Position 1
+							sx2, sy1,	// TexCoord 1
+							dx2, dy2,	// Position 2
+							sx2, sy2,	// TexCoord 2
+							dx1, dy2,	// Position 3
+							sx1, sy2	// TexCoord 3
 						 };
 
-	GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
-
 	// Load the vertex position
-	glVertexAttribPointer (MMSFBGL_VSV_LOC, 3, GL_FLOAT,
-						   GL_FALSE, 5 * sizeof(GLfloat), vVertices );
+	glVertexAttribPointer (MMSFBGL_VSV_LOC, 2, GL_FLOAT,
+						   GL_FALSE, 4 * sizeof(GLfloat), vVertices );
 	ERROR_CHECK_BOOL("glVertexAttribPointer (MMSFBGL_VSV_LOC,...)");
 
 	glEnableVertexAttribArray(MMSFBGL_VSV_LOC);
@@ -2065,7 +2418,7 @@ bool MMSFBGL::stretchBlit(GLuint src_tex, float sx1, float sy1, float sx2, float
 
 	// Load the texture coordinate
 	glVertexAttribPointer(VSTexCoordLoc, 2, GL_FLOAT,
-						   GL_FALSE, 5 * sizeof(GLfloat), &vVertices[3]);
+						   GL_FALSE, 4 * sizeof(GLfloat), &vVertices[2]);
 	ERROR_CHECK_BOOL("glVertexAttribPointer(VSTexCoordLoc,...");
 
 	glEnableVertexAttribArray(VSTexCoordLoc);
@@ -2078,10 +2431,14 @@ bool MMSFBGL::stretchBlit(GLuint src_tex, float sx1, float sy1, float sx2, float
 	glUniform1i(FSTextureLoc, 0);
 	ERROR_CHECK_BOOL("glUniform1i(FSTextureLoc,...)");
 
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices);
-	ERROR_CHECK_BOOL("glDrawElements(GL_TRIANGLES,...)");
+	// finally draw the triangles...
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	ERROR_CHECK_BOOL("glDrawArrays(GL_TRIANGLE_FAN,...)");
 
 #endif
+
+	// cleanup
+	disableTexture2D();
 
 	return true;
 }
@@ -2090,48 +2447,16 @@ bool MMSFBGL::stretchBlit(GLuint src_tex, float sx1, float sy1, float sx2, float
 bool MMSFBGL::stretchBliti(GLuint src_tex, int sx1, int sy1, int sx2, int sy2, int sw, int sh,
 							int dx1, int dy1, int dx2, int dy2) {
 
-	if (dx1 != dx2 && dy1 != dy2) {
-		return stretchBlit(src_tex,
-							OGL_CALC_2X_N(sx1, sx2, sw),
-							OGL_CALC_2Y_N(sy1, sy2, sh),
-							OGL_CALC_2X_N(sx2, sx1, sw),
-							OGL_CALC_2Y_N(sy2, sy1, sh),
-							OGL_CALC_COORD(dx1, dx2),
-							OGL_CALC_COORD(dy1, dy2),
-							OGL_CALC_COORD(dx2, dx1),
-							OGL_CALC_COORD(dy2, dy1));
-	} else if (dy1 != dy2) {
-		return stretchBlit(src_tex,
-							OGL_CALC_2X_N(sx1, sx2, sw),
-							OGL_CALC_2Y_N(sy1, sy2, sh),
-							OGL_CALC_2X_N(sx2, sx1, sw),
-							OGL_CALC_2Y_N(sy2, sy1, sh),
-							(float)(dx1),
-							OGL_CALC_COORD(dy1, dy2),
-							(float)(dx1) + 0.99,
-							OGL_CALC_COORD(dy2, dy1));
-	} else if (dx1 != dx2) {
-		return stretchBlit(src_tex,
-							OGL_CALC_2X_N(sx1, sx2, sw),
-							OGL_CALC_2Y_N(sy1, sy2, sh),
-							OGL_CALC_2X_N(sx2, sx1, sw),
-							OGL_CALC_2Y_N(sy2, sy1, sh),
-							OGL_CALC_COORD(dx1, dx2),
-							(float)(dy1),
-							OGL_CALC_COORD(dx2, dx1),
-							(float)(dy1) + 0.99);
-
-	} else {
-		return stretchBlit(src_tex,
-							OGL_CALC_2X_N(sx1, sx2, sw),
-							OGL_CALC_2Y_N(sy1, sy2, sh),
-							OGL_CALC_2X_N(sx2, sx1, sw),
-							OGL_CALC_2Y_N(sy2, sy1, sh),
-							(float)(dx1),
-							(float)(dy1),
-							(float)(dx1) + 0.99,
-							(float)(dy1) + 0.99);
-	}
+	// change pixel based values to float values and blit it
+	return stretchBlit(src_tex,
+						OGL_CALC_TEXCOORD_F(sx1, sx2, sw),
+						OGL_CALC_TEXCOORD_F(sy1, sy2, sh),
+						OGL_CALC_TEXCOORD_S(sx2, sx1, sw),
+						OGL_CALC_TEXCOORD_S(sy2, sy1, sh),
+						OGL_CALC_COORD_F(dx1, dx2),
+						OGL_CALC_COORD_F(dy1, dy2),
+						OGL_CALC_COORD_S(dx2, dx1),
+						OGL_CALC_COORD_S(dy2, dy1));
 }
 
 
@@ -2192,8 +2517,8 @@ bool MMSFBGL::blitBuffer2Texture(GLuint dst_tex, bool realloc, void *buffer, int
 }
 
 
-bool MMSFBGL::drawElements(MMS3D_VERTEX_ARRAY *vertices, MMS3D_VERTEX_ARRAY *normals, MMS3D_VERTEX_ARRAY *texcoords,
-						   MMS3D_INDEX_ARRAY *indices) {
+bool MMSFBGL::drawElements(MMS_VERTEX_ARRAY *vertices, MMS_VERTEX_ARRAY *normals, MMS_VERTEX_ARRAY *texcoords,
+						   MMS_INDEX_ARRAY *indices) {
 
 	INITCHECK;
 
@@ -2202,30 +2527,53 @@ bool MMSFBGL::drawElements(MMS3D_VERTEX_ARRAY *vertices, MMS3D_VERTEX_ARRAY *nor
 		return false;
 	}
 
+	disableVertexBuffer();
+
 #ifdef __HAVE_GL2__
 
 	// load the vertices
-	if (vertices) {
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(vertices->eSize, GL_FLOAT, 0, vertices->buf);
+	if (vertices && vertices->data) {
+		switch (vertices->dtype) {
+		case MMS_VERTEX_DATA_TYPE_FLOAT:
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glVertexPointer(vertices->eSize, GL_FLOAT, 0, vertices->data);
+			break;
+		default:
+			glDisableClientState(GL_VERTEX_ARRAY);
+			break;
+		}
 	}
 	else {
 		glDisableClientState(GL_VERTEX_ARRAY);
 	}
 
 	// load the normals
-	if (normals) {
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glNormalPointer(GL_FLOAT, 0, normals->buf);
+	if (normals && normals->data) {
+		switch (normals->dtype) {
+		case MMS_VERTEX_DATA_TYPE_FLOAT:
+			glEnableClientState(GL_NORMAL_ARRAY);
+			glNormalPointer(GL_FLOAT, 0, normals->data);
+			break;
+		default:
+			glDisableClientState(GL_NORMAL_ARRAY);
+			break;
+		}
 	}
 	else {
 		glDisableClientState(GL_NORMAL_ARRAY);
 	}
 
 	// load the texture coordinates
-	if (texcoords) {
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(texcoords->eSize, GL_FLOAT, 0, texcoords->buf);
+	if (texcoords && texcoords->data) {
+		switch (texcoords->dtype) {
+		case MMS_VERTEX_DATA_TYPE_FLOAT:
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glTexCoordPointer(texcoords->eSize, GL_FLOAT, 0, texcoords->data);
+			break;
+		default:
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			break;
+		}
 	}
 	else {
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -2236,13 +2584,33 @@ bool MMSFBGL::drawElements(MMS3D_VERTEX_ARRAY *vertices, MMS3D_VERTEX_ARRAY *nor
 #ifdef __HAVE_GLES2__
 
 	// load the vertices
-	if (vertices) {
-		glVertexAttribPointer(MMSFBGL_VSV_LOC, vertices->eSize, GL_FLOAT,
-							   GL_FALSE, 0, vertices->buf);
-		ERROR_CHECK_BOOL("glVertexAttribPointer(MMSFBGL_VSV_LOC,...)");
+	if (vertices && vertices->data) {
+		bool enable = false;
+		switch (vertices->dtype) {
+		case MMS_VERTEX_DATA_TYPE_FLOAT:
+			glVertexAttribPointer(MMSFBGL_VSV_LOC, vertices->eSize, GL_FLOAT,
+								   GL_FALSE, 0, vertices->data);
+			ERROR_CHECK_BOOL("glVertexAttribPointer(MMSFBGL_VSV_LOC,,GL_FLOAT,GL_FALSE,...)");
+			enable = true;
+			break;
+#ifdef GL_HALF_FLOAT_OES
+		case MMS_VERTEX_DATA_TYPE_HALF_FLOAT:
+			glVertexAttribPointer(MMSFBGL_VSV_LOC, vertices->eSize, GL_HALF_FLOAT_OES,
+								   GL_FALSE, 0, vertices->data);
+			ERROR_CHECK_BOOL("glVertexAttribPointer(MMSFBGL_VSV_LOC,,GL_HALF_FLOAT_OES,GL_FALSE,...)");
+			enable = true;
+			break;
+#endif
+		default:
+			glDisableVertexAttribArray(MMSFBGL_VSV_LOC);
+			ERROR_CHECK_BOOL("glDisableVertexAttribArray(MMSFBGL_VSV_LOC)");
+			break;
+		}
 
-		glEnableVertexAttribArray(MMSFBGL_VSV_LOC);
-		ERROR_CHECK_BOOL("glEnableVertexAttribArray(MMSFBGL_VSV_LOC)");
+		if (enable) {
+			glEnableVertexAttribArray(MMSFBGL_VSV_LOC);
+			ERROR_CHECK_BOOL("glEnableVertexAttribArray(MMSFBGL_VSV_LOC)");
+		}
 	}
 	else {
 		glDisableVertexAttribArray(MMSFBGL_VSV_LOC);
@@ -2250,20 +2618,40 @@ bool MMSFBGL::drawElements(MMS3D_VERTEX_ARRAY *vertices, MMS3D_VERTEX_ARRAY *nor
 	}
 
 	// load the texture coordinates
-	if (texcoords) {
-		glVertexAttribPointer(VSTexCoordLoc, texcoords->eSize, GL_FLOAT,
-							   GL_FALSE, 0, texcoords->buf);
-		ERROR_CHECK_BOOL("glVertexAttribPointer(VSTexCoordLoc,...)");
+	if (texcoords && texcoords->data) {
+		bool enable = false;
+		switch (texcoords->dtype) {
+		case MMS_VERTEX_DATA_TYPE_FLOAT:
+			glVertexAttribPointer(VSTexCoordLoc, texcoords->eSize, GL_FLOAT,
+								   GL_FALSE, 0, texcoords->data);
+			ERROR_CHECK_BOOL("glVertexAttribPointer(VSTexCoordLoc,,GL_FLOAT,GL_FALSE,...)");
+			enable = true;
+			break;
+#ifdef GL_HALF_FLOAT_OES
+		case MMS_VERTEX_DATA_TYPE_HALF_FLOAT:
+			glVertexAttribPointer(VSTexCoordLoc, texcoords->eSize, GL_HALF_FLOAT_OES,
+								   GL_FALSE, 0, texcoords->data);
+			ERROR_CHECK_BOOL("glVertexAttribPointer(VSTexCoordLoc,,GL_HALF_FLOAT_OES,GL_FALSE,...)");
+			enable = true;
+			break;
+#endif
+		default:
+			glDisableVertexAttribArray(VSTexCoordLoc);
+			ERROR_CHECK_BOOL("glDisableVertexAttribArray(VSTexCoordLoc)");
+			break;
+		}
 
-		glEnableVertexAttribArray(VSTexCoordLoc);
-		ERROR_CHECK_BOOL("glEnableVertexAttribArray(VSTexCoordLoc)");
+		if (enable) {
+			glEnableVertexAttribArray(VSTexCoordLoc);
+			ERROR_CHECK_BOOL("glEnableVertexAttribArray(VSTexCoordLoc)");
 
-		// bind the texture unit0
-		glActiveTexture(GL_TEXTURE0);
-		ERROR_CHECK_BOOL("glActiveTexture(GL_TEXTURE0)");
+			// bind the texture unit0
+			glActiveTexture(GL_TEXTURE0);
+			ERROR_CHECK_BOOL("glActiveTexture(GL_TEXTURE0)");
 
-		glUniform1i(FSTextureLoc, 0);
-		ERROR_CHECK_BOOL("glUniform1i(FSTextureLoc, 0)");
+			glUniform1i(FSTextureLoc, 0);
+			ERROR_CHECK_BOOL("glUniform1i(FSTextureLoc, 0)");
+		}
 	}
 	else {
 		glDisableVertexAttribArray(VSTexCoordLoc);
@@ -2273,38 +2661,327 @@ bool MMSFBGL::drawElements(MMS3D_VERTEX_ARRAY *vertices, MMS3D_VERTEX_ARRAY *nor
 #endif
 
 	// draw elements
-	// note: MMS3D_INDEX_ARRAY uses indices with type unsigned int (GL_UNSIGNED_INT)
+	// note: MMS_INDEX_ARRAY uses indices with type unsigned int (GL_UNSIGNED_INT)
 	GLenum mode = GL_TRIANGLES;
 	switch (indices->type) {
-	case MMS3D_INDEX_ARRAY_TYPE_TRIANGLES_STRIP:
+	case MMS_INDEX_ARRAY_TYPE_TRIANGLE_STRIP:
 		mode = GL_TRIANGLE_STRIP;
 		break;
-	case MMS3D_INDEX_ARRAY_TYPE_TRIANGLES_FAN:
+	case MMS_INDEX_ARRAY_TYPE_TRIANGLE_FAN:
 		mode = GL_TRIANGLE_FAN;
+		break;
+	case MMS_INDEX_ARRAY_TYPE_LINES:
+		mode = GL_LINES;
+		break;
+	case MMS_INDEX_ARRAY_TYPE_LINE_STRIP:
+		mode = GL_LINE_STRIP;
+		break;
+	case MMS_INDEX_ARRAY_TYPE_LINE_LOOP:
+		mode = GL_LINE_LOOP;
 		break;
 	default:
 		break;
 	}
-	glDrawElements(mode, indices->eNum, GL_UNSIGNED_INT, indices->buf);
 
-	// print errors
+	if (indices->eNum && indices->data) {
+		// we have indices
+		glDrawElements(mode, indices->eNum, GL_UNSIGNED_INT, indices->data);
+
+		// print errors
+		switch (indices->type) {
+		case MMS_INDEX_ARRAY_TYPE_TRIANGLES:
+			ERROR_CHECK_BOOL("glDrawElements(GL_TRIANGLES,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_TRIANGLE_STRIP:
+			ERROR_CHECK_BOOL("glDrawElements(GL_TRIANGLE_STRIP,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_TRIANGLE_FAN:
+			ERROR_CHECK_BOOL("glDrawElements(GL_TRIANGLE_FAN,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_LINES:
+			ERROR_CHECK_BOOL("glDrawElements(GL_LINES,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_LINE_STRIP:
+			ERROR_CHECK_BOOL("glDrawElements(GL_LINE_STRIP,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_LINE_LOOP:
+			ERROR_CHECK_BOOL("glDrawElements(GL_LINE_LOOP,...)");
+			break;
+		}
+	}
+	else {
+		// indices not available, we assume that we can access buffers without indices
+		glDrawArrays(mode, 0, vertices->eNum);
+
+		// print errors
+		switch (indices->type) {
+		case MMS_INDEX_ARRAY_TYPE_TRIANGLES:
+			ERROR_CHECK_BOOL("glDrawArrays(GL_TRIANGLES,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_TRIANGLE_STRIP:
+			ERROR_CHECK_BOOL("glDrawArrays(GL_TRIANGLE_STRIP,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_TRIANGLE_FAN:
+			ERROR_CHECK_BOOL("glDrawArrays(GL_TRIANGLE_FAN,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_LINES:
+			ERROR_CHECK_BOOL("glDrawArrays(GL_LINES,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_LINE_STRIP:
+			ERROR_CHECK_BOOL("glDrawArrays(GL_LINE_STRIP,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_LINE_LOOP:
+			ERROR_CHECK_BOOL("glDrawArrays(GL_LINE_LOOP,...)");
+			break;
+		}
+	}
+
+	return true;
+}
+
+bool MMSFBGL::drawElements(MMS_VERTEX_BUFFER *vertices, MMS_VERTEX_BUFFER *normals, MMS_VERTEX_BUFFER *texcoords,
+						   MMS_INDEX_BUFFER *indices) {
+	INITCHECK;
+
+	if (!vertices || !indices) {
+		// minimum parameters are vertices and indices
+		return false;
+	}
+
+#ifdef __HAVE_GL2__
+
+	// load the vertices
+	if (vertices && vertices->bo) {
+		switch (vertices->dtype) {
+		case MMS_VERTEX_DATA_TYPE_FLOAT:
+			glEnableClientState(GL_VERTEX_ARRAY);
+			bindBuffer(GL_ARRAY_BUFFER, vertices->bo);
+			glVertexPointer(vertices->eSize, GL_FLOAT, 0, (const GLvoid*)vertices->offs);
+			break;
+		default:
+			glDisableClientState(GL_VERTEX_ARRAY);
+			break;
+		}
+	}
+	else {
+		glDisableClientState(GL_VERTEX_ARRAY);
+	}
+
+	// load the normals
+	if (normals && normals->bo) {
+		switch (normals->dtype) {
+		case MMS_VERTEX_DATA_TYPE_FLOAT:
+			glEnableClientState(GL_NORMAL_ARRAY);
+			bindBuffer(GL_ARRAY_BUFFER, normals->bo);
+			glNormalPointer(GL_FLOAT, 0, (const GLvoid*)normals->offs);
+			break;
+		default:
+			glDisableClientState(GL_NORMAL_ARRAY);
+			break;
+		}
+	}
+	else {
+		glDisableClientState(GL_NORMAL_ARRAY);
+	}
+
+	// load the texture coordinates
+	if (texcoords && texcoords->bo) {
+		switch (texcoords->dtype) {
+		case MMS_VERTEX_DATA_TYPE_FLOAT:
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			bindBuffer(GL_ARRAY_BUFFER, texcoords->bo);
+			glTexCoordPointer(texcoords->eSize, GL_FLOAT, 0, (const GLvoid*)texcoords->offs);
+			break;
+		default:
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			break;
+		}
+	}
+	else {
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	}
+
+#endif
+
+#ifdef __HAVE_GLES2__
+
+	// load the vertices
+	if (vertices && vertices->bo) {
+		bool enable = false;
+		switch (vertices->dtype) {
+		case MMS_VERTEX_DATA_TYPE_FLOAT:
+			bindBuffer(GL_ARRAY_BUFFER, vertices->bo);
+			glVertexAttribPointer(MMSFBGL_VSV_LOC, vertices->eSize, GL_FLOAT,
+								   GL_FALSE, 0, (const GLvoid*)vertices->offs);
+			ERROR_CHECK_BOOL("glVertexAttribPointer(MMSFBGL_VSV_LOC,,GL_FLOAT,GL_FALSE,...)");
+			enable = true;
+			break;
+#ifdef GL_HALF_FLOAT_OES
+		case MMS_VERTEX_DATA_TYPE_HALF_FLOAT:
+			bindBuffer(GL_ARRAY_BUFFER, vertices->bo);
+			glVertexAttribPointer(MMSFBGL_VSV_LOC, vertices->eSize, GL_HALF_FLOAT_OES,
+								   GL_FALSE, 0, (const GLvoid*)vertices->offs);
+			ERROR_CHECK_BOOL("glVertexAttribPointer(MMSFBGL_VSV_LOC,,GL_HALF_FLOAT_OES,GL_FALSE,...)");
+			enable = true;
+			break;
+#endif
+		default:
+			glDisableVertexAttribArray(MMSFBGL_VSV_LOC);
+			ERROR_CHECK_BOOL("glDisableVertexAttribArray(MMSFBGL_VSV_LOC)");
+			break;
+		}
+
+		if (enable) {
+			glEnableVertexAttribArray(MMSFBGL_VSV_LOC);
+			ERROR_CHECK_BOOL("glEnableVertexAttribArray(MMSFBGL_VSV_LOC)");
+		}
+	}
+	else {
+		glDisableVertexAttribArray(MMSFBGL_VSV_LOC);
+		ERROR_CHECK_BOOL("glDisableVertexAttribArray(MMSFBGL_VSV_LOC)");
+	}
+
+	// load the texture coordinates
+	if (texcoords && texcoords->bo) {
+		bool enable = false;
+		switch (texcoords->dtype) {
+		case MMS_VERTEX_DATA_TYPE_FLOAT:
+			bindBuffer(GL_ARRAY_BUFFER, texcoords->bo);
+			glVertexAttribPointer(VSTexCoordLoc, texcoords->eSize, GL_FLOAT,
+								   GL_FALSE, 0, (const GLvoid*)texcoords->offs);
+			ERROR_CHECK_BOOL("glVertexAttribPointer(VSTexCoordLoc,,GL_FLOAT,GL_FALSE,...)");
+			enable = true;
+			break;
+#ifdef GL_HALF_FLOAT_OES
+		case MMS_VERTEX_DATA_TYPE_HALF_FLOAT:
+			bindBuffer(GL_ARRAY_BUFFER, texcoords->bo);
+			glVertexAttribPointer(VSTexCoordLoc, texcoords->eSize, GL_HALF_FLOAT_OES,
+								   GL_FALSE, 0, (const GLvoid*)texcoords->offs);
+			ERROR_CHECK_BOOL("glVertexAttribPointer(VSTexCoordLoc,,GL_HALF_FLOAT_OES,GL_FALSE,...)");
+			enable = true;
+			break;
+#endif
+		default:
+			glDisableVertexAttribArray(VSTexCoordLoc);
+			ERROR_CHECK_BOOL("glDisableVertexAttribArray(VSTexCoordLoc)");
+			break;
+		}
+
+		if (enable) {
+			glEnableVertexAttribArray(VSTexCoordLoc);
+			ERROR_CHECK_BOOL("glEnableVertexAttribArray(VSTexCoordLoc)");
+
+			// bind the texture unit0
+			glActiveTexture(GL_TEXTURE0);
+			ERROR_CHECK_BOOL("glActiveTexture(GL_TEXTURE0)");
+
+			glUniform1i(FSTextureLoc, 0);
+			ERROR_CHECK_BOOL("glUniform1i(FSTextureLoc, 0)");
+		}
+	}
+	else {
+		glDisableVertexAttribArray(VSTexCoordLoc);
+		ERROR_CHECK_BOOL("glDisableVertexAttribArray(VSTexCoordLoc)");
+	}
+
+#endif
+
+	// bind the indices
+/*	if (indices && indices->bo) {
+		bindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices->bo);
+	}
+	else {
+		bindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}*/
+
+	// draw elements
+	// note: MMS_INDEX_ARRAY uses indices with type unsigned int (GL_UNSIGNED_INT)
+	GLenum mode = GL_TRIANGLES;
 	switch (indices->type) {
-	case MMS3D_INDEX_ARRAY_TYPE_TRIANGLES:
-		ERROR_CHECK_BOOL("glDrawElements(GL_TRIANGLES,...)");
+	case MMS_INDEX_ARRAY_TYPE_TRIANGLE_STRIP:
+		mode = GL_TRIANGLE_STRIP;
 		break;
-	case MMS3D_INDEX_ARRAY_TYPE_TRIANGLES_STRIP:
-		ERROR_CHECK_BOOL("glDrawElements(GL_TRIANGLE_STRIP,...)");
+	case MMS_INDEX_ARRAY_TYPE_TRIANGLE_FAN:
+		mode = GL_TRIANGLE_FAN;
 		break;
-	case MMS3D_INDEX_ARRAY_TYPE_TRIANGLES_FAN:
-		ERROR_CHECK_BOOL("glDrawElements(GL_TRIANGLE_FAN,...)");
+	case MMS_INDEX_ARRAY_TYPE_LINES:
+		mode = GL_LINES;
 		break;
+	case MMS_INDEX_ARRAY_TYPE_LINE_STRIP:
+		mode = GL_LINE_STRIP;
+		break;
+	case MMS_INDEX_ARRAY_TYPE_LINE_LOOP:
+		mode = GL_LINE_LOOP;
+		break;
+	default:
+		break;
+	}
+
+
+	if (indices->eNum && indices->bo) {
+		// we have indices
+		glDrawElements(mode, indices->eNum, GL_UNSIGNED_INT, NULL);
+
+		// print errors
+		switch (indices->type) {
+		case MMS_INDEX_ARRAY_TYPE_TRIANGLES:
+			ERROR_CHECK_BOOL("glDrawElements(GL_TRIANGLES,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_TRIANGLE_STRIP:
+			ERROR_CHECK_BOOL("glDrawElements(GL_TRIANGLE_STRIP,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_TRIANGLE_FAN:
+			ERROR_CHECK_BOOL("glDrawElements(GL_TRIANGLE_FAN,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_LINES:
+			ERROR_CHECK_BOOL("glDrawElements(GL_LINES,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_LINE_STRIP:
+			ERROR_CHECK_BOOL("glDrawElements(GL_LINE_STRIP,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_LINE_LOOP:
+			ERROR_CHECK_BOOL("glDrawElements(GL_LINE_LOOP,...)");
+			break;
+		}
+	}
+	else {
+		// indices not available, we assume that we can access buffers without indices
+		glDrawArrays(mode, 0, vertices->eNum);
+
+		// print errors
+		switch (indices->type) {
+		case MMS_INDEX_ARRAY_TYPE_TRIANGLES:
+			ERROR_CHECK_BOOL("glDrawArrays(GL_TRIANGLES,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_TRIANGLE_STRIP:
+			ERROR_CHECK_BOOL("glDrawArrays(GL_TRIANGLE_STRIP,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_TRIANGLE_FAN:
+			ERROR_CHECK_BOOL("glDrawArrays(GL_TRIANGLE_FAN,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_LINES:
+			ERROR_CHECK_BOOL("glDrawArrays(GL_LINES,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_LINE_STRIP:
+			ERROR_CHECK_BOOL("glDrawArrays(GL_LINE_STRIP,...)");
+			break;
+		case MMS_INDEX_ARRAY_TYPE_LINE_LOOP:
+			ERROR_CHECK_BOOL("glDrawArrays(GL_LINE_LOOP,...)");
+			break;
+		}
 	}
 
 	return true;
 }
 
 
-
 #endif
+
+
+
+
+
+
+
 
 

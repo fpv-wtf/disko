@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -31,6 +31,15 @@
  **************************************************************************/
 
 #ifdef __HAVE_MMSCRYPT__
+
+/**
+ * @file mmscrypt.cpp
+ *
+ * Implementation of MMSCrypt class.
+ *
+ * @ingroup mmstools
+ */
+
 #include <errno.h>
 #include <string.h>
 #include <openssl/rand.h>
@@ -39,16 +48,6 @@
 #include "mmstools/mmscrypt.h"
 #include "mmstools/mmsfile.h"
 
-/**
- * Creates an SSL key that will be saved in the given file.
- *
- * @param	keyfile		save encrypted key to this file
- * @return  unencrypted key (NULL if error occured)
- *
- * @note	The memory for the returned key has to be freed.
- *
- * @see		MMSCrypt::getUserKey()
-*/
 unsigned char* MMSCrypt::createUserKey(string keyfile) {
     MMSFile        *file;
     unsigned char  *userKey, *userKeyEnc;
@@ -73,20 +72,6 @@ unsigned char* MMSCrypt::createUserKey(string keyfile) {
     return userKey;
 }
 
-/**
- * Returns an SSL key that was stored in the given file.
- * If the file doesn't exist, a new key will be generated
- * and saved.
- *
- * @param	keyfile		read encrypted key from this file
- * @return  unencrypted key (NULL if error occured)
- *
- * @note	The memory for the returned key has to be freed.
- *
- * @see		MMSCrypt::createUserKey()
- *
- * @exception MMSCryptError File could not be opened.
-*/
 unsigned char* MMSCrypt::getUserKey(string keyfile) {
     unsigned char *userKey, *userKeyEnc;
     MMSFile       *file;
@@ -153,19 +138,25 @@ unsigned char* MMSCrypt::encrypt(unsigned char *in, unsigned int size, bool useM
         throw MMSCryptError(0, "not enough memory available");
 
     for(int i = 0; i < inl / 128; i++) {
-        if(!EVP_EncryptUpdate(ctx, &out[ol], &tmp, &in[ol], 128))
+        if(!EVP_EncryptUpdate(ctx, &out[ol], &tmp, &in[ol], 128)) {
+        	free(out);
             throw MMSCryptError(0, "error while encrypting data");
+        }
         ol += tmp;
     }
 
     if(inl % 128) {
-        if(!EVP_EncryptUpdate(ctx, &out[ol], &tmp, &in[ol], inl % 128))
+        if(!EVP_EncryptUpdate(ctx, &out[ol], &tmp, &in[ol], inl % 128)) {
+        	free(out);
             throw MMSCryptError(0, "error while encrypting data");
+        }
         ol += tmp;
     }
 
-    if(!EVP_EncryptFinal_ex(ctx, &out[ol], &tmp))
+    if(!EVP_EncryptFinal_ex(ctx, &out[ol], &tmp)) {
+        free(out);
         throw MMSCryptError(0, "error while encrypting data");
+    }
 
     return out;
 }

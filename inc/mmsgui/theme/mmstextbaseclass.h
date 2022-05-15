@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -67,7 +67,10 @@ namespace MMSGUI_FONT_ATTR {
 		{ "font.name.se", TAFF_ATTRTYPE_STRING }, \
 		{ "font.name.tr", TAFF_ATTRTYPE_STRING }, \
 		{ "font.name.cn", TAFF_ATTRTYPE_STRING }, \
-		{ "font.name.il", TAFF_ATTRTYPE_STRING }
+		{ "font.name.il", TAFF_ATTRTYPE_STRING }, \
+		{ "font.name.ar", TAFF_ATTRTYPE_STRING }, \
+		{ "font.name.cs", TAFF_ATTRTYPE_STRING }, \
+		{ "font.name.ru", TAFF_ATTRTYPE_STRING }
 
 	#define MMSGUI_FONT_ATTR_IDS \
 		MMSGUI_FONT_ATTR_IDS_font_path, \
@@ -85,7 +88,10 @@ namespace MMSGUI_FONT_ATTR {
 		MMSGUI_FONT_ATTR_IDS_font_name_se, \
 		MMSGUI_FONT_ATTR_IDS_font_name_tr, \
 		MMSGUI_FONT_ATTR_IDS_font_name_cn, \
-		MMSGUI_FONT_ATTR_IDS_font_name_il
+		MMSGUI_FONT_ATTR_IDS_font_name_il, \
+		MMSGUI_FONT_ATTR_IDS_font_name_ar, \
+		MMSGUI_FONT_ATTR_IDS_font_name_cs, \
+		MMSGUI_FONT_ATTR_IDS_font_name_ru
 
 	#define MMSGUI_FONT_ATTR_INIT { \
 		MMSGUI_FONT_ATTR_ATTRDESC, \
@@ -150,6 +156,15 @@ namespace MMSGUI_FONT_ATTR {
 		break; \
 	case w::MMSGUI_FONT_ATTR_IDS_font_name_il: \
 		setFontName(attrval_str, MMSLANG_IL); \
+		break; \
+	case w::MMSGUI_FONT_ATTR_IDS_font_name_ar: \
+		setFontName(attrval_str, MMSLANG_AR); \
+		break; \
+	case w::MMSGUI_FONT_ATTR_IDS_font_name_cs: \
+		setFontName(attrval_str, MMSLANG_CS); \
+		break; \
+	case w::MMSGUI_FONT_ATTR_IDS_font_name_ru: \
+		setFontName(attrval_str, MMSLANG_RU); \
 		break;
 
 
@@ -220,8 +235,19 @@ namespace MMSGUI_FONT_ATTR {
 	else \
 	if (ISFONTATTRNAME(w, font_name_il)) { \
 		setFontName(attrval_str, MMSLANG_IL); \
+	} \
+	else \
+	if (ISFONTATTRNAME(w, font_name_ar)) { \
+		setFontName(attrval_str, MMSLANG_AR); \
+	} \
+	else \
+	if (ISFONTATTRNAME(w, font_name_cs)) { \
+		setFontName(attrval_str, MMSLANG_CS); \
+	} \
+	else \
+	if (ISFONTATTRNAME(w, font_name_ru)) { \
+		setFontName(attrval_str, MMSLANG_RU); \
 	}
-
 
 
 
@@ -992,6 +1018,9 @@ class MMSTextBaseClass {
     public:
         //! Constructor of class MMSTextBaseClass.
         MMSTextBaseClass();
+
+        //! Destructor of class MMSTextBaseClass.
+        virtual ~MMSTextBaseClass();
 
         //! Mark all attributes as not set.
         virtual void unsetAll();

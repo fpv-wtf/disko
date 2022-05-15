@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -60,8 +60,12 @@ MMSWidget *MMSArrowWidget::copyWidget() {
     /* create widget */
     MMSArrowWidget *newWidget = new MMSArrowWidget(this->rootwindow, className);
 
-    /* copy widget */
-    *newWidget = *this;
+    newWidget->className = this->className;
+    newWidget->arrowWidgetClass = this->arrowWidgetClass;
+    newWidget->myArrowWidgetClass = this->myArrowWidgetClass;
+    newWidget->last_pressed = this->last_pressed;
+    newWidget->current_fgset = this->current_fgset;
+    newWidget->current_fgcolor = this->current_fgcolor;
 
     /* copy base widget */
     MMSWidget::copyWidget((MMSWidget*)newWidget);
@@ -128,6 +132,9 @@ bool MMSArrowWidget::checkRefreshStatus() {
 bool MMSArrowWidget::draw(bool *backgroundFilled) {
     bool myBackgroundFilled = false;
 
+    if(!surface)
+    	return false;
+
     if (backgroundFilled) {
     	if (this->has_own_surface)
     		*backgroundFilled = false;
@@ -135,11 +142,11 @@ bool MMSArrowWidget::draw(bool *backgroundFilled) {
     else
         backgroundFilled = &myBackgroundFilled;
 
+    // lock
+    this->surface->lock();
+
     // draw widget basics
     if (MMSWidget::draw(backgroundFilled)) {
-
-        // lock
-        this->surface->lock();
 
         // draw my things
         MMSFBRectangle surfaceGeom = getSurfaceGeometry();
@@ -208,12 +215,12 @@ bool MMSArrowWidget::draw(bool *backgroundFilled) {
             }
         }
 
-        /* unlock */
-        this->surface->unlock();
-
         /* update window surface with an area of surface */
         updateWindowSurfaceWithSurface(!*backgroundFilled);
     }
+
+    /* unlock */
+    this->surface->unlock();
 
     /* draw widgets debug frame */
     return MMSWidget::drawDebug();
@@ -304,8 +311,7 @@ void MMSArrowWidget::setColor(MMSFBColor color, bool refresh) {
 	// refresh required?
 	enableRefresh((color != this->current_fgcolor));
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSArrowWidget::setSelColor(MMSFBColor selcolor, bool refresh) {
@@ -314,8 +320,7 @@ void MMSArrowWidget::setSelColor(MMSFBColor selcolor, bool refresh) {
 	// refresh required?
 	enableRefresh((selcolor != this->current_fgcolor));
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSArrowWidget::setDirection(MMSDIRECTION direction, bool refresh) {
@@ -324,8 +329,7 @@ void MMSArrowWidget::setDirection(MMSDIRECTION direction, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSArrowWidget::setCheckSelected(bool checkselected) {

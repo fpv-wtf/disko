@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -33,7 +33,13 @@
 #ifndef MMSFILE_H_
 #define MMSFILE_H_
 
-#include "mmstools/base.h"
+/**
+ * @file mmsfile.h
+ *
+ * Header file for MMSFile class.
+ *
+ * @ingroup mmstools
+ */
 
 #ifdef __HAVE_CURL__
 #include <curl/curl.h>
@@ -305,8 +311,9 @@ class MMSFile {
         bool writeBuffer(void *ptr, size_t *ritems, size_t size, size_t nitems);
 
 
-        /*noch implementieren!!!!!!!!!!!
-        flush();*/
+        /**
+         * TODO: have to implement!!!!!!!!!!! flush();
+        */
 };
 
 #endif /*MMSFILE_H_*/

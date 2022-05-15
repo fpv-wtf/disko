@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -33,20 +33,43 @@
 #ifndef MMSDBCONNMGR_H_
 #define MMSDBCONNMGR_H_
 
-#include "mmstools/datasource.h"
 #include "mmstools/interfaces/immsdb.h"
 
-#define DBMS_SQLITE3	"SQLITE3"
-#define DBMS_FREETDS	"FREETDS"
-#define DBMS_MYSQL 		"MYSQL"
+/**
+ * @file mmsdbconnmgr.h
+ *
+ * Header file for MMSDBConnMgr class.
+ *
+ * @ingroup mmstools
+ */
 
+#define DBMS_SQLITE3	"SQLITE3"	/**< Use sqlite3 as database management system. */
+#define DBMS_FREETDS	"FREETDS"	/**< Use freetds as database management system. */
+#define DBMS_MYSQL 		"MYSQL"		/**< Use mysql as database management system.   */
+
+/**
+ * Database connection manager class.
+ *
+ * This is the base class to connect to a configured database.
+ */
 class MMSDBConnMgr {
-       private:
-               DataSource *datasource;
-       public:
-    	   MMSDBConnMgr(DataSource *datasource);
+	public:
+		/**
+		 * Constructor for database connection managers.
+		 *
+		 * @param	datasource	DataSource object, containing database settings
+		 */
+		MMSDBConnMgr(DataSource *datasource);
 
-    	   IMMSDB *getConnection();
+		/**
+		 * Retrieve an interface to a database connection.
+		 *
+		 * @returns	database connection interface
+		 */
+		IMMSDB *getConnection();
+
+	private:
+		DataSource *datasource;		/**< Contains database settings. */
 };
 
 #endif /*MMSDBCONNMGR_H_*/

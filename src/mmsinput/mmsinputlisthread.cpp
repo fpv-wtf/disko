@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -792,7 +792,7 @@ MMSKeySymbol MMSInputLISThread::translateKey(int code) {
 bool MMSInputLISThread::translateEvent(struct input_event *linux_evt, MMSInputEvent *inputevent) {
 	static int x = -1, y = -1;
 	static int px = 0, py = 0;
-	static char pressed = 0xff;
+	static int pressed = 0xff;
 
 	TRACEOUT("MMSINPUT", "EVENT TYPE = %d, CODE = %d, VALUE = %d", linux_evt->type, linux_evt->code, linux_evt->value);
 
@@ -902,8 +902,6 @@ bool MMSInputLISThread::translateEvent(struct input_event *linux_evt, MMSInputEv
 
 			pressed = 0xff;
 		} else {
-//TODO: we discuss to return false in case AXISMOTION should not emitted
-return false;
 			inputevent->posx = x;
 			inputevent->posy = y;
 			inputevent->type = MMSINPUTEVENTTYPE_AXISMOTION;

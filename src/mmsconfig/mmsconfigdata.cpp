@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -75,25 +75,39 @@ const string MMSConfigData::getInputMap() {
 }
 
 const string MMSConfigData::getPrefix() {
-    if(this->global.prefix != "")
+    if(!this->global.prefix.empty())
         return this->global.prefix;
 
     FILE *stream;
     char prefix[1024];
     memset(prefix,0,1024);
 
+    /* check prefix from disko.pc */
+    stream = popen("pkg-config --variable=prefix disko","r");
+    if(stream!=NULL) {
+        if(fgets(prefix,1024,stream)!=NULL) {
+            prefix[strlen(prefix)-1]='/';
+            pclose(stream);
+            this->global.prefix = prefix;
+            return this->global.prefix;
+        }
+        pclose(stream);
+    }
+
+    /* check prefix from mmstools.pc (big_lib = n) */
     stream = popen("pkg-config --variable=prefix mmstools","r");
     if(stream!=NULL) {
         if(fgets(prefix,1024,stream)!=NULL) {
             prefix[strlen(prefix)-1]='/';
-            fclose(stream);
+            pclose(stream);
             this->global.prefix = prefix;
             return this->global.prefix;
         }
-
+        pclose(stream);
     }
 
-    stream = fopen("./bin/mmscmd.bin","r");
+    /* check if there is the diskoappctrl tool installed */
+    stream = fopen("./bin/diskoappctrl","r");
     if(stream != NULL) {
         sprintf(prefix,"./");
         fclose(stream);

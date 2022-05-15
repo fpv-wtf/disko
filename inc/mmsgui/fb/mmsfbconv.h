@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -1026,9 +1026,9 @@ if (!AA) { \
 //! used for text output
 #define MMSFBSURFACE_BLIT_TEXT_END_RENDER \
 	if (!MMSFBBase_rotate180) \
-		x+=glyph.advanceX >> 6; \
+		x+=glyph.advanceX; \
 	else \
-		x-=glyph.advanceX >> 6;	}
+		x-=glyph.advanceX;	}
 
 
 //! calculate region if screen is rotated by 180°
@@ -1136,12 +1136,36 @@ void mmsfb_blit_argb_to_argb(MMSFBSurfacePlanes *src_planes, int src_height, int
 							 MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
 
 
+//! Blit RGB32 to ARGB.
+/*!
+\author Stefan Schwarzer
+*/
+void mmsfb_blit_rgb32_to_argb(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+		   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
+
+//! Blit AiRGB to ARGB.
+/*!
+\author Matthias Hardt
+*/
+void mmsfb_blit_airgb_to_argb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
+	    						unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
+
+
 //! Blit with alpha blending ARGB to ARGB.
 /*!
 \author Jens Schneider
 */
 void mmsfb_blit_blend_argb_to_argb(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
 								   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
+
+//! Blit with alpha blending AiRGB to ARGB.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_blend_airgb_to_argb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
+								    unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
 
 
 //! Blit with alpha blending with alpha from color ARGB to ARGB.
@@ -1179,7 +1203,6 @@ void mmsfb_blit_rgb24_to_argb(MMSFBSurfacePlanes *src_planes, int src_height, in
 */
 void mmsfb_blit_rgb32_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
 							   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
-
 
 //! Blit ARGB to RGB32.
 /*!
@@ -1299,6 +1322,7 @@ void mmsfb_blit_blend_coloralpha_airgb_to_airgb(MMSFBExternalSurfaceBuffer *extb
 */
 void mmsfb_blit_blend_argb_to_airgb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
 								    unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
+
 
 // ----------------------------------------------------------------------------
 // ------------------------------------------------------ BLITTING TO AiRGB ---
@@ -2128,6 +2152,28 @@ void mmsfb_drawstring_blend_coloralpha_argb(MMSFBSurfacePlanes *dst_planes, MMSF
 // ---------------------------------------------------- DRAW STRING TO ARGB ---
 
 
+// --- DRAW STRING TO RGB32 ---------------------------------------------------
+// ----------------------------------------------------------------------------
+
+//! Draw string with alpha blending RGB32.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_drawstring_blend_rgb32(MMSFBSurfacePlanes *dst_planes, MMSFBFont *font,
+								  MMSFBRegion &clipreg, string &text, int len, int x, int y, MMSFBColor &color);
+
+
+//! Draw string with alpha blending with alpha from color RGB32.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_drawstring_blend_coloralpha_rgb32(MMSFBSurfacePlanes *dst_planes, MMSFBFont *font,
+											 MMSFBRegion &clipreg, string &text, int len, int x, int y, MMSFBColor &color);
+
+// ----------------------------------------------------------------------------
+// --------------------------------------------------- DRAW STRING TO RGB32 ---
+
+
 // --- DRAW STRING TO ARGB4444 ------------------------------------------------
 // ----------------------------------------------------------------------------
 
@@ -2164,3 +2210,4 @@ void mmsfb_drawstring_blend_coloralpha_rgb16(MMSFBSurfacePlanes *dst_planes, MMS
 
 
 #endif /* MMSFBCONV_H_ */
+

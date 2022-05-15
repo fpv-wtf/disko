@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -30,14 +30,12 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA            *
  **************************************************************************/
 
-#ifndef MMSMORPHINERCPARSER_H_
-#define MMSMORPHINERCPARSER_H_
+#ifndef MMSRCPARSER_H_
+#define MMSRCPARSER_H_
 
-#include "mmstools/mmstools.h"
 #include "mmsconfig/mmsconfigdata.h"
+#include "mmstools/mmserror.h"
 #include <libxml/parser.h>
-#include <libxml/tree.h>
-
 
 class MMSRcParser {
 	private:
@@ -92,4 +90,4 @@ class MMSRcParser {
 
 MMS_CREATEERROR(MMSRcParserError);
 
-#endif /*MMSMORPHINERCPARSER_H_*/
+#endif /*MMSRCPARSER_H_*/

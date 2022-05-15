@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -52,15 +52,19 @@ bool MMSProgressBarWidget::create(MMSWindow *root, string className, MMSTheme *t
 
 	this->current_fgset = false;
 
-    return MMSWidget::create(root, true, false, false, true, true, true, false);
+    return MMSWidget::create(root, true, false, false, true, true, true, true);
 }
 
 MMSWidget *MMSProgressBarWidget::copyWidget() {
     // create widget
     MMSProgressBarWidget *newWidget = new MMSProgressBarWidget(this->rootwindow, className);
 
-    // copy widget
-    *newWidget = *this;
+    newWidget->className = this->className;
+    newWidget->progressBarWidgetClass = this->progressBarWidgetClass;
+    newWidget->myProgressBarWidgetClass = this->myProgressBarWidgetClass;
+
+    newWidget->current_fgcolor = this->current_fgcolor;
+    newWidget->current_fgset = this->current_fgset;
 
     // copy base widget
     MMSWidget::copyWidget((MMSWidget*)newWidget);
@@ -128,6 +132,9 @@ bool MMSProgressBarWidget::checkRefreshStatus() {
 bool MMSProgressBarWidget::draw(bool *backgroundFilled) {
     bool myBackgroundFilled = false;
 
+    if(!surface)
+    	return false;
+
     if (backgroundFilled) {
     	if (this->has_own_surface)
     		*backgroundFilled = false;
@@ -137,30 +144,32 @@ bool MMSProgressBarWidget::draw(bool *backgroundFilled) {
 
     // draw widget basics
     if (MMSWidget::draw(backgroundFilled)) {
+    	/* if progress is 0, fillRectangle uses the whole surface, however nothing more is needed */
+    	if(getProgress() > 0) {
+			// lock
+			this->surface->lock();
 
-        // lock
-        this->surface->lock();
+			// draw my things
+			MMSFBRectangle surfaceGeom = getSurfaceGeometry();
 
-        // draw my things
-        MMSFBRectangle surfaceGeom = getSurfaceGeometry();
+			// get color
+			MMSFBColor color;
+			getForeground(&color);
+			this->current_fgcolor   = color;
+			this->current_fgset     = true;
 
-        // get color
-        MMSFBColor color;
-        getForeground(&color);
-        this->current_fgcolor   = color;
-        this->current_fgset     = true;
+			if (color.a) {
+				// prepare for drawing
+				this->surface->setDrawingColorAndFlagsByBrightnessAndOpacity(color, getBrightness(), getOpacity());
 
-        if (color.a) {
-            // prepare for drawing
-            this->surface->setDrawingColorAndFlagsByBrightnessAndOpacity(color, getBrightness(), getOpacity());
+				// fill the rectangle
+				this->surface->fillRectangle(surfaceGeom.x, surfaceGeom.y,
+											(int)((double)getProgress() / (double)100 * (double)surfaceGeom.w), surfaceGeom.h);
+			}
 
-            // fill the rectangle
-            this->surface->fillRectangle(surfaceGeom.x, surfaceGeom.y,
-                                        (int)((double)getProgress() / (double)100 * (double)surfaceGeom.w), surfaceGeom.h);
-        }
-
-        // unlock
-        this->surface->unlock();
+			// unlock
+			this->surface->unlock();
+    	}
 
         // update window surface with an area of surface
         updateWindowSurfaceWithSurface(!*backgroundFilled);
@@ -200,8 +209,7 @@ void MMSProgressBarWidget::setColor(MMSFBColor color, bool refresh) {
 	// refresh required?
 	enableRefresh((color != this->current_fgcolor));
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSProgressBarWidget::setSelColor(MMSFBColor selcolor, bool refresh) {
@@ -210,8 +218,7 @@ void MMSProgressBarWidget::setSelColor(MMSFBColor selcolor, bool refresh) {
 	// refresh required?
 	enableRefresh((selcolor != this->current_fgcolor));
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSProgressBarWidget::setProgress(unsigned int progress, bool refresh) {
@@ -222,8 +229,7 @@ void MMSProgressBarWidget::setProgress(unsigned int progress, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 

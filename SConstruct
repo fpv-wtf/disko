@@ -13,6 +13,7 @@
 #   . scons check         perform dependency checking
 #   . scons install       install library and include files
 #   . scons doc           build documentation for the project (Doxygen)
+#   . scons cppcheck      run cppcheck tool (http://cppcheck.sourceforge.net)
 #
 
 import os, sys, string, re, SCons
@@ -26,9 +27,9 @@ SetOption('implicit_cache', 1)
 # Version                                                             #
 #######################################################################
 packageVersionMajor = 1
-packageVersionMinor = 8
+packageVersionMinor = 9
 packageVersionMicro = 0
-packageVersionRC    = ''
+packageVersionRC    = '-dev'
 
 # Package information
 packageName        = 'disko'
@@ -64,6 +65,7 @@ Help("Type: 'scons [options]' to build disko.\n" +
      "      'scons [options] check' to check the requirements for building disko.\n" +
      "      'scons -c' to clean.\n" +
      "      'scons doc' to create the API reference (doxygen has to be installed).\n" +
+     "      'scons cppcheck' to execute cppcheck (has to be installed).\n" +
      "      'scons install' to install disko.\n\n" +
      "The following options are available:\n")
 
@@ -211,12 +213,12 @@ if env['use_sse']:
 		env['CCFLAGS'].extend(['-msse2', '-mfpmath=sse', '-D__HAVE_SSE__'])
 
 # use environment variables to override defaults
+if os.environ.has_key('CC'):
+	env['CC'] = [os.environ['CC'].split()]
 if os.environ.has_key('CXX'):
 	env['CXX'] = [os.environ['CXX'].split()] 
 if os.environ.has_key('CXXFLAGS'):
 	env['CCFLAGS'].extend(os.environ['CXXFLAGS'].split())
-if os.environ.has_key('LD'):
-	env['LINK'] = [os.environ['LD'].split()]
 if os.environ.has_key('LDFLAGS'):
 	env['LINKFLAGS'].extend(os.environ['LDFLAGS'].split())
 if os.environ.has_key('PKG_CONFIG'):
@@ -349,37 +351,45 @@ def checkConf(context, name):
 	return False
 
 def checkSimpleLib(context, liblist, header = '', lang = 'c++', required = 1):
-	for lib in liblist:
-		context.Message('Checking for %s... ' % lib)
+	context.Message('Checking for %s... ' % ', '.join(liblist))
+
+	for lib in liblist[:]:
 		ret = checkPKG(context, lib)
 		if ret:
-			context.Result(True)
-			return True
+			liblist.remove(lib)
+		else:
+			break;
 
+	if ret:
+		context.Result(True)
+		return True
+
+	for lib in liblist[:]:
 		ret = checkConf(context, lib)
 		if ret:
-			context.Result(True)
-			return True
-
-		# redirect stdout to suppress messages from built in checks
-		sys.stdout = open('/dev/null', 'a')
-		if len(header):
-			ret = conf.CheckLibWithHeader(liblist, header, lang)
+			liblist.remove(lib)
 		else:
-			ret = conf.CheckLib(lib)
-		sys.stdout.close()
-		sys.stdout = sys.__stdout__
-		if ret:
-			context.Result(True)
-			return True
+			break;
 
-	context.Result(False)
+	if ret:
+		context.Result(True)
+		return True
 
-	if required:
-		print 'required lib %s not found' % lib
+	# redirect stdout to suppress messages from built in checks
+	sys.stdout = open('/dev/null', 'a')
+	if len(header):
+		ret = conf.CheckLibWithHeader(lib, header, lang)
+	else:
+		ret = conf.CheckLib(lib)
+	sys.stdout.close()
+	sys.stdout = sys.__stdout__
+
+	if required and not ret:
+		print 'required lib(s) %s not found' % ' or '.join(liblist)
 		Exit(1)
 
-	return False
+	context.Result(ret)
+	return ret
 
 def checkBacktrace(context):
 	backtrace_test = """
@@ -485,7 +495,7 @@ def printSummary():
 #######################################################################
 # Check dependencies                                                  #
 #######################################################################
-if not ('-c' in sys.argv or '-h' in sys.argv):
+if not ('-c' in sys.argv or '-h' in sys.argv or 'doc' in sys.argv or 'cppcheck' in sys.argv):
 	conf = Configure(env,
                      custom_tests = {'checkOptions' : checkOptions,
                                      'checkPKGConfig' : checkPKGConfig,
@@ -521,23 +531,17 @@ if not ('-c' in sys.argv or '-h' in sys.argv):
 	if('png' in env['images']):
 		if conf.checkSimpleLib(['libpng'], ['png.h'], required = 0):
 			conf.env['CCFLAGS'].extend(['-D__HAVE_PNG__'])
-		elif conf.CheckLibWithHeader(['libpng'], ['png.h'], 'c++'):
-			conf.env['CCFLAGS'].extend(['-D__HAVE_PNG__'])
 		else:
 			conf.env['images'].remove('png')
 
 	if('jpeg' in env['images']):
 		if conf.checkSimpleLib(['libjpeg'], ['cstdio', 'jpeglib.h'], required = 0):
 			conf.env['CCFLAGS'].extend(['-D__HAVE_JPEG__'])
-		elif conf.CheckLibWithHeader(['libjpeg'], ['cstdio', 'jpeglib.h'], 'c++'):
-			conf.env['CCFLAGS'].extend(['-D__HAVE_JPEG__'])
 		else:
 			conf.env['images'].remove('jpeg')
 
 	if('tiff' in env['images']):
 		if conf.checkSimpleLib(['libtiff'], ['tiffio.h'], required = 0):
-			conf.env['CCFLAGS'].extend(['-D__HAVE_TIFF__'])
-		elif conf.CheckLibWithHeader(['libtiff'], ['tiffio.h'], 'c++'):
 			conf.env['CCFLAGS'].extend(['-D__HAVE_TIFF__'])
 		else:
 			conf.env['images'].remove('tiff')
@@ -562,36 +566,39 @@ if not ('-c' in sys.argv or '-h' in sys.argv):
 		if conf.CheckLibWithHeader(['GLESv2'], 'GLES2/gl2.h', 'c++', 'glGenFramebuffers(0,(GLuint*)0);'):
 			conf.env['CCFLAGS'].extend(['-D__HAVE_OPENGL__'])
 			conf.env['CCFLAGS'].extend(['-D__HAVE_GLES2__'])
+			if conf.CheckLibWithHeader(['EGL'], 'EGL/egl.h', 'c++', 'return eglGetError();'):
+				conf.env['CCFLAGS'].extend(['-D__HAVE_EGL__'])
+			if conf.CheckLibWithHeader(['GLU'],  'GL/glu.h', 'c++', 'gluNewTess();'):
+				conf.env['CCFLAGS'].extend(['-D__HAVE_GLU__'])					
 		else:
 			conf.env['graphics_outputtype'].remove('gles2')
-		if conf.CheckLibWithHeader(['EGL'], 'EGL/egl.h', 'c++', 'return eglGetError();'):
-			conf.env['CCFLAGS'].extend(['-D__HAVE_EGL__'])
 
 	# checks required if building X11 backend
 	if('x11' in env['graphics_backend']):
-		conf.checkSimpleLib(['x11'],	   'X11/Xlib.h')
-		conf.checkSimpleLib(['xxf86vm'],   'X11/extensions/xf86vmode.h')
+		conf.checkSimpleLib(['x11', 'xext', 'xrender', 'xcomposite', 'xxf86vm'],   ['X11/Xlib.h', 'X11/extensions/XShm.h', 'X11/extensions/Xrender.h', 'X11/extensions/Xcomposite.h', 'X11/extensions/xf86vmode.h'])
 		conf.env['CCFLAGS'].extend(['-D__HAVE_XLIB__'])
-		# TODO: actually XV doesn't depend on XRender/XComposite, but for now it won't compile without it
-		if conf.checkSimpleLib(['xv'], 'X11/extensions/Xvlib.h', 0):
-			if conf.checkSimpleLib(['xrender'], 'X11/extensions/Xrender.h', 0):
-				conf.env['CCFLAGS'].extend(['-D__HAVE_XRENDER__'])
-				if conf.checkSimpleLib(['xcomposite'], 'X11/extensions/Xcomposite.h', 0):
-					conf.env['CCFLAGS'].extend(['-D__HAVE_XCOMPOSITE__', '-D__HAVE_XV__'])
+		if conf.checkSimpleLib(['xv'], ['X11/Xlib.h', 'X11/extensions/Xvlib.h'], required = 0):
+			conf.env['CCFLAGS'].extend(['-D__HAVE_XV__'])
+		else:
+			conf.env['graphics_outputtype'].remove('xvshm')
 
 		# checks for OpenGL and X11 backend
 		if 'gl2' in conf.env['graphics_outputtype']:
-			if conf.CheckLib('GLEW', 'glGenFramebuffersEXT'):
-				conf.env['LIBS'].append('GLEW')
-				if conf.checkSimpleLib(['gl'],   'GL/gl.h'):
+			if conf.checkSimpleLib(['gl'], 'GL/gl.h'):
+				if conf.CheckLib('GLEW', 'glGenFramebuffersEXT'):
 					conf.env['CCFLAGS'].extend(['-D__HAVE_OPENGL__'])
+					conf.env['LIBS'].append('GLEW')
 					if conf.CheckLib('GL', 'glBlendEquation'):
 						conf.env['CCFLAGS'].extend(['-D__HAVE_GL2__'])	
-					conf.checkSimpleLib(['glu'],  'GL/glu.h')
+					if conf.checkSimpleLib(['glu'], 'GL/glu.h'):
+						conf.env['CCFLAGS'].extend(['-D__HAVE_GLU__'])					
 					if conf.CheckCXXHeader('GL/glx.h') and conf.CheckLib('GL', 'glXCreateContext'):
 						conf.env['CCFLAGS'].extend(['-D__HAVE_GLX__'])
-			else:
+		else:
+			try:
 				conf.env['graphics_outputtype'].remove('gl2')
+			except ValueError:
+				pass
 	
 	# check if OpenGL 2.0 and OpenGL ES are both activated
 	if 'gl2' in conf.env['graphics_outputtype'] and 'gles2' in conf.env['graphics_outputtype']:
@@ -804,7 +811,9 @@ if 'install' in BUILD_TARGETS:
 		disko_pc_requires += ', directfb'
 	 
 	if 'x11' in env['graphics_backend']:
-		disko_pc_requires += ', x11, xv, xxf86vm, xcomposite, xrender'
+		disko_pc_requires += ', x11, xxf86vm, xcomposite, xrender'
+		if '-D__HAVE_XV__' in env['CCFLAGS']:
+			disko_pc_requires += ', xv'
 		if '-D__HAVE_OPENGL__' in env['CCFLAGS']:
 			disko_pc_requires += ', gl, glu'
 	
@@ -859,8 +868,6 @@ if 'install' in BUILD_TARGETS:
 		disko_pc_libs_private += ' -lswscale -lavutil'
 
 	disko_pc.write('prefix=')
-	if env['destdir'] and env['destdir'] != 'none':
-		disko_pc.write(env['destdir'] + '/')
 	disko_pc.write(env['prefix'] + '\n')
 	disko_pc.write('exec_prefix=${prefix}\n')
 	disko_pc.write('libdir=${exec_prefix}/lib\n')
@@ -907,13 +914,49 @@ env.Install(idir_prefix + '/lib/pkgconfig', 'disko.pc')
 Clean('lib', 'disko.pc')
 
 #######################################################################
-#  Documentation                                                      #
+# Documentation                                                       #
 #######################################################################
-doxygenBuilder = Builder(action = 'doxygen $SOURCE')
-env.Append(BUILDERS = { 'DoxygenDoc' : doxygenBuilder })
+if env.Detect('doxygen'):
+	doxygenBuilder = Builder(action = 'doxygen $SOURCE')
+else:
+	doxygenBuilder = Builder(action = '@echo "***Error: Please install doxygen to build documentation"')
+env.Append(BUILDERS = { 'DoxygenDoc' : doxygenBuilder })	
 doxygenDocPath = '(doc)'
 env.DoxygenDoc(doxygenDocPath, 'doc/conf/disko.conf')
 env.Alias('doc', doxygenDocPath)
+
+#######################################################################
+# CPPCheck (http://cppcheck.sourceforge.net)                          #
+#######################################################################
+env.Command('cppcheck', ['inc/disko.h'],
+ 'cppcheck \
+  -q \
+  -I./inc \
+  -D__HAVE_CURL__ \
+  -D__HAVE_DL__ \
+  -D__HAVE_DIRECTFB__ \
+  -D__HAVE_FBDEV__ \
+  -D__HAVE_XLIB__ \
+  -D__HAVE_XVSHM__ \
+  -D__HAVE_OPENGL__ \
+  -D__HAVE_GLES2__ \
+  -D__HAVE_PF_ALL__ \
+  -D__ENABLE_MMSFB_X11_CORE__ \
+  -D__ENABLE_MMSFBSURFACE_X11_CORE__ \
+  -D__HAVE_PNG__ \
+  -D__HAVE_JPEG__ \
+  -D__HAVE_TIFF__ \
+  -D__HAVE_XINE__ \
+  -D__HAVE_GSTREAMER__ \
+  -D__HAVE_MMSMEDIA__ \
+  -D__HAVE_MIXER__ \
+  -D__ENABLE_SQLITE__ \
+  -D__ENABLE_MYSQL__ \
+  -D__ENABLE_FREETDS__ \
+  -D__HAVE_MMSCRYPT__ \
+  -D__HAVE_MMSFLASH__ \
+  -D__HAVE_VMIME__ \
+  src')
 
 #######################################################################
 # Building disko                                                      #

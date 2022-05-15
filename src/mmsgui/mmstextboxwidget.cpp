@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -32,6 +32,7 @@
 #include "mmsgui/mmstextboxwidget.h"
 #include "mmsgui/mmstextbase.h"
 #include <cstdlib>
+#include <vector>
 
 MMSTextBoxWidget::MMSTextBoxWidget(MMSWindow *root, string className, MMSTheme *theme) : MMSWidget() {
     create(root, className, theme);
@@ -78,8 +79,17 @@ MMSWidget *MMSTextBoxWidget::copyWidget() {
     // create widget
     MMSTextBoxWidget *newWidget = new MMSTextBoxWidget(this->rootwindow, className);
 
-    // copy widget
-    *newWidget = *this;
+    newWidget->className = this->className;
+    newWidget->textBoxWidgetClass = this->textBoxWidgetClass;
+    newWidget->myTextBoxWidgetClass = this->myTextBoxWidgetClass;
+
+    newWidget->lang = this->lang;
+    newWidget->wordgeom = this->wordgeom;
+    newWidget->lasttext = this->lasttext;
+    newWidget->surfaceChanged = this->surfaceChanged;
+    newWidget->translated_text = this->translated_text;
+    newWidget->current_fgset = this->current_fgset;
+    newWidget->current_fgcolor = this->current_fgcolor;
 
     // copy base widget
     MMSWidget::copyWidget((MMSWidget*)newWidget);
@@ -120,27 +130,15 @@ void MMSTextBoxWidget::loadFont(MMSTextBoxWidget *widget) {
 	if (this->rootwindow) {
 		// get font parameter
 		widget->lang = this->rootwindow->windowmanager->getTranslator()->getTargetLang();
-    	string fontpath = widget->getFontPath();
-    	string fontname = widget->getFontName(widget->lang);
-    	unsigned int fontsize = widget->getFontSize();
+		if (widget->font) this->rootwindow->fm->releaseFont(widget->font);
+		widget->fontpath = widget->getFontPath();
+		widget->fontname = widget->getFontName(widget->lang);
+		widget->fontsize = widget->getFontSize();
+		widget->font = this->rootwindow->fm->getFont(widget->fontpath, widget->fontname, widget->fontsize);
+		if (widget->font) widget->load_font = false;
 
-    	if (fontpath != widget->fontpath || fontname != widget->fontname || fontsize != widget->fontsize || !widget->font) {
-    		// font parameter changed, (re)load it
-			if (widget->font)
-				this->rootwindow->fm->releaseFont(widget->font);
-			widget->fontpath = fontpath;
-			widget->fontname = fontname;
-			widget->fontsize = fontsize;
-			widget->font = this->rootwindow->fm->getFont(widget->fontpath, widget->fontname, widget->fontsize);
-			if (this->font) this->load_font = false;
-
-			// reset last displayed text, so calcWordGeom() can do recalculation
-			this->lasttext = "";
-    	}
-    	else {
-    		// font parameter not changed, so we do not reload it
-            this->load_font = false;
-    	}
+		// reset last displayed text, so calcWordGeom() can do recalculation
+		widget->lasttext = "";
     }
 }
 
@@ -148,15 +146,23 @@ void MMSTextBoxWidget::loadFont(MMSTextBoxWidget *widget) {
 bool MMSTextBoxWidget::setSurfaceGeometry(unsigned int width, unsigned int height) {
    	if (MMSWidget::setSurfaceGeometry(width, height)) {
    	    this->surfaceChanged = true;
+
+   	    this->surface->lock();
+   	    // set font for new surface
+   	    this->surface->setFont(this->font);
+   	    this->surface->unlock();
+
    	    return true;
    	}
    	return false;
 }
 
+
 bool MMSTextBoxWidget::calcWordGeom(string &text, unsigned int startWidth, unsigned int startHeight,
                               unsigned int *realWidth, unsigned int *realHeight,
                               unsigned int *scrollDX, unsigned int *scrollDY, unsigned int *lines, unsigned int *paragraphs,
-                              bool wrap, bool splitwords, MMSALIGNMENT alignment) {
+                              bool wrap, bool splitwords, MMSALIGNMENT alignment,
+                              unsigned int *minWidth, unsigned int *minHeight, bool force_recalc) {
     int fontHeight, blankWidth;
     unsigned int x = 0, y = 0;
 
@@ -171,8 +177,11 @@ bool MMSTextBoxWidget::calcWordGeom(string &text, unsigned int startWidth, unsig
     *scrollDX = fontHeight;
     *scrollDY = fontHeight;
 
+    if (minWidth)  *minWidth = 0;
+    if (minHeight) *minHeight = 0;
+
     // has text or surface changed?
-    if ((text == this->lasttext)&&(!this->surfaceChanged)) return false;
+    if ((!force_recalc) && (text == this->lasttext) && (!this->surfaceChanged)) return false;
     this->lasttext = text;
     this->surfaceChanged = false;
 
@@ -327,6 +336,16 @@ bool MMSTextBoxWidget::calcWordGeom(string &text, unsigned int startWidth, unsig
             if (lfindex != string::npos) (*paragraphs)++;
         }
 
+		if (minWidth) {
+			if (*minWidth < mywordgeom->geom.x + mywordgeom->geom.w)
+				*minWidth = mywordgeom->geom.x + mywordgeom->geom.w;
+		}
+
+		if (minHeight) {
+			if (*minHeight < mywordgeom->geom.y + mywordgeom->geom.h)
+				*minHeight = mywordgeom->geom.y + mywordgeom->geom.h;
+		}
+
         // add to list
         wordgeom.push_back(mywordgeom);
 
@@ -396,17 +415,17 @@ bool MMSTextBoxWidget::calcWordGeom(string &text, unsigned int startWidth, unsig
     }
 
     // go through the list and calculate vertical text alignment
-    if (fontHeight * (*lines) > *realHeight)
+    if (fontHeight * (*lines) > *realHeight) {
         *realHeight = fontHeight * (*lines);
-    else
-    if (fontHeight * (*lines) < *realHeight) {
+    } else if (fontHeight * (*lines) < *realHeight) {
         if   ((alignment == MMSALIGNMENT_CENTER)||(alignment == MMSALIGNMENT_LEFT)
             ||(alignment == MMSALIGNMENT_RIGHT)||(alignment == MMSALIGNMENT_JUSTIFY)) {
         	// vertical centered
             unsigned int diff = (*realHeight - fontHeight * (*lines)) / 2;
-            if (diff > 0)
-                for (unsigned int i = 0; i < wordgeom.size(); i++)
-                    wordgeom.at(i)->geom.y += diff;
+            if (diff > 0) {
+					for (unsigned int i = 0; i < wordgeom.size(); i++)
+						wordgeom.at(i)->geom.y += diff;
+            }
         }
         else
         if   ((alignment == MMSALIGNMENT_BOTTOM_CENTER)||(alignment == MMSALIGNMENT_BOTTOM_LEFT)
@@ -418,6 +437,34 @@ bool MMSTextBoxWidget::calcWordGeom(string &text, unsigned int startWidth, unsig
                     wordgeom.at(i)->geom.y += diff;
         }
     }
+    if(this->swap_left_right) {
+		/* quick fix line ordering... that is not yet the real deal!!!! */
+		std::vector<int> mylines;
+		int linepos = (*wordgeom.begin())->geom.y;
+		mylines.push_back(linepos);
+		for (unsigned int i = 0; i < wordgeom.size(); i++) {
+			if(linepos != wordgeom.at(i)->geom.y) {
+				linepos = wordgeom.at(i)->geom.y;
+				mylines.push_back(linepos);
+			}
+		}
+		for(vector<int>::iterator it = mylines.begin(); it != mylines.end(); it++) {
+			printf("%d\n", *it);
+		}
+
+		linepos = (*wordgeom.begin())->geom.y;
+		vector<int>::reverse_iterator it = mylines.rbegin();
+		for (unsigned int i = 0; i < wordgeom.size(); i++) {
+			if(linepos != wordgeom.at(i)->geom.y) {
+				linepos = wordgeom.at(i)->geom.y;
+				it++;
+			}
+			wordgeom.at(i)->geom.y = *it;
+		}
+
+    }
+
+
 
     return true;
 }
@@ -455,6 +502,151 @@ bool MMSTextBoxWidget::release() {
 
     return true;
 }
+
+
+bool MMSTextBoxWidget::prepareText(int *width, int *height, bool recalc) {
+	// check if we have to (re)load the font
+	this->surface->lock();
+	loadFont();
+
+    if (!this->font) {
+    	this->surface->unlock();
+    	return false;
+    }
+
+	// font available, use it for this surface
+	this->surface->setFont(this->font);
+	this->surface->unlock();
+
+	if (!this->translated) {
+		// text changed and have to be translated
+		if ((this->rootwindow)&&(this->rootwindow->windowmanager)&&(getTranslate())) {
+			// translate text
+			string source;
+			getText(source);
+			this->rootwindow->windowmanager->getTranslator()->translate(source, this->translated_text);
+		}
+		else {
+			// text can not or should not translated
+			getText(this->translated_text);
+		}
+
+		// reset swap flag
+		this->swap_left_right = false;
+
+		// language specific conversions
+		MMSLanguage targetlang = this->rootwindow->windowmanager->getTranslator()->getTargetLang();
+		if (((targetlang == MMSLANG_IL) || (targetlang == MMSLANG_AR)) && getTranslate()) {
+			if (convBidiString(this->translated_text, this->translated_text, (targetlang == MMSLANG_AR) ? true : false)) {
+				// bidirectional conversion successful, swap alignment horizontal
+				this->swap_left_right = true;
+			}
+		}
+
+		// mark as translated
+		this->translated = true;
+	}
+
+	if (!this->minmax_set) {
+		// calculate text and surface size
+		unsigned int realWidth, realHeight, scrollDX, scrollDY, lines, paragraphs;
+		if (calcWordGeom(this->translated_text, getInnerGeometry().w, getInnerGeometry().h, &realWidth, &realHeight, &scrollDX, &scrollDY,
+						 &lines, &paragraphs, getWrap(), getSplitWords(),
+						 (!this->swap_left_right) ? getAlignment() : swapAlignmentHorizontal(getAlignment()))) {
+			// text has changed, reset something
+			setScrollSize(scrollDX, scrollDY);
+			setSurfaceGeometry(realWidth, realHeight);
+		}
+	}
+	else {
+		// get maximum width and height of the textbox
+		int maxWidth = getMaxWidthPix();
+		if (maxWidth <= 0) maxWidth = getInnerGeometry().w;
+		int maxHeight = getMaxHeightPix();
+		if (maxHeight <= 0) maxHeight = getInnerGeometry().h;
+
+		// calculate dynamic textbox size
+		if (recalc) {
+			unsigned int realWidth, realHeight, scrollDX, scrollDY, lines, paragraphs, minWidth, minHeight;
+			if (calcWordGeom(this->translated_text,
+								maxWidth, maxHeight,
+								&realWidth, &realHeight, &scrollDX, &scrollDY,
+								&lines, &paragraphs, getWrap(), getSplitWords(),
+								(!this->swap_left_right) ? getAlignment() : swapAlignmentHorizontal(getAlignment()),
+								&minWidth, &minHeight, true)) {
+				// text has changed, reset something
+//				setScrollSize(scrollDX, scrollDY);
+//				setSurfaceGeometry(realWidth, realHeight);
+
+
+				if (minWidth < getMinWidthPix())
+					minWidth = getMinWidthPix();
+				if (minHeight < getMinHeightPix())
+					minHeight = getMinHeightPix();
+
+				if (minWidth < maxWidth || minHeight < maxHeight) {
+					calcWordGeom(this->translated_text,
+									(minWidth < maxWidth) ? minWidth : maxWidth,
+									(minHeight < maxHeight) ? minHeight : maxHeight,
+									&realWidth, &realHeight, &scrollDX, &scrollDY,
+									&lines, &paragraphs, getWrap(), getSplitWords(),
+									(!this->swap_left_right) ? getAlignment() : swapAlignmentHorizontal(getAlignment()),
+									&minWidth, &minHeight, true);
+				}
+
+
+				if (width) {
+					if (realWidth < minWidth)
+						*width = minWidth;
+					else
+					if (realWidth > maxWidth)
+						*width = maxWidth;
+					else
+						*width = realWidth;
+
+					if (*width <= 0) *width = 1;
+				}
+
+				if (height) {
+					if (realHeight < minHeight)
+						*height = minHeight;
+					else
+					if (realHeight > maxHeight)
+						*height = maxHeight;
+					else
+						*height = realHeight;
+
+					if (*height <= 0) *height = 1;
+				}
+			}
+		}
+		else {
+			unsigned int realWidth, realHeight, scrollDX, scrollDY, lines, paragraphs;
+			if (calcWordGeom(this->translated_text, getInnerGeometry().w, getInnerGeometry().h, &realWidth, &realHeight, &scrollDX, &scrollDY,
+							 &lines, &paragraphs, getWrap(), getSplitWords(),
+							 (!this->swap_left_right) ? getAlignment() : swapAlignmentHorizontal(getAlignment()))) {
+				// text has changed, reset something
+				setScrollSize(scrollDX, scrollDY);
+				setSurfaceGeometry(realWidth, realHeight);
+			}
+		}
+
+
+	}
+
+	return true;
+}
+
+
+void MMSTextBoxWidget::calcContentSize() {
+	int width, height;
+
+	if (prepareText(&width, &height, true)) {
+    	// text is translated and font is set
+        setContentSize(width, height);
+	}
+}
+
 
 void MMSTextBoxWidget::getForeground(MMSFBColor *color) {
 	color->a = 0;
@@ -517,6 +709,7 @@ bool MMSTextBoxWidget::checkRefreshStatus() {
 	return true;
 }
 
+
 bool MMSTextBoxWidget::draw(bool *backgroundFilled) {
     bool myBackgroundFilled = false;
 
@@ -526,6 +719,9 @@ bool MMSTextBoxWidget::draw(bool *backgroundFilled) {
         this->initialized = true;
     }
 
+    if(!surface)
+    	return false;
+
     if (backgroundFilled) {
     	if (this->has_own_surface)
     		*backgroundFilled = false;
@@ -533,58 +729,15 @@ bool MMSTextBoxWidget::draw(bool *backgroundFilled) {
     else
         backgroundFilled = &myBackgroundFilled;
 
-	// check if we have to (re)load the font
-	loadFont();
-
-	if (!this->translated) {
-		// text changed and have to be translated
-		if ((this->rootwindow)&&(this->rootwindow->windowmanager)&&(getTranslate())) {
-			// translate the text
-    		string source;
-    		getText(source);
-    		this->rootwindow->windowmanager->getTranslator()->translate(source, this->translated_text);
-    	}
-    	else {
-    		// text can not or should not translated
-			getText(this->translated_text);
-    	}
-
-		// reset swap flag
-		this->swap_left_right = false;
-
-		// language specific conversions
-		MMSLanguage targetlang = this->rootwindow->windowmanager->getTranslator()->getTargetLang();
-		if (targetlang == MMSLANG_IL) {
-			if (convBidiString(this->translated_text, this->translated_text)) {
-				// bidirectional conversion successful, swap alignment horizontal
-				this->swap_left_right = true;
-			}
-		}
-
-    	// mark as translated
-    	this->translated = true;
-    }
-
-    if (this->font) {
-        // calculate text and surface size
-        unsigned int realWidth, realHeight, scrollDX, scrollDY, lines, paragraphs;
-        if (calcWordGeom(this->translated_text, getInnerGeometry().w, getInnerGeometry().h, &realWidth, &realHeight, &scrollDX, &scrollDY,
-                         &lines, &paragraphs, getWrap(), getSplitWords(),
-                         (!this->swap_left_right) ? getAlignment() : swapAlignmentHorizontal(getAlignment()))) {
-            // text has changed, reset something
-        	setScrollSize(scrollDX, scrollDY);
-          	setSurfaceGeometry(realWidth, realHeight);
-        }
-    }
+    // lock
+    this->surface->lock();
 
     // draw widget basics
     if (MMSWidget::draw(backgroundFilled)) {
 
-        // lock
-        this->surface->lock();
-
-        // draw my things
-        if (this->font) {
+    	// draw my things
+    	if (prepareText(NULL, NULL)) {
+    		// text is translated and font is set
         	MMSFBRectangle surfaceGeom = getSurfaceGeometry();
 
             // get color
@@ -594,9 +747,6 @@ bool MMSTextBoxWidget::draw(bool *backgroundFilled) {
             this->current_fgset     = true;
 
             if (color.a) {
-                // set the font
-                this->surface->setFont(this->font);
-
                 // prepare for drawing
                 this->surface->setDrawingColorAndFlagsByBrightnessAndOpacity(
 									color,
@@ -611,26 +761,27 @@ bool MMSTextBoxWidget::draw(bool *backgroundFilled) {
 									getBrightness(), getOpacity());
 
                 // draw single words into surface
-                for (unsigned int i = 0; i < this->wordgeom.size(); i++)
-                {
-					if (this->has_own_surface)
+                for (unsigned int i = 0; i < this->wordgeom.size(); i++) {
+					if (this->has_own_surface) {
 						this->surface->drawString(this->wordgeom.at(i)->word, -1,
 						                          surfaceGeom.x + this->wordgeom.at(i)->geom.x,
 						                          surfaceGeom.y + this->wordgeom.at(i)->geom.y);
-					else
+					}
+					else {
 						this->surface->drawString(this->wordgeom.at(i)->word, -1,
 						                          surfaceGeom.x + this->wordgeom.at(i)->geom.x - this->da->scrollPosX,
 						                          surfaceGeom.y + this->wordgeom.at(i)->geom.y - this->da->scrollPosY);
+					}
                 }
             }
         }
 
-        // unlock
-        this->surface->unlock();
-
         // update window surface with an area of surface
         updateWindowSurfaceWithSurface(!*backgroundFilled);
     }
+
+    // unlock
+    this->surface->unlock();
 
     // draw widgets debug frame
     return MMSWidget::drawDebug();
@@ -639,6 +790,11 @@ bool MMSTextBoxWidget::draw(bool *backgroundFilled) {
 void MMSTextBoxWidget::targetLangChanged(MMSLanguage lang) {
     this->translated = false;
     this->load_font = true;
+    loadFont();
+
+    // recalculate content size for dynamic widgets, because new language can result in new widget size
+    // note: DO NOT REFRESH at this point
+    recalcContentSize(false);
 }
 
 bool MMSTextBoxWidget::loadFile(bool refresh) {
@@ -804,8 +960,7 @@ void MMSTextBoxWidget::setFontPath(string fontpath, bool load, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setFontName(MMSLanguage lang, string fontname, bool load, bool refresh) {
@@ -818,8 +973,7 @@ void MMSTextBoxWidget::setFontName(MMSLanguage lang, string fontname, bool load,
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setFontName(string fontname, bool load, bool refresh) {
@@ -836,8 +990,7 @@ void MMSTextBoxWidget::setFontSize(unsigned int fontsize, bool load, bool refres
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setFont(MMSLanguage lang, string fontpath, string fontname, unsigned int fontsize, bool load, bool refresh) {
@@ -852,8 +1005,7 @@ void MMSTextBoxWidget::setFont(MMSLanguage lang, string fontpath, string fontnam
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setFont(string fontpath, string fontname, unsigned int fontsize, bool load, bool refresh) {
@@ -866,8 +1018,7 @@ void MMSTextBoxWidget::setAlignment(MMSALIGNMENT alignment, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setWrap(bool wrap, bool refresh) {
@@ -876,8 +1027,7 @@ void MMSTextBoxWidget::setWrap(bool wrap, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setSplitWords(bool splitwords, bool refresh) {
@@ -886,8 +1036,7 @@ void MMSTextBoxWidget::setSplitWords(bool splitwords, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setColor(MMSFBColor color, bool refresh) {
@@ -896,8 +1045,7 @@ void MMSTextBoxWidget::setColor(MMSFBColor color, bool refresh) {
 	// refresh required?
 	enableRefresh((color != this->current_fgcolor));
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setSelColor(MMSFBColor selcolor, bool refresh) {
@@ -906,8 +1054,7 @@ void MMSTextBoxWidget::setSelColor(MMSFBColor selcolor, bool refresh) {
 	// refresh required?
 	enableRefresh((selcolor != this->current_fgcolor));
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setColor_p(MMSFBColor color_p, bool refresh) {
@@ -916,8 +1063,7 @@ void MMSTextBoxWidget::setColor_p(MMSFBColor color_p, bool refresh) {
 	// refresh required?
 	enableRefresh((color_p != this->current_fgcolor));
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setSelColor_p(MMSFBColor selcolor_p, bool refresh) {
@@ -926,8 +1072,7 @@ void MMSTextBoxWidget::setSelColor_p(MMSFBColor selcolor_p, bool refresh) {
 	// refresh required?
 	enableRefresh((selcolor_p != this->current_fgcolor));
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setColor_i(MMSFBColor color_i, bool refresh) {
@@ -936,8 +1081,7 @@ void MMSTextBoxWidget::setColor_i(MMSFBColor color_i, bool refresh) {
 	// refresh required?
 	enableRefresh((color_i != this->current_fgcolor));
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setSelColor_i(MMSFBColor selcolor_i, bool refresh) {
@@ -946,9 +1090,9 @@ void MMSTextBoxWidget::setSelColor_i(MMSFBColor selcolor_i, bool refresh) {
 	// refresh required?
 	enableRefresh((selcolor_i != this->current_fgcolor));
 
-	if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
+
 
 void MMSTextBoxWidget::setText(string *text, bool refresh) {
     myTextBoxWidgetClass.setText(text);
@@ -959,8 +1103,7 @@ void MMSTextBoxWidget::setText(string *text, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setText(string text, bool refresh) {
@@ -974,8 +1117,7 @@ void MMSTextBoxWidget::setTranslate(bool translate, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setFilePath(string filepath, bool load, bool refresh) {
@@ -986,8 +1128,7 @@ void MMSTextBoxWidget::setFilePath(string filepath, bool load, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setFileName(string filename, bool load, bool refresh) {
@@ -998,8 +1139,7 @@ void MMSTextBoxWidget::setFileName(string filename, bool load, bool refresh) {
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setShadowColor(MMSPOSITION position, MMSFBColor color, bool refresh) {
@@ -1008,8 +1148,7 @@ void MMSTextBoxWidget::setShadowColor(MMSPOSITION position, MMSFBColor color, bo
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 void MMSTextBoxWidget::setSelShadowColor(MMSPOSITION position, MMSFBColor selcolor, bool refresh) {
@@ -1018,8 +1157,7 @@ void MMSTextBoxWidget::setSelShadowColor(MMSPOSITION position, MMSFBColor selcol
     // refresh is required
     enableRefresh();
 
-    if (refresh)
-        this->refresh();
+	this->refresh(refresh);
 }
 
 

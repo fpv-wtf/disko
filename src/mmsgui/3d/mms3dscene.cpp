@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -70,11 +70,16 @@ MMS3D_OBJECT *MMS3DScene::getObject(int object) {
 	return this->objects[object];
 }
 
-bool MMS3DScene::getResultMatrix(MMS3DMatrix result) {
+bool MMS3DScene::getResultMatrix(MMSMatrix result) {
 	return this->matrixStack.getResultMatrix(result);
 }
 
-void MMS3DScene::getMeshArrays(MMS3D_VERTEX_ARRAY ***varrays, MMS3D_INDEX_ARRAY ***iarrays) {
+bool MMS3DScene::setPrimitives(string id, MMS_VERTEX_ARRAY *vertices, MMS_VERTEX_ARRAY *normals,
+							   MMS_VERTEX_ARRAY *texcoords, MMS_INDEX_ARRAY *indices) {
+	return mms3dpm.setPrimitives(id, vertices, normals, texcoords, indices);
+}
+
+void MMS3DScene::getMeshArrays(MMS_VERTEX_ARRAY ***varrays, MMS_INDEX_ARRAY ***iarrays) {
 	mms3dpm.getArrays(varrays, iarrays);
 }
 
@@ -82,7 +87,7 @@ void MMS3DScene::getObjects(MMS3D_OBJECT ***objects) {
 	*objects = this->objects;
 }
 
-void MMS3DScene::setBaseMatrix(MMS3DMatrix matrix) {
+void MMS3DScene::setBaseMatrix(MMSMatrix matrix) {
 	this->matrixStack.setBaseMatrix(matrix);
 }
 
@@ -104,7 +109,7 @@ bool MMS3DScene::rotate(float angle, float x, float y, float z) {
 
 bool MMS3DScene::genMatrices() {
 	// get result matrix of scene used as base matrix for objects
-	MMS3DMatrix base_matrix;
+	MMSMatrix base_matrix;
 	if (!getResultMatrix(base_matrix)) return false;
 
 	// though the flat list of scene objects
@@ -121,5 +126,6 @@ bool MMS3DScene::genMatrices() {
 
 	return true;
 }
+
 
 

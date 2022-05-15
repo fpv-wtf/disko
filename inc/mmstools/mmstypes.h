@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -33,7 +33,10 @@
 #ifndef MMSTYPES_H_
 #define MMSTYPES_H_
 
-#include "mmstools/base.h"
+using namespace std;
+
+#include <sigc++/sigc++.h>
+#include <string>
 
 // sigc++ accumulators.......................................................
 
@@ -1101,6 +1104,12 @@ typedef enum {
 	MMSLANG_CN,
 	//! israeli
 	MMSLANG_IL,
+	//! arabic
+	MMSLANG_AR,
+	//! czech
+	MMSLANG_CS,
+	//! russian
+	MMSLANG_RU,
 	//! number of languages
 	MMSLANG_SIZE
 } MMSLanguage;
@@ -1133,6 +1142,12 @@ typedef enum {
 #define MMSLANG_CN_STR			"CN"
 //! language: israeli
 #define MMSLANG_IL_STR			"IL"
+//! language: arabic
+#define MMSLANG_AR_STR			"AR"
+//! language: czech
+#define MMSLANG_CS_STR			"CS"
+//! language: russian
+#define MMSLANG_RU_STR			"RU"
 
 // conversion routines for languages
 string getMMSLanguageString(MMSLanguage lang);
@@ -1141,29 +1156,151 @@ MMSLanguage getMMSLanguageFromString(string lang);
 
 
 
+// -15 stored using a single precision bias of 127
+const unsigned int HALF_FLOAT_MIN_BIASED_EXP_AS_SINGLE_FP_EXP = 0x38000000;
+
+// max exponent value in single precision that will be converted
+// to Inf or Nan when stored as a half-float
+const unsigned int HALF_FLOAT_MAX_BIASED_EXP_AS_SINGLE_FP_EXP = 0x47800000;
+
+// 255 is the max exponent biased value
+const unsigned int FLOAT_MAX_BIASED_EXP = (0xFF << 23);
+const unsigned int HALF_FLOAT_MAX_BIASED_EXP = (0x1F << 10);
+
+// half-float type
+typedef unsigned short MMS_HALF_FLOAT;
+
+MMS_HALF_FLOAT convertFloat2HalfFloat(float f);
+float convertHalfFloat2Float(MMS_HALF_FLOAT hf);
 
 
 
-
-
-
-typedef struct {
-	float	*buf;
-	int		eSize;
-	int		eNum;
-} MMS3D_VERTEX_ARRAY;
-
+//! type of vertex data
 typedef enum {
-	MMS3D_INDEX_ARRAY_TYPE_TRIANGLES = 0,
-	MMS3D_INDEX_ARRAY_TYPE_TRIANGLES_STRIP,
-	MMS3D_INDEX_ARRAY_TYPE_TRIANGLES_FAN
-} MMS3D_INDEX_ARRAY_TYPE;
+	MMS_VERTEX_DATA_TYPE_FLOAT = 0,
+	MMS_VERTEX_DATA_TYPE_HALF_FLOAT
+} MMS_VERTEX_DATA_TYPE;
 
+//! vertex array
 typedef struct {
-	MMS3D_INDEX_ARRAY_TYPE	type;
-	unsigned int			*buf;
-	int						eNum;
-} MMS3D_INDEX_ARRAY;
+	//! type of vertex data
+	MMS_VERTEX_DATA_TYPE	dtype;
+	//! vertex data
+	void	*data;
+	//! number of values per vertex
+	int		eSize;
+	//! number of vertices
+	int		eNum;
+} MMS_VERTEX_ARRAY;
+
+#define MMS_VA_SET_VERTEX_2v(va, idx, val0, val1)	\
+			if (va) { \
+				if (va->dtype == MMS_VERTEX_DATA_TYPE_HALF_FLOAT) { \
+					((MMS_HALF_FLOAT*)va->data)[(idx) * va->eSize + 0] = convertFloat2HalfFloat((float)(val0)); \
+					((MMS_HALF_FLOAT*)va->data)[(idx) * va->eSize + 1] = convertFloat2HalfFloat((float)(val1)); \
+				} else { \
+					((float*)va->data)[(idx) * va->eSize + 0] = (float)(val0); \
+					((float*)va->data)[(idx) * va->eSize + 1] = (float)(val1); \
+				} \
+			}
+
+#define MMS_VA_SET_VERTEX_3v(va, idx, val0, val1, val2)	\
+			if (va) { \
+				if (va->dtype == MMS_VERTEX_DATA_TYPE_HALF_FLOAT) { \
+					((MMS_HALF_FLOAT*)va->data)[(idx) * va->eSize + 0] = convertFloat2HalfFloat((float)(val0)); \
+					((MMS_HALF_FLOAT*)va->data)[(idx) * va->eSize + 1] = convertFloat2HalfFloat((float)(val1)); \
+					((MMS_HALF_FLOAT*)va->data)[(idx) * va->eSize + 2] = convertFloat2HalfFloat((float)(val2)); \
+				} else { \
+					((float*)va->data)[(idx) * va->eSize + 0] = (float)(val0); \
+					((float*)va->data)[(idx) * va->eSize + 1] = (float)(val1); \
+					((float*)va->data)[(idx) * va->eSize + 2] = (float)(val2); \
+				} \
+			}
+
+//! vertex buffer
+typedef struct {
+	//! type of vertex data
+	MMS_VERTEX_DATA_TYPE	dtype;
+	//! id of buffer object
+	unsigned int bo;
+	//! offset into the buffer object's data store where data replacement will begin
+	unsigned int offs;
+	//! number of floats per vertex
+	int		eSize;
+	//! number of vertices
+	int		eNum;
+} MMS_VERTEX_BUFFER;
+
+//! element type
+typedef enum {
+	MMS_INDEX_ARRAY_TYPE_TRIANGLES = 0,
+	MMS_INDEX_ARRAY_TYPE_TRIANGLE_STRIP,
+	MMS_INDEX_ARRAY_TYPE_TRIANGLE_FAN,
+	MMS_INDEX_ARRAY_TYPE_LINES,
+	MMS_INDEX_ARRAY_TYPE_LINE_STRIP,
+	MMS_INDEX_ARRAY_TYPE_LINE_LOOP
+} MMS_INDEX_ARRAY_TYPE;
+
+//! index array
+typedef struct {
+	//! element type
+	MMS_INDEX_ARRAY_TYPE	type;
+	//! array of unsigned ints
+	unsigned int	*data;
+	//! number of indices
+	int				eNum;
+} MMS_INDEX_ARRAY;
+
+//! index buffer
+typedef struct {
+	//! element type
+	MMS_INDEX_ARRAY_TYPE	type;
+	//! id of buffer object
+	unsigned int	bo;
+	//! offset into the buffer object's data store where data replacement will begin
+	unsigned int	offs;
+	//! number of indices
+	int				eNum;
+} MMS_INDEX_BUFFER;
+
+
+//! Initialize a MMS_VERTEX_ARRAY.
+/*!
+\param array	MMS_VERTEX_ARRAY to initialize
+\param eSize	number of values per vertex
+\param eNum		number of vertices
+\param dtype	type of vertex data, default is MMS_VERTEX_DATA_TYPE_FLOAT
+\param data		pointer to existing vertex data or NULL, default is NULL
+\return true if the array is successfully initialized
+\note If no data pointer is given by the caller, the function will allocate new space for vertex data.
+*/
+bool initVertexArray(MMS_VERTEX_ARRAY *array, int eSize, int eNum,
+					 MMS_VERTEX_DATA_TYPE dtype = MMS_VERTEX_DATA_TYPE_FLOAT, void *data = NULL);
+
+//! Release allocated space of a MMS_VERTEX_ARRAY.
+void freeVertexArray(MMS_VERTEX_ARRAY *array);
+
+//! Get size of a MMS_VERTEX_ARRAY in bytes.
+unsigned int getVertexArraySize(MMS_VERTEX_ARRAY *array);
+
+
+//! Initialize a MMS_INDEX_ARRAY.
+/*!
+\param array	MMS_INDEX_ARRAY to initialize
+\param type		specifies what kind of primitives to render
+\param eNum		number of indices or 0, default is 0
+\param data		pointer to existing index data or NULL, default is NULL
+\return true if the array is successfully initialized
+\note It is possible to have an index array with 0 indices.
+\note If no data pointer is given by the caller, the function will allocate new space for index data.
+*/
+bool initIndexArray(MMS_INDEX_ARRAY *array, MMS_INDEX_ARRAY_TYPE type, int eNum = 0, unsigned int *data = NULL);
+
+//! Release allocated space of a MMS_INDEX_ARRAY.
+void freeIndexArray(MMS_INDEX_ARRAY *array);
+
+//! Get size of a MMS_INDEX_ARRAY in bytes.
+unsigned int getIndexArraySize(MMS_INDEX_ARRAY *array);
 
 
 typedef struct {
@@ -1195,20 +1332,20 @@ typedef union {
 
 
 
-#define MMS3D_PI 3.1415926535897932384626433832795f
+#define MMS_PI 3.1415926535897932384626433832795f
 
-typedef float MMS3DMatrix[4][4];
+typedef float MMSMatrix[4][4];
 
-void multiplyMatrix(MMS3DMatrix result, MMS3DMatrix srcA, MMS3DMatrix srcB);
-void copyMatrix(MMS3DMatrix result, MMS3DMatrix src);
-bool equalMatrix(MMS3DMatrix result, MMS3DMatrix src);
-void loadIdentityMatrix(MMS3DMatrix result);
-void scaleMatrix(MMS3DMatrix result, float sx, float sy, float sz);
-void translateMatrix(MMS3DMatrix result, float tx, float ty, float tz);
-void rotateMatrix(MMS3DMatrix result, float angle, float x, float y, float z);
-void frustumMatrix(MMS3DMatrix result, float left, float right, float bottom, float top, float nearZ, float farZ);
-void perspectiveMatrix(MMS3DMatrix result, float fovy, float aspect, float nearZ, float farZ);
-void orthoMatrix(MMS3DMatrix result, float left, float right, float bottom, float top, float nearZ, float farZ);
+void multiplyMatrix(MMSMatrix result, MMSMatrix srcA, MMSMatrix srcB);
+void copyMatrix(MMSMatrix result, MMSMatrix src);
+bool equalMatrix(MMSMatrix result, MMSMatrix src);
+void loadIdentityMatrix(MMSMatrix result);
+void scaleMatrix(MMSMatrix result, float sx, float sy, float sz);
+void translateMatrix(MMSMatrix result, float tx, float ty, float tz);
+void rotateMatrix(MMSMatrix result, float angle, float x, float y, float z);
+void frustumMatrix(MMSMatrix result, float left, float right, float bottom, float top, float nearZ, float farZ);
+void perspectiveMatrix(MMSMatrix result, float fovy, float aspect, float nearZ, float farZ);
+void orthoMatrix(MMSMatrix result, float left, float right, float bottom, float top, float nearZ, float farZ);
 
 
 //! decribes a 3D object which can be rendered
@@ -1241,7 +1378,7 @@ typedef struct _bei_object {
 	bool	cullface;
 
 	//! matrix of the object
-	MMS3DMatrix 	matrix;
+	MMSMatrix 	matrix;
 } MMS3D_OBJECT;
 
 
@@ -1253,3 +1390,8 @@ bool isMMS3DObjectShown(MMS3D_OBJECT *object);
 
 
 #endif /* MMSTYPES_H_ */
+
+
+
+
+

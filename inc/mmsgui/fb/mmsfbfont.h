@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -34,26 +34,41 @@
 #define MMSFBFONT_H_
 
 #include "mmsgui/fb/mmsfbbase.h"
+#include "mmsgui/fb/mmsfbbuffer.h"
+
+#ifdef __HAVE_GLU__
+#define MMSFBFONT_GLYPH_MAX_MESHES	512
+#endif
 
 //! descibes a loaded glyph
 typedef struct {
-	//! pointer to data
+	//! character code
+	unsigned int	character;
+	//! pointer to bitmap data
 	unsigned char	*buffer;
-	//! pitch in byte of one row in the buffer
+	//! pitch in byte of one row in the bitmap buffer
 	int 			pitch;
 	//! x-offset
 	int				left;
 	//! y-offset
 	int				top;
-	//! width in pixel of the glyph bitmap
+	//! width in pixel of the glyph
 	int 			width;
-	//! height in pixel of the glyph bitmap
+	//! height in pixel of the glyph
 	int 			height;
 	//! width in pixel of the whole character
 	int				advanceX;
-#ifdef  __HAVE_OPENGL__
-	//! OpenGL texture for this glyph
-	unsigned int	texture;
+#ifdef __HAVE_OPENGL__
+#ifndef __HAVE_GLU__
+	//! OpenGL texture for this glyph, we use bitmaps from freetype
+	//! note: text rendering based on textures needs a lot of memory and is not the fastest way
+	GLuint	texture;
+#else
+	//! OpenGL primitives for this glyph, we convert outlines from freetype using GLU tesselator
+	//! note: text rendering based on primitives can be more than two times faster
+	MMSFBBuffer	*meshes;
+	MMSFBBuffer	*outline;
+#endif
 #endif
 } MMSFBFont_Glyph;
 
@@ -69,23 +84,36 @@ class MMSFBFont {
         //! to make it thread-safe
         MMSMutex  	Lock;
 
-    	//! pointer to the directfb font
+#ifdef __HAVE_DIRECTFB__
+        //! pointer to the directfb font
     	void 		*dfbfont;
+#endif
 
     	//! static pointer to the freetype library
         static void *ft_library;
 
         //! pointer to the loaded freetype face
-        void 		*ft_face;
+        void	*ft_face;
 
         //! font file
         string 	filename;
 
-        //! input width
-    	int		w;
+    	//! defines mapping between filename and font id
+		typedef std::map<std::string, unsigned int> MMSFBFONT_MAP;
 
-    	//! input height
-    	int 	h;
+		//! static index
+		static MMSFBFONT_MAP index;
+
+		//! static index position
+		static unsigned int index_pos;
+
+		//! id of font
+		unsigned int font_id;
+
+#if (defined(__HAVE_OPENGL__) && defined(__HAVE_GLU__))
+        //! scale coefficient
+        float	scale_coeff;
+#endif
 
     	//! ascender
     	int 	ascender;
@@ -99,17 +127,14 @@ class MMSFBFont {
     	//! maps a character id to a already loaded glyph (see glyphpool)
     	std::map<unsigned int, MMSFBFont_Glyph> charmap;
 
-    	//! glyph pool
-    	unsigned char *glyphpool;
-
-    	//! size of glyph pool
-    	unsigned int glyphpool_size;
-
-    	//! pointer to next free memory
-    	unsigned char *glyphpool_ptr;
+    	//! reference counter for final release of freetype library
+    	static unsigned int numReferences;
 
         void lock();
         void unlock();
+
+        void *loadFTGlyph(unsigned int character);
+        bool setupFTGlyph(unsigned int character, void *ftg, MMSFBFont_Glyph *glyph);
 
     public:
         MMSFBFont(string filename, int w, int h);
@@ -123,9 +148,12 @@ class MMSFBFont {
         bool getAscender(int *ascender);
         bool getDescender(int *descender);
 
+        bool getScaleCoeff(float *scale_coeff);
+
         bool getGlyph(unsigned int character, MMSFBFont_Glyph *glyph);
 
-	friend class MMSFBSurface;
+    	friend class MMSFBSurface;
+    	friend class MMSFBBackEndInterface;
 };
 
 #define MMSFBFONT_GET_UNICODE_CHAR(text, len) \

@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -42,9 +42,18 @@ void MMSInputWidgetThread::threadMain() {
 
 	sleep(1);
 	while (1) {
+		// lock mmsfb to ensure single thread access to mmsgui
    		this->inputwidget->drawCursor(true);
+
+   		// unlock mmsfb to enable other threads to
+   		// update the screen between frames
     	usleep(1000000);
+
+    	// lock mmsfb to ensure single thread access to mmsgui
    		this->inputwidget->drawCursor(false);
+
+   		// unlock mmsfb to enable other threads to
+   		// update the screen between frames
     	usleep(500000);
     }
 }

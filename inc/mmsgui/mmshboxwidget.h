@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -45,9 +45,15 @@ The hbox widget cannot be focused and displays nothing.
 */
 class MMSHBoxWidget : public MMSWidget {
     private:
-        void recalculateChildren();
-
         bool create(MMSWindow *root);
+
+        void calcSize(int *num_spacers, int *last_spacer,
+    			      int *required_pix, int *remain_pix, int *avail_pix, int *fixed_pix, int *dyn_pix, int *min_dyn_pix,
+    			      float dyn_reduce_factor);
+
+    	void recalculateChildren();
+
+        void setContentSizeFromChildren();
 
     public:
         MMSHBoxWidget(MMSWindow *root);

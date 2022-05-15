@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -33,10 +33,10 @@
 #ifndef DISKO_VERSION_H_
 #define DISKO_VERSION_H_
 
-#define DISKO_VERSION_STR "1.8.0"
-#define DISKO_VERSION 180
+#define DISKO_VERSION_STR "1.9.0"
+#define DISKO_VERSION 190
 #define DISKO_MAJOR_VERSION 1
-#define DISKO_MINOR_VERSION 8 
+#define DISKO_MINOR_VERSION 9
 #define DISKO_MICRO_VERSION 0
 
 

@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -765,6 +765,7 @@ MMSAV::MMSAV(MMSMEDIABackend _backend) :
 #else
 			cerr << "MMSAV: Disko was build without gstreamer support. Switching to xine." << endl;
 			this->backend = MMSMEDIA_BE_XINE;
+			break;
 #endif
 		case MMSMEDIA_BE_XINE:
 #ifdef __HAVE_XINE__
@@ -772,6 +773,7 @@ MMSAV::MMSAV(MMSMEDIABackend _backend) :
 #else
 			cerr << "MMSAV: Disko was build without xine support. Switching to gstreamer." << endl;
 			this->backend = MMSMEDIA_BE_GST;
+			break;
 #endif
 		default:
 			// shouldn't be reached
@@ -2143,9 +2145,10 @@ bool MMSAV::sendEvent(MMSInputEvent *input) {
 	case MMSINPUTEVENTTYPE_AXISMOTION:
 		return sendAxisMotion(input->posx, input->posy);
 	default:
-		return false;
 		break;
 	}
+
+	return false;
 }
 
 /**

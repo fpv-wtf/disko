@@ -5,12 +5,12 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2012 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
  *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
+ *      Jens Schneider     <jens.schneider@diskohq.org>,                   *
  *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
  *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
  *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
@@ -33,17 +33,11 @@
 #ifndef MMSINPUTMAPPER_H_
 #define MMSINPUTMAPPER_H_
 
-#include "mmstools/base.h"
-#include "mmsbase/mmsbase.h"
-#include "mmsinput/mmsinputhandler.h"
+#include "mmsgui/mmsguitools.h"
 #include "mmsinput/mmskeymap.h"
 
 #include <libxml/parser.h>
-#include <libxml/tree.h>
-//#include <directfb_keynames.h>
 #include <map>
-
-//typedef vector<DFBInputDeviceKeySymbol> MMS_KEYSET;
 
 /* this class is used to map device input to keyset known to my application */
 class MMSInputMapper {
@@ -51,9 +45,6 @@ class MMSInputMapper {
         xmlDoc 			*parser;
         std::multimap	<string, string> keyMap;
         MMSKeyMap mmskeys;
-
-		//DFBInputDeviceKeySymbol lookUpKeySymbol(const string keyname);
-
 
 	public:
 		MMSInputMapper(string mapfile, string name = "default");
