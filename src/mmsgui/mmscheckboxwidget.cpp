@@ -37,15 +37,6 @@ MMSCheckBoxWidget::MMSCheckBoxWidget(MMSWindow *root, string className, MMSTheme
 }
 
 MMSCheckBoxWidget::~MMSCheckBoxWidget() {
-    // delete images
-    if (this->rootwindow) {
-        this->rootwindow->im->releaseImage(this->checked_bgimage);
-        this->rootwindow->im->releaseImage(this->checked_selbgimage);
-        this->rootwindow->im->releaseImage(this->checked_bgimage_p);
-        this->rootwindow->im->releaseImage(this->checked_selbgimage_p);
-        this->rootwindow->im->releaseImage(this->checked_bgimage_i);
-        this->rootwindow->im->releaseImage(this->checked_selbgimage_i);
-    }
 }
 
 bool MMSCheckBoxWidget::create(MMSWindow *root, string className, MMSTheme *theme) {
@@ -146,37 +137,58 @@ MMSWidget *MMSCheckBoxWidget::copyWidget() {
 }
 
 bool MMSCheckBoxWidget::init() {
-    /* init widget basics */
+    // init widget basics
     if (!MMSWidget::init())
         return false;
 
-	if (this->rootwindow) {
-		string path, name;
+    // load images
+	string path, name;
 
-		if (!getCheckedBgImagePath(path)) path = "";
-		if (!getCheckedBgImageName(name)) name = "";
-		this->checked_bgimage = this->rootwindow->im->getImage(path, name);
+	if (!getCheckedBgImagePath(path)) path = "";
+	if (!getCheckedBgImageName(name)) name = "";
+	this->checked_bgimage = this->rootwindow->im->getImage(path, name);
 
-		if (!getCheckedSelBgImagePath(path)) path = "";
-		if (!getCheckedSelBgImageName(name)) name = "";
-		this->checked_selbgimage = this->rootwindow->im->getImage(path, name);
+	if (!getCheckedSelBgImagePath(path)) path = "";
+	if (!getCheckedSelBgImageName(name)) name = "";
+	this->checked_selbgimage = this->rootwindow->im->getImage(path, name);
 
-		if (!getCheckedBgImagePath_p(path)) path = "";
-		if (!getCheckedBgImageName_p(name)) name = "";
-		this->checked_bgimage_p = this->rootwindow->im->getImage(path, name);
+	if (!getCheckedBgImagePath_p(path)) path = "";
+	if (!getCheckedBgImageName_p(name)) name = "";
+	this->checked_bgimage_p = this->rootwindow->im->getImage(path, name);
 
-		if (!getCheckedSelBgImagePath_p(path)) path = "";
-		if (!getCheckedSelBgImageName_p(name)) name = "";
-		this->checked_selbgimage_p = this->rootwindow->im->getImage(path, name);
+	if (!getCheckedSelBgImagePath_p(path)) path = "";
+	if (!getCheckedSelBgImageName_p(name)) name = "";
+	this->checked_selbgimage_p = this->rootwindow->im->getImage(path, name);
 
-		if (!getCheckedBgImagePath_i(path)) path = "";
-		if (!getCheckedBgImageName_i(name)) name = "";
-		this->checked_bgimage_i = this->rootwindow->im->getImage(path, name);
+	if (!getCheckedBgImagePath_i(path)) path = "";
+	if (!getCheckedBgImageName_i(name)) name = "";
+	this->checked_bgimage_i = this->rootwindow->im->getImage(path, name);
 
-		if (!getCheckedSelBgImagePath_i(path)) path = "";
-		if (!getCheckedSelBgImageName_i(name)) name = "";
-		this->checked_selbgimage_i = this->rootwindow->im->getImage(path, name);
-	}
+	if (!getCheckedSelBgImagePath_i(path)) path = "";
+	if (!getCheckedSelBgImageName_i(name)) name = "";
+	this->checked_selbgimage_i = this->rootwindow->im->getImage(path, name);
+
+    return true;
+}
+
+bool MMSCheckBoxWidget::release() {
+    // release widget basics
+    if (!MMSWidget::release())
+        return false;
+
+	// release all images
+    this->rootwindow->im->releaseImage(this->checked_bgimage);
+    this->checked_bgimage = NULL;
+    this->rootwindow->im->releaseImage(this->checked_selbgimage);
+    this->checked_selbgimage = NULL;
+    this->rootwindow->im->releaseImage(this->checked_bgimage_p);
+    this->checked_bgimage_p = NULL;
+    this->rootwindow->im->releaseImage(this->checked_selbgimage_p);
+    this->checked_selbgimage_p = NULL;
+    this->rootwindow->im->releaseImage(this->checked_bgimage_i);
+    this->checked_bgimage_i = NULL;
+    this->rootwindow->im->releaseImage(this->checked_selbgimage_i);
+    this->checked_selbgimage_i = NULL;
 
     return true;
 }

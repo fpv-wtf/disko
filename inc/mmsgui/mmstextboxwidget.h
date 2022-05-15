@@ -69,10 +69,26 @@ class MMSTextBoxWidget : public MMSWidget {
         //! if true the translated_text is valid
         bool translated;
 
+        //! used to load text from a file
+        MMSFile *file;
 
         bool create(MMSWindow *root, string className, MMSTheme *theme);
 
-        void setSurfaceGeometry(unsigned int width = 0, unsigned int height = 0);
+        bool setSurfaceGeometry(unsigned int width = 0, unsigned int height = 0);
+
+        bool calcWordGeom(string &text, unsigned int startWidth, unsigned int startHeight,
+                          unsigned int *realWidth, unsigned int *realHeight,
+                          unsigned int *scrollDX, unsigned int *scrollDY, unsigned int *lines, unsigned int *paragraphs,
+                          bool wrap = true, bool splitwords = true, MMSALIGNMENT alignment = MMSALIGNMENT_CENTER);
+
+        bool init();
+        bool release();
+        bool draw(bool *backgroundFilled = NULL);
+
+		//! Internal method: Inform the widget, that the language has changed.
+		void targetLangChanged(int lang);
+
+		bool loadFile(bool refresh);
 
     public:
         MMSTextBoxWidget(MMSWindow *root, string className, MMSTheme *theme = NULL);
@@ -80,19 +96,11 @@ class MMSTextBoxWidget : public MMSWidget {
 
         MMSWidget *copyWidget();
 
-        bool calcWordGeom(string text, unsigned int startWidth, unsigned int startHeight,
-                          unsigned int *realWidth, unsigned int *realHeight,
-                          unsigned int *scrollDX, unsigned int *scrollDY, unsigned int *lines, unsigned int *paragraphs,
-                          bool wrap = true, bool splitwords = true, MMSALIGNMENT alignment = MMSALIGNMENT_CENTER);
-
-        bool init();
-        bool draw(bool *backgroundFilled = NULL);
-
     public:
-		//! inform the widget, that language has changed
-		void targetLangChanged(MMS_LANGUAGE_TYPE lang);
+		//! reload the file and display it in the textbox
+		bool reloadFile();
 
-        /* theme access methods */
+        // theme access methods
         string getFontPath();
         string getFontName();
         unsigned int getFontSize();
@@ -104,6 +112,8 @@ class MMSTextBoxWidget : public MMSWidget {
         string getText();
         void getText(string &text);
         bool getTranslate();
+        string getFilePath();
+        string getFileName();
 
 		void setFontPath(string fontpath, bool load = true, bool refresh = true);
         void setFontName(string fontname, bool load = true, bool refresh = true);
@@ -114,10 +124,16 @@ class MMSTextBoxWidget : public MMSWidget {
         void setSplitWords(bool splitwords, bool refresh = true);
         void setColor(MMSFBColor color, bool refresh = true);
         void setSelColor(MMSFBColor selcolor, bool refresh = true);
+        void setText(string *text, bool refresh = true);
         void setText(string text, bool refresh = true);
         void setTranslate(bool translate, bool refresh = true);
+		void setFilePath(string filepath, bool load = true, bool refresh = true);
+        void setFileName(string filename, bool load = true, bool refresh = true);
 
         void updateFromThemeClass(MMSTextBoxWidgetClass *themeClass);
+
+	// friends
+	friend class MMSWindow;
 };
 
 #endif /*MMSTEXTBOXWIDGET_H_*/

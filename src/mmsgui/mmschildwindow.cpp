@@ -34,13 +34,15 @@
 
 MMSChildWindow::MMSChildWindow(string className, MMSWindow *parent,
                                string dx, string dy, string w, string h, MMSALIGNMENT alignment,
-                               MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface) {
-    create(className, parent, dx, dy, w, h, alignment, flags, theme, own_surface);
+                               MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface,
+                               bool *backbuffer) {
+    create(className, parent, dx, dy, w, h, alignment, flags, theme, own_surface, backbuffer);
 }
 
 MMSChildWindow::MMSChildWindow(string className, MMSWindow *parent, string w, string h, MMSALIGNMENT alignment,
-                               MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface) {
-    create(className, parent, "", "", w, h, alignment, flags, theme, own_surface);
+                               MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface,
+                               bool *backbuffer) {
+    create(className, parent, "", "", w, h, alignment, flags, theme, own_surface, backbuffer);
 }
 
 MMSChildWindow::~MMSChildWindow() {
@@ -48,7 +50,7 @@ MMSChildWindow::~MMSChildWindow() {
 
 bool MMSChildWindow::create(string className, MMSWindow *parent,
                             string dx, string dy, string w, string h, MMSALIGNMENT alignment,
-                            MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface) {
+                            MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface, bool *backbuffer) {
 	this->type = MMSWINDOWTYPE_CHILDWINDOW;
     this->className = className;
     if (theme) this->theme = theme; else this->theme = globalTheme;
@@ -59,7 +61,7 @@ bool MMSChildWindow::create(string className, MMSWindow *parent,
 //printf("create child window %x with parent = %x\n", this, parent);
     this->parent = parent;
 
-    return MMSWindow::create(dx, dy, w, h, alignment, flags, own_surface);
+    return MMSWindow::create(dx, dy, w, h, alignment, flags, own_surface, backbuffer);
 }
 
 /***********************************************/

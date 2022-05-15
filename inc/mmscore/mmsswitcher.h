@@ -109,7 +109,8 @@ class MMSSwitcher : public IMMSSwitcher {
         virtual bool leavePlugin(bool show_switcher);
         virtual void* callback(void *data);
 		virtual MMSChildWindow* loadChildWindow(string filename, MMSTheme *theme = NULL);
-
+		virtual void refresh();
+		virtual MMSWidget *getMyButton();
     friend class MMSSwitcherThread;
 };
 

@@ -51,6 +51,7 @@ class MMSInputWidget : public MMSWidget {
         int				cursor_pos;
         bool			cursor_on;
         int 			scroll_x;
+        MMSFBRectangle	cursor_rect;
 
         class MMSInputWidgetThread	*iwt;
 
@@ -59,6 +60,7 @@ class MMSInputWidget : public MMSWidget {
         void handleInput(MMSInputEvent *inputevent);
 
         bool init();
+        bool release();
         bool draw(bool *backgroundFilled = NULL);
         void drawCursor(bool cursor_on);
 
@@ -69,8 +71,46 @@ class MMSInputWidget : public MMSWidget {
         MMSWidget *copyWidget();
 
         void setCursorPos(int cursor_pos, bool refresh = true);
-        void addTextAfterCursorPos(string text, bool refresh = true);
-        void removeTextBeforeCursorPos(int textlen, bool refresh = true);
+        bool addTextAfterCursorPos(string text, bool refresh = true);
+        bool removeTextBeforeCursorPos(int textlen, bool refresh = true);
+
+        //! Set one or more callbacks for the onBeforeChange event.
+        /*!
+        The connected callbacks will be called during handleInput() if user changes the text.
+        If at least one of the callbacks returns false, the user input will be ignored
+        and the text will not be changed.
+
+        A callback method must be defined like this:
+
+        	bool myclass::mycallbackmethod(MMSWidget *widget, string text, bool add, MMSFBRectangle rect);
+
+        	Parameters:
+
+        		widget -> is the pointer to the input widget which is to be changed
+        		text   -> string to be added or removed
+        		add    -> true: string is to be added, false: string is to be removed
+        		rect   -> affected rectangle within the widget
+
+        	Returns:
+
+        		true if the user input is accepted, else false if the input is to be ignored
+
+        To connect your callback to onBeforeChange do this:
+
+            sigc::connection connection;
+            connection = mywindow->onBeforeChange->connect(sigc::mem_fun(myobject,&myclass::mycallbackmethod));
+
+        To disconnect your callback do this:
+
+            connection.disconnect();
+
+        Please note:
+
+            You HAVE TO disconnect myobject from onBeforeChange BEFORE myobject will be deleted!!!
+            Else an abnormal program termination can occur.
+            You HAVE TO call the disconnect() method of sigc::connection explicitly. The destructor will NOT do this!!!
+        */
+        sigc::signal<bool, MMSWidget*, string, bool, MMSFBRectangle>::accumulated<bool_accumulator> *onBeforeChange;
 
     public:
     	/* theme access methods */
@@ -81,6 +121,8 @@ class MMSInputWidget : public MMSWidget {
         MMSFBColor getColor();
         MMSFBColor getSelColor();
         string getText();
+        void getText(string &text);
+        MMSSTATE getCursorState();
 
         void setFontPath(string fontpath, bool load = true, bool refresh = true);
         void setFontName(string fontname, bool load = true, bool refresh = true);
@@ -90,6 +132,7 @@ class MMSInputWidget : public MMSWidget {
         void setColor(MMSFBColor color, bool refresh = true);
         void setSelColor(MMSFBColor selcolor, bool refresh = true);
         void setText(string text, bool refresh = true, bool reset_cursor = true);
+        void setCursorState(MMSSTATE cursor_state, bool refresh = true);
 
         void updateFromThemeClass(MMSInputWidgetClass *themeClass);
 

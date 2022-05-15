@@ -55,6 +55,11 @@ class MMSCheckBoxWidget : public MMSWidget {
         MMSFBSurface	*checked_selbgimage_i;
 
         bool create(MMSWindow *root, string className, MMSTheme *theme);
+
+        bool init();
+        bool release();
+        bool draw(bool *backgroundFilled = NULL);
+
         void handleInput(MMSInputEvent *inputevent);
 
     public:
@@ -62,9 +67,6 @@ class MMSCheckBoxWidget : public MMSWidget {
         ~MMSCheckBoxWidget();
 
         MMSWidget *copyWidget();
-
-        bool init();
-        bool draw(bool *backgroundFilled = NULL);
 
     public:
         // theme access methods

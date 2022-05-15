@@ -48,6 +48,14 @@ typedef enum {
 	MMSFBSurfaceAllocMethod_malloc
 } MMSFBSurfaceAllocMethod;
 
+//! dump mode
+typedef enum {
+	//! dump byte-by-byte hex values
+	MMSFBSURFACE_DUMPMODE_BYTE = 0,
+	//! dump pixels as 1, 2, 3 or 4 byte hex values
+	MMSFBSURFACE_DUMPMODE_PIXEL
+} MMSFBSurfaceDumpMode;
+
 //! this is the maximum number of buffers for a surface (backbuffers + 1)
 #define MMSFBSurfaceMaxBuffers		3
 
@@ -99,7 +107,7 @@ typedef struct {
     //! the surface is a window surface
     bool        	iswinsurface;
     //! the surface is the layer surface
-    //!note: for example it is possible to have a window surface in combination with this layer flag
+    //! note: for example it is possible to have a window surface in combination with this layer flag
     bool        	islayersurface;
     //! drawing flags
     MMSFBDrawingFlags 	drawingflags;
@@ -165,7 +173,7 @@ class MMSFBSurface {
 
         bool extendedLock(MMSFBSurface *src, MMSFBSurfacePlanes *src_planes,
         				  MMSFBSurface *dst, MMSFBSurfacePlanes *dst_planes);
-        void extendedUnlock(MMSFBSurface *src, MMSFBSurface *dst);
+        void extendedUnlock(MMSFBSurface *src, MMSFBSurface *dst, MMSFBSurfacePlanes *dst_planes = NULL);
 
         bool printMissingCombination(string method, MMSFBSurface *source = NULL, MMSFBSurfacePlanes *src_planes = NULL,
 									 MMSFBSurfacePixelFormat src_pixelformat = MMSFB_PF_NONE, int src_width = 0, int src_height = 0);
@@ -262,6 +270,7 @@ class MMSFBSurface {
 
         bool setColor(unsigned char r, unsigned char g,
                       unsigned char b, unsigned char a);
+        bool setColor(MMSFBColor &color);
         bool getColor(MMSFBColor *color);
 
         bool setClip(MMSFBRegion *clip);
@@ -271,18 +280,18 @@ class MMSFBSurface {
         bool setDrawingFlags(MMSFBDrawingFlags flags);
         bool drawLine(int x1, int y1, int x2, int y2);
         bool drawRectangle(int x, int y, int w, int h);
-        bool fillRectangle(int x, int y, int w, int h);
+        bool fillRectangle(int x = 0, int y = 0, int w = 0, int h = 0);
         bool drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
         bool fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
         bool drawCircle(int x, int y, int radius, int start_octant = 0, int end_octant = 7);
 
         bool setBlittingFlags(MMSFBBlittingFlags flags);
         bool getBlittingFlags(MMSFBBlittingFlags *flags);
-        bool blit(MMSFBSurface *source, MMSFBRectangle *src_rect, int x, int y);
+        bool blit(MMSFBSurface *source, MMSFBRectangle *src_rect = NULL, int x = 0, int y = 0);
         bool blitBuffer(MMSFBExternalSurfaceBuffer *extbuf, MMSFBSurfacePixelFormat src_pixelformat, int src_width, int src_height,
-						MMSFBRectangle *src_rect, int x, int y);
+						MMSFBRectangle *src_rect = NULL, int x = 0, int y = 0);
         bool blitBuffer(void *src_ptr, int src_pitch, MMSFBSurfacePixelFormat src_pixelformat, int src_width, int src_height,
-						MMSFBRectangle *src_rect, int x, int y);
+						MMSFBRectangle *src_rect = NULL, int x = 0, int y = 0);
         bool stretchBlit(MMSFBSurface *source, MMSFBRectangle *src_rect, MMSFBRectangle *dest_rect,
 						 MMSFBRectangle *real_dest_rect = NULL, bool calc_dest_rect = false);
         bool stretchBlitBuffer(MMSFBExternalSurfaceBuffer *extbuf, MMSFBSurfacePixelFormat src_pixelformat, int src_width, int src_height,
@@ -323,11 +332,23 @@ class MMSFBSurface {
         bool moveTo(int x, int y);
         bool move(int x, int y);
 
-        bool dump(string filename = "", int x = 0, int y = 0, int w = 0, int h = 0);
+        bool dump2fcb(bool (*fcb)(char *, int, void *, int *), void *argp, int *argi,
+					  int x, int y, int w, int h, MMSFBSurfaceDumpMode dumpmode);
+        int  dump2buffer(char *buffer, int buffer_len, int x = 0, int y = 0, int w = 0, int h = 0,
+						 MMSFBSurfaceDumpMode dumpmode = MMSFBSURFACE_DUMPMODE_BYTE);
+        bool dump2file(string filename, int x = 0, int y = 0, int w = 0, int h = 0,
+					   MMSFBSurfaceDumpMode dumpmode = MMSFBSURFACE_DUMPMODE_BYTE);
+        bool dump2file(string filename, MMSFBSurfaceDumpMode dumpmode);
+        bool dump(int x = 0, int y = 0, int w = 0, int h = 0,
+				  MMSFBSurfaceDumpMode dumpmode = MMSFBSURFACE_DUMPMODE_BYTE);
+        bool dump(MMSFBSurfaceDumpMode dumpmode);
 
     friend class MMSFBLayer;
     friend class MMSFBSurfaceManager;
     friend class MMSFBWindowManager;
 };
+
+bool mmsfb_create_cached_surface(MMSFBSurface **cs, int width, int height,
+								 MMSFBSurfacePixelFormat pixelformat);
 
 #endif /*MMSFBSURFACE_H_*/

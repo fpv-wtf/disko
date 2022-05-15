@@ -35,15 +35,28 @@
 
 
 MMSWindowManager::MMSWindowManager(MMSFBRectangle vrect) {
+	// init me
     this->vrect = vrect;
     this->toplevel = NULL;
+    this->anim_saved_screen = NULL;
 
     // add language changed callback
-    onTargetLangChanged_connection = this->translator.onTargetLangChanged.connect(sigc::mem_fun(this, &MMSWindowManager::onTargetLangChanged));
+    this->onTargetLangChanged_connection = this->translator.onTargetLangChanged.connect(sigc::mem_fun(this, &MMSWindowManager::onTargetLangChanged));
+
+    // add theme changed callback
+    this->onThemeChanged_connection = this->themeManager.onThemeChanged.connect(sigc::mem_fun(this, &MMSWindowManager::onThemeChanged));
+
+    // add animation callbacks
+    this->onAnimation_connection = this->pulser.onAnimation.connect(sigc::mem_fun(this, &MMSWindowManager::onAnimation));
+    this->onAfterAnimation_connection = this->pulser.onAfterAnimation.connect(sigc::mem_fun(this, &MMSWindowManager::onAfterAnimation));
 }
 
 MMSWindowManager::~MMSWindowManager() {
-	onTargetLangChanged_connection.disconnect();
+	// disconnect my callbacks
+	this->onTargetLangChanged_connection.disconnect();
+	this->onThemeChanged_connection.disconnect();
+	this->onAnimation_connection.disconnect();
+	this->onAfterAnimation_connection.disconnect();
 }
 
 void MMSWindowManager::reset() {
@@ -60,7 +73,7 @@ void MMSWindowManager::addWindow(MMSWindow *window) {
 }
 
 void MMSWindowManager::removeWindow(MMSWindow *window){
-    /* search for the window and erase it */
+    // search for the window and erase it
     for(unsigned int i = 0; i < windows.size(); i++) {
         if(window != windows.at(i))
             continue;
@@ -97,10 +110,10 @@ bool MMSWindowManager::hideAllMainWindows(bool goback) {
             if (windows.at(i)->isShown()) {
                 if (this->toplevel == windows.at(i)) {
                     removeWindowFromToplevel(windows.at(i));
-                    windows.at(i)->hide(goback);
+                    windows.at(i)->hide(goback, true);
                 }
                 else
-                    windows.at(i)->hide();
+                    windows.at(i)->hide(false, true);
                 ret = true;
             }
         }
@@ -125,7 +138,7 @@ bool MMSWindowManager::hideAllPopupWindows(bool except_modal) {
 							continue;
 					}
             	}
-                windows.at(i)->hide();
+                windows.at(i)->hide(false, true);
                 ret = true;
             }
         }
@@ -144,10 +157,10 @@ bool MMSWindowManager::hideAllRootWindows(bool willshown) {
             if (windows.at(i)->isShown()) {
                 if (this->toplevel == windows.at(i)) {
                     removeWindowFromToplevel(windows.at(i));
-                    windows.at(i)->hide();
+                    windows.at(i)->hide(false, true);
                 }
                 else
-                    windows.at(i)->hide();
+                    windows.at(i)->hide(false, true);
                 ret = true;
             }
 
@@ -302,11 +315,80 @@ MMSTranslator *MMSWindowManager::getTranslator() {
 	return &this->translator;
 }
 
-
-void MMSWindowManager::onTargetLangChanged(MMS_LANGUAGE_TYPE lang) {
+void MMSWindowManager::onTargetLangChanged(int lang) {
 	// the language has changed, inform all windows
-    for (unsigned int i = 0; i < this->windows.size(); i++)
+    for (unsigned int i = 0; i < this->windows.size(); i++) {
         this->windows.at(i)->targetLangChanged(lang);
+    }
 }
 
+MMSThemeManager *MMSWindowManager::getThemeManager() {
+	return &this->themeManager;
+}
+
+bool MMSWindowManager::onAnimation(MMSPulser *pulser) {
+	// get new opacity
+	int opacity = 255 - pulser->getOffset();
+	// animation finished?
+	if (opacity <= 0) {
+		// yes
+		return false;
+	}
+
+	// set new opacity
+	this->anim_saved_screen->setOpacity(opacity);
+
+	return true;
+}
+
+void MMSWindowManager::onAfterAnimation(MMSPulser *pulser) {
+	// animation finished
+	if (this->anim_saved_screen) {
+		// delete the temporary window
+		this->anim_saved_screen->hide();
+		delete this->anim_saved_screen;
+		this->anim_saved_screen = NULL;
+	}
+}
+
+void MMSWindowManager::onThemeChanged(string themeName, bool fade_in) {
+	// get access to the layer
+	MMSFBLayer *layer = mmsfbmanager.getGraphicsLayer();
+	this->anim_saved_screen = NULL;
+
+	if (fade_in) {
+		// create a temporary window to save the screen
+		// so we can have a nice animation while switching the theme
+		if (layer) {
+			MMSFBSurfacePixelFormat pixelformat;
+			layer->getPixelFormat(&pixelformat);
+			int w, h;
+			layer->getResolution(&w, &h);
+			layer->createWindow(&this->anim_saved_screen, 0, 0, w, h,
+								pixelformat, isAlphaPixelFormat(pixelformat), 0);
+		}
+	}
+
+	if (this->anim_saved_screen) {
+		// get a screenshot
+		this->anim_saved_screen->getScreenshot();
+
+		// show the saved screen
+		this->anim_saved_screen->raiseToTop();
+		this->anim_saved_screen->setOpacity(255);
+		this->anim_saved_screen->show();
+	}
+
+	// the theme has changed, inform all windows
+    for (unsigned int i = 0; i < this->windows.size(); i++) {
+        this->windows.at(i)->themeChanged(themeName);
+    }
+
+    if (this->anim_saved_screen) {
+    	// do the animation
+    	this->pulser.setMaxOffset(255,MMSPULSER_SEQ_LINEAR);
+    	this->pulser.setStepsPerSecond(255);
+    	this->pulser.start(false);
+    }
+}
 

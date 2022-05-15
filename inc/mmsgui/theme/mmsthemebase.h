@@ -36,41 +36,35 @@
 #include "mmstools/mmstafffile.h"
 #include "mmsgui/mmsguitools.h"
 
-/*#include <libxml/parser.h>
-#include <libxml/tree.h>
-*/
-
-/* string constants for xml identifiers */
-/*#define XML_ID_DESC         "description"
-#define XML_ID_MAINWIN      "mainwindow"
-#define XML_ID_POPUPWIN     "popupwindow"
-#define XML_ID_ROOTWIN      "rootwindow"
-#define XML_ID_CHILDWIN     "childwindow"
-#define XML_ID_TEMPLATE     "template"
-#define XML_ID_LABEL        "label"
-#define XML_ID_IMAGE        "image"
-#define XML_ID_BUTTON       "button"
-#define XML_ID_PROGRESSBAR  "progressbar"
-#define XML_ID_MENU         "menu"
-#define XML_ID_MENUITEM     "menuitem"
-#define XML_ID_TEXTBOX      "textbox"
-#define XML_ID_ARROW        "arrow"
-#define XML_ID_SLIDER       "slider"*/
 
 
+//! alignment type, used e.g. for positioning of windows, text in labels or textboxes, ...
 typedef enum {
+	//! not set
     MMSALIGNMENT_NOTSET=0,
+    //! centered, horizontal and vertical
     MMSALIGNMENT_CENTER,
+    //! left aligned, vertical centered
     MMSALIGNMENT_LEFT,
+    //! right aligned, vertical centered
     MMSALIGNMENT_RIGHT,
+    //! horizontal justified, vertical centered
     MMSALIGNMENT_JUSTIFY,
+    //! horizontal centered, top aligned
     MMSALIGNMENT_TOP_CENTER,
+    //! left and top aligned
     MMSALIGNMENT_TOP_LEFT,
+    //! right and top aligned
     MMSALIGNMENT_TOP_RIGHT,
+    //! horizontal justified, top aligned
     MMSALIGNMENT_TOP_JUSTIFY,
+    //! horizontal centered, bottom aligned
     MMSALIGNMENT_BOTTOM_CENTER,
+    //! left and bottom aligned
     MMSALIGNMENT_BOTTOM_LEFT,
+    //! right and bottom aligned
     MMSALIGNMENT_BOTTOM_RIGHT,
+    //! horizontal justified, bottom aligned
     MMSALIGNMENT_BOTTOM_JUSTIFY
 } MMSALIGNMENT;
 
@@ -87,43 +81,6 @@ typedef enum {
 
 
 MMSDIRECTION getDirectionFromString(string inputstr);
-
-/*
-#ifdef sfdsdfdfds
-#define startXMLScan \
-{const xmlpp::Element::AttributeList& attributes = dynamic_cast<const xmlpp::Element*>(node)->get_attributes(); \
-    for(xmlpp::Element::AttributeList::const_iterator iterAttrs = attributes.begin(); iterAttrs != attributes.end(); ++iterAttrs) { \
-        const xmlpp::Attribute* attribute = *iterAttrs; \
-        string attrName = attribute->get_name(); \
-        string attrValue = attribute->get_value();
-
-#define endXMLScan }}
-#endif
-
-
-#define startXMLScan \
-{xmlAttr *attr = node->properties; \
-	for (xmlAttr *cur_attr = attr; cur_attr; cur_attr = cur_attr->next) { \
-		string attrName = (string)(char*)(cur_attr->name); \
-        string attrValue; \
-		xmlChar *xvalue; \
-		xvalue = xmlGetProp(node, cur_attr->name); \
-    	if (xvalue) { \
-    		attrValue = (string)(char*)xvalue; \
-    	    xmlFree(xvalue); \
-    	}
-
-#define endXMLScan }}
-*/
-
-/*
-#define getXMLColor \
-    if(attrName == "a")    { color.a = atoi(attrValue.c_str()); if (color.a!=255) color.a=0; } \
-    else if(attrName == "r") color.r = atoi(attrValue.c_str()); \
-    else if(attrName == "g") color.g = atoi(attrValue.c_str()); \
-    else if(attrName == "b") color.b = atoi(attrValue.c_str());
-*/
-
 
 
 #define MMSTHEMECLASS_INIT_STRING(x) \
@@ -224,23 +181,6 @@ MMSDIRECTION getDirectionFromString(string inputstr);
 
 
 
-namespace MMSGUI_MMSTHEME_ATTR {
-
-	#define MMSGUI_MMSTHEME_ATTR_ATTRDESC \
-		{ "name", TAFF_ATTRTYPE_STRING }
-
-	#define MMSGUI_MMSTHEME_ATTR_IDS \
-		MMSGUI_MMSTHEME_ATTR_IDS_name
-
-	#define MMSGUI_MMSTHEME_ATTR_INIT { \
-		MMSGUI_MMSTHEME_ATTR_ATTRDESC, \
-		{NULL, TAFF_ATTRTYPE_NONE} \
-	}
-
-	typedef enum {
-		MMSGUI_MMSTHEME_ATTR_IDS
-	} ids;
-}
 
 
 namespace MMSGUI_MMSDIALOG_ATTR {

@@ -37,23 +37,19 @@
 //#define __PUPTRACE__
 
 
-MMSImageWidget::MMSImageWidget(MMSWindow *root, string className, MMSTheme *theme) {
-    create(root, className, theme);
+MMSImageWidget::MMSImageWidget(MMSWindow *root, string className, MMSTheme *theme) : imageThread(NULL) {
+	create(root, className, theme);
 }
 
 MMSImageWidget::~MMSImageWidget() {
     if (imageThread) {
         imageThread->stop();
-        imageThread=NULL;
-    }
+        while(imageThread->isRunning()) {
+        	usleep(1000);
+        }
 
-    if (this->rootwindow) {
-        this->rootwindow->im->releaseImage(this->image);
-        this->rootwindow->im->releaseImage(this->selimage);
-        this->rootwindow->im->releaseImage(this->image_p);
-        this->rootwindow->im->releaseImage(this->selimage_p);
-        this->rootwindow->im->releaseImage(this->image_i);
-        this->rootwindow->im->releaseImage(this->selimage_i);
+        delete imageThread;
+        imageThread=NULL;
     }
 }
 
@@ -68,7 +64,7 @@ bool MMSImageWidget::create(MMSWindow *root, string className, MMSTheme *theme) 
     this->da->baseWidgetClass = &(this->da->theme->imageWidgetClass.widgetClass);
     if (this->imageWidgetClass) this->da->widgetClass = &(this->imageWidgetClass->widgetClass); else this->da->widgetClass = NULL;
 
-    /* clear */
+    // clear
     this->image = NULL;
     image_loaded = false;
     image_curr_index = 0;
@@ -93,9 +89,16 @@ bool MMSImageWidget::create(MMSWindow *root, string className, MMSTheme *theme) 
     selimage_i_loaded = false;
     selimage_i_curr_index = 0;
 
+    if(imageThread) {
+    	imageThread->stop();
+        while(imageThread->isRunning()) {
+        	usleep(1000);
+        }
+    	delete imageThread;
+    }
     imageThread = NULL;
 
-    /* create widget base */
+    // create widget base
     return MMSWidget::create(root, true, false, false, true, true, true, true);
 }
 
@@ -187,7 +190,7 @@ MMSWidget *MMSImageWidget::copyWidget() {
 }
 
 bool MMSImageWidget::init() {
-    /* init widget basics */
+    // init widget basics
     if (!MMSWidget::init())
         return false;
 
@@ -196,7 +199,7 @@ bool MMSImageWidget::init() {
     	b = false;
 
     if ((!b)||(this->isVisible())) {
-        /* load images */
+        // load images
         if (!image_loaded) {
             loadMyImage(getImagePath(), getImageName(), &this->image, &(this->image_suf), &image_curr_index, getMirrorSize());
             image_loaded = true;
@@ -228,6 +231,33 @@ bool MMSImageWidget::init() {
     return true;
 }
 
+bool MMSImageWidget::release() {
+    // release widget basics
+    if (!MMSWidget::release())
+        return false;
+
+    // release my images
+    this->rootwindow->im->releaseImage(this->image);
+    this->image = NULL;
+    this->image_loaded = false;
+    this->rootwindow->im->releaseImage(this->selimage);
+    this->selimage = NULL;
+    this->selimage_loaded = false;
+    this->rootwindow->im->releaseImage(this->image_p);
+    this->image_p = NULL;
+    this->image_p_loaded = false;
+    this->rootwindow->im->releaseImage(this->selimage_p);
+    this->selimage_p = NULL;
+    this->selimage_p_loaded = false;
+    this->rootwindow->im->releaseImage(this->image_i);
+    this->image_i = NULL;
+    this->image_i_loaded = false;
+    this->rootwindow->im->releaseImage(this->selimage_i);
+    this->selimage_i = NULL;
+    this->selimage_i_loaded = false;
+
+    return true;
+}
 
 void MMSImageWidget::workWithRatio(MMSFBSurface *suf, MMSFBRectangle *surfaceGeom) {
     int w, h, dw, dh, ratio;

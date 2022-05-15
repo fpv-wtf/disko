@@ -54,11 +54,16 @@ void MMSInputWidgetClass::unsetAll() {
     unsetColor();
     unsetSelColor();
     unsetText();
+    unsetCursorState();
 }
 
-void MMSInputWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path) {
+void MMSInputWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path, bool reset_paths) {
     MMSFBColor color;
-    bool class_set = false;
+
+    if ((reset_paths)&&(path)&&(*path!="")) {
+    	// unset my paths
+        unsetFontPath();
+    }
 
     if (!prefix) {
 		startTAFFScan
@@ -66,7 +71,6 @@ void MMSInputWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pref
 	        switch (attrid) {
 			case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_class:
 	            setClassName(attrval_str);
-	            class_set = true;
 				break;
 			case MMSGUI_INPUTWIDGET_ATTR::MMSGUI_INPUTWIDGET_ATTR_IDS_font_path:
 	            if (*attrval_str)
@@ -86,7 +90,7 @@ void MMSInputWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pref
 			case MMSGUI_INPUTWIDGET_ATTR::MMSGUI_INPUTWIDGET_ATTR_IDS_color:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isColor()) color = getColor();
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setColor(color);
 	            break;
 			case MMSGUI_INPUTWIDGET_ATTR::MMSGUI_INPUTWIDGET_ATTR_IDS_color_a:
@@ -116,7 +120,7 @@ void MMSInputWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pref
 			case MMSGUI_INPUTWIDGET_ATTR::MMSGUI_INPUTWIDGET_ATTR_IDS_selcolor:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isSelColor()) color = getSelColor();
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setSelColor(color);
 	            break;
 			case MMSGUI_INPUTWIDGET_ATTR::MMSGUI_INPUTWIDGET_ATTR_IDS_selcolor_a:
@@ -145,6 +149,15 @@ void MMSInputWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pref
 	            break;
 			case MMSGUI_INPUTWIDGET_ATTR::MMSGUI_INPUTWIDGET_ATTR_IDS_text:
 	            setText(attrval_str);
+	            break;
+			case MMSGUI_INPUTWIDGET_ATTR::MMSGUI_INPUTWIDGET_ATTR_IDS_cursor_state:
+				if ((attrval_int & 0xff) == 0x01)
+					setCursorState(MMSSTATE_AUTO);
+				else
+				if (attrval_int)
+					setCursorState(MMSSTATE_TRUE);
+				else
+					setCursorState(MMSSTATE_FALSE);
 	            break;
 			}
 		}
@@ -185,7 +198,7 @@ void MMSInputWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pref
             if (ISATTRNAME(color)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isColor()) color = getColor();
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setColor(color);
             }
             else
@@ -220,7 +233,7 @@ void MMSInputWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pref
             if (ISATTRNAME(selcolor)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isSelColor()) color = getSelColor();
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setSelColor(color);
             }
             else
@@ -255,11 +268,23 @@ void MMSInputWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pref
             if (ISATTRNAME(text)) {
 	            setText(attrval_str);
 			}
+            else
+            if (ISATTRNAME(cursor_state)) {
+				if ((attrval_int & 0xff) == 0x01)
+					setCursorState(MMSSTATE_AUTO);
+				else
+				if (attrval_int)
+					setCursorState(MMSSTATE_TRUE);
+				else
+					setCursorState(MMSSTATE_FALSE);
+	            break;
+			}
     	}
     	endTAFFScan_WITHOUT_ID
     }
 
-    if ((!class_set)&&(path)&&(*path!="")) {
+    if ((reset_paths)&&(path)&&(*path!="")) {
+    	// set my paths
 	    if (!isFontPath())
 	        setFontPath(*path);
     }
@@ -390,5 +415,22 @@ void MMSInputWidgetClass::unsetText() {
 
 string MMSInputWidgetClass::getText() {
     return this->text;
+}
+
+bool MMSInputWidgetClass::isCursorState() {
+    return this->iscursor_state;
+}
+
+void MMSInputWidgetClass::setCursorState(MMSSTATE cursor_state) {
+    this->cursor_state = cursor_state;
+    this->iscursor_state = true;
+}
+
+void MMSInputWidgetClass::unsetCursorState() {
+    this->iscursor_state = false;
+}
+
+MMSSTATE MMSInputWidgetClass::getCursorState() {
+    return this->cursor_state;
 }
 

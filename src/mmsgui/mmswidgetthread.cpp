@@ -46,7 +46,9 @@ void MMSWidgetThread::threadMain() {
 
 	while (this->delay > 0) {
 		usleep(50000);
-		if (this->widget->isPressed()) { printf("pressed...\n"); continue; }
+		if (this->widget->isPressed()) {
+			continue;
+		}
 		this->delay -= 50;
 	}
 

@@ -71,10 +71,11 @@ class MMSPopupWindowClass {
 
         //! Read and set all attributes from the given TAFF buffer.
         /*!
-        \param tafff   pointer to the TAFF buffer
-        \param path    optional, path needed for empty path values from the TAFF buffer
+        \param tafff   		pointer to the TAFF buffer
+        \param path    		optional, path needed for empty path values from the TAFF buffer
+        \param reset_paths  optional, should reset all path attributes?
         */
-        void setAttributesFromTAFF(MMSTaffFile *tafff, string *path = NULL);
+        void setAttributesFromTAFF(MMSTaffFile *tafff, string *path = NULL, bool reset_paths = false);
 
     public:
         MMSWindowClass windowClass;

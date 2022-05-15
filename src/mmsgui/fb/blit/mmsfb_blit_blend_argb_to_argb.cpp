@@ -33,8 +33,16 @@
 #include "mmsgui/fb/mmsfbconv.h"
 #include "mmstools/mmstools.h"
 
-void mmsfb_blit_blend_argb_to_argb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-								   unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy) {
+void mmsfb_blit_blend_argb_to_argb(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+								   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy) {
+
+	if (src_planes->opaque) {
+		// source is full opaque, so i can ignore the alpha channel and use faster routine
+		mmsfb_blit_argb_to_argb(src_planes, src_height, sx, sy, sw, sh,
+								dst_planes, dst_height, dx, dy);
+		return;
+	}
+
 	// first time?
 	static bool firsttime = true;
 	if (firsttime) {
@@ -42,9 +50,18 @@ void mmsfb_blit_blend_argb_to_argb(MMSFBExternalSurfaceBuffer *extbuf, int src_h
 		firsttime = false;
 	}
 
+	if (src_planes->transparent) {
+		// source is full transparent, there is no need to do anything
+		return;
+	}
+
 	// get the first source ptr/pitch
-	unsigned int *src = (unsigned int *)extbuf->ptr;
-	int src_pitch = extbuf->pitch;
+	unsigned int *src = (unsigned int *)src_planes->ptr;
+	int src_pitch = src_planes->pitch;
+
+	// get the first destination ptr/pitch
+	unsigned int *dst = (unsigned int *)dst_planes->ptr;
+	int dst_pitch = dst_planes->pitch;
 
 	// prepare...
 	int src_pitch_pix = src_pitch >> 2;

@@ -36,17 +36,39 @@
 #include "mmsgui/mmswindow.h"
 #include "mmsgui/mmschildwindow.h"
 
+// support old renamed methods
+#define searchForWidget findWidget
+
+//! With this class you can load dialog files written in disko's XML syntax.
+/*!
+It is recommended to use XML files to describe the layout of your dialog windows.
+So you can change it (design it) without changing your C++ code. With the
+dialog manager you also minimize the lines of your C++ code.
+\author Jens Schneider
+*/
 class MMSDialogManager {
 	private:
+		//! if leave_window, then you can use a single MMSDialogManager instance to load
+		//! more than one dialog window with the loadDialog() method
+		bool 					leave_window;
+
+		//! pointer to the instantiated window
         MMSWindow               *rootWindow;
+
+        //! is window instantiated by me?
         bool					rootWindow_is_mine;
 
+        //! loaded child windows
         vector<MMSChildWindow*> childWins;
 
-        string              filename;
-        MMSDescriptionClass description;    /* description of the dialog */
+        //! filename of dialog's XML source
+        string              	filename;
 
-        vector<MMSWidget*>  namedWidgets;
+        //! description of the dialog
+        MMSDescriptionClass 	description;
+
+        //! list of widgets with a name
+        vector<MMSWidget*>  	namedWidgets;
 
         void insertNamedWidget(MMSWidget *widget);
 
@@ -75,14 +97,15 @@ class MMSDialogManager {
         string getGapValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme);
 
     public:
-        MMSDialogManager();
+        MMSDialogManager(bool leave_window = false);
         MMSDialogManager(MMSWindow *rootWindow);
         ~MMSDialogManager();
         bool isLoaded();
         MMSWindow* loadDialog(string filename, MMSTheme *theme = NULL);
         MMSChildWindow* loadChildDialog(string filename, MMSTheme *theme = NULL);
-        MMSWidget* searchForWidget(string name);
+        MMSWidget* findWidget(string name);
         MMSWidget* operator[](string name);
+        MMSWindow* getWindow();
 
         MMSDescriptionClass getDescription();
 };

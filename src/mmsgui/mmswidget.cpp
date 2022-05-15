@@ -43,7 +43,6 @@ string MMSWidget_inputmode = "";
 MMSWidget::MMSWidget() {
 	// per default no attributes for drawable widgets are allocated
 	this->da = NULL;
-
     this->initialized = false;
     this->rootwindow = NULL;
     this->parent_rootwindow = NULL;
@@ -54,6 +53,11 @@ MMSWidget::MMSWidget() {
     this->selected = false;
     this->activated = true;
     this->pressed = false;
+
+    this->onSelect = NULL;
+    this->onFocus = NULL;
+    this->onReturn = NULL;
+    this->onClick = NULL;
 
     this->brightness = 255;
     this->opacity = 255;
@@ -93,21 +97,8 @@ MMSWidget::~MMSWidget() {
     if (onReturn) delete onReturn;
     if (onClick)  delete onClick;
 
-    // delete images
-    if (this->rootwindow) {
-    	if (this->da) {
-			this->rootwindow->im->releaseImage(this->da->bgimage);
-			this->rootwindow->im->releaseImage(this->da->selbgimage);
-			this->rootwindow->im->releaseImage(this->da->bgimage_p);
-			this->rootwindow->im->releaseImage(this->da->selbgimage_p);
-			this->rootwindow->im->releaseImage(this->da->bgimage_i);
-			this->rootwindow->im->releaseImage(this->da->selbgimage_i);
-			for (int i=0;i<MMSBORDER_IMAGE_NUM_SIZE;i++)
-				this->rootwindow->im->releaseImage(this->da->borderimages[i]);
-			for (int i=0;i<MMSBORDER_IMAGE_NUM_SIZE;i++)
-				this->rootwindow->im->releaseImage(this->da->borderselimages[i]);
-    	}
-    }
+    // delete images, fonts, ...
+    release();
 
     // delete children
     for (unsigned int i = 0; i < children.size(); i++)
@@ -173,10 +164,15 @@ bool MMSWidget::create(MMSWindow *root, bool drawable, bool needsparentdraw, boo
 
 	    this->da->joinedWidget = NULL;
 
-	    onSelect = new sigc::signal<void, MMSWidget*>;
-	    onFocus  = new sigc::signal<void, MMSWidget*, bool>;
-	    onReturn = new sigc::signal<void, MMSWidget*>;
-	    onClick  = new sigc::signal<void, MMSWidget*, int, int, int, int>;
+	    if(!onSelect) {
+	    	onSelect = new sigc::signal<void, MMSWidget*>;
+	    }
+	    if(!onFocus)
+	    	onFocus  = new sigc::signal<void, MMSWidget*, bool>;
+	    if(!onReturn)
+	    	onReturn = new sigc::signal<void, MMSWidget*>;
+	    if(!onClick)
+	    	onClick  = new sigc::signal<void, MMSWidget*, int, int, int, int>;
 	}
 	else {
 		// init attributes for non-drawable widgets
@@ -314,7 +310,7 @@ MMSWidget* MMSWidget::disconnectChild(unsigned int atpos) {
         return NULL;
 }
 
-MMSWidget* MMSWidget::searchForWidget(string name) {
+MMSWidget* MMSWidget::findWidget(string name) {
     MMSWidget *widget;
 
     if (name=="")
@@ -327,13 +323,13 @@ MMSWidget* MMSWidget::searchForWidget(string name) {
 
     /* second, call search method of my children */
     for (unsigned int i = 0; i < children.size(); i++)
-        if ((widget = children.at(i)->searchForWidget(name)))
+        if ((widget = children.at(i)->findWidget(name)))
             return widget;
 
     return NULL;
 }
 
-MMSWidget* MMSWidget::searchForWidgetType(MMSWIDGETTYPE type) {
+MMSWidget* MMSWidget::findWidgetType(MMSWIDGETTYPE type) {
     MMSWidget *widget;
 
     /* first, my own children */
@@ -343,7 +339,7 @@ MMSWidget* MMSWidget::searchForWidgetType(MMSWIDGETTYPE type) {
 
     /* second, call search method of my children */
     for (unsigned int i = 0; i < children.size(); i++)
-        if ((widget = children.at(i)->searchForWidgetType(type)))
+        if ((widget = children.at(i)->findWidgetType(type)))
             return widget;
 
     return NULL;
@@ -352,19 +348,22 @@ MMSWidget* MMSWidget::searchForWidgetType(MMSWIDGETTYPE type) {
 MMSWidget* MMSWidget::operator[](string name) {
     MMSWidget *widget;
 
-    if ((widget = searchForWidget(name)))
+    if ((widget = findWidget(name)))
         return widget;
-    throw new MMSWidgetError(1, "widget " + name + " not found");
+    throw MMSWidgetError(1, "widget " + name + " not found");
 }
 
 
 
-void MMSWidget::setSurfaceGeometry(unsigned int width, unsigned int height) {
+bool MMSWidget::setSurfaceGeometry(unsigned int width, unsigned int height) {
     MMSFBRectangle mygeom;
 
-    if (!drawable)
-        return;
+    if (!drawable) {
+    	// not a drawable widget
+        return false;
+    }
 
+    // width and height should not lesser than innerGeom
     mygeom.x = 0;
     mygeom.y = 0;
     if ((int)width > this->innerGeom.w)
@@ -378,33 +377,40 @@ void MMSWidget::setSurfaceGeometry(unsigned int width, unsigned int height) {
 
     if ((this->surfaceGeom.w != mygeom.w)||(this->surfaceGeom.h != mygeom.h)) {
 
-        /* surface geom has changed */
+        // surface dimension has changed
         this->surfaceGeom = mygeom;
 
-        /* create or change my surface */
+        // create or change my surface
         if (this->surface) {
             delete this->surface;
             this->surface = NULL;
         }
 
         if (this->has_own_surface) {
-        	/* has own surface, create it */
+        	// has own surface, create it
         	this->windowSurface->createCopy(&(this->surface), this->surfaceGeom.w, this->surfaceGeom.h);
         }
         else {
-        	/* get sub surface */
+        	// get sub surface
         	this->surface = this->windowSurface->getSubSurface(&(this->innerGeom));
         }
+
+        // dimension has changed
+        return true;
     }
     else {
-        if (!this->has_own_surface)
+        if (!this->has_own_surface) {
         	if (this->surface) {
-    	    	/* position of sub surface has changed */
+    	    	// position of sub surface has changed
     		    this->surfaceGeom = mygeom;
 
-    		    /* move the sub surface */
+    		    // move the sub surface
     		    this->surface->moveTo(this->innerGeom.x, this->innerGeom.y);
         	}
+        }
+
+        // dimension has NOT changed
+        return false;
     }
 }
 
@@ -585,7 +591,7 @@ bool MMSWidget::loadArrowWidgets() {
     	if (getUpArrow(s))
     		if (s != "")
 		        if (this->rootwindow)
-		            if ((this->da->upArrowWidget = this->rootwindow->searchForWidget(s))) {
+		            if ((this->da->upArrowWidget = this->rootwindow->findWidget(s))) {
 		                if (!this->da->upArrowWidget->getSelectable(b))
 		                    this->da->upArrowWidget = NULL;
 		                else
@@ -597,7 +603,7 @@ bool MMSWidget::loadArrowWidgets() {
     	if (getDownArrow(s))
     		if (s != "")
 		        if (this->rootwindow)
-		            if ((this->da->downArrowWidget = this->rootwindow->searchForWidget(s))) {
+		            if ((this->da->downArrowWidget = this->rootwindow->findWidget(s))) {
 		                if (!this->da->downArrowWidget->getSelectable(b))
 		                    this->da->downArrowWidget = NULL;
 		                else
@@ -609,7 +615,7 @@ bool MMSWidget::loadArrowWidgets() {
     	if (getLeftArrow(s))
     		if (s != "")
 		        if (this->rootwindow)
-		            if ((this->da->leftArrowWidget = this->rootwindow->searchForWidget(s))) {
+		            if ((this->da->leftArrowWidget = this->rootwindow->findWidget(s))) {
 		                if (!this->da->leftArrowWidget->getSelectable(b))
 		                    this->da->leftArrowWidget = NULL;
 		                else
@@ -621,7 +627,7 @@ bool MMSWidget::loadArrowWidgets() {
     	if (getRightArrow(s))
     		if (s != "")
 		        if (this->rootwindow)
-		            if ((this->da->rightArrowWidget = this->rootwindow->searchForWidget(s))) {
+		            if ((this->da->rightArrowWidget = this->rootwindow->findWidget(s))) {
 		                if (!this->da->rightArrowWidget->getSelectable(b))
 		                    this->da->rightArrowWidget = NULL;
 		                else
@@ -804,10 +810,11 @@ void MMSWidget::updateWindowSurfaceWithSurface(bool useAlphaChannel) {
 }
 
 bool MMSWidget::init() {
-    if (drawable) {
-        if (!this->rootwindow)
-            return false;
+    if (!this->rootwindow)
+        return false;
 
+    if ((drawable) && (this->da)) {
+    	// load images
         string path, name;
 
         if (!getBgImagePath(path)) path = "";
@@ -846,33 +853,78 @@ bool MMSWidget::init() {
             this->da->borderselimages[i] = this->rootwindow->im->getImage(path, name);
         }
 
-        /* get my four widgets to which I have to navigate */
+        // get my four widgets to which I have to navigate
         if (!getNavigateUp(name)) name = "";
-        this->da->navigateUpWidget = this->rootwindow->searchForWidget(name);
+        this->da->navigateUpWidget = this->rootwindow->findWidget(name);
 
         if (!getNavigateDown(name)) name = "";
-        this->da->navigateDownWidget = this->rootwindow->searchForWidget(name);
+        this->da->navigateDownWidget = this->rootwindow->findWidget(name);
 
         if (!getNavigateLeft(name)) name = "";
-        this->da->navigateLeftWidget = this->rootwindow->searchForWidget(name);
+        this->da->navigateLeftWidget = this->rootwindow->findWidget(name);
 
         if (!getNavigateRight(name)) name = "";
-        this->da->navigateRightWidget = this->rootwindow->searchForWidget(name);
+        this->da->navigateRightWidget = this->rootwindow->findWidget(name);
 
-        /* get my two widgets which represents the sliders */
+        // get my two widgets which represents the sliders
         if (!getVSlider(name)) name = "";
-        this->da->vSliderWidget = this->rootwindow->searchForWidget(name);
+        this->da->vSliderWidget = this->rootwindow->findWidget(name);
 
         if (!getHSlider(name)) name = "";
-        this->da->hSliderWidget = this->rootwindow->searchForWidget(name);
+        this->da->hSliderWidget = this->rootwindow->findWidget(name);
 
         // get widget which is joined to me
         if (!getJoinedWidget(name)) name = "";
-        this->da->joinedWidget = this->rootwindow->searchForWidget(name);
+        this->da->joinedWidget = this->rootwindow->findWidget(name);
     }
     return true;
 }
 
+bool MMSWidget::release() {
+    if (!this->rootwindow)
+        return false;
+
+    if ((drawable) && (this->da)) {
+		// release all images
+		this->rootwindow->im->releaseImage(this->da->bgimage);
+		this->da->bgimage = NULL;
+		this->rootwindow->im->releaseImage(this->da->selbgimage);
+		this->da->selbgimage = NULL;
+		this->rootwindow->im->releaseImage(this->da->bgimage_p);
+		this->da->bgimage_p = NULL;
+		this->rootwindow->im->releaseImage(this->da->selbgimage_p);
+		this->da->selbgimage_p = NULL;
+		this->rootwindow->im->releaseImage(this->da->bgimage_i);
+		this->da->bgimage_i = NULL;
+		this->rootwindow->im->releaseImage(this->da->selbgimage_i);
+		this->da->selbgimage_i = NULL;
+
+		for (int i=0;i<MMSBORDER_IMAGE_NUM_SIZE;i++) {
+			this->rootwindow->im->releaseImage(this->da->borderimages[i]);
+			this->da->borderimages[i] = NULL;
+		}
+
+		for (int i=0;i<MMSBORDER_IMAGE_NUM_SIZE;i++) {
+			this->rootwindow->im->releaseImage(this->da->borderselimages[i]);
+			this->da->borderselimages[i] = NULL;
+		}
+
+        // reset my four widgets to which I have to navigate
+        this->da->navigateUpWidget = NULL;
+        this->da->navigateDownWidget = NULL;
+        this->da->navigateLeftWidget = NULL;
+        this->da->navigateRightWidget = NULL;
+
+        // reset my two widgets which represents the sliders
+        this->da->vSliderWidget = NULL;
+        this->da->hSliderWidget = NULL;
+
+        // reset widget which is joined to me
+        this->da->joinedWidget = NULL;
+    }
+
+    return true;
+}
 
 #ifdef OLDDRAW
 bool MMSWidget(bool *backgroundFilled) {
@@ -1128,9 +1180,8 @@ bool MMSWidget::draw(bool *backgroundFilled) {
     bool         myBackgroundFilled = false;
     bool         retry = false;
 
-
     if (!this->initialized) {
-        /* init widget (e.g. load images, fonts, ...) */
+        // init widget (e.g. load images, fonts, ...)
         init();
         this->initialized = true;
     }
@@ -1484,6 +1535,15 @@ void MMSWidget::startWidgetThread(int delay) {
 	}
 }
 
+void MMSWidget::themeChanged(string &themeName) {
+	if (!isDrawable())
+		return;
+
+    // delete images, fonts, ...
+	release();
+	this->initialized = false;
+}
+
 
 void MMSWidget::add(MMSWidget *widget) {
     if (canHaveChildren())
@@ -1496,9 +1556,9 @@ void MMSWidget::add(MMSWidget *widget) {
                 this->rootwindow->add(widget);
         }
         else
-            throw new MMSWidgetError(0,"this widget does only support one child");
+            throw MMSWidgetError(0,"this widget does only support one child");
     else
-        throw new MMSWidgetError(0,"this widget does not support children");
+        throw MMSWidgetError(0,"this widget does not support children");
 }
 
 void MMSWidget::markChildren2Redraw() {
@@ -1873,11 +1933,15 @@ bool MMSWidget::setSelected(bool set, bool refresh, bool *changed, bool joined) 
             this->onSelect->emit(this);
 
     if ((set)&&(refresh)) {
-		// start thread which removes the focus after n seconds
-		string inputmode = "";
-		getInputModeEx(inputmode);
-		if (strToUpr(inputmode) == "CLICK")
-			startWidgetThread(150);
+    	bool b = false;
+    	getFocusable(b);
+    	if (b) {
+			// focusable widget, start thread which removes the focus after n seconds
+			string inputmode = "";
+			getInputModeEx(inputmode);
+			if (strToUpr(inputmode) == "CLICK")
+				startWidgetThread(150);
+    	}
     }
 
     return true;
@@ -1922,32 +1986,43 @@ bool MMSWidget::isActivated() {
     return this->activated;
 }
 
-void MMSWidget::setPressed(bool set, bool refresh) {
+bool MMSWidget::setPressed(bool set, bool refresh) {
 
-    /* check if pressed status already set */
+    // check if pressed status already set
     if (this->pressed == set) {
-        /* refresh my children */
+        // refresh my children
     	if (canSelectChildren()) {
-			for (unsigned int i=0; i < children.size(); i++)
-				children.at(i)->setPressed(set, false);
-			if (refresh)
+    		bool ref = false;
+			for (unsigned int i=0; i < children.size(); i++) {
+				if (children.at(i)->setPressed(set, false))
+					ref = true;
+			}
+			if (ref && refresh) {
+				// call refresh only, if at least one children has changed it's status
 				this->refresh();
+			}
     	}
-		return;
+
+    	// status not changed
+		return false;
     }
 
-    /* switch pressed on/off */
+    // switch pressed on/off
     this->pressed = set;
 
-    /* refresh my children */
+    // refresh my children
 	if (canSelectChildren()) {
-		for (unsigned int i=0; i < children.size(); i++)
+		for (unsigned int i=0; i < children.size(); i++) {
 			children.at(i)->setPressed(set, false);
+		}
 	}
 
-    /* refresh widget */
+    // refresh widget
     if (refresh)
         this->refresh();
+
+    // status changed
+    return true;
 }
 
 bool MMSWidget::isPressed() {
@@ -2090,6 +2165,10 @@ void MMSWidget::handleInput(MMSInputEvent *inputevent) {
 					}
 	    		}
 
+	    		// reset the pressed status
+				if (isPressed())
+					setPressed(false);
+
 	    		// save last inputevent
 	    		this->da->last_inputevent = *inputevent;
 	    		return;
@@ -2127,7 +2206,7 @@ void MMSWidget::handleInput(MMSInputEvent *inputevent) {
 			}
 	}
 
-    throw new MMSWidgetError(1,"input not handled");
+    throw MMSWidgetError(1,"input not handled");
 }
 
 
@@ -2577,7 +2656,7 @@ bool MMSWidget::setBgColor_p(MMSFBColor bgcolor_p, bool refresh) {
 
 bool MMSWidget::setSelBgColor_p(MMSFBColor selbgcolor_p, bool refresh) {
 	if (!this->da) return false;
-    this->da->myWidgetClass.setSelBgColor(selbgcolor_p);
+    this->da->myWidgetClass.setSelBgColor_p(selbgcolor_p);
     if (refresh)
         this->refresh();
     return true;
@@ -2593,7 +2672,7 @@ bool MMSWidget::setBgColor_i(MMSFBColor bgcolor_i, bool refresh) {
 
 bool MMSWidget::setSelBgColor_i(MMSFBColor selbgcolor_i, bool refresh) {
 	if (!this->da) return false;
-    this->da->myWidgetClass.setSelBgColor(selbgcolor_i);
+    this->da->myWidgetClass.setSelBgColor_i(selbgcolor_i);
     if (refresh)
         this->refresh();
     return true;
@@ -2871,7 +2950,7 @@ bool MMSWidget::setNavigateUp(string navigateup) {
     this->da->myWidgetClass.setNavigateUp(navigateup);
     this->da->navigateUpWidget = NULL;
     if ((this->rootwindow)&&(navigateup!=""))
-        this->da->navigateUpWidget = this->rootwindow->searchForWidget(navigateup);
+        this->da->navigateUpWidget = this->rootwindow->findWidget(navigateup);
     return true;
 }
 
@@ -2880,7 +2959,7 @@ bool MMSWidget::setNavigateDown(string navigatedown) {
     this->da->myWidgetClass.setNavigateDown(navigatedown);
     this->da->navigateDownWidget = NULL;
     if ((this->rootwindow)&&(navigatedown!=""))
-        this->da->navigateDownWidget = this->rootwindow->searchForWidget(navigatedown);
+        this->da->navigateDownWidget = this->rootwindow->findWidget(navigatedown);
     return true;
 }
 
@@ -2889,7 +2968,7 @@ bool MMSWidget::setNavigateLeft(string navigateleft) {
     this->da->myWidgetClass.setNavigateLeft(navigateleft);
     this->da->navigateLeftWidget = NULL;
     if ((this->rootwindow)&&(navigateleft!=""))
-        this->da->navigateLeftWidget = this->rootwindow->searchForWidget(navigateleft);
+        this->da->navigateLeftWidget = this->rootwindow->findWidget(navigateleft);
     return true;
 }
 
@@ -2898,7 +2977,7 @@ bool MMSWidget::setNavigateRight(string navigateright) {
     this->da->myWidgetClass.setNavigateRight(navigateright);
     this->da->navigateRightWidget = NULL;
     if ((this->rootwindow)&&(navigateright!=""))
-        this->da->navigateRightWidget = this->rootwindow->searchForWidget(navigateright);
+        this->da->navigateRightWidget = this->rootwindow->findWidget(navigateright);
     return true;
 }
 
@@ -2907,7 +2986,7 @@ bool MMSWidget::setVSlider(string vslider) {
     this->da->myWidgetClass.setVSlider(vslider);
     this->da->vSliderWidget = NULL;
     if ((this->rootwindow)&&(vslider!=""))
-        this->da->vSliderWidget = this->rootwindow->searchForWidget(vslider);
+        this->da->vSliderWidget = this->rootwindow->findWidget(vslider);
     return true;
 }
 
@@ -2916,7 +2995,7 @@ bool MMSWidget::setHSlider(string hslider) {
     this->da->myWidgetClass.setHSlider(hslider);
     this->da->hSliderWidget = NULL;
     if ((this->rootwindow)&&(hslider!=""))
-        this->da->hSliderWidget = this->rootwindow->searchForWidget(hslider);
+        this->da->hSliderWidget = this->rootwindow->findWidget(hslider);
     return true;
 }
 
@@ -2927,8 +3006,7 @@ bool MMSWidget::setImagesOnDemand(bool imagesondemand) {
 }
 
 bool MMSWidget::setBlend(unsigned int blend, bool refresh) {
-	if (!this->da) return false;
-    this->da->myWidgetClass.setBlend(blend);
+	if (this->da) this->da->myWidgetClass.setBlend(blend);
     for (unsigned int i=0; i < children.size(); i++)
         children.at(i)->setBlend(blend, false);
     if (refresh)
@@ -2937,8 +3015,7 @@ bool MMSWidget::setBlend(unsigned int blend, bool refresh) {
 }
 
 bool MMSWidget::setBlendFactor(double blendfactor, bool refresh) {
-	if (!this->da) return false;
-    this->da->myWidgetClass.setBlendFactor(blendfactor);
+	if (this->da) this->da->myWidgetClass.setBlendFactor(blendfactor);
     for (unsigned int i=0; i < children.size(); i++)
         children.at(i)->setBlendFactor(blendfactor, false);
     if (refresh)
@@ -2975,7 +3052,7 @@ bool MMSWidget::setJoinedWidget(string joinedwidget) {
     this->da->myWidgetClass.setJoinedWidget(joinedwidget);
     this->da->joinedWidget = NULL;
     if ((this->rootwindow)&&(joinedwidget!=""))
-        this->da->joinedWidget = this->rootwindow->searchForWidget(joinedwidget);
+        this->da->joinedWidget = this->rootwindow->findWidget(joinedwidget);
     return true;
 }
 

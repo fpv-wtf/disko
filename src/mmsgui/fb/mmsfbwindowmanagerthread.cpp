@@ -44,25 +44,13 @@ MMSFBWindowManagerThread::MMSFBWindowManagerThread(MMSFBSurface **high_freq_surf
 }
 
 void MMSFBWindowManagerThread::threadMain() {
-	int	pointer_opacity = 0;
-	int	hidecnt = 1;
+	//int	pointer_opacity = 0;
+	//int	hidecnt = 1;
 
 	while (1) {
 
 		// fade out the pointer
-		if (!mmsfbwindowmanager->button_pressed) {
-			pointer_opacity = mmsfbwindowmanager->getPointerOpacity();
-			if (pointer_opacity > 0) {
-				if (pointer_opacity == 255)
-					hidecnt=1;
-				else
-					hidecnt*=3;
-				if (pointer_opacity > hidecnt)
-					mmsfbwindowmanager->setPointerOpacity(pointer_opacity - hidecnt);
-				else
-					mmsfbwindowmanager->setPointerOpacity(0);
-			}
-		}
+		mmsfbwindowmanager->fadePointer();
 
 
         if (!*(this->high_freq_surface)) {

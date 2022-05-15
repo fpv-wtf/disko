@@ -30,14 +30,14 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA            *
  **************************************************************************/
 
-#ifdef LIBXML_READER_ENABLED
-
 #ifndef MMSXMLSERVERINTERFACE_H_
 #define MMSXMLSERVERINTERFACE_H_
 
 #include "mmstools/mmstools.h"
 #include <libxml/xmlreader.h>
 #include <libxml/parser.h>
+
+#ifdef LIBXML_READER_ENABLED
 
 class MMSXMLServerInterface : public MMSServerInterface {
     private:

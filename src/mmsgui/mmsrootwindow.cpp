@@ -33,20 +33,20 @@
 #include "mmsgui/mmsrootwindow.h"
 
 MMSRootWindow::MMSRootWindow(string className, string dx, string dy, string w, string h, MMSALIGNMENT alignment,
-                             MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface) {
-    create(className, dx, dy, w, h, alignment, flags, theme, own_surface);
+                             MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface, bool *backbuffer) {
+    create(className, dx, dy, w, h, alignment, flags, theme, own_surface, backbuffer);
 }
 
 MMSRootWindow::MMSRootWindow(string className, string w, string h, MMSALIGNMENT alignment,
-                             MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface) {
-    create(className, "", "", w, h, alignment, flags, theme, own_surface);
+                             MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface, bool *backbuffer) {
+    create(className, "", "", w, h, alignment, flags, theme, own_surface, backbuffer);
 }
 
 MMSRootWindow::~MMSRootWindow() {
 }
 
 bool MMSRootWindow::create(string className, string dx, string dy, string w, string h, MMSALIGNMENT alignment,
-                           MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface) {
+                           MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface, bool *backbuffer) {
 	this->type = MMSWINDOWTYPE_ROOTWINDOW;
     this->className = className;
     if (theme) this->theme = theme; else this->theme = globalTheme;
@@ -54,7 +54,7 @@ bool MMSRootWindow::create(string className, string dx, string dy, string w, str
     this->baseWindowClass = &(this->theme->rootWindowClass.windowClass);
     if (this->rootWindowClass) this->windowClass = &(this->rootWindowClass->windowClass); else  this->windowClass = NULL;
 
-    return MMSWindow::create(dx, dy, w, h, alignment, flags, own_surface);
+    return MMSWindow::create(dx, dy, w, h, alignment, flags, own_surface, backbuffer);
 }
 
 /***********************************************/

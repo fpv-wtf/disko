@@ -302,7 +302,8 @@ MMSFBLayer::MMSFBLayer(int id) {
 				return;
 			}
 
-			XFlush(mmsfb->x_display);
+			//XFlush(mmsfb->x_display);
+			XSync(mmsfb->x_display, False);
 		    shmctl(this->xv_shminfo1.shmid, IPC_RMID, 0);
 
 			// create x11 buffer #2
@@ -360,7 +361,8 @@ MMSFBLayer::MMSFBLayer(int id) {
 				return;
 			}
 
-			XFlush(mmsfb->x_display);
+			//XFlush(mmsfb->x_display);
+			XSync(mmsfb->x_display, False);
 		    shmctl(this->xv_shminfo2.shmid, IPC_RMID, 0);
 
 			XUnlockDisplay(mmsfb->x_display);
@@ -1054,7 +1056,7 @@ bool MMSFBLayer::createSurface(MMSFBSurface **surface, int w, int h,
 }
 
 bool MMSFBLayer::createWindow(MMSFBWindow **window, int x, int y, int w, int h,
-							  MMSFBSurfacePixelFormat pixelformat, bool usealpha) {
+							  MMSFBSurfacePixelFormat pixelformat, bool usealpha, int backbuffer) {
 
     // check if initialized
     INITCHECK;
@@ -1066,47 +1068,6 @@ bool MMSFBLayer::createWindow(MMSFBWindow **window, int x, int y, int w, int h,
         MMSFB_SetError(0, "not the right layer, cannot create MMSFBWindow");
         return false;
     }
-
-#ifdef sfsdgd_toberemoved
-    /* get pixelformat */
-    if (pixelformat == MMSFB_PF_NONE)
-        pixelformat = this->config.pixelformat;
-
-    if (!isAlphaPixelFormat(pixelformat)) {
-        /* non-alpha pixelformats  */
-        if (usealpha) {
-        	// switch all non-alpha pixelformats to alpha
-        	// now we have to decide if we are working in RGB or YUV color space
-        	pixelformat = this->config.window_pixelformat;
-        	if ((pixelformat == MMSFB_PF_NONE)||((pixelformat != MMSFB_PF_ARGB)&&(pixelformat != MMSFB_PF_AiRGB)&&(pixelformat != MMSFB_PF_AYUV))) {
-        		// use autodetection
-	        	if (!isRGBPixelFormat(pixelformat))
-		            // so switch all non-alpha pixelformats to AYUV
-		            pixelformat = MMSFB_PF_AYUV;
-	            else
-		            // so switch all non-alpha pixelformats to ARGB
-		            pixelformat = MMSFB_PF_ARGB;
-        	}
-        }
-    }
-    else {
-        /* alpha pixelformats  */
-        if (!usealpha)
-            /* switch all alpha pixelformats to RGB32 */
-            pixelformat = MMSFB_PF_RGB32;
-    }
-
-    if (isIndexedPixelFormat(pixelformat)) {
-        /* indexed pixelformats  */
-        if (!usealpha)
-            /* switch all indexed pixelformats to RGB32 */
-            pixelformat = MMSFB_PF_RGB32;
-        else
-            /* switch all indexed pixelformats to ARGB */
-            pixelformat = MMSFB_PF_ARGB;
-    }
-#endif
-
 
     if (pixelformat == MMSFB_PF_NONE) {
     	if (usealpha) {
@@ -1157,10 +1118,18 @@ bool MMSFBLayer::createWindow(MMSFBWindow **window, int x, int y, int w, int h,
     window_desc.pixelformat = getDFBPixelFormatFromString(pixelformat);
 
     /* set caps - differs between alpha and non-alpha pixelformats */
-    if (!isAlphaPixelFormat(pixelformat))
-        window_desc.caps = (DFBWindowCapabilities)(DWCAPS_DOUBLEBUFFER);
-    else
-        window_desc.caps = (DFBWindowCapabilities)(DWCAPS_DOUBLEBUFFER | DWCAPS_ALPHACHANNEL);
+    if (!isAlphaPixelFormat(pixelformat)) {
+    	if (backbuffer)
+    		window_desc.caps = (DFBWindowCapabilities)(DWCAPS_DOUBLEBUFFER);
+    	else
+    		window_desc.caps = (DFBWindowCapabilities)0;
+    }
+    else {
+    	if (backbuffer)
+    		window_desc.caps = (DFBWindowCapabilities)(DWCAPS_DOUBLEBUFFER | DWCAPS_ALPHACHANNEL);
+    	else
+    		window_desc.caps = (DFBWindowCapabilities)(DWCAPS_ALPHACHANNEL);
+    }
 
     /* create the window */
     if ((dfbres=this->dfblayer->CreateWindow(this->dfblayer, &window_desc, &dfbwindow)) != DFB_OK) {
@@ -1180,9 +1149,9 @@ bool MMSFBLayer::createWindow(MMSFBWindow **window, int x, int y, int w, int h,
 
 #ifdef USE_MMSFB_WINMAN
 
-    // create a window surface with one backbuffer (double buffered)
+    // create a window surface
     MMSFBSurface *surface;
-	if (!mmsfb->createSurface(&surface, w, h, pixelformat, 1, (this->config.buffermode == MMSFB_BM_BACKSYSTEM)))
+	if (!mmsfb->createSurface(&surface, w, h, pixelformat, backbuffer, (this->config.buffermode == MMSFB_BM_BACKSYSTEM)))
 		return false;
 
     // create a new window instance

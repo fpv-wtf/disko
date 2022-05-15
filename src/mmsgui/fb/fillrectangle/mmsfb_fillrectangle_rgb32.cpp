@@ -68,7 +68,12 @@ void mmsfb_fillrectangle_rgb32(MMSFBSurfacePlanes *dst_planes, int dst_height,
 		// for all pixels in the line
 #ifdef __HAVE_SSE__
 		// fill memory 4-byte-wise (much faster than loop see below)
-		__asm__ __volatile__ ( "\trep stosl\n" : : "D" (dst), "a" (SRC), "c" (dw));
+//		__asm__ __volatile__ ( "\trep stosl\n" : : "D" (dst), "a" (SRC), "c" (dw));
+		short d0, d1, d2;
+		__asm__ __volatile__ ( "\tcld\n\trep stosl" \
+				: "=&D" (d0), "=&a" (d1), "=&c" (d2) \
+				: "0" (dst), "1" (SRC), "2" (dw) \
+				: "memory", "cc");
 
 		// go to the next line
 		dst+= dst_pitch_pix;

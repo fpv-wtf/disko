@@ -85,27 +85,23 @@ class MMSTimer: public MMSThread
 		 *
 		 * \param milliSeconds    the timer interval in milli seconds
 		 */
-		void start(unsigned int milliSeconds);
+		bool start(unsigned int milliSeconds);
 
 		/*!
 		 * \brief Restarts timer.
 		 *
 		 * A running timer stops first and no signal emits. After this
 		 * a new timer starts with the full interval set with
-		 * \see start(unsigned int milliSecs). This method does nothing
-		 * if it is called in the same thread where the timer is running
-		 * in to avoid deadlocks.
+		 * \see start(unsigned int milliSecs).
 		 */
-		void restart();
+		bool restart();
 
 		/*!
 		 * \brief Stops timer.
 		 *
-		 * A running timer stops and no signal emits. This method does
-		 * nothing if it is called in the same thread where the timer
-		 * is running in to avoid deadlocks.
+		 * A running timer stops and no signal emits.
 		 */
-		void stop();
+		bool stop();
 
 		/*!
 		 * \brief This signal emits if the timer expires.
@@ -115,23 +111,21 @@ class MMSTimer: public MMSThread
 		sigc::signal<void> timeOut;
 
 	private:
-		bool singleShot;
-		bool repeat;
-		bool quit;
+		bool 			singleShot;
+		enum {
+			START,
+			RESTART,
+			STOP,
+			QUIT
+		} 				action;
 
-		__time_t secs;
-		long int nSecs;
+		__time_t 		secs;
+		long int 		nSecs;
 
-		pthread_t threadID;
-		pthread_cond_t interruptCond;
-		pthread_mutex_t interruptMutex;
-		pthread_cond_t startCond;
-		pthread_mutex_t startMutex;
-		pthread_cond_t stopCond;
-		pthread_mutex_t stopMutex;
+		pthread_cond_t 	cond;
+		pthread_mutex_t	mutex;
 
 		void threadMain();
-		void stopWithoutCheck();
 };
 
 #endif /* MMSTIMER_H_ */

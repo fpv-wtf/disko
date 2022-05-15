@@ -41,6 +41,7 @@
 #include "mmsinput/mmsinputsubscription.h"
 #include "mmsinput/mmsinputthread.h"
 #include "mmsinput/mmsinputmapper.h"
+#include "mmsinput/mmsinputgesture.h"
 
 
 #endif /*MMSINPUT_H_*/

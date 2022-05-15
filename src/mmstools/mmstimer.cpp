@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2010 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -40,153 +40,97 @@ extern "C" {
 }
 
 MMSTimer::MMSTimer(bool singleShot) :
-	MMSThread("MMSTimer"), repeat(false), quit(false), secs(0),
-			nSecs(0), threadID(0)
-{
-	this->singleShot = singleShot;
+	MMSThread("MMSTimer"),
+	singleShot(singleShot),
+	action(START),
+	secs(0),
+	nSecs(0) {
+	MMSThread::setStacksize(131072-4096);
 
-	MMSThread::setStacksize(131072);
-
-	pthread_mutex_init(&interruptMutex, NULL);
-	pthread_mutex_init(&startMutex, NULL);
-	pthread_mutex_init(&stopMutex, NULL);
-
-	pthread_cond_init(&interruptCond, NULL);
-	pthread_cond_init(&startCond, NULL);
-	pthread_cond_init(&stopCond, NULL);
+	pthread_mutex_init(&this->mutex, NULL);
+	pthread_cond_init(&this->cond, NULL);
 }
 
-MMSTimer::~MMSTimer()
-{
-	quit = true;
-	stop();
+MMSTimer::~MMSTimer() {
+	if(isRunning()) {
+		pthread_mutex_lock(&mutex);
+		this->action = QUIT;
+		pthread_cond_signal(&cond);
+		pthread_mutex_unlock(&mutex);
+	}
 	join();
 
-	pthread_mutex_destroy(&interruptMutex);
-	pthread_mutex_destroy(&startMutex);
-	pthread_mutex_destroy(&stopMutex);
-
-	pthread_cond_destroy(&interruptCond);
-	pthread_cond_destroy(&startCond);
-	pthread_cond_destroy(&stopCond);
+	pthread_cond_destroy(&this->cond);
+	pthread_mutex_destroy(&this->mutex);
 }
 
-void MMSTimer::start(unsigned int milliSeconds)
-{
+bool MMSTimer::start(unsigned int milliSeconds) {
 	if(isRunning()) {
-		return;
+		return false;
 	}
 
-	nSecs = (milliSeconds % 1000) * 1000000;
-	secs = milliSeconds / 1000;
+	this->nSecs = (milliSeconds % 1000) * 1000000;
+	this->secs = milliSeconds / 1000;
 
-	repeat = true;
-	MMSThread::start();
+	return MMSThread::start();
 }
 
-void MMSTimer::restart()
-{
-	/* see comment in stop() */
-	if(!isRunning() || pthread_self() == threadID) {
-		return;
-	}
-
-	stopWithoutCheck();
-
-	pthread_mutex_lock(&interruptMutex);
-	repeat = true;
-	pthread_mutex_unlock(&interruptMutex);
-
-
-	/* signal to outer thread loop to restart */
-	pthread_mutex_lock(&startMutex);
-	pthread_cond_signal(&startCond);
-	pthread_mutex_unlock(&startMutex);
-}
-
-void MMSTimer::stop()
-{
+bool MMSTimer::restart() {
 	if(!isRunning()) {
-		return;
+		return false;
 	}
 
-	/*
-	 * This happens if timeOut.emit() is called in threadMain and its
-	 * signal handler contains a call of this function. It causes
-	 * deadlocks so we have to return here.
-	 */
-	if(pthread_self() == threadID) {
-		return;
+	pthread_mutex_lock(&mutex);
+	this->action = RESTART;
+	pthread_cond_signal(&cond);
+	pthread_mutex_unlock(&mutex);
+
+	return true;
+}
+
+bool MMSTimer::stop() {
+	if(!isRunning()) {
+		return false;
 	}
 
-	stopWithoutCheck();
+	pthread_mutex_lock(&mutex);
+	this->action = STOP;
+	pthread_cond_signal(&cond);
+	pthread_mutex_unlock(&mutex);
+
+	return true;
 }
 
-void MMSTimer::stopWithoutCheck()
-{
-	/* signal to inner thread loop to stop waiting for timeout */
-	pthread_mutex_lock(&interruptMutex);
-	pthread_cond_signal(&interruptCond);
-	pthread_mutex_unlock(&interruptMutex);
-
-
-	/* make sure inner thread loop is left */
-	pthread_mutex_lock(&stopMutex);
-	/* TODO: Check what happens on compiler optimizations. */
-	//printf("stopped\n");
-	pthread_mutex_unlock(&stopMutex);
-}
-
-void MMSTimer::threadMain()
-{
-	threadID = pthread_self();
-	if(secs == 0 && nSecs == 0) {
+void MMSTimer::threadMain() {
+	if(this->secs == 0 && this->nSecs == 0) {
 		return;
 	}
 
 	struct timespec absTime;
-	struct timeval  absTimeGet;
-	int rc = 0;
-	while(!quit) {
-		pthread_mutex_lock(&stopMutex);
-		while(repeat) {
-			gettimeofday(&absTimeGet, NULL);
-			absTime.tv_sec  = absTimeGet.tv_sec + secs;
-			absTime.tv_nsec = (absTimeGet.tv_usec * 1000) + nSecs;
 
-			if(absTime.tv_nsec > 999999999) {
-				absTime.tv_sec += 1;
-				absTime.tv_nsec -= 999999999;
-			}
+	pthread_mutex_lock(&this->mutex);
+	while(this->action != QUIT) {
+		clock_gettime(CLOCK_REALTIME, &absTime);
+		absTime.tv_sec  += this->secs;
+		absTime.tv_nsec += this->nSecs;
 
-			pthread_mutex_lock(&interruptMutex);
-			rc = pthread_cond_timedwait(&interruptCond,
-					&interruptMutex, &absTime);
-
-			if(rc == ETIMEDOUT) {
-				//printf("timer: emit\n");
-				timeOut.emit();
-			} else if(rc == 0) {
-				//printf("timer: cond_signal\n");
-				repeat = false;
-			} else {
-				//printf("timer: error: %d %s\n", rc, strerror(rc));
-			}
-
-			if(singleShot) {
-				repeat = false;
-			}
-			pthread_mutex_unlock(&interruptMutex);
-		}
-		pthread_mutex_unlock(&stopMutex);
-
-		if(quit) {
-			break;
+		if(absTime.tv_nsec > 999999999) {
+			absTime.tv_sec += 1;
+			absTime.tv_nsec -= 999999999;
 		}
 
-		/* wait for a restart request */
-		pthread_mutex_lock(&startMutex);
-		pthread_cond_wait(&startCond, &startMutex);
-		pthread_mutex_unlock(&startMutex);
+		if(pthread_cond_timedwait(&this->cond, &this->mutex, &absTime) == ETIMEDOUT) {
+			/* unlock mutex, because the timeout handler may call restart() or stop() */
+			pthread_mutex_unlock(&this->mutex);
+			this->timeOut.emit();
+			pthread_mutex_lock(&this->mutex);
+			if(this->singleShot)
+				break;
+		}
+
+		while(this->action == STOP) {
+			pthread_cond_wait(&this->cond, &this->mutex);
+		}
 	}
+	pthread_mutex_unlock(&this->mutex);
 }

@@ -44,7 +44,7 @@ void MMSRootWindowClass::unsetAll() {
     this->className = "";
 }
 
-void MMSRootWindowClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *path) {
+void MMSRootWindowClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *path, bool reset_paths) {
 	startTAFFScan
 	{
         switch (attrid) {

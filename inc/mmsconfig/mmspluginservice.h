@@ -40,6 +40,8 @@
 #include "mmsconfig/mmsplugincategorydao.h"
 #include "mmsconfig/mmsplugintypedao.h"
 
+typedef std::map<string, MMSPropertyData *> MMSPROPERTYDATA_MAP;
+
 class MMSPluginService {
     private:
         IMMSDB 		*dbconn;
@@ -66,7 +68,7 @@ class MMSPluginService {
         MMSPluginCategoryData* getPluginCategoryByName(string name);
         vector<MMSPluginCategoryData*> getPluginCategories();
         MMSPluginTypeData*  getPluginTypeByName(string name);
-
+        void getSystemProperties(std::map<string,MMSPropertyData*> &result);
 };
 
 #endif /*MMSPLUGINSERVICE_H_*/

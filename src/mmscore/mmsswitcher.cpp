@@ -101,15 +101,15 @@ MMSSwitcher::MMSSwitcher(MMSPluginData *plugindata) :
         if(!this->window) throw new MMSError(0, "Error loading switchers root window");
 
         /* get access to the menu bar */
-        this->menuBar = (MMSChildWindow *)this->window->searchForWindow(SWITCHER_MENUBAR);
+        this->menuBar = (MMSChildWindow *)this->window->findWindow(SWITCHER_MENUBAR);
         if(!this->menuBar) throw new MMSError(0, "Error loading switchers menuBar childwindow");
-        this->menu    = dynamic_cast<MMSMenuWidget*>(this->menuBar->searchForWidget(SWITCHER_MENU));
+        this->menu    = dynamic_cast<MMSMenuWidget*>(this->menuBar->findWidget(SWITCHER_MENU));
         if(!this->menu) throw new MMSError(0, "Error loading switchers menu");
 
         /* get access to the static menu bar */
-        this->menuBar_static = (MMSChildWindow *)this->window->searchForWindow(SWITCHER_MENUBAR_STATIC);
+        this->menuBar_static = (MMSChildWindow *)this->window->findWindow(SWITCHER_MENUBAR_STATIC);
         if (this->menuBar_static)
-        	this->menu_static = dynamic_cast<MMSMenuWidget*>(this->menuBar_static->searchForWidget(SWITCHER_MENU_STATIC));
+        	this->menu_static = dynamic_cast<MMSMenuWidget*>(this->menuBar_static->findWidget(SWITCHER_MENU_STATIC));
         else
         	this->menu_static = NULL;
 
@@ -184,8 +184,8 @@ MMSSwitcher::MMSSwitcher(MMSPluginData *plugindata) :
         menu->onReturn->connect(sigc::mem_fun(this,&MMSSwitcher::onReturn));
 
     	/* create inputs */
-        subscribeKey(MMSKEY_MENU);
-        subscribeKey(MMSKEY_BACKSPACE);
+//        subscribeKey(MMSKEY_MENU);
+//        subscribeKey(MMSKEY_BACKSPACE);
 
         /* start my update thread */
         this->switcherThread = new MMSSwitcherThread(this, NULL, NULL, NULL, NULL);
@@ -211,15 +211,15 @@ void MMSSwitcher::setMenuItemValues(MMSWidget *item) {
 	MMSPluginData *plugindata = (MMSPluginData *)item->getBinData();
 
 	// set the plugin name
-	MMSLabelWidget *pluginName = dynamic_cast<MMSLabelWidget*>(item->searchForWidget(SWITCHER_MENU_PLUGINNAME));
+	MMSLabelWidget *pluginName = dynamic_cast<MMSLabelWidget*>(item->findWidget(SWITCHER_MENU_PLUGINNAME));
     if (pluginName) pluginName->setText(plugindata->getName());
 
     // set the plugin title
-    MMSLabelWidget *pluginTitle = dynamic_cast<MMSLabelWidget*>(item->searchForWidget(SWITCHER_MENU_PLUGINTITLE));
+    MMSLabelWidget *pluginTitle = dynamic_cast<MMSLabelWidget*>(item->findWidget(SWITCHER_MENU_PLUGINTITLE));
     if (pluginTitle) pluginTitle->setText(plugindata->getTitle());
 
     // set the plugin icon
-    MMSImageWidget *pluginIcon = dynamic_cast<MMSImageWidget*>(item->searchForWidget(SWITCHER_MENU_PLUGINICON));
+    MMSImageWidget *pluginIcon = dynamic_cast<MMSImageWidget*>(item->findWidget(SWITCHER_MENU_PLUGINICON));
     if (pluginIcon) {
         string path;
         string name;
@@ -595,4 +595,16 @@ MMSChildWindow* MMSSwitcher::loadChildWindow(string filename, MMSTheme *theme) {
 	}
 
 	return win;
+}
+
+void MMSSwitcher::refresh()
+{
+	if(window != NULL && window->isShown()) {
+		window->refresh();
+	}
+}
+
+
+MMSWidget *MMSSwitcher::getMyButton() {
+	return NULL;
 }

@@ -104,21 +104,23 @@ void MMSBorderClass::unsetAll() {
     unsetRCorners();
 }
 
-void MMSBorderClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path) {
+void MMSBorderClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path, bool reset_paths) {
     MMSFBColor color;
-    bool class_set = false;
+
+    if ((reset_paths)&&(path)&&(*path!="")) {
+    	// unset my paths
+	    unsetImagePath();
+	    unsetSelImagePath();
+    }
 
     if (!prefix) {
 		startTAFFScan
 		{
 	        switch (attrid) {
-			case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_class:
-	            class_set = true;
-				break;
 			case MMSGUI_BORDER_ATTR::MMSGUI_BORDER_ATTR_IDS_border_color:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isColor()) getColor(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setColor(color);
 	            break;
 			case MMSGUI_BORDER_ATTR::MMSGUI_BORDER_ATTR_IDS_border_color_a:
@@ -148,7 +150,7 @@ void MMSBorderClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
 			case MMSGUI_BORDER_ATTR::MMSGUI_BORDER_ATTR_IDS_border_selcolor:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isSelColor()) getSelColor(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setSelColor(color);
 	            break;
 			case MMSGUI_BORDER_ATTR::MMSGUI_BORDER_ATTR_IDS_border_selcolor_a:
@@ -264,7 +266,7 @@ void MMSBorderClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
             if (ISATTRNAME(border_color)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isColor()) getColor(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setColor(color);
             }
             else
@@ -299,7 +301,7 @@ void MMSBorderClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
             if (ISATTRNAME(border_selcolor)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isSelColor()) getSelColor(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setSelColor(color);
             }
             else
@@ -424,7 +426,8 @@ void MMSBorderClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
     	endTAFFScan_WITHOUT_ID
     }
 
-    if ((!class_set)&&(path)&&(*path!="")) {
+    if ((reset_paths)&&(path)&&(*path!="")) {
+    	// set my paths
 		if (!isImagePath())
 		    setImagePath(*path);
 		if (!isSelImagePath())

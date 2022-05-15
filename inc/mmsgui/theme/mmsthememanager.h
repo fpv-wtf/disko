@@ -37,17 +37,24 @@
 
 #define DEFAULT_THEME   "default"
 
-/* string constants for xml identifiers */
-#define XML_ID_THEME        "mmstheme"
-#define XML_ID_CLASS        "class"
 
-
+//! The MMSThemeManager will be used to load theme definitions from the theme file.
+/*!
+During mmsInit() the first instance will be created which loads the global theme.
+You can instantiate a separate object to interact with the theme manager.
+\author Jens Schneider
+*/
 class MMSThemeManager {
     private:
-        string				themepath;
-        vector<MMSTheme*>   localThemes;    /* list of themes which are currently loaded (without global theme) */
+    	//! first static object initialized?
+    	static bool					initialized;
 
-//        void throughFile(xmlNode *node, MMSTheme *theme);
+    	//! path to the theme
+        static string				themepath;
+
+        //! additional application (e.g. plugin) specific themes
+        static vector<MMSTheme*>	localThemes;
+
         void throughFile(MMSTaffFile *tafff, MMSTheme *theme);
 
         void getThemeValues(MMSTaffFile *tafff, MMSTheme *theme);
@@ -67,8 +74,8 @@ class MMSThemeManager {
         void getTextBoxWidgetValues(MMSTaffFile *tafff, MMSTextBoxWidgetClass *themeClass, MMSTheme *theme);
         void getArrowWidgetValues(MMSTaffFile *tafff, MMSArrowWidgetClass *themeClass, MMSTheme *theme);
         void getInputWidgetValues(MMSTaffFile *tafff, MMSInputWidgetClass *themeClass, MMSTheme *theme);
+        void getCheckBoxWidgetValues(MMSTaffFile *tafff, MMSCheckBoxWidgetClass *themeClass, MMSTheme *theme);
 
-//        void getClassValues(MMSTaffFile *tafff, MMSTheme *theme);
         void getTemplateClassValues(MMSTaffFile *tafff, MMSTheme *theme, string className);
         void getMainWindowClassValues(MMSTaffFile *tafff, MMSTheme *theme, string className);
         void getPopupWindowClassValues(MMSTaffFile *tafff, MMSTheme *theme, string className);
@@ -83,22 +90,71 @@ class MMSThemeManager {
         void getTextBoxWidgetClassValues(MMSTaffFile *tafff, MMSTheme *theme, string className);
         void getArrowWidgetClassValues(MMSTaffFile *tafff, MMSTheme *theme, string className);
         void getInputWidgetClassValues(MMSTaffFile *tafff, MMSTheme *theme, string className);
+        void getCheckBoxWidgetClassValues(MMSTaffFile *tafff, MMSTheme *theme, string className);
 
 
         void loadTheme(string path, string themeName, MMSTheme *theme);
+        void loadGlobalTheme(string themeName);
+        void loadLocalTheme(MMSTheme *theme, string path, string themeName = "");
 
     public:
         MMSThemeManager(string themepath, string globalThemeName = DEFAULT_THEME);
+        MMSThemeManager();
         ~MMSThemeManager();
-
-        void loadGlobalTheme(string themeName);
 
         MMSTheme *loadLocalTheme(string path, string themeName = "");
         void deleteLocalTheme(string path, string themeName);
         void deleteLocalTheme(MMSTheme **theme);
-};
 
-extern MMSThemeManager *themeManager;
+        //! Change the theme.
+        /*!
+        The fadein effect switcher will be used from the theme.xml definition.
+        For that, you can set the attribute "fadein" for the tag <mmstheme/> to "true" or "false".
+        The default is "false".
+        \param themeName	name of the new theme to be activated
+        \note The attribute "fadein" have to set for the new theme which is to be activated.
+        \note If fails, an MMSError exception will be throw.
+        */
+        void setTheme(string themeName);
+
+        //! Change the theme.
+        /*!
+        You can switch on/off the fading animation during the theme switch.
+        \param themeName	name of the new theme to be activated
+        \param fadein		the new theme should fade in?
+        \note If fails, an MMSError exception will be throw.
+        */
+        void setTheme(string themeName, bool fadein);
+
+
+        //! Set one or more callbacks for the onThemeChanged event.
+        /*!
+        The connected callbacks will be called during setTheme().
+
+        A callback method must be defined like this:
+
+			void myclass::mycallbackmethod(string themeName, bool fadein);
+
+			\param themeName	name of the new theme
+			\param fadein		the new theme should fade in?
+
+        To connect your callback to onThemeChanged do this:
+
+            sigc::connection connection;
+            connection = mywindow->onThemeChanged->connect(sigc::mem_fun(myobject,&myclass::mycallbackmethod));
+
+        To disconnect your callback do this:
+
+            connection.disconnect();
+
+        Please note:
+
+            You HAVE TO disconnect myobject from onThemeChanged BEFORE myobject will be deleted!!!
+            Else an abnormal program termination can occur.
+            You HAVE TO call the disconnect() method of sigc::connection explicitly. The destructor will NOT do this!!!
+        */
+        static sigc::signal<void, string, bool> onThemeChanged;
+};
 
 MMS_CREATEERROR(MMSThemeManagerError);
 

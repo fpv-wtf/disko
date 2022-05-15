@@ -40,6 +40,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <sys/time.h>
+#include <sys/types.h>
 
 #ifdef __ENABLE_LOG__
 #define DEBUGMSG(ident, msg...) writeDebugMessage(ident, __FILE__, __LINE__, msg)
@@ -128,7 +129,7 @@ void trim(string& str);
 
 bool strToBool(string s);
 
-void executeCmd(string cmd);
+void executeCmd(string cmd, pid_t *cpid=NULL);
 
 bool file_exist( string filename );
 
@@ -141,8 +142,6 @@ void writeMessage2Stdout(const char *identity, const char *filename, const int l
 unsigned int getMTimeStamp();
 unsigned int getMDiff(unsigned int start_ts, unsigned int end_ts);
 
-MMS_LANGUAGE_TYPE strToLang(const char *value);
-
-string langToStr(MMS_LANGUAGE_TYPE lang);
+int64_t timespecDiff(struct timespec *timeA, struct timespec *timeB);
 
 #endif /*TOOLS_H_*/

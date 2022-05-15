@@ -115,9 +115,8 @@ MMSInputMapper::~MMSInputMapper() {
 	delete this->parser;
 }
 
-void MMSInputMapper::mapkey(MMSInputEvent *inputevent, vector<MMSInputEvent> *inputeventset) {
+void MMSInputMapper::mapkey(MMSInputEvent *inputevent) {
     string symbol = mmskeys[inputevent->key];
-    MMSInputEvent evt;
 
 	/* parse the result nodes */
     typedef multimap<string, string>::iterator MI;
@@ -129,15 +128,9 @@ void MMSInputMapper::mapkey(MMSInputEvent *inputevent, vector<MMSInputEvent> *in
    	    if(foundkey) {
    	    	DEBUGMSG("MMSINPUTMANAGER", "mapped to key '" + foundkeyname + "', id: " + iToStr(foundkey));
 //   	        evt.type = MMSINPUTEVENTTYPE_KEYPRESS;
-			evt.type = inputevent->type;
-   	        evt.key = foundkey;
-   	        inputeventset->push_back(evt);
+   	        inputevent->key = foundkey;
+   	        return;
    	    }
     }
-
-    if(inputeventset->empty()) {
-        inputeventset->push_back(*inputevent);
-	}
 }
-
 

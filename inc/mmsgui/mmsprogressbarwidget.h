@@ -50,14 +50,15 @@ class MMSProgressBarWidget : public MMSWidget {
 
         bool create(MMSWindow *root, string className, MMSTheme *theme);
 
+        bool init();
+        bool release();
+        bool draw(bool *backgroundFilled = NULL);
+
 	public:
         MMSProgressBarWidget(MMSWindow *root, string className, MMSTheme *theme = NULL);
         ~MMSProgressBarWidget();
 
         MMSWidget *copyWidget();
-
-        bool init();
-        bool draw(bool *backgroundFilled = NULL);
 
     public:
         /* theme access methods */

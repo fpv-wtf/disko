@@ -282,11 +282,45 @@ bool MMSGIFLoader::loadBlocks() {
                 break;
 
             case 0x2c: {
-                /* image descriptor */
+                // image descriptor
                 if (!this->myfile->readBuffer((void*)buffer, &count, 1, 9)) {
-                    /* cannot read file */
+                    // cannot read file
                     return false;
                 }
+
+                // create the surface
+                MMSFBSurface *newsuf;
+                if (!this->layer->createSurface(&newsuf, gif_lsd.width, gif_lsd.height)) {
+                    // cannot create surface
+                    return false;
+                }
+
+                // get pixelformat of the surface
+                MMSFBSurfacePixelFormat pixelformat;
+                if (!newsuf->getPixelFormat(&pixelformat)) {
+                    // cannot detect the pixelformat
+                	delete newsuf;
+                	return false;
+                }
+
+                // get the size of a pixel
+                int pixel_size;
+                switch (pixelformat) {
+                case MMSFB_PF_ARGB:
+                	pixel_size = 4;
+                	break;
+                case MMSFB_PF_ARGB4444:
+                	pixel_size = 2;
+                	break;
+                default:
+                	// unsupported pixelformat
+                	printf("GIF Loader currently does not support the %s pixelformat!\n",
+                			getMMSFBPixelFormatString(pixelformat).c_str());
+                	delete newsuf;
+                	return false;
+                }
+
+                // get image infos
                 MMS_GIF_ID gif_id;
                 MMS_GIF_CT gif_lct;
                 MMS_GIF_CT *my_color_table;
@@ -298,7 +332,7 @@ bool MMSGIFLoader::loadBlocks() {
                 gif_id.flags = buffer[8];
                 gif_id.local_color_table = ((gif_id.flags & 0x80) == 0x80);
                 gif_id.interlaced = ((gif_id.flags & 0x40) == 0x40);
-                unsigned int line_size = gif_id.w * 4;
+                unsigned int line_size = gif_id.w * pixel_size;
                 unsigned int image_size = line_size * gif_id.h;
                 char interlace_pass = 0;
 
@@ -309,18 +343,20 @@ bool MMSGIFLoader::loadBlocks() {
 #endif
 
                 if (gif_id.local_color_table) {
-                    /* read the local color table */
+                    // read the local color table
                     memset(&gif_lct, 0, sizeof(gif_lct));
                     int y = (gif_id.flags & 0x07) + 1;
                     gif_lct.size = 2;
                     while (y-->1) gif_lct.size*=2;
                     if (!this->myfile->readBuffer((void*)gif_lct.table, &count, 1, 3 * gif_lct.size)) {
-                        /* cannot read file */
-                        return false;
+                        // cannot read file
+                    	delete newsuf;
+                    	return false;
                     }
 
                     if (count < (size_t)(3 * gif_lct.size)) {
-                        /* bad format */
+                        // bad format
+                    	delete newsuf;
                         return false;
                     }
 
@@ -331,13 +367,14 @@ bool MMSGIFLoader::loadBlocks() {
                     my_color_table = &gif_lct;
                 }
                 else {
-                    /* use local color table */
+                    // use global color table
                     my_color_table = &(this->gif_gct);
                 }
 
-                /* here some values needed for decoding... */
+                // here some values needed for decoding...
                 if (!this->myfile->readBuffer((void*)buffer, &count, 1, 1)) {
-                    /* cannot read file */
+                    // cannot read file
+                	delete newsuf;
                     return false;
                 }
                 int initial_code_size = buffer[0];
@@ -356,13 +393,7 @@ bool MMSGIFLoader::loadBlocks() {
                     data_table[t]=index_table[t]=t;
                 bool end_of_stream = false;
 
-                /* create the surface */
-                MMSFBSurface *newsuf;
-                if (!this->layer->createSurface(&newsuf, gif_lsd.width, gif_lsd.height)) {
-                    /* cannot create surface */
-                    return false;
-                }
-
+                // prepare surface
                 int ci;
                 if (this->desc->sufcount <= 0) {
                     /* first surface */
@@ -377,79 +408,83 @@ bool MMSGIFLoader::loadBlocks() {
                             newsuf->clear(gif_gct.table[ci], gif_gct.table[ci+1], gif_gct.table[ci+2], 0xff);
                         }
                     }
-                    else
+                    else {
                         /* clear surface */
                         newsuf->clear();
+                    }
                 }
                 else {
-                    /* second or following surfaces */
+                	// second or following surfaces
                     switch (gif_gce_old.disposal) {
-                        case 0: //No disposal specified
-                        case 1: //Do not dispose
+                        case 0: // No disposal specified
+                        case 1: // Do not dispose
                             newsuf->blit(desc->suf[desc->sufcount-1].surface, NULL, 0, 0);
                             break;
-                        case 2: //Restore to background
-                            newsuf->blit(desc->suf[desc->sufcount-1].surface, NULL, 0, 0);
+                        case 2: // Restore to background
                             ci = this->gif_lsd.bgcolor*3;
-                            if ((gif_gce_old.transparent_color) && (this->gif_lsd.bgcolor == gif_gce_old.transcolor))
-                                newsuf->setColor(0xff, 0xff, 0xff, 0xff);
-                            else
+                            if ((gif_gce_old.transparent_color) && (this->gif_lsd.bgcolor == gif_gce_old.transcolor)) {
+                            	// use the very first image as background
+                            	newsuf->blit(desc->suf[0].surface, NULL, 0, 0);
+                            }
+                            else {
+                            	// fill with background color
                                 newsuf->setColor(gif_gct.table[ci], gif_gct.table[ci+1], gif_gct.table[ci+2], 0xff);
-                            newsuf->fillRectangle(gif_id.x, gif_id.y, gif_id.w, gif_id.h);
+                                newsuf->fillRectangle(gif_id.x, gif_id.y, gif_id.w, gif_id.h);
+                            }
                             break;
-                        case 3: //Restore to previous
-                            if (desc->sufcount >= 2)
+                        case 3: // Restore to previous
+                            if (desc->sufcount >= 2) {
                                 newsuf->blit(desc->suf[desc->sufcount-2].surface, NULL, 0, 0);
+                            }
                             break;
                     }
                 }
 
-                /* get direct access to the surface */
+                // get direct access to the surface
                 unsigned char *sufbuf, *sufbuf_start, *sufbuf_end;
                 int pitch;
                 newsuf->lock(MMSFB_LOCK_WRITE, (void**)&sufbuf, &pitch);
-                sufbuf+= gif_id.x*4 + gif_id.y * pitch;
+                sufbuf+= gif_id.x * pixel_size + gif_id.y * pitch;
                 sufbuf_start = sufbuf;
                 sufbuf_end = sufbuf_start + gif_lsd.height * pitch;
 
                 unsigned int outlen = 0;
-//                unsigned int wbytes = gif_id.w * 4;
                 int oddbits = 0;
                 bool first = true;
 
                 while (1) {
 
-                    /* get the block length */
+                    // get the block length
                     unsigned char len;
                     if (!this->myfile->readBuffer((void*)&len, &count, 1, 1)) {
-                        /* cannot read file */
+                        // cannot read file
                         newsuf->unlock();
                         delete newsuf;
                         return false;
                     }
 
-                    /* the first two bytes are reserved for the bit from the buffer before */
+                    // the first two bytes are reserved for the bit from the buffer before
                     int bits = 2*8;
                     int bitlen = bits + (((int)len) << 3);
                     if (oddbits > 0)
                         bits-=oddbits;
 
                     if (!len) {
-                        /* the block terminator was found */
+                        // the block terminator was found
                         break;
                     }
 
-                    /* read the block data */
-                    /* the first two bytes are reserved for the bit from the buffer before */
+                    // read the block data
+                    // the first two bytes are reserved for the bit from the buffer before
                     if (!this->myfile->readBuffer((void*)&buffer[2], &count, 1, len)) {
-                        /* cannot read file */
+                        // cannot read file
                         newsuf->unlock();
                         delete newsuf;
                         return false;
                     }
 
                     if (count < len) {
-                        /* bad format */
+                        // bad format
                         newsuf->unlock();
                         delete newsuf;
                         return false;
@@ -459,22 +494,22 @@ bool MMSGIFLoader::loadBlocks() {
                     DEBUGOUT("pixel indexes=\n");
 #endif
 
-                    /* read all pixel indexes from buffer */
+                    // read all pixel indexes from buffer
                     do {
-                        /* read the next bit code from buffer */
+                        // read the next bit code from buffer
                         int code = 0;
                         for (int i = 0; i < code_size; i++, bits++)
                             code = code | ((buffer[bits >> 3] & (1 << (bits & 0x07))) != 0) << i;
                         if (code == clr_code) {
-                            /* clear all values and tables *********************************/
-                            /* code_size:   the code size in bits which will used at start */
-                            /* clr_code:    the code which indicates this reset            */
-                            /* end_code:    the code which indicates the end of the stream */
-                            /* max_code:    the maximum code                               */
-                            /* next_code:   the first free code                            */
-                            /* data_table:  this table contains data for decompression     */
-                            /* index_table: this table contains index values to data_table */
-                            /***************************************************************/
+                            // clear all values and tables *********************************
+                            // code_size:   the code size in bits which will used at start *
+                            // clr_code:    the code which indicates this reset            *
+                            // end_code:    the code which indicates the end of the stream *
+                            // max_code:    the maximum code                               *
+                            // next_code:   the first free code                            *
+                            // data_table:  this table contains data for decompression     *
+                            // index_table: this table contains index values to data_table *
+                            //**************************************************************
                             code_size  = initial_code_size;
                             clr_code = 1 << code_size;
                             end_code = clr_code + 1;
@@ -490,7 +525,7 @@ bool MMSGIFLoader::loadBlocks() {
                         }
 
                         if (code == end_code) {
-                            /* end of stream reached */
+                            // end of stream reached
 #ifdef GIFTRACE
                         	DEBUGOUT("\nend of stream\n");
 #endif
@@ -498,69 +533,81 @@ bool MMSGIFLoader::loadBlocks() {
                             break;
                         }
 
-                        /* saves old code which is written to the output stream */
+                        // saves old code which is written to the output stream
                         unsigned char oc[8192];
                         int oclen;
 
                         if (first) {
-                            /* first loop */
+                            // first loop
                             first = false;
 
                             *oc = data_table[index_table[code]];
                             oclen = 1;
                         }
                         else {
-                            /* second or following loops */
-                            /* is code in table? */
+                            // second or following loops
+                            // is code in table?
                             if (code < next_code) {
-                                /* yes, add to table (oc + first pixel of new code) */
+                                // yes, add to table (oc + first pixel of new code)
                                 memcpy(&data_table[index_table[next_code]], oc, oclen);
                                 data_table[index_table[next_code]+oclen] = data_table[index_table[code]];
                                 index_table[next_code+1] = index_table[next_code]+oclen+1;
                                 next_code++;
 
-                                /* take table data for code */
+                                // take table data for code
                                 oclen = index_table[code+1] - index_table[code];
                                 memcpy(oc, &data_table[index_table[code]], oclen);
                             }
                             else {
-                                /* no, add to table (oc + first pixel of oc) */
+                                // no, add to table (oc + first pixel of oc)
                                 memcpy(&data_table[index_table[next_code]], oc, oclen);
                                 data_table[index_table[next_code]+oclen] = *oc;
                                 index_table[next_code+1] = index_table[next_code]+oclen+1;
                                 next_code++;
 
-                                /* take table data for new entry */
+                                // take table data for new entry
                                 oclen = index_table[next_code] - index_table[next_code-1];
                                 memcpy(oc, &data_table[index_table[next_code-1]], oclen);
                             }
 
                         }
 
-                        /* output... */
+                        // output...
                         if (!gif_id.interlaced) {
-                            /* gif is not interlaced */
+                            // gif is not interlaced
                             for (int x = 0; x < oclen; x++) {
                                 if ((gif_gce.transparent_color) && (oc[x] == gif_gce.transcolor)) {
-                                    /* use full transparent pixel */
-                                    outlen+=4;
-                                    sufbuf+=4;
+                                    // use full transparent pixel
+                                    outlen+=pixel_size;
+                                    sufbuf+=pixel_size;
 
 #ifdef GIFTRACE
                                     DEBUGOUT (",--");
 #endif
                                 }
                                 else {
-                                    /* create pixel from palette */
+                                    // create pixel from palette
                                     int ci = oc[x]*3;
 
-                                    sufbuf[0] = my_color_table->table[ci+2];
-                                    sufbuf[1] = my_color_table->table[ci+1];
-                                    sufbuf[2] = my_color_table->table[ci];
-                                    sufbuf[3] = 0xff;
+                                    switch (pixelformat) {
+                                    case MMSFB_PF_ARGB:
+                                        sufbuf[0] = my_color_table->table[ci+2];
+                                        sufbuf[1] = my_color_table->table[ci+1];
+                                        sufbuf[2] = my_color_table->table[ci];
+                                        sufbuf[3] = 0xff;
+                                    	break;
+                                    case MMSFB_PF_ARGB4444:
+                                        sufbuf[0] =   (my_color_table->table[ci+2] >> 4)
+													| (my_color_table->table[ci+1] & 0xf0);
+                                        sufbuf[1] =   (my_color_table->table[ci] >> 4)
+													| 0xf0;
+                                    	break;
+									default:
+										break;
+                                    }
 
-                                    outlen+=4;
-                                    sufbuf+=4;
+                                    outlen+=pixel_size;
+                                    sufbuf+=pixel_size;
 
 #ifdef GIFTRACE
                                     DEBUGOUT (",%02x", oc[x]);
@@ -572,28 +619,40 @@ bool MMSGIFLoader::loadBlocks() {
                             }
                         }
                         else {
-                            /* interlaced gif */
+                            // interlaced gif
                             for (int x = 0; x < oclen; x++) {
                                 if ((gif_gce.transparent_color) && (oc[x] == gif_gce.transcolor)) {
-                                    /* use full transparent pixel */
-                                    outlen+=4;
-                                    sufbuf+=4;
+                                    // use full transparent pixel
+                                    outlen+=pixel_size;
+                                    sufbuf+=pixel_size;
 
 #ifdef GIFTRACE
                                     DEBUGOUT (",--");
 #endif
                                 }
                                 else {
-                                    /* create pixel from palette */
+                                    // create pixel from palette
                                     int ci = oc[x]*3;
 
-                                    sufbuf[0] = my_color_table->table[ci+2];
-                                    sufbuf[1] = my_color_table->table[ci+1];
-                                    sufbuf[2] = my_color_table->table[ci];
-                                    sufbuf[3] = 0xff;
+                                    switch (pixelformat) {
+                                    case MMSFB_PF_ARGB:
+                                        sufbuf[0] = my_color_table->table[ci+2];
+                                        sufbuf[1] = my_color_table->table[ci+1];
+                                        sufbuf[2] = my_color_table->table[ci];
+                                        sufbuf[3] = 0xff;
+                                    	break;
+                                    case MMSFB_PF_ARGB4444:
+                                        sufbuf[0] =   (my_color_table->table[ci+2] >> 4)
+													| (my_color_table->table[ci+1] & 0xf0);
+                                        sufbuf[1] =   (my_color_table->table[ci] >> 4)
+													| 0xf0;
+                                    	break;
+                                    default:
+                                    	break;
+                                    }
 
-                                    outlen+=4;
-                                    sufbuf+=4;
+                                    outlen+=pixel_size;
+                                    sufbuf+=pixel_size;
 
 #ifdef GIFTRACE
                                     DEBUGOUT (",%02x", oc[x]);
@@ -635,10 +694,10 @@ bool MMSGIFLoader::loadBlocks() {
                             }
                         }
 
-                        /* is next_code outside of 0..max_code range? */
+                        // is next_code outside of 0..max_code range?
                         if (next_code >= max_code) {
                             if (code_size < 12) {
-                                /* yes, increase code_size by 1 and double max code */
+                                // yes, increase code_size by 1 and double max code
                                 max_code = max_code << 1;
                                 code_size++;
                             }
@@ -651,8 +710,8 @@ bool MMSGIFLoader::loadBlocks() {
 
                     oddbits = bitlen - bits;
                     if (oddbits > 0) {
-                        /* save the last bits because the amount is less than the code_size and a next GIF block will come */
-                        /* two bytes because code size for GIF is not higher than 12 */
+                        // save the last bits because the amount is less than the code_size and a next GIF block will come
+                        // two bytes because code size for GIF is not higher than 12
                         if (oddbits > 8) {
                             buffer[0] = buffer[bits >> 3];
                             buffer[1] = buffer[(bits >> 3) + 1];
@@ -666,9 +725,9 @@ bool MMSGIFLoader::loadBlocks() {
 #endif
                 }
 
-                /* stream okay?, check the available data with the given image size */
+                // stream okay?, check the available data with the given image size
                 if ((!end_of_stream) || (outlen != image_size)) {
-                    /* bad format */
+                    // bad format
 #ifdef GIFTRACE
                 	DEBUGOUT("bad format, outlen=%d, needed len=%d\n", outlen, image_size);
 #endif
@@ -679,15 +738,15 @@ bool MMSGIFLoader::loadBlocks() {
 
                 newsuf->unlock();
 
-                /* fill the communication structure */
+                // fill the communication structure
                 if (desc->sufcount < MMSIM_MAX_DESC_SUF) {
-                    /* mark the next end of the array */
+                    // mark the next end of the array
                     desc->suf[desc->sufcount+1].delaytime = MMSIM_DESC_SUF_LOADING;
 
-                    /* fill the surface pointer */
+                    // fill the surface pointer
                     desc->suf[desc->sufcount].surface = newsuf;
 
-                    /* the lowest delaytime is 100 milliseconds */
+                    // the lowest delaytime is 100 milliseconds
                     if (gif_gce.delaytime > 10)
                         desc->suf[desc->sufcount].delaytime = 10 * (unsigned int)gif_gce.delaytime;
                     else
@@ -700,7 +759,7 @@ bool MMSGIFLoader::loadBlocks() {
                     }
                 }
                 else {
-                    /* no free index */
+                    // no free index
 #ifdef GIFTRACE
                 	DEBUGOUT("no free index\n");
 #endif
@@ -710,14 +769,14 @@ bool MMSGIFLoader::loadBlocks() {
             break;
 
             case 0x3b:
-                /* normal end of GIF stream */
+                // normal end of GIF stream
 
 #ifdef GIFTRACE
             	DEBUGOUT("TRAILER, end of the GIF stream\n\n");
 #endif
 
                 if ((!loop_forever)&&(desc->sufcount>0))
-                    /* set delaytime to 0 if the animation should stop at the last image */
+                    // set delaytime to 0 if the animation should stop at the last image
                     desc->suf[desc->sufcount-1].delaytime = 0;
 
                 return true;
@@ -804,3 +863,4 @@ bool isGIF(string file) {
     free(gif_header);
     return true;
 }
+

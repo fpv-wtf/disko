@@ -42,10 +42,6 @@ MMSLabelWidget::~MMSLabelWidget() {
         labelThread->stop();
         labelThread=NULL;
     }
-
-    if (this->rootwindow) {
-        this->rootwindow->fm->releaseFont(this->font);
-    }
 }
 
 bool MMSLabelWidget::create(MMSWindow *root, string className, MMSTheme *theme) {
@@ -97,17 +93,29 @@ MMSWidget *MMSLabelWidget::copyWidget() {
 }
 
 bool MMSLabelWidget::init() {
-    /* init widget basics */
+    // init widget basics
     if (!MMSWidget::init())
         return false;
 
-    /* load font */
+    // load font
     this->font = this->rootwindow->fm->getFont(getFontPath(), getFontName(), getFontSize());
 
     // first time the label thread has to be started
     if (getSlidable()) {
     	setSlidable(true);
     }
+
+    return true;
+}
+
+bool MMSLabelWidget::release() {
+    // release widget basics
+    if (!MMSWidget::release())
+        return false;
+
+    // release my font
+    this->rootwindow->fm->releaseFont(this->font);
+    this->font = NULL;
 
     return true;
 }
@@ -228,7 +236,7 @@ bool MMSLabelWidget::draw(bool *backgroundFilled) {
     return MMSWidget::drawDebug();
 }
 
-void MMSLabelWidget::targetLangChanged(MMS_LANGUAGE_TYPE lang) {
+void MMSLabelWidget::targetLangChanged(int lang) {
     this->translated = false;
 }
 

@@ -66,8 +66,17 @@ void MMSImageWidgetClass::unsetAll() {
     unsetMirrorSize();
 }
 
-void MMSImageWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path) {
-    bool class_set = false;
+void MMSImageWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path, bool reset_paths) {
+
+    if ((reset_paths)&&(path)&&(*path!="")) {
+    	// unset my paths
+        unsetImagePath();
+        unsetSelImagePath();
+        unsetImagePath_p();
+        unsetSelImagePath_p();
+        unsetImagePath_i();
+        unsetSelImagePath_i();
+    }
 
     if (!prefix) {
 		startTAFFScan
@@ -75,7 +84,6 @@ void MMSImageWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pref
 	        switch (attrid) {
 			case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_class:
 	            setClassName(attrval_str);
-	            class_set = true;
 				break;
 			case MMSGUI_IMAGEWIDGET_ATTR::MMSGUI_IMAGEWIDGET_ATTR_IDS_image:
 	            if (*attrval_str)
@@ -342,7 +350,8 @@ void MMSImageWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pref
     	endTAFFScan_WITHOUT_ID
     }
 
-    if ((!class_set)&&(path)&&(*path!="")) {
+    if ((reset_paths)&&(path)&&(*path!="")) {
+    	// set my paths
 	    if (!isImagePath())
 	        setImagePath(*path);
 	    if (!isSelImagePath())

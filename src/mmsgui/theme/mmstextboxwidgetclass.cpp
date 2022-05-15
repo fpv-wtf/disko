@@ -57,11 +57,18 @@ void MMSTextBoxWidgetClass::unsetAll() {
     unsetSelColor();
     unsetText();
     unsetTranslate();
+    unsetFilePath();
+    unsetFileName();
 }
 
-void MMSTextBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path) {
+void MMSTextBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path, bool reset_paths) {
     MMSFBColor color;
-    bool class_set = false;
+
+    if ((reset_paths)&&(path)&&(*path!="")) {
+    	// unset my paths
+        unsetFontPath();
+        unsetFilePath();
+    }
 
     if (!prefix) {
 		startTAFFScan
@@ -69,7 +76,6 @@ void MMSTextBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pr
 	        switch (attrid) {
 			case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_class:
 	            setClassName(attrval_str);
-	            class_set = true;
 				break;
 			case MMSGUI_TEXTBOXWIDGET_ATTR::MMSGUI_TEXTBOXWIDGET_ATTR_IDS_font_path:
 	            if (*attrval_str)
@@ -95,7 +101,7 @@ void MMSTextBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pr
 			case MMSGUI_TEXTBOXWIDGET_ATTR::MMSGUI_TEXTBOXWIDGET_ATTR_IDS_color:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isColor()) color = getColor();
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setColor(color);
 	            break;
 			case MMSGUI_TEXTBOXWIDGET_ATTR::MMSGUI_TEXTBOXWIDGET_ATTR_IDS_color_a:
@@ -125,7 +131,7 @@ void MMSTextBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pr
 			case MMSGUI_TEXTBOXWIDGET_ATTR::MMSGUI_TEXTBOXWIDGET_ATTR_IDS_selcolor:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isSelColor()) color = getSelColor();
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setSelColor(color);
 	            break;
 			case MMSGUI_TEXTBOXWIDGET_ATTR::MMSGUI_TEXTBOXWIDGET_ATTR_IDS_selcolor_a:
@@ -157,6 +163,15 @@ void MMSTextBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pr
 	            break;
 			case MMSGUI_TEXTBOXWIDGET_ATTR::MMSGUI_TEXTBOXWIDGET_ATTR_IDS_translate:
 	            setTranslate((attrval_int)?true:false);
+	            break;
+			case MMSGUI_TEXTBOXWIDGET_ATTR::MMSGUI_TEXTBOXWIDGET_ATTR_IDS_file_path:
+	            if (*attrval_str)
+	                setFilePath(attrval_str);
+	            else
+	                setFilePath((path)?*path:"");
+	            break;
+			case MMSGUI_TEXTBOXWIDGET_ATTR::MMSGUI_TEXTBOXWIDGET_ATTR_IDS_file_name:
+	            setFileName(attrval_str);
 	            break;
 			}
 		}
@@ -205,7 +220,7 @@ void MMSTextBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pr
             if (ISATTRNAME(color)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isColor()) color = getColor();
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setColor(color);
             }
             else
@@ -240,7 +255,7 @@ void MMSTextBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pr
             if (ISATTRNAME(selcolor)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isSelColor()) color = getSelColor();
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setSelColor(color);
             }
             else
@@ -279,13 +294,27 @@ void MMSTextBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pr
             if (ISATTRNAME(translate)) {
 	            setTranslate((attrval_int)?true:false);
 			}
+            else
+            if (ISATTRNAME(file_path)) {
+	            if (*attrval_str)
+	                setFilePath(attrval_str);
+	            else
+	                setFilePath((path)?*path:"");
+            }
+            else
+            if (ISATTRNAME(file_name)) {
+	            setFileName(attrval_str);
+            }
     	}
     	endTAFFScan_WITHOUT_ID
     }
 
-    if ((!class_set)&&(path)&&(*path!="")) {
+    if ((reset_paths)&&(path)&&(*path!="")) {
+    	// set my paths
 	    if (!isFontPath())
 	        setFontPath(*path);
+	    if (!isFilePath())
+	        setFilePath(*path);
     }
 }
 
@@ -437,9 +466,13 @@ bool MMSTextBoxWidgetClass::isText() {
     return this->istext;
 }
 
-void MMSTextBoxWidgetClass::setText(string text) {
-    this->text = text;
+void MMSTextBoxWidgetClass::setText(string *text) {
+    this->text = *text;
     this->istext = true;
+}
+
+void MMSTextBoxWidgetClass::setText(string text) {
+    setText(&text);
 }
 
 void MMSTextBoxWidgetClass::unsetText() {
@@ -465,6 +498,40 @@ void MMSTextBoxWidgetClass::unsetTranslate() {
 
 bool MMSTextBoxWidgetClass::getTranslate() {
     return this->translate;
+}
+
+bool MMSTextBoxWidgetClass::isFilePath() {
+    return this->isfilepath;
+}
+
+void MMSTextBoxWidgetClass::setFilePath(string filepath) {
+    this->filepath = filepath;
+    this->isfilepath = true;
+}
+
+void MMSTextBoxWidgetClass::unsetFilePath() {
+    this->isfilepath = false;
+}
+
+string MMSTextBoxWidgetClass::getFilePath() {
+    return this->filepath;
+}
+
+bool MMSTextBoxWidgetClass::isFileName() {
+    return this->isfilename;
+}
+
+void MMSTextBoxWidgetClass::setFileName(string filename) {
+    this->filename = filename;
+    this->isfilename = true;
+}
+
+void MMSTextBoxWidgetClass::unsetFileName() {
+    this->isfilename = false;
+}
+
+string MMSTextBoxWidgetClass::getFileName() {
+    return this->filename;
 }
 
 

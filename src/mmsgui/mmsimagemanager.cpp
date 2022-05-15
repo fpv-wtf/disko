@@ -53,19 +53,29 @@ MMSImageManager::MMSImageManager(MMSFBLayer *layer) {
 
     // use taff?
 	this->usetaff = false;
-    if (this->pixelformat == MMSFB_PF_ARGB) {
+    switch (this->pixelformat) {
+    case MMSFB_PF_ARGB:
     	this->usetaff = true;
     	this->taffpf = MMSTAFF_PF_ARGB;
-    }
-    else
-    if (this->pixelformat == MMSFB_PF_AiRGB) {
+    	break;
+    case MMSFB_PF_AiRGB:
     	this->usetaff = true;
     	this->taffpf = MMSTAFF_PF_AiRGB;
-    }
-    else
-    if (this->pixelformat == MMSFB_PF_AYUV) {
+    	break;
+    case MMSFB_PF_AYUV:
     	this->usetaff = true;
     	this->taffpf = MMSTAFF_PF_AYUV;
+    	break;
+    case MMSFB_PF_ARGB4444:
+    	this->usetaff = true;
+    	this->taffpf = MMSTAFF_PF_ARGB4444;
+    	break;
+    case MMSFB_PF_RGB16:
+    	this->usetaff = true;
+    	this->taffpf = MMSTAFF_PF_RGB16;
+    	break;
+    default:
+    	break;
     }
 }
 

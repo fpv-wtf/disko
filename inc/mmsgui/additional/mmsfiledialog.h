@@ -36,13 +36,16 @@
 #include "mmsgui/mmswindows.h"
 #include "mmsgui/mmswidgets.h"
 #include "mmsgui/mmsdialogmanager.h"
+#include "mmsgui/additional/mmsguicontrol.h"
 
-class MMSFileDialog {
+//! File dialog class.
+/*!
+Allows you to open a file dialog.
+Users can go through the directories, select files or set a new filename.
+\author Jens Schneider
+*/
+class MMSFileDialog : public MMSGUIControl {
     private:
-    	string 				dialogfile;
-    	MMSDialogManager	*dm;
-    	MMSWindow			*dialogwindow;
-
     	MMSLabelWidget		*filedialog_title;
 
     	MMSWidget			*filedialog_ok;
@@ -65,15 +68,13 @@ class MMSFileDialog {
     	bool fillMenu();
 
     public:
-        MMSFileDialog();
+        MMSFileDialog(MMSWindow *window = NULL);
         MMSFileDialog(string path, string filename, MMSWindow *dialogwindow = NULL);
         ~MMSFileDialog();
-        bool loadFileDialog(MMSWindow *parent, string dialogfile = "", MMSTheme *theme = NULL);
-        bool isInitialized();
+        bool load(MMSWindow *parent, string dialogfile = "", MMSTheme *theme = NULL);
+        bool show();
 
         bool setTitle(string title);
-
-        bool show();
 
         sigc::signal<void, MMSFileDialog*> *onOK;
         sigc::signal<void> *onCancel;

@@ -34,8 +34,8 @@
 #include "mmsgui/fb/mmsfbconv.h"
 #include "mmstools/mmstools.h"
 
-void mmsfb_blit_rgb24_to_rgb32(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-							   unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy) {
+void mmsfb_blit_rgb24_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+							   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy) {
 	// first time?
 	static bool firsttime = true;
 	if (firsttime) {
@@ -44,8 +44,8 @@ void mmsfb_blit_rgb24_to_rgb32(MMSFBExternalSurfaceBuffer *extbuf, int src_heigh
 	}
 
 	// no difference to argb, use rgb24 to argb routine
-	mmsfb_blit_rgb24_to_argb(extbuf, src_height, sx, sy, sw, sh,
-							dst, dst_pitch, dst_height, dx, dy);
+	mmsfb_blit_rgb24_to_argb(src_planes, src_height, sx, sy, sw, sh,
+							 dst_planes, dst_height, dx, dy);
 }
 
 

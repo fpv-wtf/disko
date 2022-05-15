@@ -73,7 +73,8 @@ bool isAlphaPixelFormat(MMSFBSurfacePixelFormat pf) {
 		||(pf == MMSFB_PF_LUT2)
 		||(pf == MMSFB_PF_RGB444)
         ||(pf == MMSFB_PF_RGB555)
-        ||(pf == MMSFB_PF_BGR24))
+        ||(pf == MMSFB_PF_BGR24)
+        ||(pf == MMSFB_PF_BGR555))
         return false;
     return true;
 }
@@ -280,6 +281,16 @@ int getBitsPerPixel(MMSFBSurfacePixelFormat pf,
 		if (green_offset)	*green_offset	= 8;
 		if (blue_offset)	*blue_offset	= 16;
         return 3*8;
+    }
+	else
+    if(pf == MMSFB_PF_BGR555) {
+    	if (red_length)		*red_length		= 5;
+    	if (green_length)	*green_length	= 5;
+    	if (blue_length)	*blue_length	= 5;
+		if (red_offset)		*red_offset		= 0;
+		if (green_offset)	*green_offset	= 5;
+		if (blue_offset)	*blue_offset	= 10;
+        return 2*8;
     }
     return 0;
 }

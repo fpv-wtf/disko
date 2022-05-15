@@ -33,6 +33,8 @@
 #ifndef MMS_H_
 #define MMS_H_
 
+#include "diskoversion.h"
+
 #include <mmscore/mmspluginmanager.h>
 #include <mmscore/mmscorelogger.h>
 #include <mmscore/mmseventdispatcher.h>

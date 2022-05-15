@@ -54,6 +54,10 @@ class MMSArrowWidget : public MMSWidget {
 
         bool create(MMSWindow *root, string className, MMSTheme *theme);
 
+        bool init();
+        bool release();
+        bool draw(bool *backgroundFilled = NULL);
+
         void handleInput(MMSInputEvent *inputevent);
 
     public:
@@ -61,9 +65,6 @@ class MMSArrowWidget : public MMSWidget {
         ~MMSArrowWidget();
 
         MMSWidget *copyWidget();
-
-        bool init();
-        bool draw(bool *backgroundFilled = NULL);
 
     public:
         /* theme access methods */

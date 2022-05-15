@@ -33,14 +33,14 @@
 #include "mmsgui/fb/mmsfbconv.h"
 #include "mmstools/mmstools.h"
 
-void mmsfb_blit_blend_coloralpha_argb_to_argb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-											  unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy,
+void mmsfb_blit_blend_coloralpha_argb_to_argb(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+											  MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy,
 											  unsigned char alpha) {
 	// check for full alpha value
 	if (alpha == 0xff) {
 		// max alpha is specified, so i can ignore it and use faster routine
-		mmsfb_blit_blend_argb_to_argb(extbuf, src_height, sx, sy, sw, sh,
-									  dst, dst_pitch, dst_height, dx, dy);
+		mmsfb_blit_blend_argb_to_argb(src_planes, src_height, sx, sy, sw, sh,
+									  dst_planes, dst_height, dx, dy);
 		return;
 	}
 
@@ -57,8 +57,12 @@ void mmsfb_blit_blend_coloralpha_argb_to_argb(MMSFBExternalSurfaceBuffer *extbuf
 		return;
 
 	// get the first source ptr/pitch
-	unsigned int *src = (unsigned int *)extbuf->ptr;
-	int src_pitch = extbuf->pitch;
+	unsigned int *src = (unsigned int *)src_planes->ptr;
+	int src_pitch = src_planes->pitch;
+
+	// get the first destination ptr/pitch
+	unsigned int *dst = (unsigned int *)dst_planes->ptr;
+	int dst_pitch = dst_planes->pitch;
 
 	// prepare...
 	int src_pitch_pix = src_pitch >> 2;

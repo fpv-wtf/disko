@@ -56,7 +56,9 @@ namespace MMSGUI_TEXTBOXWIDGET_ATTR {
 		{ "selcolor.g", TAFF_ATTRTYPE_UCHAR }, \
 		{ "selcolor.b", TAFF_ATTRTYPE_UCHAR }, \
 		{ "text", TAFF_ATTRTYPE_STRING }, \
-		{ "translate", TAFF_ATTRTYPE_BOOL }
+		{ "translate", TAFF_ATTRTYPE_BOOL }, \
+		{ "file.path", TAFF_ATTRTYPE_STRING }, \
+		{ "file.name", TAFF_ATTRTYPE_STRING }
 
 	#define MMSGUI_TEXTBOXWIDGET_ATTR_IDS \
 		MMSGUI_TEXTBOXWIDGET_ATTR_IDS_font_path, \
@@ -76,7 +78,9 @@ namespace MMSGUI_TEXTBOXWIDGET_ATTR {
 		MMSGUI_TEXTBOXWIDGET_ATTR_IDS_selcolor_g, \
 		MMSGUI_TEXTBOXWIDGET_ATTR_IDS_selcolor_b, \
 		MMSGUI_TEXTBOXWIDGET_ATTR_IDS_text, \
-		MMSGUI_TEXTBOXWIDGET_ATTR_IDS_translate
+		MMSGUI_TEXTBOXWIDGET_ATTR_IDS_translate, \
+		MMSGUI_TEXTBOXWIDGET_ATTR_IDS_file_path, \
+		MMSGUI_TEXTBOXWIDGET_ATTR_IDS_file_name
 
 	#define MMSGUI_TEXTBOXWIDGET_ATTR_INIT { \
 		MMSGUI_BASE_ATTR_ATTRDESC, \
@@ -171,13 +175,27 @@ class MMSTextBoxWidgetClass {
         //! if true the text will be translated before displayed
         bool          	translate;
 
+        //! is filepath set?
+        bool            isfilepath;
+
+        //! path to the file
+        string          filepath;
+
+        //! is filename set?
+        bool            isfilename;
+
+        //! name of the file
+        string          filename;
+
         //! Read and set all attributes from the given TAFF buffer.
         /*!
-        \param tafff   pointer to the TAFF buffer
-        \param prefix  optional, prefix to all attribute names (<prefix><attrname>=<attrvalue>)
-        \param path    optional, path needed for empty path values from the TAFF buffer
+        \param tafff   		pointer to the TAFF buffer
+        \param prefix  		optional, prefix to all attribute names (<prefix><attrname>=<attrvalue>)
+        \param path    		optional, path needed for empty path values from the TAFF buffer
+        \param reset_paths  optional, should reset all path attributes?
         */
-        void setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix = NULL, string *path = NULL);
+        void setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix = NULL, string *path = NULL,
+								   bool reset_paths = false);
 
     public:
     	//! stores base widget attributes
@@ -355,6 +373,12 @@ class MMSTextBoxWidgetClass {
         */
         void setText(string text);
 
+        //! Set the text to be drawn.
+        /*!
+        \param text  any text string
+        */
+        void setText(string *text);
+
         //! Mark the text as not set.
         void unsetText();
 
@@ -381,6 +405,42 @@ class MMSTextBoxWidgetClass {
         \return true/false
         */
         bool getTranslate();
+
+        //! Check if the filepath is set.
+        bool isFilePath();
+
+        //! Set the filepath which is used to load the text.
+        /*!
+        \param filepath  path to the file
+        */
+        void setFilePath(string filepath);
+
+        //! Mark the filepath as not set.
+        void unsetFilePath();
+
+        //! Get the filepath which is used to load the text.
+        /*!
+        \return path to the file
+        */
+        string getFilePath();
+
+        //! Check if the filename is set.
+        bool isFileName();
+
+        //! Set the filename which is used to load the text.
+        /*!
+        \param filename  name of the file
+        */
+        void setFileName(string filename);
+
+        //! Mark the filename as not set.
+        void unsetFileName();
+
+        //! Get the filename which is used to load the text.
+        /*!
+        \return name of the file
+        */
+        string getFileName();
 
     /* friends */
     friend class MMSThemeManager;

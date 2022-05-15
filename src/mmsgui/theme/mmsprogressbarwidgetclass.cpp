@@ -52,7 +52,7 @@ void MMSProgressBarWidgetClass::unsetAll() {
     unsetProgress();
 }
 
-void MMSProgressBarWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path) {
+void MMSProgressBarWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path, bool reset_paths) {
     MMSFBColor color;
 
     if (!prefix) {
@@ -65,7 +65,7 @@ void MMSProgressBarWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string
 			case MMSGUI_PROGRESSBARWIDGET_ATTR::MMSGUI_PROGRESSBARWIDGET_ATTR_IDS_color:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isColor()) color = getColor();
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setColor(color);
 	            break;
 			case MMSGUI_PROGRESSBARWIDGET_ATTR::MMSGUI_PROGRESSBARWIDGET_ATTR_IDS_color_a:
@@ -95,7 +95,7 @@ void MMSProgressBarWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string
 			case MMSGUI_PROGRESSBARWIDGET_ATTR::MMSGUI_PROGRESSBARWIDGET_ATTR_IDS_selcolor:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isSelColor()) color = getSelColor();
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setSelColor(color);
 	            break;
 			case MMSGUI_PROGRESSBARWIDGET_ATTR::MMSGUI_PROGRESSBARWIDGET_ATTR_IDS_selcolor_a:
@@ -145,7 +145,7 @@ void MMSProgressBarWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string
             if (ISATTRNAME(color)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isColor()) color = getColor();
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setColor(color);
     		}
             else
@@ -180,7 +180,7 @@ void MMSProgressBarWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string
             if (ISATTRNAME(selcolor)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isSelColor()) color = getSelColor();
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setSelColor(color);
     		}
             else

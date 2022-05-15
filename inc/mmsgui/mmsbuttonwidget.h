@@ -52,14 +52,15 @@ class MMSButtonWidget : public MMSWidget {
 
         bool create(MMSWindow *root, string className, MMSTheme *theme);
 
+        bool init();
+        bool release();
+        bool draw(bool *backgroundFilled = NULL);
+
     public:
         MMSButtonWidget(MMSWindow *root, string className, MMSTheme *theme = NULL);
         ~MMSButtonWidget();
 
         MMSWidget *copyWidget();
-
-        bool init();
-        bool draw(bool *backgroundFilled = NULL);
 
     public:
         /* theme access methods */

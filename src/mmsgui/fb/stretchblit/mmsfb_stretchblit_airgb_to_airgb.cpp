@@ -33,8 +33,8 @@
 #include "mmsgui/fb/mmsfbconv.h"
 #include "mmstools/mmstools.h"
 
-void mmsfb_stretchblit_airgb_to_airgb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-									  unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy, int dw, int dh,
+void mmsfb_stretchblit_airgb_to_airgb(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+								      MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy, int dw, int dh,
 									  bool antialiasing) {
 	// first time?
 	static bool firsttime = true;
@@ -44,8 +44,8 @@ void mmsfb_stretchblit_airgb_to_airgb(MMSFBExternalSurfaceBuffer *extbuf, int sr
 	}
 
 	// no difference to argb, use argb to argb routine
-	mmsfb_stretchblit_argb_to_argb(extbuf, src_height, sx, sy, sw, sh,
-								   dst, dst_pitch, dst_height, dx, dy, dw, dh, antialiasing);
+	mmsfb_stretchblit_argb_to_argb(src_planes, src_height, sx, sy, sw, sh,
+								   dst_planes, dst_height, dx, dy, dw, dh, antialiasing);
 }
 
 

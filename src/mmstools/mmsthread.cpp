@@ -50,6 +50,8 @@ static void *startmythread(void *thiz) {
 	return NULL;
 }
 
+static std::map<pthread_t, CLEANUP_STRUCT *> cleanups;
+
 MMSThread::MMSThread(string identity, int priority, bool detach) {
 #ifdef __HAVE_DIRECTFB__
     D_DEBUG_AT( MMS_Thread, "MMSThread( %s )\n", identity.c_str() );
@@ -84,9 +86,9 @@ void MMSThread::run() {
 	}
 }
 
-void MMSThread::start() {
+bool MMSThread::start() {
 	if (this->isrunning)
-		return;
+		return false;
 
 	/* initialize the priority */
     pthread_attr_init(&this->tattr);
@@ -97,6 +99,10 @@ void MMSThread::start() {
 
     /* create the new thread */
     pthread_create(&this->id, &tattr, startmythread, static_cast<void *>(this));
+
+    pthread_attr_destroy(&this->tattr);
+
+    return true;
 }
 
 void MMSThread::detach() {
@@ -124,4 +130,51 @@ void MMSThread::join() {
 
 void MMSThread::setStacksize(size_t stacksize) {
 	this->stacksize = stacksize;
+}
+
+
+void addGarbageHandler(void (*handlerfunc)(void *), void *data) {
+	CLEANUP_STRUCT *item = new CLEANUP_STRUCT;
+	std::map<pthread_t, CLEANUP_STRUCT *>::iterator it;
+	pthread_t self = pthread_self();
+
+	item->handlerfunc=handlerfunc;
+	item->udata=data;
+
+	it=cleanups.find(self);
+	if(it!=cleanups.end()) {
+		if(it->second)
+			delete it->second;
+		it->second = item;
+	} else {
+		cleanups.insert(std::make_pair(self,item));
+	}
+}
+
+void callGarbageHandler() {
+	std::map<pthread_t, CLEANUP_STRUCT *>::iterator it;
+	pthread_t self = pthread_self();
+
+	it = cleanups.find(self);
+	if(it!=cleanups.end()) {
+		/* call the garbage handler */
+		it->second->handlerfunc(it->second->udata);
+
+		/* remove handler */
+		delete it->second;
+		cleanups.erase(self);
+	}
+}
+
+void cleargargabeHandler() {
+	std::map<pthread_t, CLEANUP_STRUCT *>::iterator it;
+	pthread_t self = pthread_self();
+
+	it = cleanups.find(self);
+	if(it!=cleanups.end()) {
+
+		/* remove handler */
+		delete it->second;
+		cleanups.erase(self);
+	}
 }

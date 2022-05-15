@@ -263,21 +263,27 @@ void MMSWidgetClass::unsetAll() {
     unsetJoinedWidget();
 }
 
-void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path) {
+void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path, bool reset_paths) {
     MMSFBColor color;
-    bool class_set = false;
+
+    if ((reset_paths)&&(path)&&(*path!="")) {
+    	// unset my paths
+	    unsetBgImagePath();
+	    unsetSelBgImagePath();
+	    unsetBgImagePath_p();
+	    unsetSelBgImagePath_p();
+	    unsetBgImagePath_i();
+	    unsetSelBgImagePath_i();
+    }
 
     if (!prefix) {
 		startTAFFScan
 		{
 	        switch (attrid) {
-			case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_class:
-	            class_set = true;
-				break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_bgcolor:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isBgColor()) getBgColor(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setBgColor(color);
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_bgcolor_a:
@@ -307,7 +313,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_selbgcolor:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isSelBgColor()) getSelBgColor(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setSelBgColor(color);
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_selbgcolor_a:
@@ -337,7 +343,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_bgcolor_p:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isBgColor_p()) getBgColor_p(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setBgColor_p(color);
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_bgcolor_p_a:
@@ -367,7 +373,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_selbgcolor_p:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isSelBgColor_p()) getSelBgColor_p(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setSelBgColor_p(color);
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_selbgcolor_p_a:
@@ -397,7 +403,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_bgcolor_i:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isBgColor_i()) getBgColor_i(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setBgColor_i(color);
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_bgcolor_i_a:
@@ -427,7 +433,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_selbgcolor_i:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isSelBgColor_i()) getSelBgColor_i(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setSelBgColor_i(color);
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_selbgcolor_i_a:
@@ -636,7 +642,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
             if (ISATTRNAME(bgcolor)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isBgColor()) getBgColor(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setBgColor(color);
             }
             else
@@ -671,7 +677,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
             if (ISATTRNAME(selbgcolor)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isSelBgColor()) getSelBgColor(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setSelBgColor(color);
             }
             else
@@ -706,7 +712,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
             if (ISATTRNAME(bgcolor_p)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isBgColor_p()) getBgColor_p(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setBgColor_p(color);
             }
             else
@@ -741,7 +747,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
             if (ISATTRNAME(selbgcolor_p)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isSelBgColor_p()) getSelBgColor_p(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setSelBgColor_p(color);
             }
             else
@@ -776,7 +782,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
             if (ISATTRNAME(bgcolor_i)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isBgColor_i()) getBgColor_i(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setBgColor_i(color);
             }
             else
@@ -811,7 +817,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
             if (ISATTRNAME(selbgcolor_i)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isSelBgColor_i()) getSelBgColor_i(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setSelBgColor_i(color);
             }
             else
@@ -1048,7 +1054,8 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
     	endTAFFScan_WITHOUT_ID
     }
 
-    if ((!class_set)&&(path)&&(*path!="")) {
+    if ((reset_paths)&&(path)&&(*path!="")) {
+    	// set my paths
 		if (!isBgImagePath())
 		    setBgImagePath(*path);
 		if (!isSelBgImagePath())

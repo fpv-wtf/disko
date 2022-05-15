@@ -1,7 +1,7 @@
 <mmsdialog>
     <description
     	author = "Jens Schneider"
-    	email  = "pupeider@morphine.tv"
+    	email  = "jens.schneider@diskohq.org"
     	desc   = ""
    	/>
    	<childwindow w="600px" h="450px" bgcolor="#00000000" border.color="#606060ff" border.thickness="1">

@@ -4,18 +4,19 @@ taffEnv = env.Clone()
 
 if env['big_lib']:
 	Import('libdisko_shared')
-	taffEnv.Append(LIBS = ['disko'])
+	taffEnv['LIBS'] = (['disko']) + taffEnv['LIBS']
 elif env['static_lib']:
 	Import('libdisko_static')
-	taffEnv.Append(LIBS = ['disko'])
+	taffEnv['LIBS'] = (['disko']) + taffEnv['LIBS']
 else:
 	Import('libmmsinfo libmmsconfig libmmstools libmmsgui libmmscore libmmsinput libmmsbase')
-	taffEnv.Append(LIBS = ['mmsinfo', 'mmsconfig', 'mmstools', 'mmsgui', 'mmscore', 'mmsinput', 'mmsbase'])
 	if env['media']:
 		Import('libmmsmedia')
-		taffEnv.Append(LIBS = ['mmsmedia'])
+		taffEnv['LIBS'] = (['mmsmedia', 'mmsinfo', 'mmsconfig', 'mmstools', 'mmsgui', 'mmscore', 'mmsinput', 'mmsbase']) + taffEnv['LIBS']
+	else:
+		taffEnv['LIBS'] = (['mmsinfo', 'mmsconfig', 'mmstools', 'mmsgui', 'mmscore', 'mmsinput', 'mmsbase']) + taffEnv['LIBS']
 
-taffEnv.Append(LIBPATH = '../../../lib') 
+taffEnv.Append(LIBPATH = ['../../../lib'])
 taff = taffEnv.Program('../../../bin/taff', Glob('src/*.cpp'))
 
 if env['big_lib']:

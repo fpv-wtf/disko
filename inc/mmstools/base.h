@@ -39,5 +39,6 @@ using namespace std;
 #include <iostream>
 #include <vector>
 #include <map>
+#include <sigc++/sigc++.h>
 
 #endif /*BASE_H_*/

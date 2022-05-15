@@ -81,11 +81,14 @@ class MMSInputLISHandler : public MMSInputHandler {
 		//! event ring buffer
 		MMSInputEvent 	ie_buffer[MMSINPUTLISHANDLER_EVENT_BUFFER_SIZE];
 
+		//! current number of events in ring buffer
+		unsigned char	ie_count;
+
 		//! event ring buffer, read pos
-		int ie_read_pos;
+		unsigned char 	ie_read_pos;
 
 		//! event ring buffer, write pos
-		int ie_write_pos;
+		unsigned char	ie_write_pos;
 
 		//! filedescriptor from which we read keyboard inputs (this should be the fd to the framebuffer console)
 		int	kb_fd;

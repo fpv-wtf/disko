@@ -33,8 +33,8 @@
 #include "mmsgui/fb/mmsfbconv.h"
 #include "mmstools/mmstools.h"
 
-void mmsfb_blit_ayuv_to_ayuv(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-							 unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy) {
+void mmsfb_blit_ayuv_to_ayuv(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+							 MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy) {
 	// first time?
 	static bool firsttime = true;
 	if (firsttime) {
@@ -42,8 +42,8 @@ void mmsfb_blit_ayuv_to_ayuv(MMSFBExternalSurfaceBuffer *extbuf, int src_height,
 		firsttime = false;
 	}
 
-	// no difference to argb, use argb to argb routine
-	mmsfb_blit_argb_to_argb(extbuf, src_height, sx, sy, sw, sh,
-							dst, dst_pitch, dst_height, dx, dy);
+	// blit 4-byte-pixels
+	mmsfb_blit_uint(src_planes, src_height, sx, sy, sw, sh,
+					dst_planes, dst_height, dx, dy);
 }
 

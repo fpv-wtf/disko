@@ -53,7 +53,8 @@ namespace MMSGUI_INPUTWIDGET_ATTR {
 		{ "selcolor.r", TAFF_ATTRTYPE_UCHAR }, \
 		{ "selcolor.g", TAFF_ATTRTYPE_UCHAR }, \
 		{ "selcolor.b", TAFF_ATTRTYPE_UCHAR }, \
-		{ "text", TAFF_ATTRTYPE_STRING }
+		{ "text", TAFF_ATTRTYPE_STRING }, \
+		{ "cursor_state", TAFF_ATTRTYPE_STATE }
 
 	#define MMSGUI_INPUTWIDGET_ATTR_IDS \
 		MMSGUI_INPUTWIDGET_ATTR_IDS_font_path, \
@@ -70,7 +71,8 @@ namespace MMSGUI_INPUTWIDGET_ATTR {
 		MMSGUI_INPUTWIDGET_ATTR_IDS_selcolor_r, \
 		MMSGUI_INPUTWIDGET_ATTR_IDS_selcolor_g, \
 		MMSGUI_INPUTWIDGET_ATTR_IDS_selcolor_b, \
-		MMSGUI_INPUTWIDGET_ATTR_IDS_text
+		MMSGUI_INPUTWIDGET_ATTR_IDS_text, \
+		MMSGUI_INPUTWIDGET_ATTR_IDS_cursor_state
 
 	#define MMSGUI_INPUTWIDGET_ATTR_INIT { \
 		MMSGUI_BASE_ATTR_ATTRDESC, \
@@ -147,13 +149,21 @@ class MMSInputWidgetClass {
         //! text to draw
         string          text;
 
+        //! is cursor state set?
+        bool            iscursor_state;
+
+        //! requested cursor state
+        MMSSTATE		cursor_state;
+
         //! Read and set all attributes from the given TAFF buffer.
         /*!
-        \param tafff   pointer to the TAFF buffer
-        \param prefix  optional, prefix to all attribute names (<prefix><attrname>=<attrvalue>)
-        \param path    optional, path needed for empty path values from the TAFF buffer
+        \param tafff   		pointer to the TAFF buffer
+        \param prefix  		optional, prefix to all attribute names (<prefix><attrname>=<attrvalue>)
+        \param path    		optional, path needed for empty path values from the TAFF buffer
+        \param reset_paths  optional, should reset all path attributes?
         */
-        void setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix = NULL, string *path = NULL);
+        void setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix = NULL, string *path = NULL,
+								   bool reset_paths = false);
 
     public:
     	//! stores base widget attributes
@@ -303,7 +313,25 @@ class MMSInputWidgetClass {
         */
         string getText();
 
-    /* friends */
+        //! Check if the cursor state is set.
+        bool isCursorState();
+
+        //! Set the cursor state.
+        /*!
+        \param cursor_state state: true, false, auto
+        */
+        void setCursorState(MMSSTATE cursor_state);
+
+        //! Mark the cursor state as not set.
+        void unsetCursorState();
+
+        //! Get the current cursor state.
+        /*!
+        \return cursor state
+        */
+        MMSSTATE getCursorState();
+
+    // friends
     friend class MMSThemeManager;
     friend class MMSDialogManager;
 };

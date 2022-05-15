@@ -177,7 +177,7 @@ MMSInputX11Handler::MMSInputX11Handler(MMS_INPUT_DEVICE device) {
 	this->window = *((Window*) mmsfb->getX11Window());
 	this->display = (Display *)mmsfb->getX11Display();
 	//printf("\nwindow %d, %x\n",window, display);
-
+	lastmotion = 0;
 
 #else
 	throw new MMSError(0,(string)typeid(this).name() + " is empty. compile X11 support!");
@@ -232,6 +232,9 @@ void MMSInputX11Handler::grabEvents(MMSInputEvent *inputevent) {
     		return;
     	}
     	if(event.type==ButtonPress) {
+		//discard all buttons but the left */
+		if(event.xbutton.button != 1)
+			return;
     		inputevent->type = MMSINPUTEVENTTYPE_BUTTONPRESS;
 			if (mmsfb->fullscreen == MMSFB_FSM_TRUE || mmsfb->fullscreen == MMSFB_FSM_ASPECT_RATIO) {
 				inputevent->posx = (int)((double)((double)event.xbutton.x / (double)mmsfb->display_w ) * mmsfb->x11_win_rect.w);
@@ -246,6 +249,9 @@ void MMSInputX11Handler::grabEvents(MMSInputEvent *inputevent) {
 			return;
     	}
     	if(event.type==ButtonRelease) {
+		//discard all buttons but the left */
+		if(event.xbutton.button != 1)
+			return;
     		inputevent->type = MMSINPUTEVENTTYPE_BUTTONRELEASE;
 			if (mmsfb->fullscreen == MMSFB_FSM_TRUE || mmsfb->fullscreen == MMSFB_FSM_ASPECT_RATIO) {
 				inputevent->posx = (int)((double)((double)event.xbutton.x / (double)mmsfb->display_w ) * mmsfb->x11_win_rect.w);
@@ -260,6 +266,16 @@ void MMSInputX11Handler::grabEvents(MMSInputEvent *inputevent) {
     		return;
     	}
     	if(event.type==MotionNotify) {
+
+#if 0
+			if(lastmotion!=0) {
+				if(lastmotion+15 > event.xbutton.time) {
+					return;
+				}
+			}
+			lastmotion=event.xbutton.time;
+#endif
+
     		inputevent->type = MMSINPUTEVENTTYPE_AXISMOTION;
 			if (mmsfb->fullscreen == MMSFB_FSM_TRUE || mmsfb->fullscreen == MMSFB_FSM_ASPECT_RATIO || mmsfb->resized) {
 				inputevent->posx = (int)((double)((double)event.xbutton.x / (double)mmsfb->display_w ) * mmsfb->x11_win_rect.w);

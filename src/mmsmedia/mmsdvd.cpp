@@ -2,33 +2,31 @@
  *   Copyright (C) 2005-2007 Stefan Schwarzer, Jens Schneider,             *
  *                           Matthias Hardt, Guido Madaus                  *
  *                                                                         *
- *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
+ *   Copyright (C) 2007-2008 Berlinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009      Berlinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
- *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
- *      Matthias Hardt     <matthias.hardt@diskohq.org>,                   *
- *      Jens Schneider     <pupeider@gmx.de>,                              *
- *      Guido Madaus       <guido.madaus@diskohq.org>,                     *
- *      Patrick Helterhoff <patrick.helterhoff@diskohq.org>,               *
- *      René Bählkow       <rene.baehlkow@diskohq.org>                     *
+ *      Stefan Schwarzer <SSchwarzer@berlinux-solutions.de>,               *
+ *      Matthias Hardt   <MHardt@berlinux-solutions.de>,                   *
+ *      Jens Schneider   <pupeider@gmx.de>                                 *
+ *      Guido Madaus     <GMadaus@berlinux-solutions.de>                   *
  *                                                                         *
- *   This library is free software; you can redistribute it and/or         *
- *   modify it under the terms of the GNU Lesser General Public            *
- *   License version 2.1 as published by the Free Software Foundation.     *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License.        *
  *                                                                         *
- *   This library is distributed in the hope that it will be useful,       *
+ *   This program is distributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU     *
- *   Lesser General Public License for more details.                       *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
  *                                                                         *
- *   You should have received a copy of the GNU Lesser General Public      *
- *   License along with this library; if not, write to the                 *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
  *   Free Software Foundation, Inc.,                                       *
- *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA            *
- **************************************************************************/
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
 
 #include <fstream>
 #include <cstdlib>
@@ -363,10 +361,9 @@ void MMSDVD::eject() {
     }
     else {
 #ifdef __HAVE_XINE__
-		if(this->stream) {
+		if(this->stream)
 			xine_dispose(this->stream);
-			this->stream = 0;
-		}
+		this->stream = 0;
 
 #endif
     }

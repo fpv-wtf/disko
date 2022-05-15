@@ -33,20 +33,24 @@
 #include "mmsgui/mmspopupwindow.h"
 
 MMSPopupWindow::MMSPopupWindow(string className, string dx, string dy, string w, string h, MMSALIGNMENT alignment,
-                               MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface, unsigned int duration) {
-	create(className, dx, dy, w, h, alignment, flags, theme, own_surface, duration);
+                               MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface,
+                               bool *backbuffer, unsigned int duration) {
+	create(className, dx, dy, w, h, alignment, flags, theme, own_surface, backbuffer, duration);
 }
 
 MMSPopupWindow::MMSPopupWindow(string className, string w, string h, MMSALIGNMENT alignment,
-                               MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface, unsigned int duration) {
-	create(className, "", "", w, h, alignment, flags, theme, own_surface, duration);
+                               MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface,
+                               bool *backbuffer, unsigned int duration) {
+	create(className, "", "", w, h, alignment, flags, theme, own_surface, backbuffer, duration);
 }
 
 MMSPopupWindow::~MMSPopupWindow() {
+	this->timeOut_connection.disconnect();
 }
 
 bool MMSPopupWindow::create(string className, string dx, string dy, string w, string h, MMSALIGNMENT alignment,
-                            MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface, unsigned int duration) {
+                            MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface,
+                            bool *backbuffer, unsigned int duration) {
 	this->type = MMSWINDOWTYPE_POPUPWINDOW;
     this->className = className;
     if (theme) this->theme = theme; else this->theme = globalTheme;
@@ -54,43 +58,41 @@ bool MMSPopupWindow::create(string className, string dx, string dy, string w, st
     this->baseWindowClass = &(this->theme->popupWindowClass.windowClass);
     if (this->popupWindowClass) this->windowClass = &(this->popupWindowClass->windowClass); else this->windowClass = NULL;
 
-    this->counter = 0;
-
     if (duration)
         setDuration(duration);
 
-	return MMSWindow::create(dx, dy, w, h, alignment, flags, own_surface);
+    // create single shot timer
+	this->timer = new MMSTimer(true);
+	this->timeOut_connection = this->timer->timeOut.connect(sigc::mem_fun(this, &MMSPopupWindow::timeOut));
+
+	return MMSWindow::create(dx, dy, w, h, alignment, flags, own_surface, backbuffer);
 }
 
-bool MMSPopupWindow::show() {
-    this->counter = 0;
-    return MMSWindow::show();
+void MMSPopupWindow::timeOut(void) {
+
+	// timeout reached, hide the window
+	hide(false, true);
 }
 
-bool MMSPopupWindow::showAction(bool *stopaction) {
-	bool	      ret;
-    unsigned int  duration;
+void MMSPopupWindow::afterShowAction(MMSPulser *pulser) {
 
-	ret = MMSWindow::showAction(stopaction);
+	// call default window routine
+	MMSWindow::afterShowAction(pulser);
 
-    duration = getDuration();
-	if(duration > 0) {
-		if (ret) {
-			while (this->counter < duration*4) {
-				msleep(250);
-				if (*stopaction)
-					break;
-                this->counter++;
-			}
-		}
-		else
-			msleep(250);
-		if (!*stopaction)
-			this->hideAction(stopaction);
-		*stopaction=false;
+	// start the timer
+	unsigned int duration = getDuration();
+	if (duration > 0) {
+		this->timer->start(duration * 1000);
 	}
+}
 
-	return ret;
+bool MMSPopupWindow::beforeHideAction(MMSPulser *pulser) {
+
+	// stop the timer if running
+	this->timer->stop();
+
+	// call default window routine and return
+	return MMSWindow::beforeHideAction(pulser);
 }
 
 

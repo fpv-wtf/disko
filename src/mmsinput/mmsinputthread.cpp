@@ -136,6 +136,9 @@ void MMSInputThread::threadMain() {
 
         /* to the input manager */
 		this->manager->handleInput(&event);
+
+		/* call garbage handler */
+		callGarbageHandler();
 	}
 }
 

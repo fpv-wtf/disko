@@ -42,23 +42,19 @@ MMSXMLServerInterface::MMSXMLServerInterface() : MMSServerInterface("MMSXMLServe
 }
 
 MMSXMLServerInterface::~MMSXMLServerInterface() {
-    xmlCleanupParser();
 }
 
 bool MMSXMLServerInterface::processRequest(string *request, string *answer) {
-	*answer = "";
-
-	xmlInitParser();
-    xmlDocPtr doc =NULL;
-
-    DEBUGMSG("MMSXMLServerInterface","got request %s", request->c_str());
     if(!request || !answer) {
         DEBUGMSG("MMSXMLServerInterface","processRequest() error in cmdline");
     	return false;
     }
+    DEBUGMSG("MMSXMLServerInterface","got request %s", request->c_str());
+
+	*answer = "";
 
     DEBUGMSG("MMSXMLServerInterface","new reader");
-    doc = xmlReadMemory(request->c_str(),request->length(),"memory.xml",NULL,0);
+    xmlDocPtr doc = xmlReadMemory(request->c_str(),request->length(),"memory.xml",NULL,0);
 
     if(!doc) {
         *answer = "<ret error=\"Problems with xml request.\"/>";

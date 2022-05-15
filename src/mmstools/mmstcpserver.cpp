@@ -83,6 +83,12 @@ void MMSTCPServer::threadMain() {
 	sa.sin_addr.s_addr = inet_addr(this->hostip.c_str());
 	DEBUGMSG("MMSTCPServer", "bind at %d:%d",this->port, sa.sin_port);
 
+	/* set socket options */
+	int optbuf = 1;
+	if(setsockopt(this->s, SOL_SOCKET, SO_REUSEADDR, &optbuf, sizeof(optbuf)) < 0) {
+	    DEBUGMSG("MMSTCPServer", "socket error: cannot set socket option");
+	}
+
 	if(bind(this->s, (struct sockaddr *)&sa, sizeof(struct sockaddr_in))!=0) {
 		DEBUGMSG("MMSTCPServer", "Error while binding: %s", strerror(errno));
 		return;

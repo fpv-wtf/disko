@@ -63,26 +63,71 @@ void mmsfb_fillrectangle_argb(MMSFBSurfacePlanes *dst_planes, int dst_height,
 			| (color.g << 8)
 			| color.b;
 
-	// copy pixel directly to the destination
-	// for all lines
-	while (dst < dst_end) {
-		// for all pixels in the line
+	// set flags for dst_planes
+	switch (A) {
+	case 0x00:
+		// full transparent
+		dst_planes->opaque = false;
+		dst_planes->transparent = true;
+		break;
+	case 0xff:
+		// full opaque
+		dst_planes->opaque = true;
+		dst_planes->transparent = false;
+		break;
+	default:
+		// semitransparent
+		dst_planes->opaque = false;
+		dst_planes->transparent = false;
+		break;
+	}
+
+	if (color.r != A || color.g != A || color.b != A) {
+		// different values for r, g, b, a
+		// copy pixel directly to the destination
+		// for all lines
+		while (dst < dst_end) {
+			// for all pixels in the line
 #ifdef __HAVE_SSE__
-		// fill memory 4-byte-wise (much faster than loop see below)
-		__asm__ __volatile__ ( "\trep stosl\n" : : "D" (dst), "a" (SRC), "c" (dw));
+			// fill memory 4-byte-wise (much faster than loop see below)
+	//		__asm__ __volatile__ ( "\tcld\n\trep stosl" : : "D" (dst), "a" (SRC), "c" (dw));
+			short d0, d1, d2;
+			__asm__ __volatile__ ( "\tcld\n\trep stosl" \
+					: "=&D" (d0), "=&a" (d1), "=&c" (d2) \
+					: "0" (dst), "1" (SRC), "2" (dw) \
+					: "memory", "cc");
 
-		// go to the next line
-		dst+= dst_pitch_pix;
+			// go to the next line
+			dst+= dst_pitch_pix;
 #else
-		unsigned int *line_end = dst + dw;
-		while (dst < line_end) {
-			*dst = SRC;
-			dst++;
-		}
+			unsigned int *line_end = dst + dw;
+			while (dst < line_end) {
+				*dst = SRC;
+				dst++;
+			}
 
-		// go to the next line
-		dst+= dst_pitch_diff;
+			// go to the next line
+			dst+= dst_pitch_diff;
 #endif
+		}
+	}
+	else {
+		// r, g, b, a values are equal, so clear it with value from A
+		register int mw = dw << 2;
+		if (mw != dst_pitch) {
+			// for all lines
+			while (dst < dst_end) {
+				// reset all pixels in the line
+				memset(dst, A, mw);
+
+				// go to the next line
+				dst+= dst_pitch_pix;
+			}
+		}
+		else {
+			// clear one big block
+			memset(dst, A, (int)((char*)dst_end - (char*)dst));
+		}
 	}
 }
 

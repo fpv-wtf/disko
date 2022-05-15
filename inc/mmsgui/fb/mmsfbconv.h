@@ -878,6 +878,11 @@ if (!AA) { \
 	int err = el >> 1; putpixel; \
 	for(int i = 0; i < el; ++i) { err-=es; if (err < 0) { err+=el; x+=ddx; y+=ddy; } else { x+=pdx; y+=pdy; } putpixel; } } }
 
+//! put pixel macro will be used e.g. as parameter for the bresenham algorithm
+#define MMSFB_DRAWLINE_PUT_PIXEL \
+	if ((x >= clipreg.x1)&&(x <= clipreg.x2)&&(y >= clipreg.y1)&&(y <= clipreg.y2)) \
+		dst[x+y*dst_pitch_pix]=SRC;
+
 
 //! used for text output
 #define MMSFBSURFACE_BLIT_TEXT_INIT(pw) \
@@ -956,6 +961,16 @@ void stretch_uint_buffer(bool h_antialiasing, bool v_antialiasing,
 						 unsigned int *dst, int dst_pitch, int dst_pitch_pix, int dst_height,
 						 int dx, int dy, int dw, int dh);
 
+//! Stretching the source unsigned short int buffer to a destination.
+/*!
+\author Jens Schneider
+*/
+void stretch_usint_buffer(bool h_antialiasing, bool v_antialiasing,
+						  unsigned short int *src, int src_pitch, int src_pitch_pix,
+						  int src_height, int sx, int sy, int sw, int sh,
+					      unsigned short int *dst, int dst_pitch, int dst_pitch_pix,
+					      int dst_height, int dx, int dy, int dw, int dh);
+
 //! Stretching the source 3-byte-buffer to a unsigned int destination.
 /*!
 \author Jens Schneider
@@ -966,68 +981,76 @@ void stretch_324byte_buffer(bool h_antialiasing, bool v_antialiasing,
 							unsigned int *dst, int dst_pitch, int dst_pitch_pix,
 							int dst_height, int dx, int dy, int dw, int dh);
 
+//! Blitting unsigned int (4 byte) source to unsigned int destination.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_uint(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+					 MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
+//! Blitting unsigned short int (2 byte) source to unsigned short int destination.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_usint(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+					  MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
+
+
+// --- BLITTING TO ARGB -------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Blit ARGB to ARGB.
 /*!
 \author Jens Schneider
 */
-void mmsfb_blit_argb_to_argb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-							 unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
+void mmsfb_blit_argb_to_argb(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+							 MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
 
 //! Blit with alpha blending ARGB to ARGB.
 /*!
 \author Jens Schneider
 */
-void mmsfb_blit_blend_argb_to_argb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-								   unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
+void mmsfb_blit_blend_argb_to_argb(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+								   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
 
 //! Blit with alpha blending with alpha from color ARGB to ARGB.
 /*!
 \author Jens Schneider
 */
-void mmsfb_blit_blend_coloralpha_argb_to_argb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-											  unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy,
+void mmsfb_blit_blend_coloralpha_argb_to_argb(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+											  MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy,
 											  unsigned char alpha);
 
-
-//! Blit with alpha blending with alpha from color ARGB to RGB32.
+//! Blit RGB16 to ARGB.
 /*!
 \author Jens Schneider
 */
-void mmsfb_blit_blend_coloralpha_argb_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
-											   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy,
-											   unsigned char alpha);
+void mmsfb_blit_rgb16_to_argb(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+							  MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
 
-
-//! Blit AiRGB to AiRGB.
+//! Blit RGB24 to ARGB.
 /*!
 \author Jens Schneider
 */
-void mmsfb_blit_airgb_to_airgb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-							   unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
+void mmsfb_blit_rgb24_to_argb(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+							  MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
 
-//! Blit with alpha blending AiRGB to AiRGB.
+// ----------------------------------------------------------------------------
+// ------------------------------------------------------- BLITTING TO ARGB ---
+
+
+// --- BLITTING TO RGB32 ------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+//! Blit RGB32 to RGB32.
 /*!
 \author Jens Schneider
 */
-void mmsfb_blit_blend_airgb_to_airgb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-								  	 unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
-
-//! Blit with alpha blending with alpha from color AiRGB to AiRGB.
-/*!
-\author Jens Schneider
-*/
-void mmsfb_blit_blend_coloralpha_airgb_to_airgb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-												unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy,
-												unsigned char alpha);
-
-//! Blit with alpha blending ARGB to AiRGB.
-/*!
-\author Jens Schneider
-*/
-void mmsfb_blit_blend_argb_to_airgb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-								    unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
-
+void mmsfb_blit_rgb32_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+							   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
 
 
 //! Blit with alpha blending ARGB to RGB32.
@@ -1038,25 +1061,107 @@ void mmsfb_blit_blend_argb_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_heig
 									MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
 
 
-//! Blit RGB32 to RGB32.
+//! Blit with alpha blending with alpha from color ARGB to RGB32.
 /*!
 \author Jens Schneider
 */
-void mmsfb_blit_rgb32_to_rgb32(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-							   unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
+void mmsfb_blit_blend_coloralpha_argb_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+											   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy,
+											   unsigned char alpha);
 
-
-
-
-
-
-//! Blit with alpha blending ARGB to RGB24.
+//! Blit with alpha from color RGB32 to RGB32.
 /*!
-\note RGB24 byte order: blue@0, green@1, red@2
 \author Jens Schneider
 */
-void mmsfb_blit_blend_argb_to_rgb24(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
-									MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+void mmsfb_blit_coloralpha_rgb32_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+										  MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy,
+										  unsigned char alpha);
+
+//! Blit RGB16 to RGB32.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_rgb16_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+							   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
+//! Blit RGB24 to RGB32.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_rgb24_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+							   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
+
+//! Blit YV12 to RGB32.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_yv12_to_rgb32(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
+							  unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
+
+
+//! Blit with alpha blending ARGB4444 to RGB32.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_blend_argb4444_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+										MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
+
+//! Blit with alpha blending with alpha from color ARGB4444 to RGB32.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_blend_coloralpha_argb4444_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+												   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy,
+												   unsigned char alpha);
+
+// ----------------------------------------------------------------------------
+// ------------------------------------------------------ BLITTING TO RGB32 ---
+
+
+// --- BLITTING TO AiRGB ------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+//! Blit AiRGB to AiRGB.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_airgb_to_airgb(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+							   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
+
+//! Blit with alpha blending AiRGB to AiRGB.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_blend_airgb_to_airgb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
+								  	 unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
+
+
+//! Blit with alpha blending with alpha from color AiRGB to AiRGB.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_blend_coloralpha_airgb_to_airgb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
+												unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy,
+												unsigned char alpha);
+
+
+//! Blit with alpha blending ARGB to AiRGB.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_blend_argb_to_airgb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
+								    unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
+
+// ----------------------------------------------------------------------------
+// ------------------------------------------------------ BLITTING TO AiRGB ---
+
+
+
+// --- BLITTING TO RGB24 ------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Blit RGB24 to RGB24.
 /*!
@@ -1067,14 +1172,20 @@ void mmsfb_blit_rgb24_to_rgb24(MMSFBSurfacePlanes *src_planes, int src_height, i
 							   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
 
 
-
-//! Blit with alpha blending ARGB to BGR24.
+//! Blit with alpha blending ARGB to RGB24.
 /*!
-\note BGR24 byte order: red@0, green@1, blue@2
+\note RGB24 byte order: blue@0, green@1, red@2
 \author Jens Schneider
 */
-void mmsfb_blit_blend_argb_to_bgr24(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+void mmsfb_blit_blend_argb_to_rgb24(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
 									MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
+// ----------------------------------------------------------------------------
+// ------------------------------------------------------ BLITTING TO RGB24 ---
+
+
+// --- BLITTING TO BGR24 ------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Blit BGR24 to BGR24.
 /*!
@@ -1085,12 +1196,46 @@ void mmsfb_blit_bgr24_to_bgr24(MMSFBSurfacePlanes *src_planes, int src_height, i
 							   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
 
 
+//! Blit with alpha blending ARGB to BGR24.
+/*!
+\note BGR24 byte order: red@0, green@1, blue@2
+\author Jens Schneider
+*/
+void mmsfb_blit_blend_argb_to_bgr24(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+									MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
+
+//! Blit with alpha blending with alpha from color ARGB to BGR24.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_blend_coloralpha_argb_to_bgr24(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+											   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy,
+											   unsigned char alpha);
+
+
+//! Blit with alpha from color BGR24 to BGR24.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_coloralpha_bgr24_to_bgr24(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+										  MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy,
+										  unsigned char alpha);
+
+// ----------------------------------------------------------------------------
+// ------------------------------------------------------ BLITTING TO BGR24 ---
+
+
+// --- BLITTING TO RGB16 ------------------------------------------------------
+// ----------------------------------------------------------------------------
+
 //! Blit RGB16 to RGB16.
 /*!
 \author Jens Schneider
 */
-void mmsfb_blit_rgb16_to_rgb16(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-							   unsigned short int *dst, int dst_pitch, int dst_height, int dx, int dy);
+void mmsfb_blit_rgb16_to_rgb16(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+							   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
 
 //! Blit ARGB to RGB16.
 /*!
@@ -1099,12 +1244,13 @@ void mmsfb_blit_rgb16_to_rgb16(MMSFBExternalSurfaceBuffer *extbuf, int src_heigh
 void mmsfb_blit_argb_to_rgb16(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
 							  unsigned short int *dst, int dst_pitch, int dst_height, int dx, int dy);
 
+
 //! Blit with alpha blending ARGB to RGB16.
 /*!
 \author Jens Schneider
 */
-void mmsfb_blit_blend_argb_to_rgb16(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-									unsigned short int *dst, int dst_pitch, int dst_height, int dx, int dy);
+void mmsfb_blit_blend_argb_to_rgb16(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+									MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
 
 
 //! Blit AiRGB to RGB16.
@@ -1122,12 +1268,14 @@ void mmsfb_blit_airgb_to_rgb16(MMSFBExternalSurfaceBuffer *extbuf, int src_heigh
 void mmsfb_blit_blend_airgb_to_rgb16(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
 									 unsigned short int *dst, int dst_pitch, int dst_height, int dx, int dy);
 
+
 //! Blit AYUV to RGB16.
 /*!
 \author Jens Schneider
 */
 void mmsfb_blit_ayuv_to_rgb16(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
 							  unsigned short int *dst, int dst_pitch, int dst_height, int dx, int dy);
+
 
 //! Blit with alpha blending AYUV to RGB16.
 /*!
@@ -1136,13 +1284,20 @@ void mmsfb_blit_ayuv_to_rgb16(MMSFBExternalSurfaceBuffer *extbuf, int src_height
 void mmsfb_blit_blend_ayuv_to_rgb16(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
 								    unsigned short int *dst, int dst_pitch, int dst_height, int dx, int dy);
 
+// ----------------------------------------------------------------------------
+// ------------------------------------------------------ BLITTING TO RGB16 ---
+
+
+// --- BLITTING TO AYUV -------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Blit AYUV to AYUV.
 /*!
 \author Jens Schneider
 */
-void mmsfb_blit_ayuv_to_ayuv(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-							 unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
+void mmsfb_blit_ayuv_to_ayuv(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+							 MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
 
 //! Blit with alpha blending AYUV to AYUV.
 /*!
@@ -1150,6 +1305,7 @@ void mmsfb_blit_ayuv_to_ayuv(MMSFBExternalSurfaceBuffer *extbuf, int src_height,
 */
 void mmsfb_blit_blend_ayuv_to_ayuv(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
 								   unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
+
 
 //! Blit with alpha blending with alpha from color AYUV to AYUV.
 /*!
@@ -1159,20 +1315,12 @@ void mmsfb_blit_blend_coloralpha_ayuv_to_ayuv(MMSFBExternalSurfaceBuffer *extbuf
 											  unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy,
 											  unsigned char alpha);
 
+// ----------------------------------------------------------------------------
+// ------------------------------------------------------- BLITTING TO AYUV ---
 
-//! Blit RGB24 to ARGB.
-/*!
-\author Jens Schneider
-*/
-void mmsfb_blit_rgb24_to_argb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-							  unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
 
-//! Blit RGB24 to RGB32.
-/*!
-\author Jens Schneider
-*/
-void mmsfb_blit_rgb24_to_rgb32(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-							   unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
+// --- BLITTING TO YV12 -------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Blit YV12 to YV12.
 /*!
@@ -1181,6 +1329,7 @@ void mmsfb_blit_rgb24_to_rgb32(MMSFBExternalSurfaceBuffer *extbuf, int src_heigh
 void mmsfb_blit_yv12_to_yv12(MMSFBSurfacePlanes *extbuf, int src_height, int sx, int sy, int sw, int sh,
 							 MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
 
+
 //! Blit I420 to YV12.
 /*!
 \author Jens Schneider
@@ -1188,13 +1337,13 @@ void mmsfb_blit_yv12_to_yv12(MMSFBSurfacePlanes *extbuf, int src_height, int sx,
 void mmsfb_blit_i420_to_yv12(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
 							 MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
 
+
 //! Blit YUY2 to YV12.
 /*!
 \author Jens Schneider
 */
 void mmsfb_blit_yuy2_to_yv12(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
 							 MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
-
 
 
 //! Blit RGB24 to YV12.
@@ -1237,6 +1386,7 @@ void mmsfb_blit_blend_coloralpha_argb_to_yv12(MMSFBExternalSurfaceBuffer *extbuf
 void mmsfb_blit_blend_ayuv_to_yv12(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
 				 			 	   unsigned char *dst, int dst_pitch, int dst_height, int dx, int dy);
 
+
 //! Blit with alpha blending with alpha from color AYUV to YV12.
 /*!
 \author Jens Schneider
@@ -1245,6 +1395,12 @@ void mmsfb_blit_blend_coloralpha_ayuv_to_yv12(MMSFBExternalSurfaceBuffer *extbuf
 											  unsigned char *dst, int dst_pitch, int dst_height, int dx, int dy,
 											  unsigned char alpha);
 
+// ----------------------------------------------------------------------------
+// ------------------------------------------------------- BLITTING TO YV12 ---
+
+
+// --- BLITTING TO I420 -------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Blit I420 to I420.
 /*!
@@ -1253,6 +1409,12 @@ void mmsfb_blit_blend_coloralpha_ayuv_to_yv12(MMSFBExternalSurfaceBuffer *extbuf
 void mmsfb_blit_i420_to_i420(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
 							 MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
 
+// ----------------------------------------------------------------------------
+// ------------------------------------------------------- BLITTING TO I420 ---
+
+
+// --- BLITTING TO YUY2 -------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Blit YUY2 to YUY2.
 /*!
@@ -1261,18 +1423,13 @@ void mmsfb_blit_i420_to_i420(MMSFBSurfacePlanes *src_planes, int src_height, int
 void mmsfb_blit_yuy2_to_yuy2(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
 							 MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
 
+// ----------------------------------------------------------------------------
+// ------------------------------------------------------- BLITTING TO YUY2 ---
 
 
 
-//! Blit YV12 to RGB32.
-/*!
-\author Jens Schneider
-*/
-void mmsfb_blit_yv12_to_rgb32(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-							  unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy);
-
-
-
+// --- BLITTING TO ARGB3565 ---------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Blit ARGB3565 to ARGB3565.
 /*!
@@ -1280,6 +1437,7 @@ void mmsfb_blit_yv12_to_rgb32(MMSFBExternalSurfaceBuffer *extbuf, int src_height
 */
 void mmsfb_blit_argb3565_to_argb3565(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
 									 MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
 
 //! Blit ARGB to ARGB3565.
 /*!
@@ -1296,29 +1454,89 @@ void mmsfb_blit_argb_to_argb3565(MMSFBSurfacePlanes *src_planes, int src_height,
 void mmsfb_blit_blend_argb_to_argb3565(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
 									   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
 
+// ----------------------------------------------------------------------------
+// --------------------------------------------------- BLITTING TO ARGB3565 ---
 
+
+// --- BLITTING TO ARGB4444 ---------------------------------------------------
+// ----------------------------------------------------------------------------
+
+//! Blit ARGB4444 to ARGB4444.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_argb4444_to_argb4444(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+								     MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
+
+//! Blit with alpha blending ARGB4444 to ARGB4444.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_blend_argb4444_to_argb4444(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+										   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
+
+//! Blit with alpha blending with alpha from color ARGB4444 to ARGB4444.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_blend_coloralpha_argb4444_to_argb4444(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+													  MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy,
+													  unsigned char alpha);
+
+// ----------------------------------------------------------------------------
+// --------------------------------------------------- BLITTING TO ARGB4444 ---
+
+
+// --- BLITTING TO BGR555 -----------------------------------------------------
+// ----------------------------------------------------------------------------
+
+//! Blit BGR555 to BGR555.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_bgr555_to_bgr555(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+							     MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
+//! Blit with alpha blending ARGB to BGR555.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_blend_argb_to_bgr555(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+									 MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------- BLITTING TO BGR555 ---
+
+
+
+// --- STRETCH TO ARGB --------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Stretch blit ARGB to ARGB.
 /*!
 \author Jens Schneider
 */
-void mmsfb_stretchblit_argb_to_argb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-									unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy, int dw, int dh,
+void mmsfb_stretchblit_argb_to_argb(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+									MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy, int dw, int dh,
 									bool antialiasing);
+
 
 //! Stretch blit with alpha blending ARGB to ARGB.
 /*!
 \author Jens Schneider
 */
-void mmsfb_stretchblit_blend_argb_to_argb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-										  unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy, int dw, int dh);
+void mmsfb_stretchblit_blend_argb_to_argb(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+										  MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy, int dw, int dh);
+
 
 //! Stretch blit with alpha blending with alpha from color ARGB to ARGB.
 /*!
 \author Jens Schneider
 */
-void mmsfb_stretchblit_blend_coloralpha_argb_to_argb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-													 unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy, int dw, int dh,
+void mmsfb_stretchblit_blend_coloralpha_argb_to_argb(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+													 MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy, int dw, int dh,
 													 unsigned char alpha);
 
 
@@ -1330,6 +1548,21 @@ void mmsfb_stretchblit_rgb24_to_argb(MMSFBExternalSurfaceBuffer *extbuf, int src
 									 unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy, int dw, int dh,
 									 bool antialiasing);
 
+// ----------------------------------------------------------------------------
+// -------------------------------------------------------- STRETCH TO ARGB ---
+
+
+// --- STRETCH TO RGB32 -------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+//! Stretch blit RGB32 to RGB32.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_stretchblit_rgb32_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+									  MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy, int dw, int dh,
+									  bool antialiasing);
+
 //! Stretch blit RGB24 to RGB32.
 /*!
 \author Jens Schneider
@@ -1338,15 +1571,21 @@ void mmsfb_stretchblit_rgb24_to_rgb32(MMSFBExternalSurfaceBuffer *extbuf, int sr
 									  unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy, int dw, int dh,
 									  bool antialiasing);
 
+// ----------------------------------------------------------------------------
+// ------------------------------------------------------- STRETCH TO RGB32 ---
 
+
+// --- STRETCH TO AiRGB -------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Stretch blit AiRGB to AiRGB.
 /*!
 \author Jens Schneider
 */
-void mmsfb_stretchblit_airgb_to_airgb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-									  unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy, int dw, int dh,
+void mmsfb_stretchblit_airgb_to_airgb(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+									  MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy, int dw, int dh,
 									  bool antialiasing);
+
 
 //! Stretch blit with alpha blending AiRGB to AiRGB.
 /*!
@@ -1354,6 +1593,7 @@ void mmsfb_stretchblit_airgb_to_airgb(MMSFBExternalSurfaceBuffer *extbuf, int sr
 */
 void mmsfb_stretchblit_blend_airgb_to_airgb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
 										    unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy, int dw, int dh);
+
 
 //! Stretch blit with alpha blending with alpha from color AiRGB to AiRGB.
 /*!
@@ -1363,23 +1603,19 @@ void mmsfb_stretchblit_blend_coloralpha_airgb_to_airgb(MMSFBExternalSurfaceBuffe
 													   unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy, int dw, int dh,
 													   unsigned char alpha);
 
+// ----------------------------------------------------------------------------
+// ------------------------------------------------------- STRETCH TO AiRGB ---
 
 
-//! Stretch blit RGB32 to RGB32.
-/*!
-\author Jens Schneider
-*/
-void mmsfb_stretchblit_rgb32_to_rgb32(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-									  unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy, int dw, int dh,
-									  bool antialiasing);
-
+// --- STRETCH TO AYUV --------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Stretch blit AYUV to AYUV.
 /*!
 \author Jens Schneider
 */
-void mmsfb_stretchblit_ayuv_to_ayuv(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-									unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy, int dw, int dh,
+void mmsfb_stretchblit_ayuv_to_ayuv(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+									MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy, int dw, int dh,
 									bool antialiasing);
 
 
@@ -1399,6 +1635,12 @@ void mmsfb_stretchblit_blend_coloralpha_ayuv_to_ayuv(MMSFBExternalSurfaceBuffer 
 												     unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy, int dw, int dh,
 												     unsigned char alpha);
 
+// ----------------------------------------------------------------------------
+// -------------------------------------------------------- STRETCH TO AYUV ---
+
+
+// --- STRETCH TO YV12 --------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Stretch blit YV12 to YV12 with antialiasing.
 /*!
@@ -1409,7 +1651,6 @@ void mmsfb_stretchblit_yv12_to_yv12(MMSFBSurfacePlanes *src_planes, int src_heig
 									bool antialiasing);
 
 
-
 //! Stretch blit I420 to YV12 with antialiasing.
 /*!
 \author Jens Schneider
@@ -1418,6 +1659,58 @@ void mmsfb_stretchblit_i420_to_yv12(MMSFBSurfacePlanes *src_planes, int src_heig
 									MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy, int dw, int dh,
 									bool antialiasing);
 
+//! Stretch blit YUY2 to YV12 with antialiasing.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_stretchblit_yuy2_to_yv12(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+									MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy, int dw, int dh,
+									bool antialiasing);
+
+// ----------------------------------------------------------------------------
+// -------------------------------------------------------- STRETCH TO YV12 ---
+
+
+// --- STRETCH TO ARGB4444 ----------------------------------------------------
+// ----------------------------------------------------------------------------
+
+//! Stretch blit with alpha blending ARGB4444 to ARGB4444.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_stretchblit_blend_argb4444_to_argb4444(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+												  MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy, int dw, int dh);
+
+
+//! Stretch blit with alpha blending with alpha from color ARGB4444 to ARGB4444.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_stretchblit_blend_coloralpha_argb4444_to_argb4444(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+															 MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy, int dw, int dh,
+															 unsigned char alpha);
+
+// ----------------------------------------------------------------------------
+// ---------------------------------------------------- STRETCH TO ARGB4444 ---
+
+
+// --- STRETCH TO RGB16 -------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+//! Stretch blit RGB16 to RGB16.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_stretchblit_rgb16_to_rgb16(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+									  MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy, int dw, int dh,
+									  bool antialiasing);
+
+// ----------------------------------------------------------------------------
+// ------------------------------------------------------- STRETCH TO RGB16 ---
+
+
+// --- FILL ARGB RECTANGLE ----------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Fill rectangle ARGB.
 /*!
@@ -1426,6 +1719,7 @@ void mmsfb_stretchblit_i420_to_yv12(MMSFBSurfacePlanes *src_planes, int src_heig
 void mmsfb_fillrectangle_argb(MMSFBSurfacePlanes *dst_planes, int dst_height,
 						      int dx, int dy, int dw, int dh, MMSFBColor color);
 
+
 //! Fill rectangle with alpha blending ARGB.
 /*!
 \author Jens Schneider
@@ -1433,6 +1727,12 @@ void mmsfb_fillrectangle_argb(MMSFBSurfacePlanes *dst_planes, int dst_height,
 void mmsfb_fillrectangle_blend_argb(MMSFBSurfacePlanes *dst_planes, int dst_height,
 									int dx, int dy, int dw, int dh, MMSFBColor color);
 
+// ----------------------------------------------------------------------------
+// ---------------------------------------------------- FILL ARGB RECTANGLE ---
+
+
+// --- FILL RGB32 RECTANGLE ---------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Fill rectangle RGB32.
 /*!
@@ -1441,6 +1741,12 @@ void mmsfb_fillrectangle_blend_argb(MMSFBSurfacePlanes *dst_planes, int dst_heig
 void mmsfb_fillrectangle_rgb32(MMSFBSurfacePlanes *dst_planes, int dst_height,
 						       int dx, int dy, int dw, int dh, MMSFBColor color);
 
+// ----------------------------------------------------------------------------
+// --------------------------------------------------- FILL RGB32 RECTANGLE ---
+
+
+// --- FILL RGB24 RECTANGLE ---------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Fill rectangle RGB24.
 /*!
@@ -1450,6 +1756,12 @@ void mmsfb_fillrectangle_rgb32(MMSFBSurfacePlanes *dst_planes, int dst_height,
 void mmsfb_fillrectangle_rgb24(MMSFBSurfacePlanes *dst_planes, int dst_height,
 						       int dx, int dy, int dw, int dh, MMSFBColor color);
 
+// ----------------------------------------------------------------------------
+// --------------------------------------------------- FILL RGB24 RECTANGLE ---
+
+
+// --- FILL RGB16 RECTANGLE ---------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Fill rectangle RGB16.
 /*!
@@ -1458,6 +1770,19 @@ void mmsfb_fillrectangle_rgb24(MMSFBSurfacePlanes *dst_planes, int dst_height,
 void mmsfb_fillrectangle_rgb16(MMSFBSurfacePlanes *dst_planes, int dst_height,
 						       int dx, int dy, int dw, int dh, MMSFBColor color);
 
+//! Fill rectangle with alpha blending RGB16.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_fillrectangle_blend_rgb16(MMSFBSurfacePlanes *dst_planes, int dst_height,
+									 int dx, int dy, int dw, int dh, MMSFBColor color);
+
+// ----------------------------------------------------------------------------
+// --------------------------------------------------- FILL RGB16 RECTANGLE ---
+
+
+// --- FILL AYUV RECTANGLE ----------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Fill rectangle AYUV.
 /*!
@@ -1466,6 +1791,7 @@ void mmsfb_fillrectangle_rgb16(MMSFBSurfacePlanes *dst_planes, int dst_height,
 void mmsfb_fillrectangle_ayuv(MMSFBSurfacePlanes *dst_planes, int dst_height,
 						      int dx, int dy, int dw, int dh, MMSFBColor color);
 
+
 //! Fill rectangle with alpha blending AYUV.
 /*!
 \author Jens Schneider
@@ -1473,6 +1799,12 @@ void mmsfb_fillrectangle_ayuv(MMSFBSurfacePlanes *dst_planes, int dst_height,
 void mmsfb_fillrectangle_blend_ayuv(MMSFBSurfacePlanes *dst_planes, int dst_height,
 									int dx, int dy, int dw, int dh, MMSFBColor color);
 
+// ----------------------------------------------------------------------------
+// ---------------------------------------------------- FILL AYUV RECTANGLE ---
+
+
+// --- FILL YV12 RECTANGLE ----------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Fill rectangle YV12.
 /*!
@@ -1481,6 +1813,12 @@ void mmsfb_fillrectangle_blend_ayuv(MMSFBSurfacePlanes *dst_planes, int dst_heig
 void mmsfb_fillrectangle_yv12(MMSFBSurfacePlanes *dst_planes, int dst_height,
 						      int dx, int dy, int dw, int dh, MMSFBColor color);
 
+// ----------------------------------------------------------------------------
+// ---------------------------------------------------- FILL YV12 RECTANGLE ---
+
+
+// --- FILL I420 RECTANGLE ----------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Fill rectangle I420.
 /*!
@@ -1489,6 +1827,12 @@ void mmsfb_fillrectangle_yv12(MMSFBSurfacePlanes *dst_planes, int dst_height,
 void mmsfb_fillrectangle_i420(MMSFBSurfacePlanes *dst_planes, int dst_height,
 						      int dx, int dy, int dw, int dh, MMSFBColor color);
 
+// ----------------------------------------------------------------------------
+// ---------------------------------------------------- FILL I420 RECTANGLE ---
+
+
+// --- FILL YUY2 RECTANGLE ----------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Fill rectangle YUY2.
 /*!
@@ -1497,7 +1841,12 @@ void mmsfb_fillrectangle_i420(MMSFBSurfacePlanes *dst_planes, int dst_height,
 void mmsfb_fillrectangle_yuy2(MMSFBSurfacePlanes *dst_planes, int dst_height,
 						      int dx, int dy, int dw, int dh, MMSFBColor color);
 
+// ----------------------------------------------------------------------------
+// ---------------------------------------------------- FILL YUY2 RECTANGLE ---
 
+
+// --- FILL ARGB3565 RECTANGLE ------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Fill rectangle ARGB3565.
 /*!
@@ -1506,6 +1855,34 @@ void mmsfb_fillrectangle_yuy2(MMSFBSurfacePlanes *dst_planes, int dst_height,
 void mmsfb_fillrectangle_argb3565(MMSFBSurfacePlanes *dst_planes, int dst_height,
 						          int dx, int dy, int dw, int dh, MMSFBColor color);
 
+// ----------------------------------------------------------------------------
+// ------------------------------------------------ FILL ARGB3565 RECTANGLE ---
+
+
+// --- FILL ARGB4444 RECTANGLE ------------------------------------------------
+// ----------------------------------------------------------------------------
+
+//! Fill rectangle ARGB3565.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_fillrectangle_argb4444(MMSFBSurfacePlanes *dst_planes, int dst_height,
+						          int dx, int dy, int dw, int dh, MMSFBColor color);
+
+
+//! Fill rectangle with alpha blending ARGB4444.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_fillrectangle_blend_argb4444(MMSFBSurfacePlanes *dst_planes, int dst_height,
+										int dx, int dy, int dw, int dh, MMSFBColor color);
+
+// ----------------------------------------------------------------------------
+// ------------------------------------------------ FILL ARGB4444 RECTANGLE ---
+
+
+// --- FILL BGR24 RECTANGLE ---------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Fill rectangle BGR24.
 /*!
@@ -1515,35 +1892,115 @@ void mmsfb_fillrectangle_argb3565(MMSFBSurfacePlanes *dst_planes, int dst_height
 void mmsfb_fillrectangle_bgr24(MMSFBSurfacePlanes *dst_planes, int dst_height,
 						       int dx, int dy, int dw, int dh, MMSFBColor color);
 
+// ----------------------------------------------------------------------------
+// --------------------------------------------------- FILL BGR24 RECTANGLE ---
+
+
+// --- FILL BGR555 RECTANGLE --------------------------------------------------
+// ----------------------------------------------------------------------------
+
+//! Fill rectangle BGR555.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_fillrectangle_bgr555(MMSFBSurfacePlanes *dst_planes, int dst_height,
+						        int dx, int dy, int dw, int dh, MMSFBColor color);
+
+// ----------------------------------------------------------------------------
+// -------------------------------------------------- FILL BGR555 RECTANGLE ---
+
+
+// --- DRAW LINE TO ARGB ------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Draw line ARGB.
 /*!
 \author Jens Schneider
 */
-void mmsfb_drawline_argb(unsigned int *dst, int dst_pitch, int dst_height,
+void mmsfb_drawline_argb(MMSFBSurfacePlanes *dst_planes, int dst_height,
 						 MMSFBRegion &clipreg, int x1, int y1, int x2, int y2, MMSFBColor &color);
+
 
 //! Draw line with alpha blending ARGB.
 /*!
 \author Jens Schneider
 */
-void mmsfb_drawline_blend_argb(unsigned int *dst, int dst_pitch, int dst_height,
+void mmsfb_drawline_blend_argb(MMSFBSurfacePlanes *dst_planes, int dst_height,
 						       MMSFBRegion &clipreg, int x1, int y1, int x2, int y2, MMSFBColor &color);
 
+// ----------------------------------------------------------------------------
+// ------------------------------------------------------ DRAW LINE TO ARGB ---
+
+
+// --- DRAW LINE TO ARGB4444 --------------------------------------------------
+// ----------------------------------------------------------------------------
+
+//! Draw line ARGB4444.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_drawline_argb4444(MMSFBSurfacePlanes *dst_planes, int dst_height,
+							 MMSFBRegion &clipreg, int x1, int y1, int x2, int y2, MMSFBColor &color);
+
+// ----------------------------------------------------------------------------
+// -------------------------------------------------- DRAW LINE TO ARGB4444 ---
+
+
+// --- DRAW STRING TO ARGB ----------------------------------------------------
+// ----------------------------------------------------------------------------
 
 //! Draw string with alpha blending ARGB.
 /*!
 \author Jens Schneider
 */
-void mmsfb_drawstring_blend_argb(MMSFBFont *font, void *dst_ptr, int dst_pitch,
+void mmsfb_drawstring_blend_argb(MMSFBSurfacePlanes *dst_planes, MMSFBFont *font,
 								 MMSFBRegion &clipreg, string &text, int len, int x, int y, MMSFBColor &color);
+
 
 //! Draw string with alpha blending with alpha from color ARGB.
 /*!
 \author Jens Schneider
 */
-void mmsfb_drawstring_blend_coloralpha_argb(MMSFBFont *font, void *dst_ptr, int dst_pitch,
+void mmsfb_drawstring_blend_coloralpha_argb(MMSFBSurfacePlanes *dst_planes, MMSFBFont *font,
 											MMSFBRegion &clipreg, string &text, int len, int x, int y, MMSFBColor &color);
+
+// ----------------------------------------------------------------------------
+// ---------------------------------------------------- DRAW STRING TO ARGB ---
+
+
+// --- DRAW STRING TO ARGB4444 ------------------------------------------------
+// ----------------------------------------------------------------------------
+
+//! Draw string with alpha blending ARGB4444.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_drawstring_blend_argb4444(MMSFBSurfacePlanes *dst_planes, MMSFBFont *font,
+									 MMSFBRegion &clipreg, string &text, int len, int x, int y, MMSFBColor &color);
+
+// ----------------------------------------------------------------------------
+// ------------------------------------------------ DRAW STRING TO ARGB4444 ---
+
+
+// --- DRAW STRING TO RGB16 ---------------------------------------------------
+// ----------------------------------------------------------------------------
+
+//! Draw string with alpha blending RGB16.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_drawstring_blend_rgb16(MMSFBSurfacePlanes *dst_planes, MMSFBFont *font,
+								  MMSFBRegion &clipreg, string &text, int len, int x, int y, MMSFBColor &color);
+
+//! Draw string with alpha blending with alpha from color RGB16.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_drawstring_blend_coloralpha_rgb16(MMSFBSurfacePlanes *dst_planes, MMSFBFont *font,
+											MMSFBRegion &clipreg, string &text, int len, int x, int y, MMSFBColor &color);
+
+// ----------------------------------------------------------------------------
+// --------------------------------------------------- DRAW STRING TO RGB16 ---
 
 
 #endif /* MMSFBCONV_H_ */

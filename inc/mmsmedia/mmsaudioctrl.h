@@ -45,9 +45,12 @@ MMS_CREATEERROR(MMSAudioCtrlError);
  *
  * @ingroup     mmsmedia
  *
+ * @author      Stefan Schwarzer (stefan.schwarzer@diskohq.org)
+ * @author      Matthias Hardt (matthias.hardt@diskohq.org)
  * @author      Jens Schneider (pupeider@gmx.de)
- * @version     1.5.0
- * @date        12/31/2008
+ * @author      Guido Madaus (guido.madaus@diskohq.org)
+ * @author      Patrick Helterhoff (patrick.helterhoff@diskohq.org)
+ * @author		René Bählkow (rene.baehlkow@diskohq.org)
  */
 class MMSAudioCtrl {
     private:
@@ -59,6 +62,7 @@ class MMSAudioCtrl {
         static bool             muteFlag;   /**< if true sound is muted         */
         static long             pmin, pmax; /**< range (not in percent)         */
         static string           channel;    /**< current audio channel          */
+        static bool             isSwitchable;  /**< has a switch (to mute)?        */
 
     public:
         /* constructor */

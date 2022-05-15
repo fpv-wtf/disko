@@ -152,6 +152,12 @@ bool MMSFBDev::buildPixelFormat() {
     			this->layers[0].pixelformat = MMSFB_PF_BGR24;
     	}
     	else
+    	if    ((var_screeninfo.red.length == 5) && (var_screeninfo.green.length == 5) && (var_screeninfo.blue.length == 5)
+    		&& (var_screeninfo.red.offset == 0) && (var_screeninfo.green.offset == 5) && (var_screeninfo.blue.offset == 10)) {
+    		if (var_screeninfo.bits_per_pixel == 16)
+    			this->layers[0].pixelformat = MMSFB_PF_BGR555;
+    	}
+    	else
     	if    ((var_screeninfo.red.length == 0) && (var_screeninfo.green.length == 0) && (var_screeninfo.blue.length == 0)
     		&& (var_screeninfo.red.offset == 0) && (var_screeninfo.green.offset == 0) && (var_screeninfo.blue.offset == 0)) {
     		if (var_screeninfo.bits_per_pixel == 4)

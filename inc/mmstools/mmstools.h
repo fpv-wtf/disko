@@ -55,5 +55,6 @@
 #include "mmstools/mmstafffile.h"
 #include "mmstools/mmsdatetime.h"
 #include "mmstools/mmstypes.h"
+#include "mmstools/mmspulser.h"
 
 #endif  /*MMSTOOLS_H_*/

@@ -123,7 +123,6 @@ typedef struct {
 #endif
 } MMSRAW_USERDATA;
 
-
 /**
  * @brief   MMS Audio/Video handling class.
  *
@@ -133,7 +132,9 @@ typedef struct {
  * @author      Matthias Hardt (matthias.hardt@diskohq.org)
  * @author      Jens Schneider (pupeider@gmx.de)
  * @author      Guido Madaus (guido.madaus@diskohq.org)
- *
+ * @author      Patrick Helterhoff (patrick.helterhoff@diskohq.org)
+ * @author		René Bählkow (rene.baehlkow@diskohq.org)
+ * 
  * It is the base class for all audio and video related
  * classes.
  */

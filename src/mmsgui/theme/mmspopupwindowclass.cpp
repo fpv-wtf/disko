@@ -45,7 +45,7 @@ void MMSPopupWindowClass::unsetAll() {
     unsetDuration();
 }
 
-void MMSPopupWindowClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *path) {
+void MMSPopupWindowClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *path, bool reset_paths) {
 	startTAFFScan
 	{
         switch (attrid) {

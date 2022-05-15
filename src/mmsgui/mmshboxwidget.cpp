@@ -96,7 +96,7 @@ void MMSHBoxWidget::recalculateChildren() {
 	        getPixelFromSizeHint(&rect.w, sizehint, this->geom.w, this->geom.h);
             safepix -= rect.w;
             if ((safepix < 0)||((int)rect.w < 0))
-                throw new MMSWidgetError(0,"cannot calculate geometry (not enough free pixels)");
+                throw MMSWidgetError(0,"cannot calculate geometry (not enough free pixels)");
 
             rect.h = this->geom.h;
 	        rect.y = this->geom.y;

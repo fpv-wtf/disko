@@ -51,9 +51,9 @@ void mmsfb_stretchblit_i420_to_yv12(MMSFBSurfacePlanes *src_planes, int src_heig
 	else {
 		source_planes.ptr = src_planes->ptr;
 		source_planes.pitch = src_planes->pitch;
-		source_planes.ptr2 = (unsigned char *)source_planes.ptr + source_planes.pitch * src_height;
+		source_planes.ptr2 = (unsigned char *)source_planes.ptr + source_planes.pitch * src_height + (source_planes.pitch >> 1) * (src_height >> 1);
 		source_planes.pitch2 = src_planes->pitch;
-		source_planes.ptr3 = (unsigned char *)source_planes.ptr + source_planes.pitch * src_height + (source_planes.pitch >> 1) * (src_height >> 1);
+		source_planes.ptr3 = (unsigned char *)source_planes.ptr + source_planes.pitch * src_height;
 		source_planes.pitch3 = src_planes->pitch;
 	}
 

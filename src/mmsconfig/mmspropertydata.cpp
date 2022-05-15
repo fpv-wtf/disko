@@ -109,6 +109,7 @@ void MMSPropertyData::setSeparator(char separator){
 bool MMSPropertyData::isSetInDb() {
     return this->issetindb;
 }
+
 void MMSPropertyData::setisSetinDb(bool issetindb) {
     this->issetindb = issetindb;
 }

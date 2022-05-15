@@ -76,6 +76,9 @@ class MMSFBWindowManager {
         MMSFBSurface    		*layer_surface; /* layer's surface */
         MMSFBSurfacePixelFormat layer_pixelformat;
 
+        // destination surface for flipSurface() method
+        MMSFBSurface    		*dst_surface;
+
         vector<AVAILABLE_WINDOWS> windows;  /* a list of created windows */
 
         vector<VISIBLE_WINDOWS> vwins;      /* a list of currently visible windows */
@@ -93,6 +96,7 @@ class MMSFBWindowManager {
         MMSFBSurface	*pointer_surface;
         unsigned char	pointer_opacity;
         bool			button_pressed;
+        int				pointer_fadecnt;
 
         MMSMutex lock;            /* to make it thread-safe */
 
@@ -120,15 +124,18 @@ class MMSFBWindowManager {
                          bool locked = false, bool refresh = true);
 
         bool setWindowOpacity(MMSFBWindow *window);
-        bool setWindowPosition(MMSFBWindow *window);
+        bool setWindowPosition(MMSFBWindow *window, MMSFBRectangle *vrect = NULL);
         bool setWindowSize(MMSFBWindow *window, int w, int h);
 
         bool setWindowVisibleRectangle(MMSFBWindow *window, MMSFBRectangle *rect = NULL);
+        bool getWindowVisibleRectangle(MMSFBWindow *window, MMSFBRectangle *rect);
+        bool getScreenshot(MMSFBWindow *window);
 
         bool loadPointer();
         void drawPointer(MMSFBRegion *region);
         unsigned char getPointerOpacity();
         void setPointerOpacity(unsigned char opacity);
+        void fadePointer();
 
     public:
         MMSFBWindowManager();

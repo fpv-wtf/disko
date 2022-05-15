@@ -67,8 +67,16 @@ MMSWidget *MMSButtonWidget::copyWidget() {
 }
 
 bool MMSButtonWidget::init() {
-    /* init widget basics */
+    // init widget basics
     if (!MMSWidget::init())
+        return false;
+
+    return true;
+}
+
+bool MMSButtonWidget::release() {
+    // release widget basics
+    if (!MMSWidget::release())
         return false;
 
     return true;

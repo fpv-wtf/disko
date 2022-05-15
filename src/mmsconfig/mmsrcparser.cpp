@@ -33,6 +33,7 @@
 #include <cstring>
 #include "mmsconfig/mmsrcparser.h"
 #include "mmstools/tools.h"
+#include "diskoversion.h"
 
 #define WRONG_VALUE(parname, parvalue, validvals, addmsg) throw new MMSRcParserError(1, "wrong value '" + string(parvalue) + "' for parameter '" + string((const char *)parname) + "'\n valid value(s): " + validvals + "\n " + addmsg);
 
@@ -89,12 +90,6 @@ void MMSRcParser::parseFile(string filename) {
     	    /*free the document */
     	    xmlFreeDoc(parser);
 		}
-
-	    /*
-	     *Free the global variables that may
-	     *have been allocated by the parser.
-	     */
-	    xmlCleanupParser();
 	}
 	catch(MMSError *error)
 	{
@@ -109,11 +104,23 @@ void MMSRcParser::getMMSRc(MMSConfigDataGlobal 		**global,
 		                   MMSConfigDataDB     		**datadb,
 		                   MMSConfigDataGraphics    **graphics,
 		                   MMSConfigDataLanguage    **language) {
-	*global   = &this->global;
-	*configdb = &this->configdb;
-	*datadb   = &this->datadb;
-	*graphics = &this->graphics;
-	*language = &this->language;
+	if (global)		*global   = &this->global;
+	if (configdb)	*configdb = &this->configdb;
+	if (datadb)		*datadb   = &this->datadb;
+	if (graphics)	*graphics = &this->graphics;
+	if (language)	*language = &this->language;
+}
+
+void MMSRcParser::getMMSRc(MMSConfigDataGlobal 		*global,
+		                   MMSConfigDataDB     		*configdb,
+		                   MMSConfigDataDB     		*datadb,
+		                   MMSConfigDataGraphics    *graphics,
+		                   MMSConfigDataLanguage    *language) {
+	if (global)		*global   = this->global;
+	if (configdb)	*configdb = this->configdb;
+	if (datadb)		*datadb   = this->datadb;
+	if (graphics)	*graphics = this->graphics;
+	if (language)	*language = this->language;
 }
 
 /**
@@ -140,8 +147,8 @@ void MMSRcParser::checkVersion(xmlNode* node) {
 	int mav = atoi((char*)&version[0]);
 	int miv = atoi((char*)&version[2]);
 
-	// currently check for disko 1.5
-	if ((mav > 1)||(miv > 5)) {
+	// disko version check
+	if ((mav > DISKO_MAJOR_VERSION )||(miv > DISKO_MINOR_VERSION)) {
 		std::cout << "Version of configuration file does not match!" << std::endl;
 		xmlFree(version);
 		throw new MMSRcParserError(1, "version mismatch");
@@ -223,9 +230,9 @@ void MMSRcParser::throughLanguage(xmlNode* node) {
     		continue;
 
 	    if(!xmlStrcmp(parname, (const xmlChar *) "sourcelang"))
-	    	this->language.sourcelang = strToLang((const char *)parvalue);
+	    	this->language.sourcelang = string((const char *)parvalue);
         else if(!xmlStrcmp(parname, (const xmlChar *) "defaultdestlang"))
-            this->language.defaulttargetlang = strToLang((const char *)parvalue);
+            this->language.defaulttargetlang = string((const char *)parvalue);
         else if(!xmlStrcmp(parname, (const xmlChar *) "addtranslations"))
             this->language.addtranslations = strToBool(string((const char *)parvalue));
         else if(!xmlStrcmp(parname, (const xmlChar *) "languagefiledir"))
@@ -431,14 +438,14 @@ void MMSRcParser::throughGraphics(xmlNode* node, THROUGH_GRAPHICS_MODE mode) {
 					WRONG_VALUE(parname, val, MMSFB_BE_VALID_VALUES, "");
 
 				// check value against output type
-				if (this->graphics.outputtype == MMSFB_OT_VESAFB) {
+				if (this->graphics.outputtype == MMSFB_OT_STDFB) {
 					switch (this->graphics.backend) {
 					case MMSFB_BE_DFB:
 					case MMSFB_BE_FBDEV:
 						// okay
 						break;
 					default:
-						WRONG_VALUE(parname, val, MMSFB_BE_VALID_VALUES_OT_FB, "-> this depends on outputtype=\"VESAFB\"");
+						WRONG_VALUE(parname, val, MMSFB_BE_VALID_VALUES_OT_FB, "-> this depends on outputtype=\"STDFB\"");
 					}
 				}
 				else
@@ -526,7 +533,7 @@ void MMSRcParser::throughGraphics(xmlNode* node, THROUGH_GRAPHICS_MODE mode) {
 				// check value against backend type
 				if (this->graphics.backend == MMSFB_BE_DFB) {
 					switch (this->graphics.outputtype) {
-					case MMSFB_OT_VESAFB:
+					case MMSFB_OT_STDFB:
 					case MMSFB_OT_MATROXFB:
 					case MMSFB_OT_VIAFB:
 					case MMSFB_OT_X11:
@@ -553,7 +560,7 @@ void MMSRcParser::throughGraphics(xmlNode* node, THROUGH_GRAPHICS_MODE mode) {
 				else
 				if (this->graphics.backend == MMSFB_BE_FBDEV) {
 					switch (this->graphics.outputtype) {
-					case MMSFB_OT_VESAFB:
+					case MMSFB_OT_STDFB:
 					case MMSFB_OT_MATROXFB:
 					case MMSFB_OT_DAVINCIFB:
 					case MMSFB_OT_OMAPFB:
@@ -836,6 +843,77 @@ void MMSRcParser::throughFile(xmlNode* node) {
 			throughLanguage(cur_node);
 		else
 			printf("RcParser: ignoring tag <%s/>\n", cur_node->name);
+	}
+}
+
+
+void MMSRcParser::updateConfigParms(MMSConfigData *config, char *ap) {
+// helpers
+#define MMSRC_CPP_GET_PARAMETER(str,len) if(memcmp(ap,str,len)==0){char *val=ap+len;while(*val&&*val==' ')val++;char *vb=valbuf;*vb=0;while(*val&&*val!=' '){*vb=*val;vb++;*vb=0;val++;}val=valbuf;
+#define MMSRC_CPP_PROCESS_PIXELFORMAT_PARAMETER(str,len,setter) MMSRC_CPP_GET_PARAMETER(str,len)MMSFBSurfacePixelFormat pf=getMMSFBPixelFormatFromString(strToUpr(val));if(pf!=MMSFB_PF_NONE)setter else printf("DISKO: Parameter --disko:%s must be a valid pixelformat!\n",str);}
+#define MMSRC_CPP_PROCESS_BOOL_PARAMETER(str,len,truecall,falsecall) MMSRC_CPP_GET_PARAMETER(str,len)if((!strcmp(val,"true"))||(!strcmp(val,"TRUE")))truecall else if((!strcmp(val,"false"))||(!strcmp(val,"FALSE")))falsecall else printf("DISKO: Parameter --disko:%s must be true or false!\n",str);}
+
+// available commandline parameters
+#define MMSRC_CCP_GRAPHICS_VIDEOLAYER_PIXELFORMAT_STR		"graphics.videolayer.pixelformat="
+#define MMSRC_CCP_GRAPHICS_VIDEOLAYER_PIXELFORMAT_LEN		32
+#define MMSRC_CCP_GRAPHICS_GRAPHICSLAYER_PIXELFORMAT_STR	"graphics.graphicslayer.pixelformat="
+#define MMSRC_CCP_GRAPHICS_GRAPHICSLAYER_PIXELFORMAT_LEN	35
+#define MMSRC_CCP_GRAPHICS_FULLSCREEN_STR					"graphics.fullscreen="
+#define MMSRC_CCP_GRAPHICS_FULLSCREEN_LEN					20
+#define MMSRC_CCP_GRAPHICS_HIDEAPPLICATION_STR				"graphics.hideapplication="
+#define MMSRC_CCP_GRAPHICS_HIDEAPPLICATION_LEN				25
+
+	//  buffer for value
+	char valbuf[256];
+
+	// check all my parameters
+	MMSRC_CPP_PROCESS_PIXELFORMAT_PARAMETER(MMSRC_CCP_GRAPHICS_VIDEOLAYER_PIXELFORMAT_STR, MMSRC_CCP_GRAPHICS_VIDEOLAYER_PIXELFORMAT_LEN,
+											{MMSConfigDataLayer l=config->getVideoLayer();l.pixelformat=pf;config->setVideoLayer(l);})
+	else
+	MMSRC_CPP_PROCESS_PIXELFORMAT_PARAMETER(MMSRC_CCP_GRAPHICS_GRAPHICSLAYER_PIXELFORMAT_STR, MMSRC_CCP_GRAPHICS_GRAPHICSLAYER_PIXELFORMAT_LEN,
+											{MMSConfigDataLayer l=config->getGraphicsLayer();l.pixelformat=pf;config->setGraphicsLayer(l);})
+	else
+	MMSRC_CPP_GET_PARAMETER(MMSRC_CCP_GRAPHICS_FULLSCREEN_STR, MMSRC_CCP_GRAPHICS_FULLSCREEN_LEN) {
+		MMSFBFullScreenMode fsm = getMMSFBFullScreenModeFromString(strToUpr(val));
+		if (fsm != MMSFB_FSM_NONE)
+			config->setFullScreen(fsm);
+		else
+			printf("DISKO: Parameter --disko:%s must be a valid fullscreen mode (%s)!\n",
+					MMSRC_CCP_GRAPHICS_FULLSCREEN_STR, MMSFB_FSM_VALID_VALUES);
+	}}
+	else
+	MMSRC_CPP_PROCESS_BOOL_PARAMETER(MMSRC_CCP_GRAPHICS_HIDEAPPLICATION_STR, MMSRC_CCP_GRAPHICS_HIDEAPPLICATION_LEN,
+									 {config->setHideApplication(true);},{config->setHideApplication(false);});
+}
+
+void MMSRcParser::updateConfig(MMSConfigData *config, string args, int argc, char *argv[]) {
+
+	if (!config) return;
+
+	// args...
+	char *ap = (char*)args.c_str();
+	while (*ap) {
+		// find parameter
+		if (!(ap = strstr(ap, "--disko:"))) break;
+		ap+= 8;
+
+		// update parameter
+		updateConfigParms(config, ap);
+
+		// go to next parameter
+		if (!(ap = strstr(ap, " "))) break;
+		ap++;
+	}
+
+	// argv...
+	for (int i = 1; i < argc; i++) {
+		// find parameter
+		char *ap= argv[i];
+		if (memcmp(ap, "--disko:", 8)) continue;
+		ap+= 8;
+
+		// update parameter
+		updateConfigParms(config, ap);
 	}
 }
 

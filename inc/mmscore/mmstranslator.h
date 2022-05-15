@@ -39,29 +39,47 @@
 
 #include "mmsconfig/mmsconfigdata.h"
 
-typedef std::map<std::string, std::map<MMS_LANGUAGE_TYPE, std::string> > MMSTRANSLATION_MAP;
-typedef std::map<MMS_LANGUAGE_TYPE, std::string> MMSTRANSLATION_FILES;
+/**
+ * This maps country codes (i.e. de for germany) to
+ * an index for vectors in MMSTRANSLATION_FILES and
+ * MMSTRANSLATION_MAP.
+ */
+typedef std::map<std::string, int> MMSTRANSLATION_INDEX;
+
+/**
+ * Vector containing all processed translation files.
+ */
+typedef std::vector<std::string> MMSTRANSLATION_FILES;
+
+/**
+ * Map that associates a string to translate to a vector
+ * containing the translation of all processed languages.
+ */
+typedef std::map<std::string, vector<std::string> > MMSTRANSLATION_MAP;
 
 #define TRANSLATION_FILE_NAME "translation"
 
 class MMSTranslator {
-	static MMS_LANGUAGE_TYPE sourcelang;
-	static MMS_LANGUAGE_TYPE targetlang;
-	static MMSTRANSLATION_MAP transmap;
-	static bool addtranslations;
-	static MMSTRANSLATION_FILES files;
-
-	void loadTransLations();
-	void processFile(string &file);
-	void addMissing(string &phrase, bool completemiss = false);
 	public:
 		MMSTranslator();
 		~MMSTranslator();
 
-		void translate(std::string &source, std::string &dest);
-		void setTargetLang(MMS_LANGUAGE_TYPE lang);
+		void translate(const std::string &source, std::string &dest);
+		bool setTargetLang(const std::string &countryCode);
 
-        static sigc::signal<void, MMS_LANGUAGE_TYPE> onTargetLangChanged;
+        static sigc::signal<void, unsigned int> onTargetLangChanged;
+
+	private:
+        static std::string 			source, target;
+    	static int 					sourceIdx, targetIdx;
+    	static MMSTRANSLATION_INDEX transIdx;
+    	static MMSTRANSLATION_MAP 	transmap;
+    	static bool 				addtranslations;
+    	static MMSTRANSLATION_FILES files;
+
+    	void loadTranslations();
+    	void processFile(const string &file);
+    	void addMissing(const string &phrase, const bool completemiss = false);
 };
 
 #endif /* MMSTRANSLATOR_H_ */

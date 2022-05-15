@@ -67,19 +67,20 @@ class MMSLabelWidget : public MMSWidget {
 
         bool create(MMSWindow *root, string className, MMSTheme *theme);
 
+        bool init();
+        bool release();
+        bool draw(bool *backgroundFilled = NULL);
+
+        //! Internal method: Inform the widget, that the language has changed.
+		void targetLangChanged(int lang);
+
     public:
         MMSLabelWidget(MMSWindow *root, string className, MMSTheme *theme = NULL);
         ~MMSLabelWidget();
 
         MMSWidget *copyWidget();
 
-        bool init();
-        bool draw(bool *backgroundFilled = NULL);
-
     public:
-		//! inform the widget, that language has changed
-		void targetLangChanged(MMS_LANGUAGE_TYPE lang);
-
         /* theme access methods */
         string getFontPath();
         string getFontName();
@@ -107,7 +108,9 @@ class MMSLabelWidget : public MMSWidget {
 
         void updateFromThemeClass(MMSLabelWidgetClass *themeClass);
 
-    friend class MMSLabelWidgetThread;
+	// friends
+	friend class MMSWindow;
+	friend class MMSLabelWidgetThread;
 };
 
 #endif /*MMSLABELWIDGET_H_*/

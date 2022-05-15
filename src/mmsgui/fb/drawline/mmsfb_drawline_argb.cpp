@@ -33,11 +33,7 @@
 #include "mmsgui/fb/mmsfbconv.h"
 #include "mmstools/mmstools.h"
 
-#define MMSFB_DRAWLINE_PUT_PIXEL \
-	if ((x >= clipreg.x1)&&(x <= clipreg.x2)&&(y >= clipreg.y1)&&(y <= clipreg.y2)) \
-		dst[x+y*dst_pitch_pix]=SRC;
-
-void mmsfb_drawline_argb(unsigned int *dst, int dst_pitch, int dst_height,
+void mmsfb_drawline_argb(MMSFBSurfacePlanes *dst_planes, int dst_height,
 						 MMSFBRegion &clipreg, int x1, int y1, int x2, int y2, MMSFBColor &color) {
 	// first time?
 	static bool firsttime = true;
@@ -45,6 +41,10 @@ void mmsfb_drawline_argb(unsigned int *dst, int dst_pitch, int dst_height,
 		printf("DISKO: Using accelerated draw line to ARGB.\n");
 		firsttime = false;
 	}
+
+	// get the first destination ptr/pitch
+	unsigned int *dst = (unsigned int *)dst_planes->ptr;
+	int dst_pitch = dst_planes->pitch;
 
 	// prepare...
 	int dst_pitch_pix = dst_pitch >> 2;

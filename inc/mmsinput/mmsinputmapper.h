@@ -58,7 +58,7 @@ class MMSInputMapper {
 	public:
 		MMSInputMapper(string mapfile, string name = "default");
 		~MMSInputMapper();
-		void mapkey(MMSInputEvent *inputevent, vector<MMSInputEvent> *inputeventset);
+		void mapkey(MMSInputEvent *inputevent);
 };
 
 #endif /*MMSINPUTMAPPER_H_*/

@@ -26,7 +26,7 @@ SetOption('implicit_cache', 1)
 # Version                                                             #
 #######################################################################
 packageVersionMajor = 1
-packageVersionMinor = 6
+packageVersionMinor = 7
 packageVersionMicro = 0
 packageVersionRC    = ''
 
@@ -93,18 +93,20 @@ if sconsVersion < (0,98,1):
 	BoolOption('profile',       'Build with profiling support (includes debug option)', False),
 	BoolOption('cross',         'Cross compile (to avoid some system checks)', False),
 	BoolOption('use_sse',       'Use SSE optimization', False),
+    BoolOption('enable_swscale','Build with swscale support', False),
 	BoolOption('use_dl',        'Use dynamic linking support', True),
 	ListOption('graphics',      'Set graphics backend', 'none', ['dfb', 'fbdev', 'x11']),
 	ListOption('database',      'Set database backend', 'sqlite3', ['sqlite3', 'mysql', 'odbc']),
-	ListOption('media',         'Set media backend', ['xine', 'gstreamer'], ['xine', 'gstreamer']),
+	ListOption('media',         'Set media backend', 'all', ['xine', 'gstreamer']),
+	BoolOption('enable_alsa',   'Build with ALSA support', True),
 	BoolOption('enable_crypt',  'Build with mmscrypt support', True),
 	BoolOption('enable_flash',  'Build with mmsflash support', False),
 	BoolOption('enable_sip',    'Build with mmssip support', False),
-	BoolOption('enable_curl',    'Build with curl support', True),
+	BoolOption('enable_curl',   'Build with curl support', True),
 	BoolOption('enable_mail',   'Build with email support', False),
 	BoolOption('enable_tools',  'Build disko tools', False),
 	BoolOption('static_lib',    'Create statically linked library', False),
-	BoolOption('big_lib',       'Create one big shared library', False))
+	BoolOption('big_lib',       'Create one big shared library', True))
 else:
 	opts = Variables('disko.conf')
 	opts.AddVariables(
@@ -116,10 +118,12 @@ else:
 	BoolVariable('profile',       'Build with profiling support (includes debug option)', False),
 	BoolVariable('cross',         'Cross compile (to avoid some system checks)', False),
 	BoolVariable('use_sse',       'Use SSE optimization', False),
+    BoolVariable('enable_swscale','Build with swscale support', False),
 	BoolVariable('use_dl',        'Use dynamic linking support', True),
 	ListVariable('graphics',      'Set graphics backend', 'none', ['dfb', 'fbdev', 'x11']),
 	ListVariable('database',      'Set database backend', 'sqlite3', ['sqlite3', 'mysql', 'odbc']),
 	ListVariable('media',         'Set media backend', 'all', ['xine', 'gstreamer']),
+	BoolVariable('enable_alsa',   'Build with ALSA support', True),
 	BoolVariable('enable_crypt',  'Build with mmscrypt support', True),
 	BoolVariable('enable_flash',  'Build with mmsflash support', False),
 	BoolVariable('enable_sip',    'Build with mmssip support', False),
@@ -127,7 +131,7 @@ else:
 	BoolVariable('enable_mail',   'Build with email support', False),
 	BoolVariable('enable_tools',  'Build disko tools', False),
 	BoolVariable('static_lib', 	  'Create statically linked library', False),
-	BoolVariable('big_lib',       'Create one big shared library', False))
+    BoolVariable('big_lib',       'Create one big shared library', True))
 
 env = Environment(ENV = os.environ, CPPPATH = os.getcwd() + '/inc')
 
@@ -141,6 +145,7 @@ if os.environ.has_key('LD'):
 if os.environ.has_key('LDFLAGS'):
 	env['LINKFLAGS'] = [os.environ['LDFLAGS'].split()]
 
+env['LIBS'] = []
 env['LIBPATH'] = ''
 env['diskoSources'] = []
 
@@ -158,7 +163,7 @@ if env['destdir'] != 'none':
 else:
 	idir_prefix = env['prefix']
 
-idir_lib    = idir_prefix + '/lib/disko'
+idir_lib    = idir_prefix + '/lib'
 idir_bin    = idir_prefix + '/bin'
 idir_inc    = idir_prefix + '/include/disko'
 idir_data   = idir_prefix + '/share/disko'
@@ -182,7 +187,8 @@ else:
 	if env['size']:
 		env['CCFLAGS'].extend(['-Os'])
 	else:
-		env['CCFLAGS'].extend(['-O3'])
+		if not os.environ.has_key('CXXFLAGS'):
+			env['CCFLAGS'].extend(['-O3', '-g'])
 	env['LINKFLAGS'].extend(['-s'])
 
 # check which sse version to use
@@ -228,16 +234,15 @@ diskoLibs  = ["mmsinfo",
               "mmsgui",
               "mmsbase",
               "mmsinput",
-              "mmscore"]
-if env['media']:
-	diskoLibs.extend(["mmsmedia"])
+              "mmscore",
+              "mmsmedia"]
 if env['enable_flash']:
 	diskoLibs.extend(["mmsflash"])
 if env['enable_sip']:
 	diskoLibs.extend(["mmssip"])
 	
 if env['enable_tools']:	
-	diskoTools = ["taff"]
+	diskoTools = ["taff","diskoappctrl"]
 else:
 	diskoTools = ()
 
@@ -365,6 +370,10 @@ def printSummary():
 		print 'Media backends    : %s\n' % ', '.join(conf.env['media'])
 	else:
 		print 'Media backends    : none\n'
+	if(conf.env['alsa']):
+		print 'ALSA support      : yes'
+	else:
+		print 'ALSA support      : no'
 	if(conf.env['mmscrypt']):
 		print 'Building mmscrypt : yes'
 	else:
@@ -405,7 +414,11 @@ def printSummary():
 		print 'SSE optimization  : yes'
 	else:
 		print 'SSE optimization  : no'
-	if(conf.env['use_dl']):
+	if(conf.env['enable_swscale']):
+		print 'swscale support   : yes'
+	else:
+		print 'swscale support   : no'
+	if(conf.env.has_key('libdl')):
 		print 'use libdl         : yes\n'
 	else:
 		print 'use libdl         : no\n'
@@ -445,6 +458,9 @@ conf.checkSimpleLib(['freetype2'],         'freetype/freetype.h')
 
 if conf.CheckLibWithHeader(['libiconv'], ['iconv.h'], 'c++'):
 	conf.env['libiconv'] = True
+
+if conf.CheckHeader(['wordexp.h']):
+	conf.env['CCFLAGS'].extend(['-D__HAVE_WORDEXP__'])
 
 # checks required if using dynamic linking support
 if(env['use_dl']):
@@ -496,10 +512,10 @@ if('xine' in env['media'] and not ('-c' in sys.argv or '-h' in sys.argv)):
 			if conf.checkXineBlDvb():
 				conf.env['CCFLAGS'].extend(['-D__HAVE_XINE_BLDVB__'])
 
-if('gstreamer' in env['media'] and not '-c' in sys.argv):
-	if not conf.checkSimpleLib(['gstreamer-plugins-base-0.10'], 'gst/gst.h', required = 0):
+if('gstreamer' in env['media'] and not ('-c' in sys.argv or '-h' in sys.argv)):
+	if not conf.checkSimpleLib(['gstreamer-0.10 >= 0.10.22'], 'gst/gst.h', required = 0) or	not conf.checkSimpleLib(['gstreamer-plugins-base-0.10'], 'gst/gst.h', required = 0):
 		print '***************************************************\n'
-		print 'GStreamer not found!'
+		print 'GStreamer not found or version is older than 0.10.22!'
 		print 'Disabling gstreamer media backend'
 		print '\n***************************************************'
 		env['media'].remove('gstreamer')
@@ -512,11 +528,15 @@ if('gstreamer' in env['media'] and not '-c' in sys.argv):
 	else:
 		conf.env['CCFLAGS'].extend(['-D__HAVE_MMSMEDIA__', '-D__HAVE_GSTREAMER__'])
 
-if(env['media']):
+# check for ALSA
+if env['enable_alsa']:
 	if conf.checkSimpleLib(['alsa'], 'alsa/version.h', required = 0):
 		conf.env['CCFLAGS'].extend(['-D__HAVE_MMSMEDIA__', '-D__HAVE_MIXER__'])
-
-
+		conf.env['alsa'] = 1
+	else:
+		conf.env['alsa'] = 0
+else:
+	conf.env['alsa'] = 0
 	
 # checks required for database backends
 if 'sqlite3' in env['database']:
@@ -544,6 +564,7 @@ if env['enable_crypt']:
 		conf.env['mmscrypt'] = 1
 else:
 	conf.env['mmscrypt'] = 0
+
 # checks required if building mmsflash
 if(env['enable_flash']):
 	if conf.checkSimpleLib(['swfdec-0.9'], 'swfdec-0.9/swfdec/swfdec.h', required = 0):
@@ -567,9 +588,15 @@ if(env['enable_mail']):
 	conf.checkSimpleLib(['vmime'], 'vmime.h')
 	conf.env['CCFLAGS'].extend(['-D__HAVE_VMIME__'])
 
+# checks required if building with swscale support
+if(env['enable_swscale']):
+    conf.checkSimpleLib(['swscale'], 'libswscale/swscale.h')
+    conf.env['CCFLAGS'].extend(['-D__HAVE_SWSCALE__']) 
+
 env2 = conf.Finish()
 if env2:
 	env = env2
+	env['LIBS'].extend(['pthread', 'z'])
 	printSummary()
 	
 if 'check' in BUILD_TARGETS:
@@ -582,45 +609,47 @@ if 'check' in BUILD_TARGETS:
 if 'install' in BUILD_TARGETS:
 	disko_pc = open('disko.pc', 'w')
 	disko_pc_requires = 'libxml-2.0 >= 2.6, sigc++-2.0, libpng >= 1.2, freetype2'
-	if env['LIBPATH']:
-		disko_pc_libs     = '-L%s' % ' -L'.join(env['LIBPATH'])
-	else:
-		disko_pc_libs = ''
-		
-	if env['big_lib'] or env['static_lib']:
-		disko_pc_libs += ' -ldisko -lpthread'
-	else:
-		disko_pc_libs += ' -lmmsinfo -lmmsconfig -lmmstools -lmmsgui -lmmsinput -lmmsbase -lmmscore -lpthread'
-	
 	if (env['enable_curl']):
 		disko_pc_requires += ', libcurl'
-		disko_pc_libs += ' -lcurl'
+	if env['LIBPATH']:
+		disko_pc_libs_private = '-L%s' % ' -L'.join(env['LIBPATH'])
+	else:
+		disko_pc_libs_private = ''
+
+	disko_pc_libs_private += ' -lpthread -lz'
 		
+	if env['big_lib'] or env['static_lib']:
+		disko_pc_libs = '-ldisko'
+	else:
+		disko_pc_libs = '-lmmsinfo -lmmsconfig -lmmstools -lmmsgui -lmmsinput -lmmsbase -lmmscore'
+
 	if env.has_key('libiconv'):
-		disko_pc_libs += ' -liconv'
+		disko_pc_libs_private += ' -liconv'
 	
 	if env.has_key('libdl'):
-		disko_pc_libs += ' -ldl'
+		disko_pc_libs_private += ' -ldl'
 
 	if 'dfb' in env['graphics']:
 		disko_pc_requires += ', directfb'
 	  
 	if 'x11' in env['graphics']:
 		disko_pc_requires += ', x11, xv, xxf86vm'
-		
-	if env['media'] and env['media'] != 'none':
+	
+	if env['alsa']:
 	 	disko_pc_requires += ', alsa'
+	
+	if env['media'] and env['media'] != 'none':
 		if not env['big_lib'] and not env['static_lib']:
 			disko_pc_libs += ' -lmmsmedia'
 		
-	if 'xine' in env['media']:
-		if('x11' in env['graphics']):
-			disko_pc_requires += ', libxine >= 1.1.15'
-		else:
-			disko_pc_requires += ', libxine'
+		if 'xine' in env['media']:
+			if('x11' in env['graphics']):
+				disko_pc_requires += ', libxine >= 1.1.15'
+			else:
+				disko_pc_requires += ', libxine'
 
-	if 'gstreamer' in env['media']:
-		disko_pc_requires += ', gstreamer-0.10'
+		if 'gstreamer' in env['media']:
+			disko_pc_requires += ', gstreamer-0.10'
 
 	if env['enable_flash']:
 		disko_pc_requires += ', swfdec-' + swfdecversion
@@ -646,15 +675,19 @@ if 'install' in BUILD_TARGETS:
 	if 'mysql' in env['database']:
 		disko_pc_requires += ', mysql'
 
+	if env['enable_swscale']:
+		disko_pc_libs_private += ' -lswscale -lavutil'
+
 	disko_pc.write('prefix=' + env['prefix'] + '\n')
 	disko_pc.write('exec_prefix=${prefix}\n')
-	disko_pc.write('libdir=${exec_prefix}/lib/disko\n')
+	disko_pc.write('libdir=${exec_prefix}/lib\n')
 	disko_pc.write('includedir=${exec_prefix}/include/disko\n\n')
 	disko_pc.write('Name: ' + packageRealName + '\n')
 	disko_pc.write('Description: ' + packageDescription + '\n')
 	disko_pc.write('Version: ' + packageVersion + '\n')
 	disko_pc.write('Requires: ' + disko_pc_requires + '\n')
 	disko_pc.write('Libs: -L${libdir} ' + disko_pc_libs + '\n')
+	disko_pc.write('Libs.private: ' + disko_pc_libs_private + '\n')
 	disko_pc.write('Cflags: -I${includedir}/ ')
 	for ccflag in env['CCFLAGS']:
 		if type(ccflag).__name__ == 'str' and not ccflag.startswith('-isystem'):
@@ -682,6 +715,7 @@ env.Default(all)
 
 env.Install(idir_inc, env['TOP_DIR'] + '/inc/mms.h')
 env.Install(idir_inc, env['TOP_DIR'] + '/inc/disko.h')
+env.Install(idir_inc, env['TOP_DIR'] + '/inc/diskoversion.h')
 env.Install(idir_prefix + '/lib/pkgconfig', 'disko.pc')
 Clean('lib', 'disko.pc')
 

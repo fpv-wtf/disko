@@ -136,7 +136,6 @@ void MMSPluginParameterParser::createProperty(MMSPluginData *plugin,string name)
                 else {
             	    /*free the document */
             	    xmlFreeDoc(parser);
-            	    xmlCleanupParser();
                     throw new MMSPluginParameterParserError(0,"the data type \"" + string((char*)type) + "\" defined in the parameter.xml of " + plugin->getName() + " is unknown.");
                 }
             }
@@ -158,7 +157,6 @@ void MMSPluginParameterParser::createProperty(MMSPluginData *plugin,string name)
 
     	    /*free the document */
     	    xmlFreeDoc(parser);
-    	    xmlCleanupParser();
 
             data->setisSetinDb(false);
             vector<MMSPropertyData *> result = plugin->getProperties();

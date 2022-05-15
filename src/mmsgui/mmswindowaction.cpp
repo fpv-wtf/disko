@@ -54,11 +54,11 @@ void MMSWindowAction::threadMain() {
     	switch(this->action) {
     		case MMSWACTION_SHOW:
                 while (hideCnt) msleep(100);
-    			this->window->showAction(&(this->stopaction));
+//    			this->window->showAction(&(this->stopaction));
     			break;
     		case MMSWACTION_HIDE:
                 hideCnt++;
-    			this->window->hideAction(&(this->stopaction));
+//    			this->window->hideAction(&(this->stopaction));
                 hideCnt--;
     			break;
     		default:
@@ -92,7 +92,7 @@ void MMSWindowAction::onCancelBroadcast(int type) {
 			if (i > 20) this->cancel();
 		}
 		if (!this->stopaction) {
-			this->window->hideAction(&(this->stopaction));
+//			this->window->hideAction(&(this->stopaction));
         }
 		else
 			this->stopaction = false;

@@ -81,6 +81,10 @@ class MMSImageWidget : public MMSWidget {
 
         bool create(MMSWindow *root, string className, MMSTheme *theme);
 
+        bool init();
+        bool release();
+        bool draw(bool *backgroundFilled = NULL);
+
         void loadMyImage(string path, string filename, MMSFBSurface **surface, MMSIM_DESC_SUF **surfdesc,
         				 unsigned int *index, unsigned int mirror_size);
 
@@ -91,9 +95,6 @@ class MMSImageWidget : public MMSWidget {
         ~MMSImageWidget();
 
         MMSWidget *copyWidget();
-
-        bool init();
-        bool draw(bool *backgroundFilled = NULL);
 
         void setVisible(bool visible, bool refresh = true);
 

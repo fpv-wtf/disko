@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
         sleep(2);
         
         //reset translation to a different language.
-        trans.setTargetLang(MMSLANG_DE);
+        trans.setTargetLang("de");
     } catch (MMSError *err) {
         fprintf(stderr,"%s\n",err->getMessage().c_str());
     }
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
 }
 </pre>
 </code>
-<p>To compile &amp; link the sample type <i>make</i> in the root directory of the sample application. The application can be downloaded from <a href="http://www.diskohq.org/downloads/translationapp.tar.gz">here</a>.</p>
+<p>To compile &amp; link the sample type <i>make</i> in the root directory of the sample application. The application can be downloaded from <a href="http://www.diskohq.com/downloads/translationapp.tar.gz">here</a>.</p>
 <p>If there are any flaws or mistakes in this article. Just feel free to report this at our <a href="http://www.diskohq.org/forum">Forum</a></p>
 
 <hr />

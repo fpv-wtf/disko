@@ -33,14 +33,18 @@
 #include "mmsgui/fb/mmsfbconv.h"
 #include "mmstools/mmstools.h"
 
-void mmsfb_drawstring_blend_coloralpha_argb(MMSFBFont *font, void *dst_ptr, int dst_pitch,
+void mmsfb_drawstring_blend_coloralpha_argb(MMSFBSurfacePlanes *dst_planes, MMSFBFont *font,
 											MMSFBRegion &clipreg, string &text, int len, int x, int y, MMSFBColor &color) {
 	// check for full alpha value
 	if (color.a == 0xff) {
 		// max alpha is specified, so i can ignore it and use faster routine
-		mmsfb_drawstring_blend_argb(font, dst_ptr, dst_pitch, clipreg, text, len, x, y, color);
+		mmsfb_drawstring_blend_argb(dst_planes, font, clipreg, text, len, x, y, color);
 		return;
 	}
+
+	// get the first destination ptr/pitch
+	void *dst_ptr = dst_planes->ptr;
+	int dst_pitch = dst_planes->pitch;
 
 	// first time?
 	static bool firsttime = true;

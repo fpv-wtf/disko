@@ -58,6 +58,8 @@ class MMSInputX11Handler : public MMSInputHandler {
 		bool					quit;
 		Window 					window;
 		Display					*display;
+		bool					pressed;
+		Time					lastmotion;
 
 	public:
 		MMSInputX11Handler(MMS_INPUT_DEVICE device);

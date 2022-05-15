@@ -69,7 +69,10 @@ namespace MMSGUI_WINDOW_ATTR {
 		{ "movein", TAFF_ATTRTYPE_STRING }, \
 		{ "moveout", TAFF_ATTRTYPE_STRING }, \
 		{ "modal", TAFF_ATTRTYPE_BOOL }, \
-		{ "static_zorder", TAFF_ATTRTYPE_BOOL }
+		{ "static_zorder", TAFF_ATTRTYPE_BOOL }, \
+		{ "always_on_top", TAFF_ATTRTYPE_BOOL }, \
+		{ "focusable", TAFF_ATTRTYPE_BOOL }, \
+		{ "backbuffer", TAFF_ATTRTYPE_BOOL }
 
 	#define MMSGUI_WINDOW_ATTR_IDS \
 		MMSGUI_WINDOW_ATTR_IDS_alignment, \
@@ -102,7 +105,10 @@ namespace MMSGUI_WINDOW_ATTR {
 		MMSGUI_WINDOW_ATTR_IDS_movein, \
 		MMSGUI_WINDOW_ATTR_IDS_moveout, \
 		MMSGUI_WINDOW_ATTR_IDS_modal, \
-		MMSGUI_WINDOW_ATTR_IDS_static_zorder
+		MMSGUI_WINDOW_ATTR_IDS_static_zorder, \
+		MMSGUI_WINDOW_ATTR_IDS_always_on_top, \
+		MMSGUI_WINDOW_ATTR_IDS_focusable, \
+		MMSGUI_WINDOW_ATTR_IDS_backbuffer
 
 	typedef enum {
 		MMSGUI_BASE_ATTR_IDS,
@@ -161,6 +167,24 @@ class MMSWindowClass {
 
 	        //! if true, the zorder of child windows will not automatically changed during show() or setFocus()
 	        bool		staticzorder;
+
+	        //! is always on top flag set?
+	        bool		isalwaysontop;
+
+	        //! if true, the window will be permanently displayed at the top of the window stack
+	        bool		alwaysontop;
+
+	        //! is focusable flag set?
+	        bool		isfocusable;
+
+	        //! window can get the focus true/false
+	        bool		focusable;
+
+	        //! is backbuffer flag set?
+	        bool		isbackbuffer;
+
+	        //! window surface has an backbuffer true/false
+	        bool		backbuffer;
     	} id;
 
         struct {
@@ -207,6 +231,9 @@ class MMSWindowClass {
         void initMoveOut();
         void initModal();
         void initStaticZOrder();
+        void initAlwaysOnTop();
+        void initFocusable();
+        void initBackBuffer();
 
     	/* free routines */
         void freeAlignment();
@@ -235,13 +262,17 @@ class MMSWindowClass {
         void freeMoveOut();
         void freeModal();
         void freeStaticZOrder();
+        void freeAlwaysOnTop();
+        void freeFocusable();
+        void freeBackBuffer();
 
         //! Read and set all attributes from the given TAFF buffer.
         /*!
-        \param tafff   pointer to the TAFF buffer
-        \param path    optional, path needed for empty path values from the TAFF buffer
+        \param tafff   		pointer to the TAFF buffer
+        \param path    		optional, path needed for empty path values from the TAFF buffer
+        \param reset_paths  optional, should reset all path attributes?
         */
-        void setAttributesFromTAFF(MMSTaffFile *tafff, string *path = NULL);
+        void setAttributesFromTAFF(MMSTaffFile *tafff, string *path = NULL, bool reset_paths = false);
 
     public:
         MMSBorderClass border;
@@ -513,7 +544,22 @@ class MMSWindowClass {
         void setStaticZOrder(bool staticzorder);
         bool getStaticZOrder(bool &staticzorder);
 
-    /* friends */
+        bool isAlwaysOnTop();
+        void unsetAlwaysOnTop();
+        void setAlwaysOnTop(bool alwaysontop);
+        bool getAlwaysOnTop(bool &alwaysontop);
+
+        bool isFocusable();
+        void unsetFocusable();
+        void setFocusable(bool focusable);
+        bool getFocusable(bool &focusable);
+
+        bool isBackBuffer();
+        void unsetBackBuffer();
+        void setBackBuffer(bool backbuffer);
+        bool getBackBuffer(bool &backbuffer);
+
+    // friends
     friend class MMSThemeManager;
     friend class MMSDialogManager;
 };

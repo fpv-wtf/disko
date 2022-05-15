@@ -103,29 +103,6 @@ bool getPixelFromSizeHint(int *retpix, string hint, int maxpixel, int secondaxis
     }
 }
 
-bool getColorFromString(string input, MMSFBColor *color) {
-
-    color->r = 0;
-    color->g = 0;
-    color->b = 0;
-    color->a = 0;
-
-    if (input == "")
-        return false;
-
-    if (input.size()!=9)
-        return false;
-
-    if (input.substr(0,1)!="#")
-        return false;
-
-    color->r = hexToInt(input.substr(1,2).c_str());
-    color->g = hexToInt(input.substr(3,2).c_str());
-    color->b = hexToInt(input.substr(5,2).c_str());
-    color->a = hexToInt(input.substr(7,2).c_str());
-
-    return true;
-}
 
 
 #ifdef  __HAVE_DIRECTFB__

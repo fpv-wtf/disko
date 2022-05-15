@@ -44,17 +44,14 @@
 #include <linux/input.h>
 
 
-MMSInputLISHandler::MMSInputLISHandler(MMS_INPUT_DEVICE device) {
 #ifdef __HAVE_FBDEV__
-	// init dev list
-	this->devcnt = 0;
-
-	// init event buffer
-	this->ie_read_pos = 0;
-	this->ie_write_pos = 0;
-
+MMSInputLISHandler::MMSInputLISHandler(MMS_INPUT_DEVICE device) :
+	devcnt(0),
+	ie_count(0),
+	ie_read_pos(0),
+	ie_write_pos(0),
+	kb_fd(-1) {
 	// get access to the framebuffer console
-	this->kb_fd = -1;
 	if (mmsfb->mmsfbdev) {
 		if(mmsfb->mmsfbdev->vtGetFd(&this->kb_fd)) {
 			// start the keyboard thread
@@ -75,10 +72,12 @@ MMSInputLISHandler::MMSInputLISHandler(MMS_INPUT_DEVICE device) {
 				lt->start();
 		}
 	}
-#else
-	throw new MMSError(0,(string)typeid(this).name() + " is empty. compile FBDEV support!");
-#endif
 }
+#else
+MMSInputLISHandler::MMSInputLISHandler(MMS_INPUT_DEVICE device) {
+	throw new MMSError(0,(string)typeid(this).name() + " is empty. compile FBDEV support!");
+}
+#endif
 
 MMSInputLISHandler::~MMSInputLISHandler() {
 }
@@ -195,43 +194,43 @@ void MMSInputLISHandler::getDevices() {
 
 bool MMSInputLISHandler::addEvent(MMSInputEvent *inputevent) {
 	this->lock.lock();
-	int old_ie_write_pos;
-	while (1) {
-		// set new write pos for the event buffer
-		old_ie_write_pos = this->ie_write_pos;
-		this->ie_write_pos++;
-		if (this->ie_write_pos >= MMSINPUTLISHANDLER_EVENT_BUFFER_SIZE)
-			this->ie_write_pos = 0;
-		if (this->ie_read_pos == this->ie_write_pos) {
-			// buffer is full, waiting
-			this->ie_write_pos = old_ie_write_pos;
-			usleep(10000);
-			continue;
-		}
-		break;
+
+	// block if buffer is full
+	while(this->ie_count == (MMSINPUTLISHANDLER_EVENT_BUFFER_SIZE - 1)) {
+		usleep(10000);
 	}
 	// add event
-	this->ie_buffer[old_ie_write_pos] = *inputevent;
+	this->ie_buffer[this->ie_write_pos] = *inputevent;
+
+	// increase event counter
+	this->ie_count++;
+
+	// increase write position
+	this->ie_write_pos++;
+	if(this->ie_write_pos >= MMSINPUTLISHANDLER_EVENT_BUFFER_SIZE)
+		this->ie_write_pos = 0;
+
 	this->lock.unlock();
 	return true;
 }
 
 void MMSInputLISHandler::grabEvents(MMSInputEvent *inputevent) {
 #ifdef __HAVE_FBDEV__
-	while (1) {
-		// is event buffer empty?
-		if (this->ie_read_pos == this->ie_write_pos) {
-			usleep(10000);
-			continue;
-		}
-
-		// there is at least one event in the buffer, return next event
-		*inputevent = this->ie_buffer[this->ie_read_pos];
-		this->ie_read_pos++;
-		if (this->ie_read_pos >= MMSINPUTLISHANDLER_EVENT_BUFFER_SIZE)
-			this->ie_read_pos = 0;
-		return;
+	// block if buffer is empty
+	while(this->ie_count == 0) {
+		usleep(10000);
 	}
+
+	// there is at least one event in the buffer, return next event
+	*inputevent = this->ie_buffer[this->ie_read_pos];
+
+	// decrease event counter
+	this->ie_count--;
+
+	// increase read position
+	this->ie_read_pos++;
+	if (this->ie_read_pos >= MMSINPUTLISHANDLER_EVENT_BUFFER_SIZE)
+		this->ie_read_pos = 0;
 #else
 	throw new MMSError(0,(string)typeid(this).name() + " is empty. compile FBDEV support!");
 #endif

@@ -42,13 +42,15 @@ class MMSRootWindow : public MMSWindow {
         MMSRootWindowClass  myRootWindowClass;
 
         bool create(string className, string dx, string dy, string w, string h, MMSALIGNMENT alignment,
-                    MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface);
+                    MMSWINDOW_FLAGS flags, MMSTheme *theme, bool *own_surface, bool *backbuffer);
 
     public:
         MMSRootWindow(string className, string dx, string dy, string w, string h, MMSALIGNMENT alignment = MMSALIGNMENT_CENTER,
-                      MMSWINDOW_FLAGS flags = MMSW_NONE, MMSTheme *theme = NULL, bool *own_surface = NULL);
+                      MMSWINDOW_FLAGS flags = MMSW_NONE, MMSTheme *theme = NULL, bool *own_surface = NULL,
+                      bool *backbuffer = NULL);
         MMSRootWindow(string className, string w, string h, MMSALIGNMENT alignment = MMSALIGNMENT_CENTER,
-                      MMSWINDOW_FLAGS flags = MMSW_NONE, MMSTheme *theme = NULL, bool *own_surface = NULL);
+                      MMSWINDOW_FLAGS flags = MMSW_NONE, MMSTheme *theme = NULL, bool *own_surface = NULL,
+                      bool *backbuffer = NULL);
         virtual ~MMSRootWindow();
 
     public:

@@ -35,15 +35,19 @@
 
 
 MMSInputWidget::MMSInputWidget(MMSWindow *root, string className, MMSTheme *theme) : MMSWidget() {
+    // initialize the callbacks
+	this->onBeforeChange = new sigc::signal<bool, MMSWidget*, string, bool, MMSFBRectangle>::accumulated<bool_accumulator>;
+
     create(root, className, theme);
 }
 
 MMSInputWidget::~MMSInputWidget() {
-	if (this->iwt)
+    // delete the callbacks
+    if (this->onBeforeChange)
+    	delete this->onBeforeChange;
+
+    if (this->iwt)
 		delete this->iwt;
-    if (this->rootwindow) {
-        this->rootwindow->fm->releaseFont(this->font);
-    }
 }
 
 bool MMSInputWidget::create(MMSWindow *root, string className, MMSTheme *theme) {
@@ -72,16 +76,19 @@ bool MMSInputWidget::create(MMSWindow *root, string className, MMSTheme *theme) 
 }
 
 MMSWidget *MMSInputWidget::copyWidget() {
-    /* create widget */
+    // create widget
     MMSInputWidget *newWidget = new MMSInputWidget(this->rootwindow, className);
 
-    /* copy widget */
+    // copy widget
     *newWidget = *this;
 
-    /* copy base widget */
+    // copy base widget
     MMSWidget::copyWidget((MMSWidget*)newWidget);
 
-    /* reload my font */
+    // initialize the callbacks
+	this->onBeforeChange = new sigc::signal<bool, MMSWidget*, string, bool, MMSFBRectangle>::accumulated<bool_accumulator>;
+
+    // reload my font
     newWidget->font = NULL;
     if (this->rootwindow) {
         newWidget->font = this->rootwindow->fm->getFont(newWidget->getFontPath(), newWidget->getFontName(), newWidget->getFontSize());
@@ -91,12 +98,24 @@ MMSWidget *MMSInputWidget::copyWidget() {
 }
 
 bool MMSInputWidget::init() {
-    /* init widget basics */
+    // init widget basics
     if (!MMSWidget::init())
         return false;
 
-    /* load font */
+    // load font
     this->font = this->rootwindow->fm->getFont(getFontPath(), getFontName(), getFontSize());
+
+    return true;
+}
+
+bool MMSInputWidget::release() {
+    // release widget basics
+    if (!MMSWidget::release())
+        return false;
+
+    // release my font
+    this->rootwindow->fm->releaseFont(this->font);
+    this->font = NULL;
 
     return true;
 }
@@ -112,15 +131,15 @@ bool MMSInputWidget::draw(bool *backgroundFilled) {
     else
         backgroundFilled = &myBackgroundFilled;
 
-    /* lock */
+    // lock
     this->surface->lock();
 
-    /* draw widget basics */
+    // draw widget basics
     if (MMSWidget::draw(backgroundFilled)) {
         int width, height, x, y;
         int cursor_x=0, cursor_w = 4;
 
-        /* draw my things */
+        // draw my things
         if (this->font) {
             MMSFBRectangle surfaceGeom = getSurfaceGeometry();
 
@@ -235,33 +254,47 @@ bool MMSInputWidget::draw(bool *backgroundFilled) {
                 color = getColor();
 
             if (color.a) {
-                /* prepare for drawing */
+                // prepare for drawing
                 this->surface->setDrawingColorAndFlagsByBrightnessAndOpacity(color, getBrightness(), getOpacity());
 
-                /* draw the text */
+                // draw the text
                 this->surface->drawString(text, -1, x, y);
             }
 
-            // draw the cursor
-        	if (this->cursor_on)
-        		if (isFocused())
-        			this->surface->drawRectangle(cursor_x, y, cursor_w, height);
+            // get cursor rect
+            this->cursor_rect.x = cursor_x;
+            this->cursor_rect.y = y;
+            this->cursor_rect.w = cursor_w;
+            this->cursor_rect.h = height;
+
+        	if (this->cursor_on) {
+                // draw the cursor
+        		MMSSTATE cursor_state = getCursorState();
+        		if ((cursor_state == MMSSTATE_TRUE)||((cursor_state == MMSSTATE_AUTO) && isFocused())) {
+					this->surface->drawRectangle(cursor_x, y, cursor_w, height);
+        		}
+        	}
         }
 
-        /* update window surface with an area of surface */
+        // update window surface with an area of surface
         updateWindowSurfaceWithSurface(!*backgroundFilled);
     }
 
-    /* unlock */
+    // unlock
     this->surface->unlock();
 
-    /* draw widgets debug frame */
+    // draw widgets debug frame
     return MMSWidget::drawDebug();
 }
 
 void MMSInputWidget::drawCursor(bool cursor_on) {
+	// show/hide the cursor
 	this->cursor_on = cursor_on;
-	refresh();
+	MMSSTATE cursor_state = getCursorState();
+	if ((cursor_state == MMSSTATE_TRUE)||((cursor_state == MMSSTATE_AUTO) && isFocused())) {
+		// refresh only, if cursor should be shown
+		refresh();
+	}
 }
 
 
@@ -284,35 +317,51 @@ void MMSInputWidget::setCursorPos(int cursor_pos, bool refresh) {
 		this->refresh();
 }
 
-void MMSInputWidget::addTextAfterCursorPos(string text, bool refresh) {
+bool MMSInputWidget::addTextAfterCursorPos(string text, bool refresh) {
 	// something to add?
-	if (text=="") return;
+	if (text=="") return false;
 	int textlen = text.size();
 
-	string oldtext = getText();
+	// check if the change is accepted
+	if (!this->onBeforeChange->emit(this, text, true, cursor_rect))
+		return false;
+
+	string oldtext;
+	getText(oldtext);
 	if (oldtext.size() < (unsigned int)this->cursor_pos)
 		this->cursor_pos = oldtext.size();
 
 	// insert the text and change the cursor position
 	this->cursor_pos+=textlen;
 	setText(oldtext.substr(0,this->cursor_pos-textlen) + text + oldtext.substr(this->cursor_pos-textlen), refresh, false);
+
+	return true;
 }
 
-void MMSInputWidget::removeTextBeforeCursorPos(int textlen, bool refresh) {
+bool MMSInputWidget::removeTextBeforeCursorPos(int textlen, bool refresh) {
 	// something to remove?
-	if (textlen<=0) return;
-	if (this->cursor_pos<=0) return;
+	if (textlen<=0) return false;
+	if (this->cursor_pos<=0) return false;
 
-	string text = getText();
+	// check pos
+	string text;
+	getText(text);
 	if (text.size() < (unsigned int)this->cursor_pos)
 		this->cursor_pos = text.size();
 
 	if (this->cursor_pos <= textlen)
 		textlen = this->cursor_pos;
 
+	// check if the change is accepted
+	string rmtext = text.substr(this->cursor_pos - textlen, textlen);
+	if (!this->onBeforeChange->emit(this, rmtext, false, cursor_rect))
+		return false;
+
 	//remove a part of the text
 	this->cursor_pos-=textlen;
 	setText(text.substr(0,this->cursor_pos) + text.substr(this->cursor_pos+textlen), refresh, false);
+
+	return true;
 }
 
 void MMSInputWidget::handleInput(MMSInputEvent *inputevent) {
@@ -566,6 +615,11 @@ void MMSInputWidget::handleInput(MMSInputEvent *inputevent) {
     else if ((inputWidgetClass)&&(inputWidgetClass->is##x())) return inputWidgetClass->get##x(); \
     else return this->da->theme->inputWidgetClass.get##x();
 
+#define GETINPUT2(x, y) \
+    if (this->myInputWidgetClass.is##x()) y=myInputWidgetClass.get##x(); \
+    else if ((inputWidgetClass)&&(inputWidgetClass->is##x())) y=inputWidgetClass->get##x(); \
+    else y=this->da->theme->inputWidgetClass.get##x();
+
 string MMSInputWidget::getFontPath() {
     GETINPUT(FontPath);
 }
@@ -592,6 +646,14 @@ MMSFBColor MMSInputWidget::getSelColor() {
 
 string MMSInputWidget::getText() {
     GETINPUT(Text);
+}
+
+void MMSInputWidget::getText(string &text) {
+    GETINPUT2(Text, text);
+}
+
+MMSSTATE MMSInputWidget::getCursorState() {
+    GETINPUT(CursorState);
 }
 
 /***********************************************/
@@ -676,6 +738,12 @@ void MMSInputWidget::setText(string text, bool refresh, bool reset_cursor) {
         this->refresh();
 }
 
+void MMSInputWidget::setCursorState(MMSSTATE cursor_state, bool refresh) {
+    myInputWidgetClass.setCursorState(cursor_state);
+    if (refresh)
+        this->refresh();
+}
+
 void MMSInputWidget::updateFromThemeClass(MMSInputWidgetClass *themeClass) {
     if (themeClass->isFontPath())
         setFontPath(themeClass->getFontPath());
@@ -691,6 +759,8 @@ void MMSInputWidget::updateFromThemeClass(MMSInputWidgetClass *themeClass) {
         setSelColor(themeClass->getSelColor());
     if (themeClass->isText())
         setText(themeClass->getText());
+    if (themeClass->isCursorState())
+        setCursorState(themeClass->getCursorState());
 
     MMSWidget::updateFromThemeClass(&(themeClass->widgetClass));
 }

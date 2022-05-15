@@ -163,6 +163,11 @@ void raw_frame_cb(void *user_data, int frame_format, int frame_width, int frame_
 	printf("plane2: %p\n", data2);
 	printf("-------\n");*/
 
+	if(!userd) {
+		//there is no window to draw on!
+		return;
+	}
+
     if (userd->lastaspect != frame_aspect) {
     	// format changed
 		printf("format change %f\n", frame_aspect);
@@ -606,8 +611,10 @@ void MMSAV::initialize(const bool verbose, MMSWindow *window) {
 		this->rawvisual.supported_formats = XINE_VORAW_YV12;
 		if(window) {
 			this->rawvisual.user_data = (void *)&(this->userd);
+			this->rawvisual.raw_overlay_cb = raw_overlay_cb;
+		} else {
+			this->rawvisual.user_data = NULL;
 		}
-		this->rawvisual.raw_overlay_cb = raw_overlay_cb;
 	}
 	else {
 #ifdef __HAVE_DIRECTFB__
@@ -651,11 +658,11 @@ void MMSAV::initialize(const bool verbose, MMSWindow *window) {
 			this->userd.numOverlays = 0;
 			this->userd.overlays = NULL;
 		}
-        DEBUGMSG("MMSMedia", "opening video driver...");
-        /* open the video output driver */
-        if (!(this->vo = xine_open_video_driver(this->xine, "raw",
-                                    XINE_VISUAL_TYPE_RAW, (void*) &this->rawvisual)))
-                    throw new MMSAVError(0, "Cannot open the XINE RAW video driver");
+		DEBUGMSG("MMSMedia", "opening video driver...");
+		/* open the video output driver */
+		if (!(this->vo = xine_open_video_driver(this->xine, "raw",
+									XINE_VISUAL_TYPE_RAW, (void*) &this->rawvisual)))
+			throw new MMSAVError(0, "Cannot open the XINE RAW video driver");
 	}
 	else {
 #ifdef __HAVE_DIRECTFB__
@@ -1274,16 +1281,16 @@ void MMSAV::startPlaying(const string mrl, const bool cont) {
 		if(!cont) this->pos = 0;
 
 		/* start playing in extra thread to avoid blocking the application */
-		pthread_t thread;
+		//pthread_t thread;
 		internalStreamData *streamData = new internalStreamData;
 		streamData->stream = this->stream;
 		streamData->pos    = this->pos;
 		streamData->status = &(this->status);
 		streamData->mrl    = mrl.c_str();
 		streamData->lock   = &(this->lock);
-		if(pthread_create(&thread, NULL, xinePlayRoutine, streamData) == 0)
+		/*if(pthread_create(&thread, NULL, xinePlayRoutine, streamData) == 0)
 			pthread_detach(thread);
-		else
+		else*/
 			xinePlayRoutine(streamData);
 
 #endif
@@ -1351,14 +1358,14 @@ void MMSAV::stop(const bool savePosition) {
 				xine_get_pos_length(this->stream, &this->pos, NULL, NULL);
 
 			/* stop xine in extra thread to avoid blocking the application */
-			pthread_t thread;
+			//pthread_t thread;
 			internalStreamData *streamData = new internalStreamData;
 			streamData->stream = this->stream;
 			streamData->status = &(this->status);
 			streamData->lock   = &(this->lock);
-			if(pthread_create(&thread, NULL, stopRoutine, streamData) == 0)
+			/*if(pthread_create(&thread, NULL, stopRoutine, streamData) == 0)
 				pthread_detach(thread);
-			else
+			else*/
 				stopRoutine(streamData);
 			return;
 #endif

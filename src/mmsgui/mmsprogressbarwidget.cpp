@@ -68,8 +68,16 @@ MMSWidget *MMSProgressBarWidget::copyWidget() {
 
 
 bool MMSProgressBarWidget::init() {
-    /* init widget basics */
+    // init widget basics
     if (!MMSWidget::init())
+        return false;
+
+    return true;
+}
+
+bool MMSProgressBarWidget::release() {
+    // release widget basics
+    if (!MMSWidget::release())
         return false;
 
     return true;

@@ -44,20 +44,24 @@
 void help() {
 	printf("\nTAFF Converter\n\n");
 	printf("parameter:\n\n");
-	printf("--mode <mode>             specifies what is to do\n");
-	printf("  --mode c2t              convert external file to taff file\n");
-	printf("  --mode c2e              convert taff file to external file\n");
-	printf("  --mode tc2t             test the convertion of external file to taff file\n");
-	printf("  --mode tc2e             test the convertion of taff file to external file\n");
-	printf("--tafffile <filename>     file for reading/writing the taff format\n");
-	printf("--tafftype mmsgui         type of the taff file, default is mmsgui\n");
-	printf("--extfile <filename>      file for reading/writing the external format\n");
-	printf("--exttype xml|image       type of the external file, default is xml\n");
-	printf("                          (we do only support PNG images for exttype image)\n");
-	printf("--ignore_blanks yes|no    ignore blank values?, default no\n");
-	printf("--trace yes|no            print trace messages?, default no\n");
-	printf("--warnings yes|no         print warnings?, default yes\n");
-	printf("--silent yes|no           ignore errors if extfile is not supported? default no\n");
+	printf("--mode <mode>               specifies what is to do\n");
+	printf("  --mode c2t                convert external file to taff file\n");
+	printf("  --mode c2e                convert taff file to external file\n");
+	printf("  --mode tc2t               test the convertion of external file to taff file\n");
+	printf("  --mode tc2e               test the convertion of taff file to external file\n");
+	printf("--tafffile <filename>       file for reading/writing the taff format\n");
+	printf("--tafftype mmsgui           type of the taff file, default is mmsgui\n");
+	printf("--extfile <filename>        file for reading/writing the external format\n");
+	printf("--exttype xml|image         type of the external file, default is xml\n");
+	printf("                            (we do only support PNG images for exttype image)\n");
+	printf("--image:pf ARGB|AiRGB|      pixelformat of the taff image (see --exttype image)\n");
+    printf("           AYUV|ARGB4444|   default is ARGB\n");
+    printf("           RGB16\n");
+	printf("--image:mirror_size <size>  size of the mirror effect in pixels, default is 0\n");
+	printf("--ignore_blanks yes|no      ignore blank values?, default no\n");
+	printf("--trace yes|no              print trace messages?, default no\n");
+	printf("--warnings yes|no           print warnings?, default yes\n");
+	printf("--silent yes|no             ignore errors if extfile is not supp.? default no\n");
 	printf("\nexamples:\n\n");
 	printf("taff --mode c2t --tafffile theme.taff --extfile theme.xml\n\n");
 	printf("taff --mode c2t --exttype image --tafffile myimage.taff --extfile myimage.png\n\n");
@@ -65,7 +69,9 @@ void help() {
 
 bool getparams(int argc, char *argv[],
 			   string &mode, string &tafffile, TAFF_DESCRIPTION **tafftype,
-			   string &extfile, MMSTAFF_EXTERNAL_TYPE *exttype, bool &ignore_blanks, bool &trace, bool &print_warnings, bool &silent) {
+			   string &extfile, MMSTAFF_EXTERNAL_TYPE *exttype,
+			   MMSTAFF_PF &pf, int &mirror_size,
+			   bool &ignore_blanks, bool &trace, bool &print_warnings, bool &silent) {
 
 	if ((argc<3)||((argc-1)%2)) {
 		printf("Error: wrong parameter list\n");
@@ -131,6 +137,39 @@ bool getparams(int argc, char *argv[],
 				printf("Error: --exttype is invalid\n");
 				return false;
 			}
+		}
+		else
+		if (strcmp(argv[i], "--image:pf")==0)
+		{
+			i++;
+			if (strcmp(argv[i], "ARGB")==0)
+				pf = MMSTAFF_PF_ARGB;
+			else
+			if (strcmp(argv[i], "AiRGB")==0) {
+				pf = MMSTAFF_PF_AiRGB;
+			}
+			else
+			if (strcmp(argv[i], "AYUV")==0) {
+				pf = MMSTAFF_PF_AYUV;
+			}
+			else
+			if (strcmp(argv[i], "ARGB4444")==0) {
+				pf = MMSTAFF_PF_ARGB4444;
+			}
+			else
+			if (strcmp(argv[i], "RGB16")==0) {
+				pf = MMSTAFF_PF_RGB16;
+			}
+			else {
+				printf("Error: --image:pf is invalid\n");
+				return false;
+			}
+		}
+		else
+		if (strcmp(argv[i], "--image:mirror_size")==0)
+		{
+			i++;
+			mirror_size = atoi(argv[i]);
 		}
 		else
 		if (strcmp(argv[i], "--ignore_blanks")==0)
@@ -209,14 +248,17 @@ int main(int argc, char *argv[]) {
 	bool ignore_blanks, trace, print_warnings, silent;
 	TAFF_DESCRIPTION *tafftype;
 	MMSTAFF_EXTERNAL_TYPE exttype;
+	MMSTAFF_PF pf = MMSTAFF_PF_ARGB;
+	int mirror_size = 0;
 
-	if (!getparams(argc, argv, mode, tafffile, &tafftype, extfile, &exttype, ignore_blanks, trace, print_warnings, silent)) {
+	if (!getparams(argc, argv, mode, tafffile, &tafftype, extfile, &exttype,
+				   pf, mirror_size, ignore_blanks, trace, print_warnings, silent)) {
 		help();
 		return 1;
 	}
 
 	if (mode=="c2t") {
-		/* convert to taff */
+		// convert to taff
 
 		if (tafffile=="") {
 			printf("Error: taff file not specified\n");
@@ -228,7 +270,22 @@ int main(int argc, char *argv[]) {
 		}
 		printf("\nCreating TAFF from %s...\n", extfile.c_str());
 
-		MMSTaffFile *tafff = new MMSTaffFile(tafffile, tafftype, extfile, exttype, ignore_blanks, trace, print_warnings, true);
+		MMSTaffFile *tafff;
+		if ((exttype == MMSTAFF_EXTERNAL_TYPE_IMAGE)
+			&&((pf != MMSTAFF_PF_ARGB)
+			|| (mirror_size != 0))) {
+			// special settings for images
+			tafff = new MMSTaffFile(tafffile, tafftype, "", exttype, ignore_blanks, trace, print_warnings, true);
+			tafff->setExternal(extfile, MMSTAFF_EXTERNAL_TYPE_IMAGE);
+			tafff->setDestinationPixelFormat(pf);
+			tafff->setMirrorEffect(mirror_size);
+			tafff->convertExternal2TAFF();
+			tafff->readFile();
+		}
+		else {
+			// normal conversion
+			tafff = new MMSTaffFile(tafffile, tafftype, extfile, exttype, ignore_blanks, trace, print_warnings, true);
+		}
 		if (!tafff) {
 			printf("Error: creating MMSTaffFile()\n");
 			help();
@@ -250,7 +307,7 @@ int main(int argc, char *argv[]) {
 	}
 	else
 	if (mode=="tc2t") {
-		/* convert to taff - test mode */
+		// convert to taff - test mode
 
 		printf("\nCreating TAFF - test mode...\n");
 		if (extfile=="") {
@@ -278,7 +335,7 @@ int main(int argc, char *argv[]) {
 	}
 	else
 	if (mode=="c2e") {
-		/* convert to external */
+		// convert to external
 
 		printf("\nCreating external file...\n");
 		if (tafffile=="") {
@@ -316,7 +373,7 @@ int main(int argc, char *argv[]) {
 	}
 	else
 	if (mode=="tc2e") {
-		/* convert to external - test mode */
+		// convert to external - test mode
 
 		printf("\nCreating external file - test mode...\n");
 		if (tafffile=="") {

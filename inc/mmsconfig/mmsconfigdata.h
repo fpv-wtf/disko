@@ -145,14 +145,14 @@ class MMSConfigDataGraphics {
 
 class MMSConfigDataLanguage {
 	public:
-		MMS_LANGUAGE_TYPE sourcelang;
-		MMS_LANGUAGE_TYPE defaulttargetlang;
-		bool			  addtranslations;
-		string			  languagefiledir;
+		string sourcelang;
+		string defaulttargetlang;
+		bool   addtranslations;
+		string languagefiledir;
 
 		MMSConfigDataLanguage() :
-			sourcelang(MMSLANG_UKN),
-			defaulttargetlang(MMSLANG_UKN),
+			sourcelang(""),
+			defaulttargetlang(""),
 			addtranslations(false),
 			languagefiledir("") {}
 };
@@ -165,18 +165,18 @@ class MMSConfigData {
     	static MMSConfigDataLanguage	language;
 
     public:
-        /* call this to set the values */
+        // call this to set the values
         MMSConfigData(MMSConfigDataGlobal 	global,
                       MMSConfigDataDB     	configdb,
                       MMSConfigDataDB     	datadb,
                       MMSConfigDataGraphics graphics,
                       MMSConfigDataLanguage	language);
 
-        /* call if you want to read the values */
+        // call if you want to read the values
         MMSConfigData();
         ~MMSConfigData();
 
-        /* global section getters */
+        // global section getters
         const string getLogfile();
         const string getInputMap();
         const string getPrefix();
@@ -190,7 +190,7 @@ class MMSConfigData {
         const string getShutdownCmd();
         const string getInputMode();
 
-        /* db section getters */
+        // db section getters
         const string       getConfigDBDBMS();
         const string       getConfigDBAddress();
         const unsigned int getConfigDBPort();
@@ -204,7 +204,7 @@ class MMSConfigData {
         const string       getDataDBPassword();
         const string       getDataDBDatabase();
 
-        /* graphics section getters */
+        // graphics section getters
         const MMSConfigDataLayer getVideoLayer();
         const MMSConfigDataLayer getGraphicsLayer();
         const MMSFBBackend getBackend();
@@ -224,11 +224,17 @@ class MMSConfigData {
         const unsigned int getTouchResX();
         const unsigned int getTouchResY();
 
-        /* language section getters */
-    	const MMS_LANGUAGE_TYPE getSourceLang();
-    	const MMS_LANGUAGE_TYPE getDefaultTargetLang();
-    	const bool			    getAddTranslations();
-    	const string 			getLanguagefileDir();
+        // graphics section setters
+        void setVideoLayer(MMSConfigDataLayer layer);
+        void setGraphicsLayer(MMSConfigDataLayer layer);
+        void setFullScreen(MMSFBFullScreenMode fsm);
+        void setHideApplication(bool hideapplication);
+
+        // language section getters
+    	const string getSourceLang();
+    	const string getDefaultTargetLang();
+    	const bool	 getAddTranslations();
+    	const string getLanguagefileDir();
 
 };
 

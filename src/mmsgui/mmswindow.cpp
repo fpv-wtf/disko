@@ -54,6 +54,20 @@ int			MMSWindow::fullscreen_root_window_use_count = 0;
 MMSFBWindow *MMSWindow::fullscreen_main_window			= NULL;
 int			MMSWindow::fullscreen_main_window_use_count	= 0;
 
+// helper macros for horizontal stretchmode
+#define MMSFBWINDOW_CALC_STRETCH_W(w)				((w->stretchLeft-25600)+(w->stretchRight-25600)+25600)
+#define MMSFBWINDOW_CALC_STRETCH_LEFT(x,w) 			((w->stretchLeft!=25600)?((((x)*w->stretchLeft*100+12800)/2560000)&~0x01):(x))
+#define MMSFBWINDOW_CALC_STRETCH_WIDTH(x,w) 		((MMSFBWINDOW_CALC_STRETCH_W(w)!=25600)?((((x)*MMSFBWINDOW_CALC_STRETCH_W(w)*100+12800)/2560000)&~0x01):(x))
+#define MMSFBWINDOW_CALC_STRETCH_WIDTH_REV(x,w) 	((MMSFBWINDOW_CALC_STRETCH_W(w)!=25600)?((((x)*25600+12800)/MMSFBWINDOW_CALC_STRETCH_W(w))&~0x01):(x))
+
+// helper macros for vertical stretchmode
+#define MMSFBWINDOW_CALC_STRETCH_H(w)				((w->stretchUp-25600)+(w->stretchDown-25600)+25600)
+#define MMSFBWINDOW_CALC_STRETCH_UP(x,w) 			((w->stretchUp!=25600)?((((x)*w->stretchUp*100+12800)/2560000)&~0x01):(x))
+#define MMSFBWINDOW_CALC_STRETCH_HEIGHT(x,w) 		((MMSFBWINDOW_CALC_STRETCH_H(w)!=25600)?((((x)*MMSFBWINDOW_CALC_STRETCH_H(w)*100+12800)/2560000)&~0x01):(x))
+#define MMSFBWINDOW_CALC_STRETCH_HEIGHT_REV(x,w)	((MMSFBWINDOW_CALC_STRETCH_H(w)!=25600)?((((x)*25600+12800)/MMSFBWINDOW_CALC_STRETCH_H(w))&~0x01):(x))
+
+
+#define MMSWINDOW_ANIM_MAX_OFFSET	30
 
 MMSWindow::MMSWindow() {
 
@@ -63,6 +77,7 @@ MMSWindow::MMSWindow() {
     this->baseWindowClass = NULL;
     this->windowClass = NULL;
     this->initialized = false;
+    this->precalcnav = false;
     this->parent = NULL;
     this->toplevel_parent = NULL;
 //this->im = NULL;
@@ -94,16 +109,31 @@ MMSWindow::MMSWindow() {
 
     this->initialArrowsDrawn = false;
 
-    /* initialize the callbacks */
-    onBeforeShow  = new sigc::signal<bool, MMSWindow*>::accumulated<bool_accumulator>;
-    onAfterShow   = new sigc::signal<void, MMSWindow*, bool>;
-    onBeforeHide  = new sigc::signal<bool, MMSWindow*, bool>::accumulated<bool_accumulator>;
-    onHide        = new sigc::signal<void, MMSWindow*, bool>;
-    onHandleInput = new sigc::signal<bool, MMSWindow*, MMSInputEvent*>::accumulated<neg_bool_accumulator>;
+    // init stretch mode, per default the windows will not be stretched by the window manager
+    this->stretchmode = false;
+    this->stretchLeft = 0;
+    this->stretchUp = 0;
+    this->stretchRight = 0;
+    this->stretchDown = 0;
+
+    this->always_on_top_index = 0;
+
+    // initialize the callbacks
+    onBeforeShow        = new sigc::signal<bool, MMSWindow*>::accumulated<bool_accumulator>;
+    onAfterShow         = new sigc::signal<void, MMSWindow*, bool>;
+    onBeforeHide        = new sigc::signal<bool, MMSWindow*, bool>::accumulated<bool_accumulator>;
+    onHide              = new sigc::signal<void, MMSWindow*, bool>;
+    onHandleInput       = new sigc::signal<bool, MMSWindow*, MMSInputEvent*>::accumulated<neg_bool_accumulator>;
+    onBeforeHandleInput = new sigc::signal<bool, MMSWindow*, MMSInputEvent*>::accumulated<neg_bool_accumulator>;
+
+    // initialize the animation callbacks
+    this->onBeforeAnimation_connection	= this->pulser.onBeforeAnimation.connect(sigc::mem_fun(this, &MMSWindow::onBeforeAnimation));
+    this->onAnimation_connection		= this->pulser.onAnimation.connect(sigc::mem_fun(this, &MMSWindow::onAnimation));
+    this->onAfterAnimation_connection	= this->pulser.onAfterAnimation.connect(sigc::mem_fun(this, &MMSWindow::onAfterAnimation));
 }
 
 MMSWindow::~MMSWindow() {
-	/* wait until show/hide actions are finished */
+	// wait until show/hide actions are finished
 	while(this->action->getAction() != MMSWACTION_NONE)
 		msleep(100);
 
@@ -116,6 +146,15 @@ MMSWindow::~MMSWindow() {
     if (onBeforeHide) delete onBeforeHide;
     if (onHide) delete onHide;
     if (onHandleInput) delete onHandleInput;
+    if(onBeforeHandleInput) delete onBeforeHandleInput;
+
+    // disconnect callbacks from pulser
+    this->onBeforeAnimation_connection.disconnect();
+    this->onAnimation_connection.disconnect();
+    this->onAfterAnimation_connection.disconnect();
+
+    // delete images, ...
+    release();
 
 	if (this->type != MMSWINDOWTYPE_CHILDWINDOW) {
 		// remove normal window
@@ -192,7 +231,7 @@ MMSWINDOWTYPE MMSWindow::getType() {
 }
 
 bool MMSWindow::create(string dx, string dy, string w, string h, MMSALIGNMENT alignment, MMSWINDOW_FLAGS flags,
-		               bool *own_surface) {
+		               bool *own_surface, bool *backbuffer) {
     /* save flags */
     this->flags = flags;
 
@@ -209,6 +248,8 @@ bool MMSWindow::create(string dx, string dy, string w, string h, MMSALIGNMENT al
         setAlignment(alignment, false, false);
     if (own_surface)
     	setOwnSurface(*own_surface);
+    if (backbuffer)
+    	setBackBuffer(*backbuffer);
 
     this->action = new MMSWindowAction(this);
     this->firstfocusset = false;
@@ -283,35 +324,23 @@ bool MMSWindow::create(string dx, string dy, string w, string h, MMSALIGNMENT al
     if (!this->fm)
     	this->fm = new MMSFontManager();
 
-    /* set some attributes */
+    // set some attributes
     this->shown=false;
     this->willshow=false;
     this->willhide=false;
 
     buffered_shown = false;
 
-    /* load background image */
-    string path, name;
-    if (!getBgImagePath(path)) path = "";
-    if (!getBgImageName(name)) name = "";
-    this->bgimage = im->getImage(path, name);
-
-    /* load border images */
-    if (!getBorderImagePath(path)) path = "";
-    for (int i=0;i<MMSBORDER_IMAGE_NUM_SIZE;i++) {
-        if (!getBorderImageNames((MMSBORDER_IMAGE_NUM)i, name)) name = "";
-        this->borderimages[i] = im->getImage(path, name);
-    }
-
-    /* resize/create the window */
+    // resize/create the window
     if (this->windowmanager)
         resize();
 
     return true;
 }
 
-bool MMSWindow::create(string w, string h, MMSALIGNMENT alignment, MMSWINDOW_FLAGS flags, bool *own_surface) {
-    return create("", "", w, h, alignment, flags, own_surface);
+bool MMSWindow::create(string w, string h, MMSALIGNMENT alignment, MMSWINDOW_FLAGS flags, bool *own_surface,
+					   bool *backbuffer) {
+    return create("", "", w, h, alignment, flags, own_surface, backbuffer);
 }
 
 
@@ -382,7 +411,6 @@ bool MMSWindow::resize(bool refresh) {
         this->vrect.h = this->parent->innerGeom.h;
 //        logger.writeLog("got inner size from parent " + iToStr(vrect.w) + "x" + iToStr(vrect.h));
     }
-
 
     /* calculate the window position */
     /* first try with xpos */
@@ -554,15 +582,30 @@ bool MMSWindow::resize(bool refresh) {
     			        this->layer->getResolution(&wdesc_width, &wdesc_height);
     				}
 
-    				// window should have own surface
-                	DEBUGMSG("MMSGUI", "creating window (" + iToStr(wdesc_posx) + ","
-                                                        + iToStr(wdesc_posy) + ","
-                                                        + iToStr(wdesc_width) + ","
-                                                        + iToStr(wdesc_height)
-                                                        + "), alphachannel requested");
-                    this->layer->createWindow(&(this->window),
-                                              wdesc_posx, wdesc_posy, wdesc_width, wdesc_height,
-                                              MMSFB_PF_NONE, true);
+    				// window should have own surface, backbuffer requested?
+    				bool backbuffer = false;
+    				getBackBuffer(backbuffer);
+    				if (backbuffer) {
+						DEBUGMSG("MMSGUI", "creating window (" + iToStr(wdesc_posx) + ","
+															+ iToStr(wdesc_posy) + ","
+															+ iToStr(wdesc_width) + ","
+															+ iToStr(wdesc_height)
+															+ ") with alphachannel and backbuffer");
+						this->layer->createWindow(&(this->window),
+												  wdesc_posx, wdesc_posy, wdesc_width, wdesc_height,
+												  MMSFB_PF_NONE, true, 1);
+    				}
+    				else {
+						DEBUGMSG("MMSGUI", "creating window (" + iToStr(wdesc_posx) + ","
+															+ iToStr(wdesc_posy) + ","
+															+ iToStr(wdesc_width) + ","
+															+ iToStr(wdesc_height)
+															+ ") with alphachannel, no backbuffer");
+						this->layer->createWindow(&(this->window),
+												  wdesc_posx, wdesc_posy, wdesc_width, wdesc_height,
+												  MMSFB_PF_NONE, true, 0);
+    				}
+
                     DEBUGMSG("MMSGUI", "window created (0x%x)", this->window);
 
                     // window should not be visible at this time
@@ -589,15 +632,30 @@ bool MMSWindow::resize(bool refresh) {
             }
             else {
                 // video window, do not use alpha
-            	DEBUGMSG("MMSGUI", "creating video window (" + iToStr(wdesc_posx) + ","
-                                                          + iToStr(wdesc_posy) + ","
-                                                          + iToStr(wdesc_width) + ","
-                                                          + iToStr(wdesc_height)
-                                                          + "), no alphachannel");
-                this->layer->createWindow(&(this->window),
-                                          wdesc_posx, wdesc_posy, wdesc_width, wdesc_height,
-                                          MMSFB_PF_NONE, false);
-                DEBUGMSG("MMSGUI", "video window created (0x%x)", this->window);
+				bool backbuffer = false;
+				getBackBuffer(backbuffer);
+				if (backbuffer) {
+					DEBUGMSG("MMSGUI", "creating video window (" + iToStr(wdesc_posx) + ","
+															  + iToStr(wdesc_posy) + ","
+															  + iToStr(wdesc_width) + ","
+															  + iToStr(wdesc_height)
+															  + ") with backbuffer, no alphachannel");
+					this->layer->createWindow(&(this->window),
+											  wdesc_posx, wdesc_posy, wdesc_width, wdesc_height,
+											  MMSFB_PF_NONE, false, 1);
+				}
+				else {
+					DEBUGMSG("MMSGUI", "creating video window (" + iToStr(wdesc_posx) + ","
+															  + iToStr(wdesc_posy) + ","
+															  + iToStr(wdesc_width) + ","
+															  + iToStr(wdesc_height)
+															  + "), no alphachannel, no backbuffer");
+					this->layer->createWindow(&(this->window),
+											  wdesc_posx, wdesc_posy, wdesc_width, wdesc_height,
+											  MMSFB_PF_NONE, false, 0);
+				}
+
+				DEBUGMSG("MMSGUI", "video window created (0x%x)", this->window);
 
                 // window should not be visible at this time
                 this->window->setOpacity(0);
@@ -667,15 +725,30 @@ bool MMSWindow::resize(bool refresh) {
             bool os;
             getOwnSurface(os);
         	if (os) {
-        		DEBUGMSG("MMSGUI", "creating surface for child window (" + iToStr(wdesc_posx) + ","
-	                                                                  + iToStr(wdesc_posy) + ","
-	                                                                  + iToStr(wdesc_width) + ","
-	                                                                  + iToStr(wdesc_height)
-	                                                                  + ") with pixelformat " + getMMSFBPixelFormatString(pixelformat)
-	                                                                  + " (use alpha)");
+				bool backbuffer = false;
+				getBackBuffer(backbuffer);
+				if (backbuffer) {
+					DEBUGMSG("MMSGUI", "creating surface for child window (" + iToStr(wdesc_posx) + ","
+																		  + iToStr(wdesc_posy) + ","
+																		  + iToStr(wdesc_width) + ","
+																		  + iToStr(wdesc_height)
+																		  + ") with pixelformat " + getMMSFBPixelFormatString(pixelformat)
+																		  + " (alphachannel and backbuffer)");
 
-	            this->layer->createSurface(&(this->surface),
-	                                      wdesc_width, wdesc_height, MMSFB_PF_NONE, 0);
+					this->layer->createSurface(&(this->surface),
+											  wdesc_width, wdesc_height, MMSFB_PF_NONE, 1);
+				}
+				else {
+					DEBUGMSG("MMSGUI", "creating surface for child window (" + iToStr(wdesc_posx) + ","
+																		  + iToStr(wdesc_posy) + ","
+																		  + iToStr(wdesc_width) + ","
+																		  + iToStr(wdesc_height)
+																		  + ") with pixelformat " + getMMSFBPixelFormatString(pixelformat)
+																		  + " (alphachannel, no backbuffer)");
+
+					this->layer->createSurface(&(this->surface),
+											  wdesc_width, wdesc_height, MMSFB_PF_NONE, 0);
+				}
 	        }
 	        else {
 	        	DEBUGMSG("MMSGUI", "creating sub surface for child window (" + iToStr(wdesc_posx) + ","
@@ -813,7 +886,7 @@ void MMSWindow::setName(string name) {
     this->name = name;
 }
 
-MMSWindow* MMSWindow::searchForWindow(string name) {
+MMSWindow* MMSWindow::findWindow(string name) {
     MMSWindow *window;
 
     if (name=="")
@@ -826,7 +899,7 @@ MMSWindow* MMSWindow::searchForWindow(string name) {
 
     /* second, call search method of my childwins */
     for (unsigned int i = 0; i < childwins.size(); i++)
-        if ((window = childwins.at(i).window->searchForWindow(name)))
+        if ((window = childwins.at(i).window->findWindow(name)))
             return window;
 
     return NULL;
@@ -836,30 +909,32 @@ bool MMSWindow::addChildWindow(MMSWindow *childwin) {
     if (childwin->getType()!=MMSWINDOWTYPE_CHILDWINDOW)
         return false;
 
-//printf("add child window %s, %x, %d\n", childwin->name.c_str(), childwin, this->childwins.size());
-
-    /* per default childwins are not focused */
-//    childwin->focused = false;
-
+    // per default childwins are not focused
     CHILDWINS cw;
     cw.window = childwin;
     cw.region.x1 = childwin->geom.x;
     cw.region.y1 = childwin->geom.y;
-    cw.region.x2 = childwin->geom.x + childwin->geom.w - 1;
-    cw.region.y2 = childwin->geom.y + childwin->geom.h - 1;
+    cw.region.x2 = childwin->geom.x + childwin->geom.w - 1         ;//+20;
+    cw.region.y2 = childwin->geom.y + childwin->geom.h - 1         ;//+20;
     cw.opacity = 0;
     cw.oldopacity = 0;
     cw.focusedWidget = 0;
+    cw.special_blit = false;
 
-//printf("%x->childwins.push_back %x\n", this, cw.window);
-//printf("  %s->childwins.push_back %s\n", this->name.c_str(), cw.window->name.c_str());
-
+    // insert child window into stack
     lock();
-    this->childwins.push_back(cw);
+	bool aot = false;
+	childwin->getAlwaysOnTop(aot);
+	if (!aot) {
+		// normal stack position, insert window before windows with "always on top" flag
+		this->childwins.insert(this->childwins.begin() + this->always_on_top_index, cw);
+		this->always_on_top_index++;
+	}
+	else {
+		// window with "always on top" flag, add it to the end of list
+		this->childwins.push_back(cw);
+	}
     unlock();
-
-//printf("%x->childwins.push_back %x   <<\n", this, cw.window);
-//printf("  %s->childwins.push_back %s   <<<\n", this->name.c_str(), cw.window->name.c_str());
 
     return true;
 }
@@ -870,39 +945,45 @@ bool MMSWindow::removeChildWindow(MMSWindow *childwin) {
     if (childwin->getType()!=MMSWINDOWTYPE_CHILDWINDOW)
         return false;
 
-    for (unsigned int i = 0; i < this->childwins.size(); i++)
+    // remove child window from stack
+    lock();
+    for (unsigned int i = 0; i < this->childwins.size(); i++) {
     	if (childwins.at(i).window == childwin) {
+    		// remove window from stack
             this->childwins.erase(this->childwins.begin()+i);
+    		bool aot = false;
+    		childwin->getAlwaysOnTop(aot);
+    		if (!aot) {
+    			// normal stack position, decrease the index for "always on top" windows
+    			this->always_on_top_index--;
+    		}
+            unlock();
     		return true;
     	}
+    }
+    unlock();
 
     return false;
 }
 
 
 bool MMSWindow::setChildWindowOpacity(MMSWindow *childwin, unsigned char opacity) {
-    if (childwin->getType()!=MMSWINDOWTYPE_CHILDWINDOW)
-        return false;
+	if (childwin->getType()!=MMSWINDOWTYPE_CHILDWINDOW)
+		return false;
 
-    for (unsigned int i = 0; i < this->childwins.size(); i++)
+	// find child window and set the opacity
+	lock();
+    for (unsigned int i = 0; i < this->childwins.size(); i++) {
         if (this->childwins.at(i).window == childwin) {
-
-//PUP            flipLock.lock();
-        	lock();
-
             this->childwins.at(i).oldopacity = this->childwins.at(i).opacity;
-            this->childwins.at(i).opacity = opacity;
-
-            flipWindow(childwin, NULL, MMSFB_FLIP_NONE, false, true);
-
-//PUP			flipLock.unlock();
-            unlock();
-
-
-            return true;
+           	this->childwins.at(i).opacity = opacity;
+			flipWindow(childwin, NULL, MMSFB_FLIP_NONE, false, true);
+			unlock();
+			return true;
         }
-
-    return false;
+    }
+    unlock();
+   	return false;
 }
 
 bool MMSWindow::setChildWindowRegion(MMSWindow *childwin, bool refresh) {
@@ -910,53 +991,68 @@ bool MMSWindow::setChildWindowRegion(MMSWindow *childwin, bool refresh) {
     if (childwin->getType()!=MMSWINDOWTYPE_CHILDWINDOW)
         return false;
 
-    for (unsigned int i = 0; i < this->childwins.size(); i++)
+	lock();
+    for (unsigned int i = 0; i < this->childwins.size(); i++) {
         if (this->childwins.at(i).window == childwin) {
-            /* get old region */
+            // get old region
             MMSFBRegion *currregion = &this->childwins.at(i).region;
             MMSFBRegion oldregion = *currregion;
 
             if   ((oldregion.x1 != childwin->geom.x)
                 ||(oldregion.y1 != childwin->geom.y)
                 ||(oldregion.x2 - oldregion.x1 + 1 != childwin->geom.w)
-                ||(oldregion.y2 - oldregion.y1 + 1 != childwin->geom.h)) {
+                ||(oldregion.y2 - oldregion.y1 + 1 != childwin->geom.h)
+                ||(childwin->stretchmode)) {
 
-                /* calc new pos */
+                // calc new pos
                 currregion->x1 = childwin->geom.x;
                 currregion->y1 = childwin->geom.y;
                 currregion->x2 = childwin->geom.x + childwin->geom.w - 1;
                 currregion->y2 = childwin->geom.y + childwin->geom.h - 1;
 
+                if (childwin->stretchmode) {
+                	currregion->x1 = childwin->geom.x - (MMSFBWINDOW_CALC_STRETCH_LEFT(childwin->geom.w, childwin) - childwin->geom.w);
+                	currregion->y1 = childwin->geom.y - (MMSFBWINDOW_CALC_STRETCH_UP(childwin->geom.h, childwin) - childwin->geom.h);
+                	currregion->x2 = currregion->x1 + MMSFBWINDOW_CALC_STRETCH_WIDTH(childwin->geom.w, childwin) - 1;
+                	currregion->y2 = currregion->y1 + MMSFBWINDOW_CALC_STRETCH_HEIGHT(childwin->geom.h, childwin) - 1;
+                }
 
                 bool os;
                 childwin->getOwnSurface(os);
             	if (os) {
             		if   ((oldregion.x2 - oldregion.x1 + 1 != childwin->geom.w)
 	                    ||(oldregion.y2 - oldregion.y1 + 1 != childwin->geom.h)) {
-
-	                    /* resize surface */
+	                    // resize surface
 	                    childwin->surface->resize(childwin->geom.w, childwin->geom.h);
-	                }
+
+	                    // call resize recursive for new regions of my child windows
+	                    for (unsigned int j = 0; j < childwin->childwins.size(); j++) {
+	                        childwin->childwins.at(j).window->resize(false);
+	                    }
+            		}
             	}
             	else {
-            		/* working with sub surface */
+            		// working with sub surface
 					childwin->surface->setSubSurface(&(childwin->geom));
+
+	                // call resize recursive for new regions of my child windows
+	                for (unsigned int j = 0; j < childwin->childwins.size(); j++) {
+	                    childwin->childwins.at(j).window->resize(false);
+	                }
             	}
 
-                /* call resize recursive for new regions of my child windows */
-                for (unsigned int j = 0; j < childwin->childwins.size(); j++)
-                    childwin->childwins.at(j).window->resize(false);
-
-                /* recursive calls should stop here */
-                if (!refresh)
+                // recursive calls should stop here
+                if (!refresh) {
+                    unlock();
                     return true;
+                }
 
-                /* draw at new pos */
+                // draw at new pos
                 flipWindow(childwin, NULL, MMSFB_FLIP_NONE, false, false);
 
-                /* redraw the old rects */
+                // redraw the old rects
                 if (oldregion.y1 < currregion->y1) {
-                    /* redraw above */
+                    // redraw above
                     MMSFBRegion region;
                     region = oldregion;
                     if (region.y2 >= currregion->y1)
@@ -969,7 +1065,7 @@ bool MMSWindow::setChildWindowRegion(MMSWindow *childwin, bool refresh) {
                     flipWindow(childwin, &region, MMSFB_FLIP_NONE, false, false);
                 }
                 if (oldregion.y2 > currregion->y2) {
-                    /* redraw below */
+                    // redraw below
                     MMSFBRegion region;
                     region = oldregion;
                     if (region.y1 <= currregion->y2)
@@ -982,7 +1078,7 @@ bool MMSWindow::setChildWindowRegion(MMSWindow *childwin, bool refresh) {
                     flipWindow(childwin, &region, MMSFB_FLIP_NONE, false, false);
                 }
                 if (oldregion.x1 < currregion->x1) {
-                    /* redraw left side */
+                    // redraw left side
                     MMSFBRegion region;
                     region = oldregion;
                     if  ((region.y2 >= currregion->y1)
@@ -998,7 +1094,7 @@ bool MMSWindow::setChildWindowRegion(MMSWindow *childwin, bool refresh) {
                     }
                 }
                 if (oldregion.x2 > currregion->x2) {
-                    /* redraw right side */
+                    // redraw right side
                     MMSFBRegion region;
                     region = oldregion;
                     if  ((region.y2 >= currregion->y1)
@@ -1015,9 +1111,12 @@ bool MMSWindow::setChildWindowRegion(MMSWindow *childwin, bool refresh) {
                 }
             }
 
+            unlock();
             return true;
         }
+    }
 
+    unlock();
     return false;
 }
 
@@ -1036,14 +1135,231 @@ void MMSWindow::drawChildWindows(MMSFBSurface *dst_surface, MMSFBRegion *region,
     MMSFBRegion       pw_region;
 
     if (region == NULL) {
-        /* complete surface */
+        // complete surface
         pw_region.x1 = 0;
         pw_region.y1 = 0;
         pw_region.x2 = this->geom.w - 1;
         pw_region.y2 = this->geom.h - 1;
     }
     else {
-        /* only a region */
+        // only a region
+        pw_region = *region;
+    }
+
+    // draw all affected child windows
+    for (unsigned int i = 0; i < this->childwins.size(); i++) {
+        CHILDWINS *cw = &(this->childwins.at(i));
+        MMSFBRegion *myregion = &(cw->region);
+
+        // window pointer set?
+        if (!cw->window)
+        	continue;
+
+        // if the window has no opacity then continue
+        if (!cw->opacity)
+            continue;
+
+        if (!((myregion->x2 < pw_region.x1)||(myregion->y2 < pw_region.y1)
+            ||(myregion->x1 > pw_region.x2)||(myregion->y1 > pw_region.y2))) {
+
+            // the window is affected
+            // calc source and destination
+            MMSFBRectangle src_rect;
+            int dst_x = pw_region.x1;
+            int dst_y = pw_region.y1;
+
+            src_rect.x = pw_region.x1 - myregion->x1;
+            if (src_rect.x < 0) {
+                dst_x-= src_rect.x;
+                src_rect.x = 0;
+            }
+
+            src_rect.y = pw_region.y1 - myregion->y1;
+            if (src_rect.y < 0) {
+                dst_y-= src_rect.y;
+                src_rect.y = 0;
+            }
+
+            src_rect.w = myregion->x2 - myregion->x1 + 1 - src_rect.x;
+            if (myregion->x2 > pw_region.x2)
+                src_rect.w-= myregion->x2 - pw_region.x2;
+
+            src_rect.h = myregion->y2 - myregion->y1 + 1 - src_rect.y;
+            if (myregion->y2 > pw_region.y2)
+                src_rect.h-= myregion->y2 - pw_region.y2;
+
+			if (cw->window->stretchmode) {
+				src_rect.x = MMSFBWINDOW_CALC_STRETCH_WIDTH_REV(src_rect.x, cw->window);
+				src_rect.y = MMSFBWINDOW_CALC_STRETCH_HEIGHT_REV(src_rect.y, cw->window);
+				src_rect.w = MMSFBWINDOW_CALC_STRETCH_WIDTH_REV(src_rect.w , cw->window);
+				src_rect.h = MMSFBWINDOW_CALC_STRETCH_HEIGHT_REV(src_rect.h, cw->window);
+			}
+
+			// own surface?
+            bool os = true;
+            cw->window->getOwnSurface(os);
+
+        	if (os) {
+				// own surface
+        		// for this we support the opacity attribute and the stretch feature
+
+        		// check if we have to do the "special blit"
+        		bool special_blit = cw->window->stretchmode;
+        		if ((!special_blit) && (cw->opacity < 255)) {
+        			// opacity calculation requested
+        			// check if at least one child window with opacity > 0 does exists
+					for (int c = 0; c < cw->window->childwins.size(); c++) {
+						if (cw->window->childwins.at(c).opacity) {
+							special_blit = true;
+							break;
+						}
+					}
+        		}
+        		if ((!special_blit) && (cw->special_blit)) {
+        			// currently special blit is not requested
+        			// but the blit beforehand has "destroy" the window surface
+        			// so we have to redraw the window, note: draw() has to clear the window surface!
+   					cw->window->draw(false, &src_rect, true);
+        		}
+        		cw->special_blit = special_blit;
+
+                if (special_blit) {
+                	// special mode
+                	// we MUST draw (the background) to the surface of this window
+                	// then we MUST draw the window stack if the child windows to the surface of this window
+                	// afterwards we MUST blit/stretch the result to the dst_surface
+
+            		// direct draw, note: draw() has to clear the window surface!
+   					cw->window->draw(false, &src_rect, true);
+
+    				// draw the children of this child, let child windows draw to my surface
+    				MMSFBRegion reg;
+    				reg.x1 = src_rect.x;
+    				reg.y1 = src_rect.y;
+    				reg.x2 = src_rect.x + src_rect.w - 1;
+    				reg.y2 = src_rect.y + src_rect.h - 1;
+    				if(cw->window) {
+    					cw->window->drawChildWindows(cw->window->surface, &reg,
+													 reg.x1, reg.y1);
+    				}
+
+            		if (cw->opacity < 255) {
+                    	// set the blitting flags and color
+                        dst_surface->setBlittingFlags((MMSFBBlittingFlags) (MMSFB_BLIT_BLEND_ALPHACHANNEL|MMSFB_BLIT_BLEND_COLORALPHA));
+                        dst_surface->setColor(0, 0, 0, cw->opacity);
+            		}
+            		else {
+						// set the blitting flags
+						dst_surface->setBlittingFlags((MMSFBBlittingFlags) MMSFB_BLIT_BLEND_ALPHACHANNEL);
+            		}
+
+					// blit window front buffer to destination surface
+					if (!cw->window->stretchmode) {
+						// normal blit if stretch mode is off
+						dst_surface->blit(cw->window->surface, &src_rect, dst_x + offsX, dst_y + offsY);
+					}
+					else {
+						// stretch the window to the parent surface
+						MMSFBRectangle dr = MMSFBRectangle(
+												dst_x + offsX,
+												dst_y + offsY,
+												MMSFBWINDOW_CALC_STRETCH_WIDTH(src_rect.w, cw->window),
+												MMSFBWINDOW_CALC_STRETCH_HEIGHT(src_rect.h, cw->window));
+						dst_surface->stretchBlit(cw->window->surface, &src_rect, &dr);
+					}
+                }
+                else {
+                	// we can blit the surface of this window directly to the dst_surface
+            		if (cw->opacity < 255) {
+                    	// set the blitting flags and color
+                        dst_surface->setBlittingFlags((MMSFBBlittingFlags) (MMSFB_BLIT_BLEND_ALPHACHANNEL|MMSFB_BLIT_BLEND_COLORALPHA));
+                        dst_surface->setColor(0, 0, 0, cw->opacity);
+            		}
+            		else {
+						// set the blitting flags
+						dst_surface->setBlittingFlags((MMSFBBlittingFlags) MMSFB_BLIT_BLEND_ALPHACHANNEL);
+            		}
+
+					// blit window front buffer to destination surface
+					if (!cw->window->stretchmode) {
+						// normal blit if stretch mode is off
+						dst_surface->blit(cw->window->surface, &src_rect, dst_x + offsX, dst_y + offsY);
+					}
+					else {
+						// stretch the window to the parent surface
+						MMSFBRectangle dr = MMSFBRectangle(
+												dst_x + offsX,
+												dst_y + offsY,
+												MMSFBWINDOW_CALC_STRETCH_WIDTH(src_rect.w, cw->window),
+												MMSFBWINDOW_CALC_STRETCH_HEIGHT(src_rect.h, cw->window));
+						dst_surface->stretchBlit(cw->window->surface, &src_rect, &dr);
+					}
+
+					// draw the children of this child, let child windows draw to the surface of my parent
+					MMSFBRegion reg;
+					reg.x1 = src_rect.x;
+					reg.y1 = src_rect.y;
+					reg.x2 = src_rect.x + src_rect.w - 1;
+					reg.y2 = src_rect.y + src_rect.h - 1;
+					if(cw->window) {
+						cw->window->drawChildWindows(dst_surface, &reg,
+													 dst_x + offsX - reg.x1, dst_y + offsY - reg.y1);
+					}
+                }
+        	}
+			else {
+				// no own surface
+        		// for this we DO NOT support the opacity attribute and the stretch feature!!!
+        		if (cw->opacity < 255) {
+        			printf("DISKO: Cannot use the opacity %d of window '%s' which has no own surface!\n",
+        					cw->opacity, cw->window->name.c_str());
+        		}
+        		if (cw->window->stretchmode) {
+        			printf("DISKO: Cannot stretch the window '%s' which has no own surface!\n",
+        					cw->window->name.c_str());
+        		}
+
+        		// direct draw
+				MMSFBRectangle r = cw->window->geom;
+				if ((src_rect.w == r.w)||(src_rect.h == r.h)) {
+					// draw all (e.g. border)
+					cw->window->draw(false, &src_rect, false);
+				}
+				else {
+					// minimal draw
+					cw->window->draw(true, &src_rect, false);
+				}
+
+				// draw the children of this child, let child windows draw to the surface of my parent
+				MMSFBRegion reg;
+				reg.x1 = src_rect.x;
+				reg.y1 = src_rect.y;
+				reg.x2 = src_rect.x + src_rect.w - 1;
+				reg.y2 = src_rect.y + src_rect.h - 1;
+				if(cw->window) {
+					cw->window->drawChildWindows(dst_surface, &reg,
+												 dst_x + offsX - reg.x1, dst_y + offsY - reg.y1);
+				}
+        	}
+        }
+    }
+}
+
+
+#ifdef ddd
+
+void MMSWindow::drawChildWindows(MMSFBSurface *dst_surface, MMSFBRegion *region, int offsX, int offsY) {
+    MMSFBRegion       pw_region;
+
+    if (region == NULL) {
+        // complete surface
+        pw_region.x1 = 0;
+        pw_region.y1 = 0;
+        pw_region.x2 = this->geom.w - 1;
+        pw_region.y2 = this->geom.h - 1;
+    }
+    else {
+        // only a region
         pw_region = *region;
     }
 
@@ -1089,6 +1405,12 @@ void MMSWindow::drawChildWindows(MMSFBSurface *dst_surface, MMSFBRegion *region,
             if (myregion->y2 > pw_region.y2)
                 src_rect.h-= myregion->y2 - pw_region.y2;
 
+			if (cw->window->stretchmode) {
+				src_rect.x = MMSFBWINDOW_CALC_STRETCH_WIDTH_REV(src_rect.x, cw->window);
+				src_rect.y = MMSFBWINDOW_CALC_STRETCH_HEIGHT_REV(src_rect.y, cw->window);
+				src_rect.w = MMSFBWINDOW_CALC_STRETCH_WIDTH_REV(src_rect.w , cw->window);
+				src_rect.h = MMSFBWINDOW_CALC_STRETCH_HEIGHT_REV(src_rect.h, cw->window);
+			}
 
             bool os;
             cw->window->getOwnSurface(os);
@@ -1101,8 +1423,20 @@ void MMSWindow::drawChildWindows(MMSFBSurface *dst_surface, MMSFBRegion *region,
                 else
                     dst_surface->setBlittingFlags((MMSFBBlittingFlags) MMSFB_BLIT_BLEND_ALPHACHANNEL);
 
-                /* blit window front buffer to destination surface */
-        		dst_surface->blit(cw->window->surface, &src_rect, dst_x + offsX, dst_y + offsY);
+                // blit window front buffer to destination surface
+                if (!cw->window->stretchmode) {
+                	// normal blit if stretch mode is off
+                	dst_surface->blit(cw->window->surface, &src_rect, dst_x + offsX, dst_y + offsY);
+                }
+                else {
+                	// stretch the window to the parent surface
+					MMSFBRectangle dr = MMSFBRectangle(
+											dst_x + offsX,
+											dst_y + offsY,
+											MMSFBWINDOW_CALC_STRETCH_WIDTH(src_rect.w, cw->window),
+											MMSFBWINDOW_CALC_STRETCH_HEIGHT(src_rect.h, cw->window));
+					dst_surface->stretchBlit(cw->window->surface, &src_rect, &dr);
+                }
         	}
         	else {
         		/* no own surface -> direct draw */
@@ -1124,16 +1458,19 @@ void MMSWindow::drawChildWindows(MMSFBSurface *dst_surface, MMSFBRegion *region,
             reg.x2 = src_rect.x + src_rect.w - 1;
             reg.y2 = src_rect.y + src_rect.h - 1;
             if(cw->window)
-            	cw->window->drawChildWindows(dst_surface, &reg, dst_x + offsX - reg.x1, dst_y + offsY - reg.y1);
+            	cw->window->drawChildWindows(dst_surface, &reg, dst_x + offsX - reg.x1, dst_y + offsY - reg.y1);*/
         }
     }
 }
+
+#endif
+
+
 
 bool MMSWindow::flipWindow(MMSWindow *win, MMSFBRegion *region, MMSFBFlipFlags flags,
                            bool flipChildSurface, bool locked) {
     MMSFBSurface    *pw_surface;
     MMSFBRegion       pw_region;
-
 
     /* stop parallel processing */
     if (!locked)
@@ -1143,59 +1480,70 @@ bool MMSWindow::flipWindow(MMSWindow *win, MMSFBRegion *region, MMSFBFlipFlags f
 
     if (!win) win = this;
     if (win->getType()!=MMSWINDOWTYPE_CHILDWINDOW) {
-        /* normal parent window */
+        // normal parent window
         pw_surface = win->surface;
         if (region == NULL) {
-            /* complete surface */
+            // complete surface
         	pw_region.x1 = 0;
             pw_region.y1 = 0;
             pw_region.x2 = win->geom.w - 1;
             pw_region.y2 = win->geom.h - 1;
         }
         else {
-            /* only a region */
+            // only a region
             pw_region = *region;
         }
     }
     else {
-        /* child window */
+        // child window
         int z = -1;
-        for (unsigned int i = 0; i < this->childwins.size(); i++)
+        for (unsigned int i = 0; i < this->childwins.size(); i++) {
             if (this->childwins.at(i).window == win) {
-                /* child window found, flip it */
-                if (flipChildSurface)
+                // child window found, flip it
+                if (flipChildSurface) {
                     win->surface->flip(region);
+                }
 
-                /* return if parent window is not shown */
+                // return if parent window is not shown
                 if ((win->parent->isShown()==false)&&(win->parent->willshow==false)) {
-                    /* unlock */
+                    // unlock
                     if (!locked)
 //PUP                        flipLock.unlock();
                     	unlock();
                     return true;
                 }
 
-                /* return if opacity is zero */
+                // return if opacity is zero
                 if ((this->childwins.at(i).opacity==0)&&(this->childwins.at(i).oldopacity==0)) {
-                    /* unlock */
+                    // unlock
                     if (!locked)
 //PUP                        flipLock.unlock();
                     	unlock();
+                    return true;
+                }
 
+                // return if the child window is out of the visible parent region
+                if   ((win->geom.x >= win->parent->geom.w) || (win->geom.y >= win->parent->geom.h)
+                	||(win->geom.x + win->geom.w <= 0) || (win->geom.y + win->geom.h <= 0)) {
+                    // unlock
+                    if (!locked)
+//PUP                        flipLock.unlock();
+                    	unlock();
                     return true;
                 }
 
                 this->childwins.at(i).oldopacity = this->childwins.at(i).opacity;
 
-                /* get parents surface and break loop */
+                // get parents surface and break loop
                 pw_surface = win->parent->surface;
                 z = i;
                 break;
             }
+        }
 
-        /* window found? */
+        // window found?
         if (z < 0) {
-            /* not found */
+            // not found
             if (!locked)
 //PUP                flipLock.unlock();
             	unlock();
@@ -1203,21 +1551,21 @@ bool MMSWindow::flipWindow(MMSWindow *win, MMSFBRegion *region, MMSFBFlipFlags f
             return false;
         }
 
-        /* calculate the affected region on the parent surface */
+        // calculate the affected region on the parent surface
         MMSFBRegion *myregion = &(this->childwins.at(z).region);
         if (region == NULL) {
-            /* complete surface */
+            // complete surface
             pw_region = *myregion;
         }
         else {
-            /* only a region */
+            // only a region
             pw_region.x1 = myregion->x1 + region->x1;
             pw_region.y1 = myregion->y1 + region->y1;
             pw_region.x2 = myregion->x1 + region->x2;
             pw_region.y2 = myregion->y1 + region->y2;
         }
 
-        /* redraw the region within parent window */
+        // redraw the region within parent window
         MMSFBRectangle rect;
         rect.x = pw_region.x1;
         rect.y = pw_region.y1;
@@ -1226,38 +1574,41 @@ bool MMSWindow::flipWindow(MMSWindow *win, MMSFBRegion *region, MMSFBFlipFlags f
 
 
         if (this->parent == NULL) {
-            /* i am the root */
+            // i am the top level parent
         	this->draw(true, &rect);
         } else {
-            /* i am also a child, call recursive */
+            // i am also a child, call recursive to the top level parent
             bool ret = this->parent->flipWindow(win->parent, &pw_region, flags, false, false);
 
-            /* unlock */
+            // unlock
             if (!locked)
 //PUP                flipLock.unlock();
             	unlock();
 
+            // stop here, because the drawing of child windows is initiated by the top level parent window
             return ret;
         }
 
     }
 
-    /* lock */
+    // here we are a top level parent window
+    // child windows are not allowed here!!!
+
+    // lock
 //PUP    pw_surface->lock();
     lock();
 
-
-	/* draw all affected child windows */
+	// draw all affected child windows
     drawChildWindows(pw_surface, &pw_region);
 
-	/* do the flip */
+	// do the flip
     pw_surface->flip(&pw_region);
 
-    /* unlock */
+    // unlock
 //PUP    pw_surface->unlock();
     unlock();
 
-    /* unlock */
+    // unlock
     if (!locked)
 //PUP        flipLock.unlock();
     	unlock();
@@ -1272,24 +1623,31 @@ void MMSWindow::removeFocusFromChildWindow() {
     if ((this->parent->focusedChildWin < 0) || (this->parent->focusedChildWin >= this->parent->childwins.size())) return;
     if (this->parent->childwins.at(this->parent->focusedChildWin).window != this) return;
 
-    /* searching for other childwin to get the focus */
-//    for (unsigned int i = 0; i < this->parent->childwins.size(); i++) {
-	for (int i = (int)this->parent->childwins.size()-1; i >= 0; i--) {
-        if (i == (int)this->parent->focusedChildWin) continue;
-        MMSWindow *w = this->parent->childwins.at(i).window;
-        if (!w->isShown()) continue;
-        if (!w->getNumberOfFocusableWidgets())
-            if (!w->getNumberOfFocusableChildWins())
-                continue;
+    // searching for other childwin to get the focus
+    // first we are searching for focusable widgets
+    // if nothing found, we use a shown window and set the input focus to it
+	for (int retry = 0; retry <= 1; retry++) {
+		for (int i = (int)this->parent->childwins.size()-1; i >= 0; i--) {
+			if (i == (int)this->parent->focusedChildWin) continue;
+			MMSWindow *w = this->parent->childwins.at(i).window;
+			if (!w->isShown()) continue;
 
-        /* okay, i have the focus, remove it */
-        this->parent->removeChildWinFocus();
+			if (!retry) {
+				// first time: check if there are focusable widgets
+				if (!w->getNumberOfFocusableWidgets())
+					if (!w->getNumberOfFocusableChildWins())
+						continue;
+			}
 
-        /* set the new focused childwin */
-        this->parent->focusedChildWin = i;
-        this->parent->restoreChildWinFocus();
-        return;
-    }
+			// okay, i have the focus, remove it
+			this->parent->removeChildWinFocus();
+
+			// set the new focused childwin
+			this->parent->focusedChildWin = i;
+			this->parent->restoreChildWinFocus();
+			return;
+		}
+	}
 
 //TODO: it must be possible, that there is no focused childwin (-1)
 }
@@ -1307,7 +1665,7 @@ void MMSWindow::loadArrowWidgets() {
     if (!this->upArrowWidget)
     	if (getUpArrow(s))
     		if (s != "")
-		        if ((this->upArrowWidget = tmp->searchForWidget(s))) {
+		        if ((this->upArrowWidget = tmp->findWidget(s))) {
 		            if (!this->upArrowWidget->getSelectable(b))
 		                this->upArrowWidget = NULL;
 	                else
@@ -1318,7 +1676,7 @@ void MMSWindow::loadArrowWidgets() {
     if (!this->downArrowWidget)
     	if (getDownArrow(s))
     		if (s != "")
-		        if ((this->downArrowWidget = tmp->searchForWidget(s))) {
+		        if ((this->downArrowWidget = tmp->findWidget(s))) {
 		            if (!this->downArrowWidget->getSelectable(b))
 		                this->downArrowWidget = NULL;
 	                else
@@ -1329,7 +1687,7 @@ void MMSWindow::loadArrowWidgets() {
     if (!this->leftArrowWidget)
     	if (getLeftArrow(s))
     		if (s != "")
-		        if ((this->leftArrowWidget = tmp->searchForWidget(s))) {
+		        if ((this->leftArrowWidget = tmp->findWidget(s))) {
 		            if (!this->leftArrowWidget->getSelectable(b))
 		                this->leftArrowWidget = NULL;
 	                else
@@ -1340,7 +1698,7 @@ void MMSWindow::loadArrowWidgets() {
     if (!this->rightArrowWidget)
     	if (getRightArrow(s))
     		if (s != "")
-		        if ((this->rightArrowWidget = tmp->searchForWidget(s))) {
+		        if ((this->rightArrowWidget = tmp->findWidget(s))) {
 		            if (!this->rightArrowWidget->getSelectable(b))
 		                this->rightArrowWidget = NULL;
 	                else
@@ -1372,10 +1730,14 @@ void MMSWindow::getArrowWidgetStatus(ARROW_WIDGET_STATUS *setarrows) {
     else {
         /* for my focused child window */
         if (!childwins.empty()) {
-            MMSWindow *fWin = childwins.at(this->focusedChildWin).window;
+        	try {
+        		MMSWindow *fWin = childwins.at(this->focusedChildWin).window;
 
-            /* get all the states (my own and all children) */
-            fWin->getArrowWidgetStatus(setarrows);
+				/* get all the states (my own and all children) */
+				fWin->getArrowWidgetStatus(setarrows);
+        	} catch (std::exception) {
+				return;
+        	}
 
             /* check my window navigation */
             if (!setarrows->up)
@@ -1386,6 +1748,7 @@ void MMSWindow::getArrowWidgetStatus(ARROW_WIDGET_STATUS *setarrows) {
                 setarrows->left=(getNavigateLeftWindow());
             if (!setarrows->right)
                 setarrows->right=(getNavigateRightWindow());
+
         }
     }
 }
@@ -1479,30 +1842,66 @@ void MMSWindow::recalculateChildren() {
 
 
 
-bool MMSWindow::init() {
+bool MMSWindow::initnav() {
 
-    /* get my four windows to which I have to navigate */
+    // get my four windows to which I have to navigate
     if (this->parent) {
     	string s;
     	if (getNavigateUp(s))
-    		this->navigateUpWindow = this->parent->searchForWindow(s);
+    		this->navigateUpWindow = this->parent->findWindow(s);
     	if (getNavigateDown(s))
-    		this->navigateDownWindow = this->parent->searchForWindow(s);
+    		this->navigateDownWindow = this->parent->findWindow(s);
     	if (getNavigateRight(s))
-    		this->navigateRightWindow = this->parent->searchForWindow(s);
+    		this->navigateRightWindow = this->parent->findWindow(s);
     	if (getNavigateLeft(s))
-    		this->navigateLeftWindow = this->parent->searchForWindow(s);
+    		this->navigateLeftWindow = this->parent->findWindow(s);
     }
 
-    /* pre-calculate the navigation */
+    // pre-calculate the navigation
     preCalcNavigation();
 
     return true;
 }
 
+bool MMSWindow::init() {
+
+	// load images
+    string path, name;
+
+    if (!getBgImagePath(path)) path = "";
+    if (!getBgImageName(name)) name = "";
+    this->bgimage = this->im->getImage(path, name);
+
+    if (!getBorderImagePath(path)) path = "";
+    for (int i=0;i<MMSBORDER_IMAGE_NUM_SIZE;i++) {
+        if (!getBorderImageNames((MMSBORDER_IMAGE_NUM)i, name)) name = "";
+        this->borderimages[i] = this->im->getImage(path, name);
+    }
+
+	return true;
+}
+
+bool MMSWindow::release() {
+	// release all images
+    this->im->releaseImage(this->bgimage);
+    this->bgimage = NULL;
+
+    for (int i=0;i<MMSBORDER_IMAGE_NUM_SIZE;i++) {
+		this->im->releaseImage(this->borderimages[i]);
+		this->borderimages[i] = NULL;
+	}
+
+    return true;
+}
 
 
 void MMSWindow::draw(bool toRedrawOnly, MMSFBRectangle *rect2update, bool clear) {
+
+	if (!this->initialized) {
+        // init window (e.g. load images, fonts, ...)
+        init();
+        this->initialized = true;
+    }
 
     /* lock */
 //PUP    this->surface->lock();
@@ -1584,18 +1983,19 @@ void MMSWindow::drawMyBorder() {
 
 bool MMSWindow::show() {
 
-    /* the window will be hidden in a few seconds (hideAction thread is running), wait for it */
+    // the window will be hidden in a few seconds (hideAction thread is running), wait for it
     while (this->willhide)
         msleep(100);
 
     while(1) {
-        /* check if the window is shown */
+        // check if the window is shown
         if(this->shown) {
-            /* call onAfterShow callback with already shown flag */
+            // call onAfterShow callback with already shown flag
             this->onAfterShow->emit(this, true);
             return true;
         }
-        /* check if the window will already be shown */
+
+        // check if the window will already be shown
         if (this->willshow) {
             msleep(100);
             continue;
@@ -1603,28 +2003,26 @@ bool MMSWindow::show() {
         break;
     }
 
-    /* start the show process */
+    // start the show process
     this->willshow = true;
 
-    /* call onBeforeShow callback */
+    // call onBeforeShow callback
     if (!this->onBeforeShow->emit(this)) {
-        /* a callback returns false, break the show process */
+        // a callback returns false, break the show process
         this->willshow = false;
         return false;
     }
 
-
-    if (getType() == MMSWINDOWTYPE_MAINWINDOW) {
-        /* hide all main and popup windows */
+    switch (getType()) {
+    case MMSWINDOWTYPE_MAINWINDOW:
+        // hide all main and popup windows
         if (this->windowmanager) {
             this->windowmanager->hideAllPopupWindows(true);
             this->windowmanager->hideAllMainWindows();
         }
-    }
-//////////
-    else
-    if (getType() == MMSWINDOWTYPE_CHILDWINDOW) {
-    	if (this->parent)
+        break;
+    case MMSWINDOWTYPE_CHILDWINDOW:
+    	if (this->parent) {
     		if (!this->parent->isShown(true)) {
     			// not really visible, break the show process
     			this->buffered_shown = true;
@@ -1634,13 +2032,28 @@ bool MMSWindow::show() {
     	        this->onAfterShow->emit(this, false);
     	        return true;
     		}
+    	}
+    	break;
+    default:
+    	break;
     }
-///////////////
 
-    if (this->action->isRunning())
+/*    if (this->action->isRunning())
         this->action->cancelBroadcast.emit(this->getType());
     this->action->setAction(MMSWACTION_SHOW);
-    this->action->start();
+    this->action->start();*/
+
+    //////////
+
+	// do the animation in a separate thread...
+	this->pulser.setStepsPerSecond(MMSWINDOW_ANIM_MAX_OFFSET * 4);
+	this->pulser.setMaxOffset(MMSWINDOW_ANIM_MAX_OFFSET, MMSPULSER_SEQ_LOG_SOFT_END, MMSWINDOW_ANIM_MAX_OFFSET / 2);
+	this->pulser_mode = MMSWINDOW_PULSER_MODE_SHOW;
+	this->pulser.start(true, true);
+
+
+    ////////////
+
 
     return true;
 }
@@ -1677,10 +2090,10 @@ void MMSWindow::showBufferedShown() {
 		    	// buffered shown, first time called
 				w->draw();
 				w->draw();
-				if (!w->initialized) {
-					/* init window (e.g. pre-calc navigation ...) */
-					w->init();
-					w->initialized = true;
+				if (!w->precalcnav) {
+					// init window (e.g. pre-calc navigation ...)
+					w->initnav();
+					w->precalcnav = true;
 				}
 
 				if (!w->initialArrowsDrawn) {
@@ -1709,135 +2122,301 @@ void MMSWindow::showBufferedShown() {
 	}
 }
 
-//////////////////
 
 
 bool MMSWindow::raiseToTop(int zlevel) {
-//printf("ZZZ: raisetotop %s\n", name.c_str());
     if (!this->parent) {
-        // normal parent window
-        // set the window to top
-        if (this->window)
+        // normal parent window, set the window to top
+        if (this->window) {
             return this->window->raiseToTop(zlevel);
+        }
+        return false;
     }
-    else {
-    	// child window
-    	// change the childwins vector
-    	lock();
-        for (unsigned int i = 0; i < this->parent->childwins.size(); i++)
-        	if (this->parent->childwins.at(i).window == this) {
-        		// child window found, move it to the end of the vector
-        		if (i + 1 < this->parent->childwins.size()) {
-        			// not at the end, moving it
-        			CHILDWINS cw = this->parent->childwins.at(i);
-					this->parent->childwins.erase(this->parent->childwins.begin()+i);
-					this->parent->childwins.push_back(cw);
-//printf("ZZZ: raisetotop2 0=%s 1=%s\n", this->parent->childwins.at(0).window->name.c_str(), this->parent->childwins.at(1).window->name.c_str());
 
-//printf("QQQQQQQ1>>>>>>>>>>>>>>>>>>>>>>>>>>> %d, %d\n", this->parent->focusedChildWin, i);
-					if (this->parent->focusedChildWin > i) {
-						// the focused window will not be changed here!!!
-						this->parent->focusedChildWin--;
-//printf("QQQQQQQ2>>>>>>>>>>>>>>>>>>>>>>>>>>> %d\n", this->parent->focusedChildWin);
+    // child window, change the childwins vector
+	lock();
+	for (unsigned int i = 0; i < this->parent->childwins.size(); i++) {
+		if (this->parent->childwins.at(i).window == this) {
+			// child window found, move it to the end of the vector
+			if (i + 1 < this->parent->childwins.size()) {
+				// not at the end, moving it
+				CHILDWINS cw = this->parent->childwins.at(i);
+				this->parent->childwins.erase(this->parent->childwins.begin()+i);
+				bool aot = false;
+				this->getAlwaysOnTop(aot);
+				if (!aot) {
+					// normal stack position, move window before windows with "always on top" flag
+					this->parent->childwins.insert(this->parent->childwins.begin() + this->parent->always_on_top_index - 1, cw);
+
+					if (i < this->parent->always_on_top_index) {
+						// window is already in the "normal" area
+						if (this->parent->focusedChildWin == i) {
+							// focused child window is raised
+							this->parent->focusedChildWin = this->parent->always_on_top_index - 1;
+						}
+						else {
+							if (this->parent->focusedChildWin < this->parent->always_on_top_index) {
+								if (this->parent->focusedChildWin > i) {
+									// the focused window will not be changed here!!!
+									this->parent->focusedChildWin--;
+								}
+							}
+						}
+					}
+					else {
+						// window is switched to "normal" area
+						this->parent->always_on_top_index++;
+						if (this->parent->focusedChildWin == i) {
+							// focused child window is raised
+							this->parent->focusedChildWin = this->parent->always_on_top_index - 1;
+						}
+						else {
+							if (this->parent->focusedChildWin >= this->parent->always_on_top_index) {
+								if (this->parent->focusedChildWin < i) {
+									// the focused window will not be changed here!!!
+									this->parent->focusedChildWin++;
+								}
+							}
+						}
 					}
 
-					// the toplevel child window
+					// index to the child window
+					i = this->parent->always_on_top_index - 1;
+				}
+				else {
+					// window with "always on top" flag, move it to the end of list
+					this->parent->childwins.push_back(cw);
+
+					if (i >= this->parent->always_on_top_index) {
+						// window is already in the "always on top" area
+						if (this->parent->focusedChildWin == i) {
+							// focused child window is raised
+							this->parent->focusedChildWin = this->parent->childwins.size() - 1;
+						}
+						else {
+							if (this->parent->focusedChildWin > i) {
+								// the focused window will not be changed here!!!
+								this->parent->focusedChildWin--;
+							}
+						}
+					}
+					else {
+						// window is switched to "always on top" area
+						this->parent->always_on_top_index--;
+						if (this->parent->focusedChildWin == i) {
+							// focused child window is raised
+							this->parent->focusedChildWin = this->parent->childwins.size() - 1;
+						}
+						else {
+							if (this->parent->focusedChildWin > i) {
+								// the focused window will not be changed here!!!
+								this->parent->focusedChildWin--;
+							}
+						}
+					}
+
+					// index to the child window
 					i = this->parent->childwins.size() - 1;
-
-					// redraw the window stack if child window and parent is shown
-					if ((this->parent->childwins.at(i).window->shown)&&(this->parent->shown)) {
-						this->parent->flipWindow(this->parent->childwins.at(i).window, NULL, MMSFB_FLIP_NONE, false, true);
-	      			}
-
-        		}
-
-/*
-        		// change the focused child win if window is shown or will be shown
-        		if (this->parent->childwins.at(i).window->shown) {// || this->parent->childwins.at(i).window->willshow) {
-printf("ZZZ: raisetotop3 0=%s 1=%s\n", this->parent->childwins.at(0).window->name.c_str(), this->parent->childwins.at(1).window->name.c_str());
-
-//this->parent->focusedChildWin = 1;
-//this->parent->childwins.at(i).window->setFocus();
-//this->setFocus();
-
-					this->parent->focusedChildWin = i;
-        		}
+				}
 
 				// redraw the window stack if child window and parent is shown
 				if ((this->parent->childwins.at(i).window->shown)&&(this->parent->shown)) {
 					this->parent->flipWindow(this->parent->childwins.at(i).window, NULL, MMSFB_FLIP_NONE, false, true);
-      			}
-*/
-                unlock();
-        		return true;
-        	}
-        unlock();
-    }
+				}
+
+			}
+
+			unlock();
+			return true;
+		}
+	}
+	unlock();
     return false;
 }
 
 bool MMSWindow::lowerToBottom() {
     if (!this->parent) {
-        // normal parent window
-		// set the window to bottom
-		if (this->window)
+        // normal parent window, set the window to bottom
+		if (this->window) {
 			return this->window->lowerToBottom();
+		}
+		return false;
     }
-    else {
-    	// child window
-    	// change the childwins vector
-    	lock();
-        for (unsigned int i = 0; i < this->parent->childwins.size(); i++)
-        	if (this->parent->childwins.at(i).window == this) {
-        		// child window found, move it to the begin of the vector
-        		if (i > 0) {
-					CHILDWINS cw = this->parent->childwins.at(i);
-					this->parent->childwins.erase(this->parent->childwins.begin()+i);
+
+    // child window, change the childwins vector
+	lock();
+	for (unsigned int i = 0; i < this->parent->childwins.size(); i++) {
+		if (this->parent->childwins.at(i).window == this) {
+			// child window found, move it to the beginning of the vector
+			if (i > 0) {
+				// not at the beginning, moving it
+				CHILDWINS cw = this->parent->childwins.at(i);
+				this->parent->childwins.erase(this->parent->childwins.begin()+i);
+
+				bool aot = false;
+				this->getAlwaysOnTop(aot);
+				if (!aot) {
+					// normal stack position, move window to the beginning of the list
 					this->parent->childwins.insert(this->parent->childwins.begin(), cw);
-        		}
 
-        		// change the focused child win pointer
-                for (int j = (int)this->parent->childwins.size()-1; j >= 0 ; j--)
-                	if (this->parent->childwins.at(j).window->shown) {
-						this->parent->focusedChildWin = j;
-						break;
-                	}
+					if (this->parent->focusedChildWin < i) {
+						// the focused window will not be changed here!!!
+						this->parent->focusedChildWin++;
+					}
 
-        		// redraw the window stack if parent is shown
-        		if (this->parent->shown)
-        			if (this->parent->childwins.at(0).window->shown)
-        				this->parent->flipWindow(this->parent->childwins.at(0).window, NULL, MMSFB_FLIP_NONE, false, true);
+					// index to the child window
+					i = 0;
+				}
+				else {
+					// window with "always on top" flag, move window before all windows with "always on top" flag
+					this->parent->childwins.insert(this->parent->childwins.begin() + this->parent->always_on_top_index, cw);
 
-        		unlock();
-        		return true;
-        	}
-        unlock();
-    }
+					if (this->parent->focusedChildWin >= this->parent->always_on_top_index) {
+						if (this->parent->focusedChildWin < i) {
+							// the focused window will not be changed here!!!
+							this->parent->focusedChildWin++;
+						}
+					}
+
+					// index to the child window
+					i = this->parent->always_on_top_index;
+				}
+
+				// redraw the window stack if child window and parent is shown
+				if ((this->parent->childwins.at(i).window->shown)&&(this->parent->shown)) {
+					this->parent->flipWindow(this->parent->childwins.at(i).window, NULL, MMSFB_FLIP_NONE, false, true);
+				}
+			}
+
+			unlock();
+			return true;
+		}
+	}
+	unlock();
     return false;
 }
 
+bool MMSWindow::moveTo(int x, int y, bool refresh) {
+	x&= ~0x01;
+	y&= ~0x01;
+	if (!this->parent) {
+		bool os;
+		getOwnSurface(os);
+		if (os) {
+			// own surface
+			this->window->moveTo(x, y);
+		}
+		else {
+			// root, main, popup window with shared surface
+			static bool firsttime = true;
+			if (firsttime) {
+				printf("DISKO: Moving window (%s) with own_surface=\"false\" is not recommended.\n",
+						(this->name=="")?"noname":this->name.c_str());
+				firsttime = false;
+			}
 
-bool MMSWindow::showAction(bool *stopaction) {
-    bool    saction = *stopaction;
+			// clear
+			this->surface->clear();
+			this->surface->flip();
 
-//    printf("showAction %x\n", this);
+			// move subsurface
+			this->surface->moveTo(x, y);
 
-    if(shown==true) {
-        /* call onAfterShow callback with already shown flag */
-        this->onAfterShow->emit(this, true);
-        return !saction;
-    }
+			// move visible rectangle
+			MMSFBRectangle vrect;
+	        if (this->window->getVisibleRectangle(&vrect)) {
+	        	vrect.x = x;
+	        	vrect.y = y;
+	        	this->window->setVisibleRectangle(&vrect);
+	        }
 
+	        // refresh (redraw) window
+	        this->refresh();
+		}
+	}
+	else {
+		// this is a child window
+		this->parent->moveChildWindow(this, x, y, refresh);
+	}
+
+	return true;
+}
+
+
+bool MMSWindow::stretch(double left, double up, double right, double down) {
+	bool ret = true;
+
+	// TODO: currently we work for child windows only
+	if (!parent) return false;
+
+	// reset stretch mode
+	this->stretchmode = false;
+	this->stretchLeft = (int)(left * 256);
+	this->stretchUp   = (int)(up * 256);
+	this->stretchRight= (int)(right * 256);
+	this->stretchDown = (int)(down * 256);
+
+	if ((left != 100)||(right != 100)||(up != 100)||(down != 100)) {
+		if ((((left-100)+(right-100)+100) > 0) && (((up-100)+(down-100)+100) > 0)) {
+			// values accepted
+			this->stretchmode = true;
+		}
+		else {
+			// wrong inputs
+			ret = false;
+		}
+	}
+
+	// re-calculate the window region and return
+	parent->setChildWindowRegion(this, true);
+	return ret;
+}
+
+bool MMSWindow::onBeforeAnimation(MMSPulser *pulser) {
+	switch (this->pulser_mode) {
+	case MMSWINDOW_PULSER_MODE_SHOW:
+		return beforeShowAction(pulser);
+	case MMSWINDOW_PULSER_MODE_HIDE:
+		return beforeHideAction(pulser);
+	}
+	return false;
+}
+
+bool MMSWindow::onAnimation(MMSPulser *pulser) {
+	switch (this->pulser_mode) {
+	case MMSWINDOW_PULSER_MODE_SHOW:
+		return showAction(pulser);
+	case MMSWINDOW_PULSER_MODE_HIDE:
+		return hideAction(pulser);
+	}
+	return false;
+}
+
+void MMSWindow::onAfterAnimation(MMSPulser *pulser) {
+	switch (this->pulser_mode) {
+	case MMSWINDOW_PULSER_MODE_SHOW:
+		return afterShowAction(pulser);
+	case MMSWINDOW_PULSER_MODE_HIDE:
+		return afterHideAction(pulser);
+	}
+}
+
+bool MMSWindow::beforeShowAction(MMSPulser *pulser) {
+
+	if(shown==true) {
+		// call onAfterShow callback with already shown flag
+		this->onAfterShow->emit(this, true);
+		this->willshow=false;
+		return false;
+	}
 
     // set the first focused widget, if not set and if window can get the focus
     this->setFirstFocus();
 
-//printf("showaction %s\n", name.c_str());
-
     if (getType() == MMSWINDOWTYPE_CHILDWINDOW) {
     	if ((int)this->parent->focusedChildWin >= 0) {
-    		if (!this->parent->childwins.at(this->parent->focusedChildWin).window->isShown()) {
-//printf("showaction2 %s\n", name.c_str());
+    		MMSWindow *fw = this->parent->childwins.at(this->parent->focusedChildWin).window;
+    		if ((fw != this) && (!fw->isShown())) {
     			// focused child window is not shown!
     			// so set focus to this window
     			setFocus();
@@ -1845,30 +2424,15 @@ bool MMSWindow::showAction(bool *stopaction) {
     	}
     }
 
-
-//printf("showaction3 %s\n", name.c_str());
-
-/////////
-//    if (getType() != MMSWINDOWTYPE_CHILDWINDOW) {
-    	showBufferedShown();
-//    }
-///////////////////
-
-//	printf("showAction2 %x\n", this);
+    // optimized shown
+   	showBufferedShown();
 
     // check if all of its parents are shown
     bool really_shown = true;
     if (this->parent)
 		really_shown = this->parent->isShown(true);
 
-    /* set the first focused widget, if not set and if window can get the focus */
-//    this->setFirstFocus();
-
-//    printf("showAction3 %x\n", this);
-
-
-    /* lock drawing */
-//PUP    this->drawLock.lock();
+    // lock during draw
     lock();
 
     if (getType() == MMSWINDOWTYPE_ROOTWINDOW) {
@@ -1896,8 +2460,9 @@ bool MMSWindow::showAction(bool *stopaction) {
         	// change the z-order of child windows?
         	bool staticzorder = false;
         	this->parent->getStaticZOrder(staticzorder);
-        	if (!staticzorder)
+        	if (!staticzorder) {
         		raiseToTop();
+        	}
         }
     }
 
@@ -1912,45 +2477,41 @@ bool MMSWindow::showAction(bool *stopaction) {
 		}
     }
 
-//    printf("showAction4 %x\n", this);
+    // draw complete window two times!!! *********************************
+    // two times are needed because if window is not shown (shown=false) *
+    // refreshFromChild does not work!!! -> but the second call to draw  *
+    // uses the current settings from all childs                         *
+	draw();
+    draw();
+    //********************************************************************
 
-    /* draw complete window two times!!! *********************************/
-    /* two times are needed because if window is not shown (shown=false) */
-    /* refreshFromChild does not work!!! -> but the second call to draw  */
-    /* uses the current settings from all childs                         */
-	draw();                                                            /**/
-    draw();                                                            /**/
-    /*********************************************************************/
-
-//    printf("showAction5 %x\n", this);
-
-    if (!this->initialized) {
-        /* init window (e.g. pre-calc navigation ...) */
-        init();
-        this->initialized = true;
+    if (!this->precalcnav) {
+        // init window (e.g. pre-calc navigation ...)
+        initnav();
+        this->precalcnav = true;
     }
 
     if (!this->initialArrowsDrawn) {
-        /* set the arrow widgets */
+        // set the arrow widgets
         this->initialArrowsDrawn = true;
         switchArrowWidgets();
     }
 
-    /* make it visible */
+    // make it visible
     if (!this->parent)
         flipWindow(this);
     else
         this->parent->flipWindow(this);
 
-     /* unlock drawing */
-//    this->drawLock.unlock();
+    // drawing finished, unlock
     unlock();
 
-    if (this->window)
-        /* show window (normally the opacity is 0 here) */
+    if (this->window) {
+        // show window (normally the opacity is 0 here)
         this->window->show();
+    }
 
-	/* window is shown (important to set it before fading!!!) */
+	// window is shown (important to set it before animation!!!)
     shown=true;
 
     // per default only main or root windows can get inputs
@@ -1975,138 +2536,270 @@ bool MMSWindow::showAction(bool *stopaction) {
 		}
     }
 
-    if ((this->parent)||((!this->parent)&&(this->window))) {
-	    unsigned int opacity;
-	    if (!getOpacity(opacity)) opacity = 255;
-        MMSFBRectangle rect = getGeometry();
-
-	    bool fadein;
-	    if (!getFadeIn(fadein)) fadein = false;
-	    MMSDIRECTION movein;
-	    if (!getMoveIn(movein)) movein = MMSDIRECTION_NOTSET;
-
-	    if ((really_shown)&&((fadein)||(movein!=MMSDIRECTION_NOTSET))) {
-		    // little animation
-    	    int steps = 3;
-    	    unsigned int opacity_step;
-    	    int move_step;
-
-    	    switch (movein) {
-    	    	case MMSDIRECTION_LEFT:
-            	    move_step = (vrect.w-rect.x+vrect.x) / (steps+1);
-    	    		break;
-    	    	case MMSDIRECTION_RIGHT:
-            	    move_step = (rect.w-vrect.x+rect.x) / (steps+1);
-    	    		break;
-    	    	case MMSDIRECTION_UP:
-            	    move_step = (vrect.h-rect.y+vrect.y) / (steps+1);
-            	    break;
-    	    	case MMSDIRECTION_DOWN:
-            	    move_step = (rect.h-vrect.y+rect.y) / (steps+1);
-    	    		break;
-    	    	default:
-    	    		break;
-    	    }
-
-    	    if (fadein)
-    	    	opacity_step = opacity / (steps+1);
-
-    	    for (int i = steps; i > 0; i--) {
-	            // start time stamp
-    	    	unsigned int start_ts = getMTimeStamp();
-
-        	    switch (movein) {
-        	    	case MMSDIRECTION_LEFT:
-        	    		if (!parent)
-        	    			this->window->moveTo((rect.x + i * move_step) & ~0x01, rect.y);
-        	    		else
-        	    			this->parent->moveChildWindow(this, (rect.x + i * move_step) & ~0x01, rect.y);
-        	    		break;
-        	    	case MMSDIRECTION_RIGHT:
-        	    		if (!parent)
-        	    			this->window->moveTo((rect.x - i * move_step) & ~0x01, rect.y);
-        	    		else
-        	    			this->parent->moveChildWindow(this, (rect.x - i * move_step) & ~0x01, rect.y);
-        	    		break;
-        	    	case MMSDIRECTION_UP:
-        	    		if (!parent)
-        	    			this->window->moveTo(rect.x, (rect.y + i * move_step) & ~0x01);
-        	    		else
-        	    			this->parent->moveChildWindow(this, rect.x, (rect.y + i * move_step) & ~0x01);
-        	    		break;
-        	    	case MMSDIRECTION_DOWN:
-        	    		if (!parent)
-        	    			this->window->moveTo(rect.x, (rect.y - i * move_step) & ~0x01);
-        	    		else
-        	    			this->parent->moveChildWindow(this, rect.x, (rect.y - i * move_step) & ~0x01);
-        	    		break;
-        	    	default:
-        	    		break;
-        	    }
-
-        	    if (fadein) {
-    	    		if (!parent)
-    	    			this->window->setOpacity(opacity - i * opacity_step);
-    	    		else
-    	    	        this->parent->setChildWindowOpacity(this, opacity - i * opacity_step);
-        	    }
-        	    else
-        	    if (i == steps) {
-    	    		if (!parent)
-    	    			this->window->setOpacity(opacity);
-    	    		else
-    	    	        this->parent->setChildWindowOpacity(this, opacity);
-        	    }
-
-	            if (*stopaction) {
-	                saction=true;
-	                break;
-	            }
-
-	            // end time stamp
-    	    	unsigned int end_ts = getMTimeStamp();
-
-    	    	// sleeping a little...
-    	    	msleep(getFrameDelay(start_ts, end_ts));
-	        }
-	    }
-
-	    /* set final position */
-	    if (movein!=MMSDIRECTION_NOTSET) {
-    		if (!parent)
-    			this->window->moveTo(rect.x, rect.y);
-    		else
-    			this->parent->moveChildWindow(this, rect.x, rect.y);
-	    }
-
-	    /* set final opacity */
-		if (!parent)
-			this->window->setOpacity(opacity);
-		else
-			this->parent->setChildWindowOpacity(this, opacity);
+	// check if window or parent are correctly initialized
+    if (!((this->parent)||((!this->parent)&&(this->window)))) {
+    	// no, do not start the animation
+		afterShowAction(NULL);
+    	return false;
     }
 
-    willshow=false;
+    // init animation values
+    if (!getOpacity(this->anim_opacity)) this->anim_opacity = 255;
+    this->anim_rect = getGeometry();
+    if (!getFadeIn(this->anim_fade)) this->anim_fade = false;
+    if (!getMoveIn(this->anim_move)) this->anim_move = MMSDIRECTION_NOTSET;
+
+	if ((!really_shown)||((!this->anim_fade)&&(this->anim_move==MMSDIRECTION_NOTSET))) {
+		// nothing to animate, set values which are valid after the animation
+		afterShowAction(pulser);
+		return false;
+	}
+
+	// calculate the steps
+	int steps = MMSWINDOW_ANIM_MAX_OFFSET;
+	switch (this->anim_move) {
+		case MMSDIRECTION_LEFT:
+			this->anim_move_step = (vrect.w - this->anim_rect.x + vrect.x) / (steps+1);
+			break;
+		case MMSDIRECTION_RIGHT:
+			this->anim_move_step = (this->anim_rect.w - vrect.x + this->anim_rect.x) / (steps+1);
+			break;
+		case MMSDIRECTION_UP:
+			this->anim_move_step = (vrect.h - this->anim_rect.y + vrect.y) / (steps+1);
+			break;
+		case MMSDIRECTION_DOWN:
+			this->anim_move_step = (this->anim_rect.h - vrect.y + this->anim_rect.y) / (steps+1);
+			break;
+		default:
+			break;
+	}
+
+	if (this->anim_fade)
+		this->anim_opacity_step = this->anim_opacity / (steps+1);
+
+	return true;
+}
+
+
+bool MMSWindow::showAction(MMSPulser *pulser) {
+
+	// do the animation
+	double offs = MMSWINDOW_ANIM_MAX_OFFSET - pulser->getOffset();
+
+//printf("111111111111111 %f %d\n", offs, pulser->getOnAnimationCounter());
+
+	// move it
+	switch (this->anim_move) {
+		case MMSDIRECTION_LEFT:
+			moveTo((int)(this->anim_rect.x + offs * this->anim_move_step) & ~0x01, this->anim_rect.y);
+			break;
+		case MMSDIRECTION_RIGHT:
+			moveTo((int)(this->anim_rect.x - offs * this->anim_move_step) & ~0x01, this->anim_rect.y);
+			break;
+		case MMSDIRECTION_UP:
+			moveTo(this->anim_rect.x, (int)(this->anim_rect.y + offs * this->anim_move_step) & ~0x01);
+			break;
+		case MMSDIRECTION_DOWN:
+			moveTo(this->anim_rect.x, (int)(this->anim_rect.y - offs * this->anim_move_step) & ~0x01);
+			break;
+		default:
+			break;
+	}
+
+	if (this->anim_fade) {
+		// fade it
+		if (!parent)
+			this->window->setOpacity(this->anim_opacity - offs * this->anim_opacity_step);
+		else
+			this->parent->setChildWindowOpacity(this, this->anim_opacity - offs * this->anim_opacity_step);
+	}
+	else
+	if (pulser->getOnAnimationCounter() == 0) {
+		// no fade animation and called for the first time, set the opacity
+		if (!parent)
+			this->window->setOpacity(this->anim_opacity);
+		else
+			this->parent->setChildWindowOpacity(this, this->anim_opacity);
+	}
+
+	return true;
+}
+
+void MMSWindow::afterShowAction(MMSPulser *pulser) {
+	if (pulser) {
+		// animation finished
+		// set final position
+		if (this->anim_move != MMSDIRECTION_NOTSET) {
+			moveTo(this->anim_rect.x, this->anim_rect.y);
+		}
+
+		// set final opacity
+		if (!this->parent) {
+			this->window->setOpacity(this->anim_opacity);
+		}
+		else {
+			this->parent->setChildWindowOpacity(this, this->anim_opacity);
+		}
+	}
+
+	// do the rest...
+    this->willshow=false;
 
     if (getType() == MMSWINDOWTYPE_CHILDWINDOW) {
+    	//TODO: if no focused childwin, then i should get the focused back
 
-
-//TODO: if no focused childwin, then i should get the focused back
-
-
-    	/* pre-calculate the navigation */
+    	// pre-calculate the navigation
         if (this->parent) {
             this->parent->preCalcNavigation();
             this->switchArrowWidgets();
         }
     }
 
-    *stopaction=false;
+	// call onAfterShow callback without already shown flag
+	this->onAfterShow->emit(this, false);
+}
 
-    /* call onAfterShow callback without already shown flag */
-    this->onAfterShow->emit(this, false);
+bool MMSWindow::beforeHideAction(MMSPulser *pulser) {
+    if (shown==false) {
+    	this->willhide = false;
+        return false;
+    }
 
-    return !saction;
+    // check if all of its parents are shown
+   	bool really_shown = this->isShown(true);
+
+    if (!this->parent)
+        if (this->windowmanager)
+            this->windowmanager->removeWindowFromToplevel(this);
+
+    if (getType() == MMSWINDOWTYPE_CHILDWINDOW) {
+        // remove the focus from me
+    	removeFocusFromChildWindow();
+    }
+
+	// check if window or parent are correctly initialized
+	if (!((this->parent)||((!this->parent)&&(this->window)))) {
+        // no, check if i have the surface from layer
+        if (this->surface) {
+            // clear it
+            this->surface->clear();
+            this->surface->flip();
+        }
+		afterHideAction(NULL);
+		return false;
+	}
+
+    // init animation values
+    if (!getOpacity(this->anim_opacity)) this->anim_opacity = 255;
+    this->anim_rect = getGeometry();
+    if (!getFadeOut(this->anim_fade)) this->anim_fade = false;
+    if (!getMoveOut(this->anim_move)) this->anim_move = MMSDIRECTION_NOTSET;
+
+	if ((!really_shown)||((!this->anim_fade)&&(this->anim_move==MMSDIRECTION_NOTSET))) {
+		// nothing to animate, set values which are valid after the animation
+		afterHideAction(pulser);
+		return false;
+	}
+
+	// calculate the steps
+	int steps = MMSWINDOW_ANIM_MAX_OFFSET;
+	switch (this->anim_move) {
+		case MMSDIRECTION_LEFT:
+			this->anim_move_step = (this->anim_rect.w - vrect.x + this->anim_rect.x) / (steps+1);
+			break;
+		case MMSDIRECTION_RIGHT:
+			this->anim_move_step = (vrect.w - this->anim_rect.x + vrect.x) / (steps+1);
+			break;
+		case MMSDIRECTION_UP:
+			this->anim_move_step = (this->anim_rect.h - vrect.y + this->anim_rect.y) / (steps+1);
+			break;
+		case MMSDIRECTION_DOWN:
+			this->anim_move_step = (vrect.h - this->anim_rect.y + vrect.y) / (steps+1);
+			break;
+		default:
+			break;
+	}
+
+	if (this->anim_fade)
+		this->anim_opacity_step = this->anim_opacity / (steps+1);
+
+    return true;
+}
+
+bool MMSWindow::hideAction(MMSPulser *pulser) {
+
+	// do the animation
+	double offs = pulser->getOffset();
+
+//printf("2222222222222 %f %d\n", offs, pulser->getOnAnimationCounter());
+
+
+	// move it
+	switch (this->anim_move) {
+		case MMSDIRECTION_LEFT:
+			moveTo((int)(this->anim_rect.x - offs * this->anim_move_step) & ~0x01, this->anim_rect.y);
+			break;
+		case MMSDIRECTION_RIGHT:
+			moveTo((int)(this->anim_rect.x + offs * this->anim_move_step) & ~0x01, this->anim_rect.y);
+			break;
+		case MMSDIRECTION_UP:
+			moveTo(this->anim_rect.x, (int)(this->anim_rect.y - offs * this->anim_move_step) & ~0x01);
+			break;
+		case MMSDIRECTION_DOWN:
+			moveTo(this->anim_rect.x, (int)(this->anim_rect.y + offs * this->anim_move_step) & ~0x01);
+			break;
+		default:
+			break;
+	}
+
+	if (this->anim_fade) {
+		// fade it
+		if (!parent)
+			this->window->setOpacity(this->anim_opacity - offs * this->anim_opacity_step);
+		else
+			this->parent->setChildWindowOpacity(this, this->anim_opacity - offs * this->anim_opacity_step);
+	}
+	else
+	if (pulser->getOnAnimationCounter() == 0) {
+		// no fade animation and called for the first time, set the opacity
+		if (!parent)
+			this->window->setOpacity(this->anim_opacity);
+		else
+			this->parent->setChildWindowOpacity(this, this->anim_opacity);
+	}
+
+	return true;
+}
+
+void MMSWindow::afterHideAction(MMSPulser *pulser) {
+	if (pulser) {
+		// animation finished
+	    // set final opacity
+		if (!this->parent) {
+			this->window->setOpacity(0);
+        	this->window->hide();
+		}
+		else {
+	        this->parent->setChildWindowOpacity(this, 0);
+		}
+
+		// restore position
+	    if (this->anim_move != MMSDIRECTION_NOTSET) {
+	    	moveTo(this->anim_rect.x, this->anim_rect.y);
+	    }
+	}
+
+	// do the rest...
+    shown=false;
+    willhide=false;
+
+    if (getType() == MMSWINDOWTYPE_CHILDWINDOW) {
+        // pre-calculate the navigation
+        if (this->parent) {
+            this->parent->preCalcNavigation();
+            switchArrowWidgets();
+        }
+    }
 }
 
 bool MMSWindow::hide(bool goback, bool wait) {
@@ -2137,6 +2830,7 @@ bool MMSWindow::hide(bool goback, bool wait) {
         return false;
     }
 
+/*
     if (this->action->isRunning())
         this->action->cancelBroadcast.emit(this->getType());
     this->action->setAction(MMSWACTION_HIDE);
@@ -2146,13 +2840,28 @@ bool MMSWindow::hide(bool goback, bool wait) {
     	int c = 0;
         while ((this->action->getAction()==MMSWACTION_HIDE) && c < 20) { msleep(100); c++; }
     }
+*/
 
-    /* call onHide callback */
+	// do the animation in a separate thread...
+	this->pulser.setStepsPerSecond(MMSWINDOW_ANIM_MAX_OFFSET * 4);
+	this->pulser.setMaxOffset(MMSWINDOW_ANIM_MAX_OFFSET, MMSPULSER_SEQ_LOG_SOFT_START,	MMSWINDOW_ANIM_MAX_OFFSET / 2);
+//	this->pulser.setMaxOffset(MMSWINDOW_ANIM_MAX_OFFSET, MMSPULSER_SEQ_LOG_SOFT_END,	MMSWINDOW_ANIM_MAX_OFFSET / 2);
+//	this->pulser.setMaxOffset(MMSWINDOW_ANIM_MAX_OFFSET, MMSPULSER_SEQ_LINEAR);
+//	this->pulser.setMaxOffset(MMSWINDOW_ANIM_MAX_OFFSET, MMSPULSER_SEQ_LINEAR_DESC);
+//	this->pulser.setMaxOffset(MMSWINDOW_ANIM_MAX_OFFSET, MMSPULSER_SEQ_LOG_DESC_SOFT_START,	MMSWINDOW_ANIM_MAX_OFFSET / 2);
+//	this->pulser.setMaxOffset(MMSWINDOW_ANIM_MAX_OFFSET, MMSPULSER_SEQ_LOG_DESC_SOFT_END,	MMSWINDOW_ANIM_MAX_OFFSET / 2);
+//	this->pulser.setMaxOffset(MMSWINDOW_ANIM_MAX_OFFSET, MMSPULSER_SEQ_LOG_SOFT_START_AND_END);
+	this->pulser_mode = MMSWINDOW_PULSER_MODE_HIDE;
+	this->pulser.start(!wait, true);
+
+
+    // call onHide callback
     this->onHide->emit(this, goback);
 
     return true;
 }
 
+/*
 bool MMSWindow::hideAction(bool *stopaction) {
     bool    saction = *stopaction;
 
@@ -2167,10 +2876,10 @@ bool MMSWindow::hideAction(bool *stopaction) {
             this->windowmanager->removeWindowFromToplevel(this);
 
     if (getType() == MMSWINDOWTYPE_CHILDWINDOW) {
-        /* remove the focus from me */
+        // remove the focus from me
     	removeFocusFromChildWindow();
     }
-
+/////////////////
     if ((this->parent)||((!this->parent)&&(this->window))) {
 	    unsigned int opacity;
 	    if (!getOpacity(opacity)) opacity = 255;
@@ -2214,28 +2923,16 @@ bool MMSWindow::hideAction(bool *stopaction) {
 
     	    	switch (moveout) {
         	    	case MMSDIRECTION_LEFT:
-        	    		if (!parent)
-        	    			this->window->moveTo((rect.x - i * move_step) & ~0x01, rect.y);
-        	    		else
-        	    			this->parent->moveChildWindow(this, (rect.x - i * move_step) & ~0x01, rect.y);
+        	    		moveTo((rect.x - i * move_step) & ~0x01, rect.y);
         	    		break;
         	    	case MMSDIRECTION_RIGHT:
-        	    		if (!parent)
-        	    			this->window->moveTo((rect.x + i * move_step) & ~0x01, rect.y);
-        	    		else
-        	    			this->parent->moveChildWindow(this, (rect.x + i * move_step) & ~0x01, rect.y);
+        	    		moveTo((rect.x + i * move_step) & ~0x01, rect.y);
         	    		break;
         	    	case MMSDIRECTION_UP:
-        	    		if (!parent)
-        	    			this->window->moveTo(rect.x, (rect.y - i * move_step) & ~0x01);
-        	    		else
-        	    			this->parent->moveChildWindow(this, rect.x, (rect.y - i * move_step) & ~0x01);
+        	    		moveTo(rect.x, (rect.y - i * move_step) & ~0x01);
         	    		break;
         	    	case MMSDIRECTION_DOWN:
-        	    		if (!parent)
-        	    			this->window->moveTo(rect.x, (rect.y + i * move_step) & ~0x01);
-        	    		else
-        	    			this->parent->moveChildWindow(this, rect.x, (rect.y + i * move_step) & ~0x01);
+        	    		moveTo(rect.x, (rect.y + i * move_step) & ~0x01);
         	    		break;
         	    	default:
         	    		break;
@@ -2261,41 +2958,36 @@ bool MMSWindow::hideAction(bool *stopaction) {
 
 	        }
 	    }
-
+///ddd
 		if (!parent) {
-		    /* set final opacity */
+		    // set final opacity
 			this->window->setOpacity(0);
         	this->window->hide();
-
-    	    /* restore position */
-    	    if (moveout!=MMSDIRECTION_NOTSET)
-    	    	this->window->moveTo(rect.x, rect.y);
 		}
 		else {
-		    /* set final opacity */
+		    // set final opacity
 	        this->parent->setChildWindowOpacity(this, 0);
-
-	        /* restore position */
-    	    if (moveout!=MMSDIRECTION_NOTSET)
-    			this->parent->moveChildWindow(this, rect.x, rect.y);
 		}
 
+		// restore position
+	    if (moveout!=MMSDIRECTION_NOTSET)
+	    	moveTo(rect.x, rect.y);
     }
     else {
-        /* check if i have the surface from layer */
+        // check if i have the surface from layer
         if (this->surface) {
-            /* clear it */
+            // clear it
             this->surface->clear();
             this->surface->flip();
         }
     }
-
+///////////
 
     shown=false;
     willhide=false;
 
     if (getType() == MMSWINDOWTYPE_CHILDWINDOW) {
-        /* pre-calculate the navigation */
+        // pre-calculate the navigation
         if (this->parent) {
             this->parent->preCalcNavigation();
             switchArrowWidgets();
@@ -2305,7 +2997,7 @@ bool MMSWindow::hideAction(bool *stopaction) {
     *stopaction=false;
 
     return !saction;
-}
+}*/
 
 void MMSWindow::waitUntilShown() {
 	while ((!isShown())||(willshow))
@@ -2344,6 +3036,7 @@ void MMSWindow::remove(MMSWidget *child) {
 
 void MMSWindow::refreshFromChild(MMSWidget *child, MMSFBRectangle *rect2update, bool check_shown) {
     MMSFBRegion  	region;
+    MMSFBRectangle	flip_rect;
 
     // use own surface?
     // note: os=false must ONLY be set, if this window is a child window!!!
@@ -2359,7 +3052,7 @@ void MMSWindow::refreshFromChild(MMSWidget *child, MMSFBRectangle *rect2update, 
 	    }
 	}
 
-    /* lock drawing */
+    // lock drawing
 //PUP    this->drawLock.lock();
 	lock();
 
@@ -2412,20 +3105,35 @@ void MMSWindow::refreshFromChild(MMSWidget *child, MMSFBRectangle *rect2update, 
         	unlock();
         	return;
         }
+
+        // save src rectangle for separate flip() call
+        flip_rect = rect;
+
+        if (stretchmode) {
+            // adjust the destination rectangle
+            rect.x = MMSFBWINDOW_CALC_STRETCH_WIDTH(rect.x, this);
+        	rect.y = MMSFBWINDOW_CALC_STRETCH_HEIGHT(rect.y, this);
+        	rect.w = MMSFBWINDOW_CALC_STRETCH_WIDTH(rect.w, this);
+        	rect.h = MMSFBWINDOW_CALC_STRETCH_HEIGHT(rect.h, this);
+        }
     }
     else {
+    	// update complete inner geom
         rect = this->innerGeom;
+
+        // save src rectangle for separate flip() call
+        flip_rect = rect;
     }
 
     if(child) {
-    	/* draw only childs of this child */
+    	// draw only childs of this child
 		if (os)
 			child->drawchildren();
     }
     else {
-        /* draw only some parts of the window */
+        // draw only some parts of the window
     	if (os)
-    		draw(true, (rect2update)?&rect:NULL);
+    		draw(true, (rect2update)?&flip_rect:NULL);
     }
 
     // set region
@@ -2438,13 +3146,13 @@ void MMSWindow::refreshFromChild(MMSWidget *child, MMSFBRectangle *rect2update, 
 //        iToStr(region.x1) + "," + iToStr(region.y1) + "," + iToStr(region.x2) + "," + iToStr(region.y2) +")");
 
     if (!bordergeomset)
-        /* border geom is not set -> draw the border */
+        // border geom is not set -> draw the border
         drawMyBorder();
     else {
-        /* draw the border if it is in the flipping region */
+        // draw the border if it is in the flipping region
         bool htdb = false;
 
-        /* check if border should be drawn */
+        // check if border should be drawn
         if (!htdb)
             htdb = ((bordergeom[0].x + bordergeom[0].w > region.x1)
                   &&(bordergeom[0].y + bordergeom[0].h > region.y1));
@@ -2467,45 +3175,71 @@ void MMSWindow::refreshFromChild(MMSWidget *child, MMSFBRectangle *rect2update, 
             htdb = (bordergeom[7].x + bordergeom[7].w > region.x1);
 
         if (htdb) {
-            /* I have to draw the border */
+            // I have to draw the border
         	DEBUGMSG("MMSGUI", "draw window border");
             drawMyBorder();
         }
     }
 
-    /* flip region */
+    // flip region
     if (!this->parent)
         flipWindow(this, &region, MMSFB_FLIP_ONSYNC);
-    else
-        this->parent->flipWindow(this, &region, MMSFB_FLIP_ONSYNC);
+    else {
+    	if (!stretchmode) {
+    		// normal flip
+            this->parent->flipWindow(this, &region, MMSFB_FLIP_ONSYNC);
+    	}
+    	else {
+    		// flip src region and call flipWindow with stretched region
+    		MMSFBRegion rg;
+    	    rg.x1 = flip_rect.x;
+    	    rg.x2 = flip_rect.x + flip_rect.w-1;
+    	    rg.y1 = flip_rect.y;
+    	    rg.y2 = flip_rect.y + flip_rect.h-1;
+    	    this->surface->flip(&rg);
+            this->parent->flipWindow(this, &region, MMSFB_FLIP_ONSYNC, false);
+    	}
+    }
 
-    /* unlock drawing */
+    // unlock drawing
 //PUP    this->drawLock.unlock();
     unlock();
 }
 
-void MMSWindow::refresh() {
+void MMSWindow::refresh(MMSFBRegion *region) {
 
     if(shown==false) {
 //        logger.writeLog("drawing skipped because window is not shown");
         return;
     }
 
-    /* lock drawing */
+    // lock drawing
 //PUP    this->drawLock.lock();
     lock();
 
-    /* draw complete window */
+    // draw window
     this->draw_setgeom = true;
-    draw();
+    if (region) {
+    	// draw a region
+		MMSFBRectangle rect2update;
+		rect2update.x = region->x1;
+		rect2update.y = region->y1;
+		rect2update.w = region->x2 - region->x1 + 1;
+		rect2update.h = region->y2 - region->y1 + 1;
+		draw(false, &rect2update);
+    }
+    else {
+    	// draw whole window
+    	draw();
+    }
 
-    /* make it visible */
+    // make it visible
     if (!this->parent)
-        flipWindow(this);
+        flipWindow(this, region);
     else
-        this->parent->flipWindow(this);
+        this->parent->flipWindow(this, region);
 
-    /* unlock drawing */
+    // unlock drawing
 //PUP    this->drawLock.unlock();
     unlock();
 }
@@ -2582,6 +3316,10 @@ bool MMSWindow::setFirstFocus(bool cw) {
 
         for (unsigned int j = 0; j < this->childwins.size(); j++) {
             MMSWindow *w = this->childwins.at(j).window;
+            if (!w->shown && !w->willshow) {
+//printf("XXX: setFirstFocus3.1 to %s -> childwin %s %d %d %d\n", name.c_str(), w->name.c_str(), w->buffered_shown, w->shown, w->willshow);
+            	continue;
+            }
 
 //printf("XXX: setFirstFocus4 to %s -> childwin %s\n", name.c_str(), w->name.c_str());
 
@@ -3088,7 +3826,10 @@ void MMSWindow::removeChildWinFocus() {
             /* save focused widget from current window and remove the focus */
             for(unsigned int i=0;i<fWin->children.size();i++) {
                 if(fWin->children.at(i)->isFocused()) {
-                    childwins.at(this->focusedChildWin).focusedWidget = i;
+					try {
+						childwins.at(this->focusedChildWin).focusedWidget = i;
+					} catch (std::exception) {
+					}
                     fWin->children.at(i)->setFocus(false);
 
                     /* set the arrow widgets */
@@ -3187,10 +3928,15 @@ void MMSWindow::setFocus() {
 
 //printf("setFocus %s\n", name.c_str());
 
-    /* i do only work for child windows */
+    // i do only work for child windows
     if (!this->parent) return;
 
-    /* searching me */
+    // check if focusable
+    bool focusable = false;
+    getFocusable(focusable);
+    if (!focusable) return;
+
+    // searching me
     int me = -1;
     for (unsigned int i = 0; i < this->parent->childwins.size(); i++)
         if (this->parent->childwins.at(i).window == this) {
@@ -3200,23 +3946,29 @@ void MMSWindow::setFocus() {
 
 //printf("setFocus2 %s\n", name.c_str());
 
-    /* i have found me within my parents list */
+    // found within parents list?
     if (me < 0) return;
 
 //printf("setFocus3 %s, %d, %d, parent = %s\n", name.c_str(), this->parent->focusedChildWin, me, this->parent->name.c_str());
 
-    /* i am the currently focused child window */
+	// check if shown
+	if (!this->isShown() && !this->willshow) {
+		this->show();
+		this->waitUntilShown();
+	}
+
+	// currently focused child window?
     if ((int)this->parent->focusedChildWin == me) return;
 
 //printf("setFocus4 %s\n", name.c_str());
 
-    /* save focused widget from current window and remove the focus */
+    // save focused widget from current window and remove the focus
     this->parent->removeChildWinFocus();
 
-    /* i am the new focused window */
+    // i am the new focused window
     this->parent->focusedChildWin = me;
 
-    /* restore focused widget to candidate window */
+    // restore focused widget to candidate window
     this->parent->restoreChildWinFocus();
 
 	// change the z-order of child windows?
@@ -3533,8 +4285,11 @@ void MMSWindow::preCalcNavigation() {
                                 candidate = window;
                                 dgcode = cand_dgcode;
 
-                                if (fwn>0)
+                                if (fwn>0) {
+                                	preCalcNaviLock.unlock();
                                     window->preCalcNavigation();
+                                    preCalcNaviLock.lock();
+                                }
                             }
                         }
                     }
@@ -3573,8 +4328,9 @@ void MMSWindow::preCalcNavigation() {
 }
 
 
-bool MMSWindow::handleInput(vector<MMSInputEvent> *inputeventset) {
+bool MMSWindow::handleInput(MMSInputEvent *inputevent) {
     bool ret = true;
+    bool navigate = false;
 
 //printf("YYY: input to window %s\n", name.c_str());
 
@@ -3582,16 +4338,23 @@ bool MMSWindow::handleInput(vector<MMSInputEvent> *inputeventset) {
         return false;
 
 
-    for(unsigned int i=0; i < inputeventset->size();i++) {
+        //check childwindows
+        if(this->childwins.empty()) {
+            if(onBeforeHandleInput->emit(this,inputevent))
+            	return true;
+        } else {
+            if(onBeforeHandleInput->emit(this->childwins.at(this->focusedChildWin).window,inputevent))
+            	return true;
+        }
 
-    	if (inputeventset->at(i).type == MMSINPUTEVENTTYPE_KEYPRESS) {
+    	if (inputevent->type == MMSINPUTEVENTTYPE_KEYPRESS) {
     		/* keyboard inputs */
 	        try {
 	            if(this->focusedwidget != NULL) {
 //printf("YYY: input3 to window %s\n", name.c_str());
-	                this->focusedwidget->handleInput(&(inputeventset->at(i)));
+	                this->focusedwidget->handleInput(inputevent);
 
-	                switch(inputeventset->at(i).key) {
+	                switch(inputevent->key) {
 	                    case MMSKEY_CURSOR_DOWN:
 	                    case MMSKEY_CURSOR_LEFT:
 	                    case MMSKEY_CURSOR_RIGHT:
@@ -3611,13 +4374,13 @@ bool MMSWindow::handleInput(vector<MMSInputEvent> *inputeventset) {
 //printf("YYY: input3 to window %s, this->focusedChildWin = %d, %s %s\n", name.c_str(), this->focusedChildWin, this->childwins.at(this->focusedChildWin).window->name.c_str(), this->childwins.at(1).window->name.c_str());
 	                /* get the focus to my focused child window */
 //	                logger.writeLog("try to execute input on childwindow");
-	                if (!this->childwins.at(this->focusedChildWin).window->handleInput(inputeventset)) {
+	                if (!this->childwins.at(this->focusedChildWin).window->handleInput(inputevent)) {
 	                    /* childwin cannot navigate further, so try to find the next childwin */
 						bool modal = false;
         				((MMSChildWindow*)this->childwins.at(this->focusedChildWin).window)->getModal(modal);
         				if (!modal)
         					// currently focused child window is NOT marked as modal, so try to change the focus
-        					this->handleNavigationForChildWins(&(inputeventset->at(i)));
+        					this->handleNavigationForChildWins(inputevent);
 
 	                    return false;
 	                }
@@ -3628,50 +4391,56 @@ bool MMSWindow::handleInput(vector<MMSInputEvent> *inputeventset) {
 	                return true;
 	            }
 	            else {
-	                throw new MMSWidgetError(1,"navigate");
+	                //throw MMSWidgetError(1,"navigate");
+	                 navigate=true;
 	            }
 
-	        } catch (MMSWidgetError *err) {
-	            if(err->getCode() == 1) {
-	                /* test if navigation must be done */
-	                ret = true;
-	                switch(inputeventset->at(i).key) {
-	                    /* handle navigation */
-	                    case MMSKEY_CURSOR_DOWN:
-	                    case MMSKEY_CURSOR_LEFT:
-	                    case MMSKEY_CURSOR_RIGHT:
-	                    case MMSKEY_CURSOR_UP:
-//	                        logger.writeLog("widget threw a exception so try to navigate");
-	                        ret = this->handleNavigationForWidgets(&(inputeventset->at(i)));
-
-	                        /* set the arrow widgets */
-	                        switchArrowWidgets();
-
-	                        break;
-	                    default:
-	                        /* input is no navigation */
-	                        ret = false;
-	                        break;
-	                }
-
-	                /* call handle input callback */
-	                onHandleInput->emit(this, &(inputeventset->at(i)));
-	            }
+	        } catch (MMSWidgetError err) {
+	        	if(err.getCode() == 1) {
+	        		printf("missed navigation exception 1\n");
+	        		navigate=true;
+	        	}
 	        }
+            if(navigate) {
+                /* test if navigation must be done */
+                ret = true;
+                switch(inputevent->key) {
+                    /* handle navigation */
+                    case MMSKEY_CURSOR_DOWN:
+                    case MMSKEY_CURSOR_LEFT:
+                    case MMSKEY_CURSOR_RIGHT:
+                    case MMSKEY_CURSOR_UP:
+//	                        logger.writeLog("widget threw a exception so try to navigate");
+                        ret = this->handleNavigationForWidgets(inputevent);
+
+                        /* set the arrow widgets */
+                        switchArrowWidgets();
+
+                        break;
+                    default:
+                        /* input is no navigation */
+                        ret = false;
+                        break;
+                }
+
+                /* call handle input callback */
+                onHandleInput->emit(this, inputevent);
+            }
+
     	}
     	else
-    	if (inputeventset->at(i).type == MMSINPUTEVENTTYPE_KEYRELEASE) {
+    	if (inputevent->type == MMSINPUTEVENTTYPE_KEYRELEASE) {
             /* call handle input callback */
-            onHandleInput->emit(this, &(inputeventset->at(i)));
+            onHandleInput->emit(this, inputevent);
     	}
     	else
-    	if (inputeventset->at(i).type == MMSINPUTEVENTTYPE_BUTTONPRESS) {
+    	if (inputevent->type == MMSINPUTEVENTTYPE_BUTTONPRESS) {
     		/* button pressed */
 	        try {
 	            if (this->children.size()) {
-	            	/* searching for the right widget to get the focus */
-	            	int posx = inputeventset->at(i).posx;
-	            	int posy = inputeventset->at(i).posy;
+	            	// searching for the right widget to get the focus
+	            	int posx = inputevent->posx;
+	            	int posy = inputevent->posy;
 	            	bool b;
 	            	for (unsigned int j = 0; j < this->children.size(); j++) {
 	            		MMSWidget *w = this->children.at(j);
@@ -3695,7 +4464,7 @@ bool MMSWindow::handleInput(vector<MMSInputEvent> *inputeventset) {
 
 	            			DEBUGMSG("MMSGUI", "try to execute input on widget");
 	            	        this->buttonpress_widget = w;
-	            	        this->buttonpress_widget->handleInput(&(inputeventset->at(i)));
+	            	        this->buttonpress_widget->handleInput(inputevent);
 
 	                        /* set the arrow widgets */
 	                        switchArrowWidgets();
@@ -3706,62 +4475,79 @@ bool MMSWindow::handleInput(vector<MMSInputEvent> *inputeventset) {
 
 	            	/* no widget found */
         	        this->buttonpress_widget = NULL;
-	                throw new MMSWidgetError(1,"no focusable widget found");
+
+        	        /* call handle input callback */
+	                onHandleInput->emit(this, inputevent);
+	                return true;
+	                //throw MMSWidgetError(1,"no focusable widget found");
 	            }
 	            else
 	            if (this->childwins.size() > this->focusedChildWin) {
 					bool modal = false;
 					if (this->childwins.at(this->focusedChildWin).window->isShown())
 						this->childwins.at(this->focusedChildWin).window->getModal(modal);
-       				if (!modal) {
+
+					if (!modal) {
 						/* searching for the right childwin to get the focus */
-						int posx = inputeventset->at(i).posx;
-						int posy = inputeventset->at(i).posy;
+						int posx = inputevent->posx;
+						int posy = inputevent->posy;
 	//	            	for (unsigned int j = 0; j < this->childwins.size(); j++) {
 						for (int j = (int)this->childwins.size()-1; j >= 0; j--) {
-							if (!this->childwins.at(j).window->isShown())
+							// get access to the window
+							MMSWindow *window = this->childwins.at(j).window;
+
+							// shown?
+							if (!window->isShown()) {
+								// no, ignoring it
 								continue;
-	/*	            		if (!this->childwins.at(j).window->getNumberOfFocusableWidgets())
-								continue;*/
-							MMSFBRectangle rect = this->childwins.at(j).window->getGeometry();
+							}
+
+						    // focusable?
+						    bool focusable = false;
+						    window->getFocusable(focusable);
+						    if (!focusable) {
+								// no, ignoring it
+						    	continue;
+						    }
+
+						    // check if the window is under the pointer
+							MMSFBRectangle rect = window->getGeometry();
 							if ((posx >= rect.x)&&(posy >= rect.y)
 							  &&(posx < rect.x + rect.w)&&(posy < rect.y + rect.h)) {
-								/* this is the childwin under the pointer */
-								if (!this->childwins.at(j).window->getFocus()) {
+								// this is the childwin under the pointer
+								if (!window->getFocus()) {
 	//								bool modal = false;
 	//		        				((MMSChildWindow*)this->childwins.at(this->focusedChildWin).window)->getModal(modal);
 	//	            				if (modal)
 										// currently focused child window is marked as modal, so do not change the focus
 	//									continue;
 
-									if (this->childwins.at(j).window->getNumberOfFocusableWidgets(true)>0)
+									if (window->getNumberOfFocusableWidgets(true)>0)
 									{
 										/* set focus to this childwin */
 										DEBUGMSG("MMSGUI", "try to change focus");
-										this->childwins.at(j).window->setFocus();
+										window->setFocus();
 									}
 								}
 
-								/* normalize the pointer position */
-								for (unsigned int k = 0; k < inputeventset->size(); k++) {
-									inputeventset->at(k).posx-=rect.x;
-									inputeventset->at(k).posy-=rect.y;
-								}
+								// normalize the pointer position
+								inputevent->posx-=rect.x;
+								inputevent->posy-=rect.y;
 
 								DEBUGMSG("MMSGUI", "try to execute input on childwin");
-								this->buttonpress_childwin = this->childwins.at(j).window;
-								this->childwins.at(j).window->handleInput(inputeventset);
+								this->buttonpress_childwin = window;
+								window->handleInput(inputevent);
 
-								/* set the arrow widgets */
+								// set the arrow widgets
 								switchArrowWidgets();
 
 								return true;
 							}
 						}
 
-						/* no childwin found */
+						// no childwin found
 						this->buttonpress_childwin = NULL;
-						throw new MMSWidgetError(1,"no focusable childwin found");
+						throw MMSWidgetError(1,"no focusable childwin found");
        				}
        				else {
        					// modal window is active
@@ -3769,15 +4555,12 @@ bool MMSWindow::handleInput(vector<MMSInputEvent> *inputeventset) {
 						//int posy = inputeventset->at(i).posy;
 						MMSFBRectangle rect = this->childwins.at(this->focusedChildWin).window->getGeometry();
 
-						// normalize the pointer position
-						for (unsigned int k = 0; k < inputeventset->size(); k++) {
-							inputeventset->at(k).posx-=rect.x;
-							inputeventset->at(k).posy-=rect.y;
-						}
+						inputevent->posx-=rect.x;
+						inputevent->posy-=rect.y;
 
 						DEBUGMSG("MMSGUI", "try to execute input on childwin");
 						this->buttonpress_childwin = this->childwins.at(this->focusedChildWin).window;
-						this->childwins.at(this->focusedChildWin).window->handleInput(inputeventset);
+						this->childwins.at(this->focusedChildWin).window->handleInput(inputevent);
 
 						/* set the arrow widgets */
 						switchArrowWidgets();
@@ -3786,31 +4569,37 @@ bool MMSWindow::handleInput(vector<MMSInputEvent> *inputeventset) {
        				}
 	            }
 	            else {
-	                throw new MMSWidgetError(1,"navigate, buttonpress");
+	                //throw MMSWidgetError(1,"navigate, buttonpress");
+	                navigate=true;
 	            }
 
-	        } catch (MMSWidgetError *err) {
-	            if(err->getCode() == 1) {
-	                /* test if navigation must be done */
-	                ret = true;
-
-	                /* call handle input callback */
-	                onHandleInput->emit(this, &(inputeventset->at(i)));
-	            }
+	        } catch (MMSWidgetError err) {
+				if(err.getCode() == 1) {
+					printf("missed navigation exception 2\n");
+					navigate=true;
+				}
 	        }
+            if(navigate) {
+                /* test if navigation must be done */
+                ret = true;
+
+                /* call handle input callback */
+                onHandleInput->emit(this, inputevent);
+            }
+
     	}
     	else
-    	if   ((inputeventset->at(i).type == MMSINPUTEVENTTYPE_BUTTONRELEASE)
-    		||(inputeventset->at(i).type == MMSINPUTEVENTTYPE_AXISMOTION)) {
+    	if   ((inputevent->type == MMSINPUTEVENTTYPE_BUTTONRELEASE)
+    		||(inputevent->type == MMSINPUTEVENTTYPE_AXISMOTION)) {
     		/* button released */
     		try {
 	            if (this->children.size()) {
 	            	// window with widgets
 	            	if (this->buttonpress_widget) {
 	            		DEBUGMSG("MMSGUI", "try to execute input on widget");
-            	        this->buttonpress_widget->handleInput(&(inputeventset->at(i)));
+            	        this->buttonpress_widget->handleInput(inputevent);
 
-            	        if (inputeventset->at(i).type == MMSINPUTEVENTTYPE_BUTTONRELEASE)
+            	        if (inputevent->type == MMSINPUTEVENTTYPE_BUTTONRELEASE)
             	        	this->buttonpress_widget = NULL;
 
                         /* set the arrow widgets */
@@ -3827,15 +4616,13 @@ bool MMSWindow::handleInput(vector<MMSInputEvent> *inputeventset) {
 	            	if (this->buttonpress_childwin) {
               			/* normalize the pointer position */
 	            		MMSFBRectangle rect = this->buttonpress_childwin->getGeometry();
-            			for (unsigned int k = 0; k < inputeventset->size(); k++) {
-            				inputeventset->at(k).posx-=rect.x;
-            				inputeventset->at(k).posy-=rect.y;
-            			}
+						inputevent->posx-=rect.x;
+						inputevent->posy-=rect.y;
 
             			DEBUGMSG("MMSGUI", "try to execute input on childwin");
-            	        bool rc = this->buttonpress_childwin->handleInput(inputeventset);
+            	        bool rc = this->buttonpress_childwin->handleInput(inputevent);
 
-            	        if (inputeventset->at(i).type == MMSINPUTEVENTTYPE_BUTTONRELEASE)
+            	        if (inputevent->type == MMSINPUTEVENTTYPE_BUTTONRELEASE)
             	        	this->buttonpress_childwin = NULL;
 
                         /* set the arrow widgets */
@@ -3852,20 +4639,19 @@ bool MMSWindow::handleInput(vector<MMSInputEvent> *inputeventset) {
 					// window without widgets and childwindows, e.g. video/flash windows
 
 					// call handle input callback
-					return onHandleInput->emit(this, &(inputeventset->at(i)));
+					return onHandleInput->emit(this, inputevent);
 	            }
 
-	        } catch (MMSWidgetError *err) {
-	            if(err->getCode() == 1) {
+	        } catch (MMSWidgetError err) {
+	            if(err.getCode() == 1) {
 	                /* test if navigation must be done */
 	                ret = true;
 
 	                /* call handle input callback */
-	                onHandleInput->emit(this, &(inputeventset->at(i)));
+	                onHandleInput->emit(this, inputevent);
 	            }
 	        }
     	}
-    }
 
     return ret;
 }
@@ -3998,8 +4784,53 @@ void MMSWindow::instantHide() {
 }
 
 
+void MMSWindow::targetLangChanged(int lang, bool refresh) {
+    // for all child windows
+    for (unsigned int i = 0; i < this->childwins.size(); i++) {
+    	this->childwins.at(i).window->targetLangChanged(lang, false);
+    }
 
-MMSWidget* MMSWindow::searchForWidget(string name) {
+    // for my own children (widgets)
+    for (unsigned int i = 0; i < this->children.size(); i++)
+        switch (this->children.at(i)->getType()) {
+        case MMSWIDGETTYPE_LABEL:
+        	((MMSLabelWidget *)this->children.at(i))->targetLangChanged(lang);
+        	break;
+        case MMSWIDGETTYPE_TEXTBOX:
+        	((MMSTextBoxWidget *)this->children.at(i))->targetLangChanged(lang);
+        	break;
+        default:
+        	break;
+        }
+
+    // refresh it
+    if (refresh)
+    	this->refresh();
+}
+
+void MMSWindow::themeChanged(string &themeName, bool refresh) {
+    // for all child windows
+    for (unsigned int i = 0; i < this->childwins.size(); i++) {
+    	this->childwins.at(i).window->themeChanged(themeName, false);
+    }
+
+    // for my own children (widgets)
+    for (unsigned int i = 0; i < this->children.size(); i++) {
+    	this->children.at(i)->themeChanged(themeName);
+    }
+
+    // delete images, ...
+	release();
+	this->initialized = false;
+
+    // refresh it
+    if (refresh)
+    	this->refresh();
+}
+
+
+
+MMSWidget* MMSWindow::findWidget(string name) {
     MMSWidget *widget;
 
 	if (name=="")
@@ -4007,7 +4838,7 @@ MMSWidget* MMSWindow::searchForWidget(string name) {
 
     /* for all child windows */
     for (unsigned int i = 0; i < childwins.size(); i++)
-        if ((widget = childwins.at(i).window->searchForWidget(name)))
+        if ((widget = childwins.at(i).window->findWidget(name)))
             return widget;
 
     /* for my own children (widgets) */
@@ -4018,12 +4849,12 @@ MMSWidget* MMSWindow::searchForWidget(string name) {
     return NULL;
 }
 
-MMSWidget* MMSWindow::searchForWidgetType(MMSWIDGETTYPE type) {
+MMSWidget* MMSWindow::findWidgetType(MMSWIDGETTYPE type) {
     MMSWidget *widget;
 
     /* for all child windows */
     for (unsigned int i = 0; i < childwins.size(); i++)
-        if ((widget = childwins.at(i).window->searchForWidgetType(type)))
+        if ((widget = childwins.at(i).window->findWidgetType(type)))
             return widget;
 
     /* first, my own children */
@@ -4033,8 +4864,26 @@ MMSWidget* MMSWindow::searchForWidgetType(MMSWIDGETTYPE type) {
 
     /* second, call search method of my children */
     for (unsigned int i = 0; i < children.size(); i++)
-        if ((widget = children.at(i)->searchForWidgetType(type)))
+        if ((widget = children.at(i)->findWidgetType(type)))
             return widget;
+
+    return NULL;
+}
+
+MMSWidget* MMSWindow::findWidgetAndType(string name, MMSWIDGETTYPE type) {
+    MMSWidget *widget;
+
+    if ((widget = findWidget(name))) {
+    	// root widget found, find child widget with type
+    	if (widget->getType() == type) {
+    		// found root widget has the correct type
+    		return widget;
+    	}
+    	else {
+    		// find the type within root's children
+    		return widget->findWidgetType(type);
+    	}
+    }
 
     return NULL;
 }
@@ -4042,9 +4891,9 @@ MMSWidget* MMSWindow::searchForWidgetType(MMSWIDGETTYPE type) {
 MMSWidget* MMSWindow::operator[](string name) {
     MMSWidget *widget;
 
-    if ((widget = searchForWidget(name)))
+    if ((widget = findWidget(name)))
         return widget;
-    throw new MMSWidgetError(1, "widget " + name + " not found");
+    throw MMSWidgetError(1, "widget " + name + " not found");
 }
 
 
@@ -4080,29 +4929,6 @@ void MMSWindow::setNavigateLeftWindow(MMSWindow *leftWindow) {
     navigateLeftWindow = leftWindow;
 }
 
-
-void MMSWindow::targetLangChanged(MMS_LANGUAGE_TYPE lang, bool refresh) {
-    // for all child windows
-    for (unsigned int i = 0; i < childwins.size(); i++)
-        childwins.at(i).window->targetLangChanged(lang, false);
-
-    // for my own children (widgets)
-    for (unsigned int i = 0; i < children.size(); i++)
-        switch (children.at(i)->getType()) {
-        case MMSWIDGETTYPE_LABEL:
-        	((MMSLabelWidget *)children.at(i))->targetLangChanged(lang);
-        	break;
-        case MMSWIDGETTYPE_TEXTBOX:
-        	((MMSTextBoxWidget *)children.at(i))->targetLangChanged(lang);
-        	break;
-        default:
-        	break;
-        }
-
-    // refresh it
-    if (refresh)
-    	this->refresh();
-}
 
 
 /***********************************************/
@@ -4225,6 +5051,18 @@ bool MMSWindow::getModal(bool &modal) {
 
 bool MMSWindow::getStaticZOrder(bool &staticzorder) {
     GETWINDOW(StaticZOrder, staticzorder);
+}
+
+bool MMSWindow::getAlwaysOnTop(bool &alwaysontop) {
+    GETWINDOW(AlwaysOnTop, alwaysontop);
+}
+
+bool MMSWindow::getFocusable(bool &focusable) {
+    GETWINDOW(Focusable, focusable);
+}
+
+bool MMSWindow::getBackBuffer(bool &backbuffer) {
+    GETWINDOW(BackBuffer, backbuffer);
 }
 
 
@@ -4415,28 +5253,28 @@ void MMSWindow::setNavigateUp(string navigateup) {
     myWindowClass.setNavigateUp(navigateup);
     this->navigateUpWindow = NULL;
     if ((this->parent)&&(navigateup!=""))
-        this->navigateUpWindow = this->parent->searchForWindow(navigateup);
+        this->navigateUpWindow = this->parent->findWindow(navigateup);
 }
 
 void MMSWindow::setNavigateDown(string navigatedown) {
     myWindowClass.setNavigateDown(navigatedown);
     this->navigateDownWindow = NULL;
     if ((this->parent)&&(navigatedown!=""))
-        this->navigateDownWindow = this->parent->searchForWindow(navigatedown);
+        this->navigateDownWindow = this->parent->findWindow(navigatedown);
 }
 
 void MMSWindow::setNavigateLeft(string navigateleft) {
     myWindowClass.setNavigateLeft(navigateleft);
     this->navigateLeftWindow = NULL;
     if ((this->parent)&&(navigateleft!=""))
-        this->navigateLeftWindow = this->parent->searchForWindow(navigateleft);
+        this->navigateLeftWindow = this->parent->findWindow(navigateleft);
 }
 
 void MMSWindow::setNavigateRight(string navigateright) {
     myWindowClass.setNavigateRight(navigateright);
     this->navigateRightWindow = NULL;
     if ((this->parent)&&(navigateright!=""))
-        this->navigateRightWindow = this->parent->searchForWindow(navigateright);
+        this->navigateRightWindow = this->parent->findWindow(navigateright);
 }
 
 void MMSWindow::setOwnSurface(bool ownsurface) {
@@ -4459,6 +5297,32 @@ void MMSWindow::setStaticZOrder(bool staticzorder) {
     myWindowClass.setStaticZOrder(staticzorder);
 }
 
+void MMSWindow::setAlwaysOnTop(bool alwaysontop) {
+	// get current status
+	bool aot = false;
+	this->getAlwaysOnTop(aot);
+
+	// status change?
+	if (aot == alwaysontop)
+		return;
+
+	// set value
+	lock();
+    myWindowClass.setAlwaysOnTop(alwaysontop);
+
+    // raise the window to the top of "normal" or "always on top" area in the childwins list
+    raiseToTop();
+
+	unlock();
+}
+
+void MMSWindow::setFocusable(bool focusable) {
+    myWindowClass.setFocusable(focusable);
+}
+
+void MMSWindow::setBackBuffer(bool backbuffer) {
+    myWindowClass.setBackBuffer(backbuffer);
+}
 
 void MMSWindow::setBorderColor(MMSFBColor color, bool refresh) {
     myWindowClass.border.setColor(color);
@@ -4582,6 +5446,12 @@ void MMSWindow::updateFromThemeClass(MMSWindowClass *themeClass) {
         setModal(b);
 	if (themeClass->getStaticZOrder(b))
         setStaticZOrder(b);
+	if (themeClass->getAlwaysOnTop(b))
+        setAlwaysOnTop(b);
+	if (themeClass->getFocusable(b))
+        setFocusable(b);
+	if (themeClass->getBackBuffer(b))
+        setBackBuffer(b);
     if (themeClass->border.getColor(c))
         setBorderColor(c, false);
     if (themeClass->border.getImagePath(s))

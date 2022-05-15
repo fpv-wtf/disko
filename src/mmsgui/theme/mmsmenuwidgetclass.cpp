@@ -87,15 +87,18 @@ void MMSMenuWidgetClass::unsetAll() {
     unsetSmoothDelay();
 }
 
-void MMSMenuWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path) {
-    bool class_set = false;
+void MMSMenuWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path, bool reset_paths) {
+
+    if ((reset_paths)&&(path)&&(*path!="")) {
+    	// unset my paths
+	    unsetSelImagePath();
+    }
 
     if (!prefix) {
 		startTAFFScan
 		{
 			switch (attrid) {
 			case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_class:
-	            class_set = true;
 	            setClassName(attrval_str);
 				break;
 			case MMSGUI_MENUWIDGET_ATTR::MMSGUI_MENUWIDGET_ATTR_IDS_item_width:
@@ -335,7 +338,8 @@ void MMSMenuWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefi
     	endTAFFScan_WITHOUT_ID
     }
 
-    if ((!class_set)&&(path)&&(*path!="")) {
+    if ((reset_paths)&&(path)&&(*path!="")) {
+    	// set my paths
 		if (!isSelImagePath())
 		    setSelImagePath(*path);
     }

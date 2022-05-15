@@ -56,16 +56,18 @@ class MMSSliderWidget : public MMSWidget {
 
         bool create(MMSWindow *root, string className, MMSTheme *theme);
 
+        bool init();
+        bool release();
+        bool draw(bool *backgroundFilled = NULL);
+
     public:
         MMSSliderWidget(MMSWindow *root, string className, MMSTheme *theme = NULL);
         ~MMSSliderWidget();
 
         MMSWidget *copyWidget();
 
-        bool init();
         void getImage(MMSFBSurface **suf);
         void calcPos(MMSFBSurface *suf, MMSFBRectangle *surfaceGeom, bool *vertical);
-        bool draw(bool *backgroundFilled = NULL);
         bool scrollTo(int posx, int posy, bool refresh = true, bool *changed = NULL);
 
         sigc::signal<bool, MMSWidget*>::accumulated<neg_bool_accumulator> *onSliderIncrement;

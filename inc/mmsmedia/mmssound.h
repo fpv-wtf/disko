@@ -40,10 +40,13 @@
  *
  * @ingroup     mmsmedia
  *
+ * @author      Stefan Schwarzer (stefan.schwarzer@diskohq.org)
  * @author      Matthias Hardt (matthias.hardt@diskohq.org)
- * @version     1.5.0
- * @date        12/31/2008
- *
+ * @author      Jens Schneider (pupeider@gmx.de)
+ * @author      Guido Madaus (guido.madaus@diskohq.org)
+ * @author      Patrick Helterhoff (patrick.helterhoff@diskohq.org)
+ * @author		René Bählkow (rene.baehlkow@diskohq.org)
+ * 
  * This class is derived from MMSAV and specialized in
  * handling music playback.
  */

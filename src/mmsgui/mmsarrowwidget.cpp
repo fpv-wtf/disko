@@ -69,8 +69,16 @@ MMSWidget *MMSArrowWidget::copyWidget() {
 }
 
 bool MMSArrowWidget::init() {
-    /* init widget basics */
+    // init widget basics
     if (!MMSWidget::init())
+        return false;
+
+    return true;
+}
+
+bool MMSArrowWidget::release() {
+    // release widget basics
+    if (!MMSWidget::release())
         return false;
 
     return true;
@@ -208,9 +216,7 @@ void MMSArrowWidget::handleInput(MMSInputEvent *inputevent) {
 						break;
 					}
 					if (ievt.key != MMSKEY_UNKNOWN) {
-						vector<MMSInputEvent> ievtset;
-						ievtset.push_back(ievt);
-						this->parent_rootwindow->handleInput(&ievtset);
+						this->parent_rootwindow->handleInput(&ievt);
 					}
 				}
 			}

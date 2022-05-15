@@ -40,7 +40,7 @@ MMSMainWindowClass::MMSMainWindowClass() :
 	className("") {
 }
 
-void MMSMainWindowClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *path) {
+void MMSMainWindowClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *path, bool reset_paths) {
 	startTAFFScan
 	{
         switch (attrid) {

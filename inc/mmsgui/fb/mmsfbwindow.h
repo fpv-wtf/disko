@@ -81,7 +81,7 @@ class MMSFBWindow {
         bool setOpacity(unsigned char opacity);
 
         bool getPosition(int *x, int *y);
-        bool moveTo(int x, int y);
+        bool moveTo(int x, int y, bool move_vrect = false);
 
         bool getSize(int *w, int *h);
         bool resize(int w, int h);
@@ -90,6 +90,9 @@ class MMSFBWindow {
         bool lowerToBottom();
 
         bool setVisibleRectangle(MMSFBRectangle *rect = NULL);
+        bool getVisibleRectangle(MMSFBRectangle *rect);
+
+        bool getScreenshot();
 };
 
 #endif /*MMSFBWINDOW_H_*/

@@ -73,7 +73,7 @@ void mmsfb_blit_blend_argb_to_bgr24(MMSFBSurfacePlanes *src_planes, int src_heig
 		// for all pixels in the line
 		unsigned int *line_end = src + sw;
 		while (src < line_end) {
-			// load pixel from memory and check if the previous pixel is the same
+			// load pixel from memory
 			register unsigned int SRC  = *src;
 
 			// is the source alpha channel 0x00 or 0xff?

@@ -88,6 +88,22 @@ MMSTaffFile::~MMSTaffFile() {
 		free(this->taff_buf);
 }
 
+bool MMSTaffFile::writeBuffer(MMSFile *mmsfile, void *ptr, size_t *ritems, size_t size, size_t nitems, bool *write_status) {
+	if (!mmsfile) {
+		if (write_status) *write_status = false;
+		return false;
+	}
+
+	if (!mmsfile->writeBuffer(ptr, ritems, size, nitems)) {
+		// error while writing file
+		printf("TAFF: Error while writing to file %s\n", mmsfile->getName().c_str());
+		if (write_status) *write_status = false;
+		return false;
+	}
+
+	return true;
+}
+
 bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *height, int *pitch, int *size) {
 	FILE 			*fp;
 	char			png_sig[8];
@@ -96,7 +112,7 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
     png_infop       end_info_ptr = NULL;
     png_bytep       *row_pointers = NULL;
 
-    /* check if file does exist and if it is an png format */
+    // check if file does exist and if it is an png format
     *buf = NULL;
     fp = fopen(filename, "rb");
     if (!fp)
@@ -105,12 +121,16 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
         fclose(fp);
     	return false;
     }
+#if PNG_LIBPNG_VER_MINOR == 2
     if (!png_check_sig((png_byte*)png_sig, sizeof(png_sig))) {
+#else
+   	if (png_sig_cmp((png_byte*)png_sig, 0, sizeof(png_sig)) != 0) {
+#endif
         fclose(fp);
     	return false;
     }
 
-    /* init png structs and abend handler */
+    // init png structs and abend handler
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if (!png_ptr) {
         fclose(fp);
@@ -118,8 +138,8 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
     }
     png_set_sig_bytes(png_ptr, sizeof(png_sig));
 
-    if (setjmp(png_ptr->jmpbuf)) {
-    	//abend from libpng
+    if(setjmp(png_jmpbuf(png_ptr))) {
+    	// abend from libpng
         printf("png read error\n");
     	png_destroy_read_struct(&png_ptr, (info_ptr)?&info_ptr:NULL, (end_info_ptr)?&end_info_ptr:NULL);
         if (row_pointers) free(row_pointers);
@@ -143,7 +163,7 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
     	return false;
     }
 
-    /* read png infos */
+    // read png infos
     png_init_io(png_ptr, fp);
     png_read_info(png_ptr, info_ptr);
     png_uint_32 w;
@@ -152,9 +172,9 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
     int color_type;
     png_get_IHDR(png_ptr, info_ptr, &w, &h, &bit_depth, &color_type, NULL, NULL, NULL);
 
-    /* check the png format */
+    // check the png format
     if (((bit_depth != 8)&&(bit_depth != 16)) || (color_type != PNG_COLOR_TYPE_RGB_ALPHA)) {
-    	/* we only support ARGB png images */
+    	// we only support ARGB png images
     	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info_ptr);
         fclose(fp);
     	return false;
@@ -164,7 +184,7 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
     *pitch = 4 * w;
     *size = *pitch * h;
 
-    /* set input transformations */
+    // set input transformations
     if (bit_depth == 16)
     	png_set_strip_16(png_ptr);
     png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
@@ -172,7 +192,7 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
     png_set_interlace_handling(png_ptr);
     png_read_update_info(png_ptr, info_ptr);
 
-    /* allocate memory for row pointers */
+    // allocate memory for row pointers
     row_pointers = (png_bytep*)malloc(*height * sizeof(png_bytep));
     if (!row_pointers) {
     	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info_ptr);
@@ -180,7 +200,7 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
     	return false;
     }
 
-    /* allocate memory for image data */
+    // allocate memory for image data
     if (this->mirror_size > *height) this->mirror_size = *height;
     *buf = malloc((*size) + (*pitch) * this->mirror_size);
     if (!*buf) {
@@ -195,9 +215,14 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
     	b+=*pitch;
     }
 
-    /* read the image data */
+    // read the image data
     png_read_image(png_ptr, row_pointers);
     png_read_end(png_ptr, end_info_ptr);
+
+    // all right, freeing helpers
+	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info_ptr);
+    free(row_pointers);
+    fclose(fp);
 
     // at this point we have ARGB (MMSTAFF_PF_ARGB) pixels ********
     // so check now if i have to convert it
@@ -223,9 +248,9 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
 		unsigned int *dst = (unsigned int*)*buf;
 		dst+=*width * *height;
 		unsigned int *src = dst - *width;
-		unsigned int alpha = 0;
-		unsigned int alphaX = 0x100 / this->mirror_size;
-		if (0x100 % this->mirror_size >= (this->mirror_size >> 1))
+		unsigned int alpha = 170;
+		unsigned int alphaX = 0x050 / this->mirror_size;
+		if (0x050 % this->mirror_size >= (this->mirror_size >> 1))
 			alphaX++;
 		if (alphaX == 0) alphaX = 1;
     	for (int i = 0; i < this->mirror_size; i++) {
@@ -281,18 +306,94 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
 		    }
     	}
     	break;
+    case MMSTAFF_PF_ARGB4444: {
+			// divide ARGB data into halves
+			*pitch = (*pitch) >> 1;
+			*size = (*size) >> 1;
+			void *newbuf = malloc(*size);
+			if (!newbuf) {
+				free(*buf);
+				*buf = NULL;
+				return false;
+			}
+
+			// convert it
+			unsigned int *src = (unsigned int*)*buf;
+			unsigned short int *dst = (unsigned short int*)newbuf;
+		    for (int i = *width * *height; i > 0; i--) {
+		    	register unsigned int s = *src;
+		    	register unsigned short int d;
+		    	d =   ((s & 0xf0000000) >> 16)
+					| ((s & 0x00f00000) >> 12)
+					| ((s & 0x0000f000) >> 8)
+					| ((s & 0x000000f0) >> 4);
+		    	*dst = d;
+		    	src++;
+		    	dst++;
+		    }
+
+			// switch buffers
+			free(*buf);
+			*buf = newbuf;
+		}
+		break;
+    case MMSTAFF_PF_RGB16: {
+			// convert into RGB16 format (remove alpha channel)
+			*pitch = (*pitch) >> 1;
+			*size = (*size) >> 1;
+			void *newbuf = malloc(*size);
+			if (!newbuf) {
+				free(*buf);
+				*buf = NULL;
+				return false;
+			}
+
+			// convert it
+			unsigned int *src = (unsigned int*)*buf;
+			unsigned short int *dst = (unsigned short int*)newbuf;
+		    for (int i = *width * *height; i > 0; i--) {
+		    	// get src
+		    	register unsigned int SRC = *src;
+		    	register unsigned int A = SRC >> 24;
+		    	register unsigned int SA= 0x100 - A;
+		    	register unsigned short int d;
+
+		    	// set background color to black
+				unsigned int r = 0;
+				unsigned int g = 0;
+				unsigned int b = 0;
+
+				// invert src alpha
+			    r = SA * r;
+			    g = SA * g;
+			    b = (SA * b) >> 5;
+
+			    // add src to dst
+			    r += (A*(SRC & 0xf80000)) >> 19;
+				g += (A*(SRC & 0xfc00)) >> 5;
+				b += (A*(SRC & 0xf8)) >> 8;
+				d =   ((r & 0xffe000)   ? 0xf800 : ((r >> 8) << 11))
+			    	| ((g & 0xfff80000) ? 0x07e0 : ((g >> 13) << 5))
+			    	| ((b & 0xff00)     ? 0x1f 	 : (b >> 3));
+		    	*dst = d;
+		    	src++;
+		    	dst++;
+		    }
+
+			// switch buffers
+			free(*buf);
+			*buf = newbuf;
+		}
+		break;
 	default: break;
     }
 
-    // all right
-	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info_ptr);
-    free(row_pointers);
-    fclose(fp);
 	return true;
 }
 
 bool MMSTaffFile::convertXML2TAFF_throughDoc(int depth, void *void_node, MMSFile *taff_file) {
 
+	bool wok = true;
 	xmlNode *node = (xmlNode*) void_node;
 	xmlNode *cur_node;
 	if (depth==0)
@@ -346,7 +447,7 @@ bool MMSTaffFile::convertXML2TAFF_throughDoc(int depth, void *void_node, MMSFile
 				unsigned char wb[2];
 				wb[0]=MMSTAFF_TAGTABLE_TYPE_TAG;
 				wb[1]=(unsigned char)tagid;
-				taff_file->writeBuffer(wb, &ritems, 1, 2);
+				writeBuffer(taff_file, wb, &ritems, 1, 2, &wok);
 			}
 
 			/* get variables */
@@ -438,6 +539,24 @@ bool MMSTaffFile::convertXML2TAFF_throughDoc(int depth, void *void_node, MMSFile
 							attr_found = false;
 						}
 						break;
+					case TAFF_ATTRTYPE_STATE:
+						badval = ((xmlStrcmp(attrVal, (xmlChar *)"true"))&&(xmlStrcmp(attrVal, (xmlChar *)"false"))
+								&&(xmlStrcmp(attrVal, (xmlChar *)"auto")));
+						if (badval) {
+							validvals = "\"true\", \"false\", \"auto\"";
+							attr_found = false;
+						}
+						else {
+							int_val_set = true;
+							if (xmlStrcmp(attrVal, (xmlChar *)"true")==0)
+								int_val = -1;
+							else
+							if (xmlStrcmp(attrVal, (xmlChar *)"auto")==0)
+								int_val = 0x01010101;
+							else
+								int_val = 0;
+						}
+						break;
 					}
 
 					/* check if the value is blank and i have to ignore it */
@@ -469,15 +588,15 @@ bool MMSTaffFile::convertXML2TAFF_throughDoc(int depth, void *void_node, MMSFile
 							if (attrvallen >= 0xff) {
 								/* in this case set 0xff as mark and append the full integer */
 								wb[2]=0xff;
-								taff_file->writeBuffer(wb, &ritems, 1, 3);
-								taff_file->writeBuffer(&attrvallen, &ritems, 1, sizeof(int));
+								writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+								writeBuffer(taff_file, &attrvallen, &ritems, 1, sizeof(int), &wok);
 							}
 							else {
 								/* in this case write only one byte length */
 								wb[2]=(unsigned char)attrvallen;
-								taff_file->writeBuffer(wb, &ritems, 1, 3);
+								writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
 							}
-							taff_file->writeBuffer(attrVal, &ritems, 1, attrvallen);
+							writeBuffer(taff_file, attrVal, &ritems, 1, attrvallen, &wok);
 						}
 						else {
 							/* writing the value as INT and not as STRING */
@@ -486,8 +605,8 @@ bool MMSTaffFile::convertXML2TAFF_throughDoc(int depth, void *void_node, MMSFile
 							wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
 							wb[1]=(unsigned char)attrid;
 							wb[2]=sizeof(int);
-							taff_file->writeBuffer(wb, &ritems, 1, 3);
-							taff_file->writeBuffer(&int_val, &ritems, 1, sizeof(int));
+							writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+							writeBuffer(taff_file, &int_val, &ritems, 1, sizeof(int), &wok);
 						}
 					}
 				}
@@ -511,21 +630,21 @@ bool MMSTaffFile::convertXML2TAFF_throughDoc(int depth, void *void_node, MMSFile
 						unsigned char wb[3];
 						wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
 						wb[1]=MMSTAFF_ATTR_WITHOUT_ID;
-						taff_file->writeBuffer(wb, &ritems, 1, 2);
-						taff_file->writeBuffer(&attrnamlen, &ritems, 1, sizeof(int));
-						taff_file->writeBuffer((char*)cur_attr->name, &ritems, 1, attrnamlen);
+						writeBuffer(taff_file, wb, &ritems, 1, 2, &wok);
+						writeBuffer(taff_file, &attrnamlen, &ritems, 1, sizeof(int), &wok);
+						writeBuffer(taff_file, (char*)cur_attr->name, &ritems, 1, attrnamlen, &wok);
 						if (attrvallen >= 0xff) {
 							/* in this case set 0xff as mark and append the full integer */
 							wb[0]=0xff;
-							taff_file->writeBuffer(wb, &ritems, 1, 1);
-							taff_file->writeBuffer(&attrvallen, &ritems, 1, sizeof(int));
+							writeBuffer(taff_file, wb, &ritems, 1, 1, &wok);
+							writeBuffer(taff_file, &attrvallen, &ritems, 1, sizeof(int), &wok);
 						}
 						else {
 							/* in this case write only one byte length */
 							wb[0]=(unsigned char)attrvallen;
-							taff_file->writeBuffer(wb, &ritems, 1, 1);
+							writeBuffer(taff_file, wb, &ritems, 1, 1, &wok);
 						}
-						taff_file->writeBuffer(attrVal, &ritems, 1, attrvallen);
+						writeBuffer(taff_file, attrVal, &ritems, 1, attrvallen, &wok);
 					}
 				}
 
@@ -542,7 +661,7 @@ bool MMSTaffFile::convertXML2TAFF_throughDoc(int depth, void *void_node, MMSFile
 				unsigned char wb[2];
 				wb[0]=MMSTAFF_TAGTABLE_TYPE_CLOSETAG;
 				wb[1]=(unsigned char)tagid;
-				taff_file->writeBuffer(wb, &ritems, 1, 2);
+				writeBuffer(taff_file, wb, &ritems, 1, 2, &wok);
 			}
 		}
 		else {
@@ -558,8 +677,8 @@ bool MMSTaffFile::convertXML2TAFF_throughDoc(int depth, void *void_node, MMSFile
 			cur_node = cur_node->next;
 	}
 
-	return true;
-
+	// return with write status
+	return wok;
 }
 
 bool MMSTaffFile::convertXML2TAFF() {
@@ -575,7 +694,15 @@ bool MMSTaffFile::convertXML2TAFF() {
 
 
 	/* read the XML file */
-	parser = xmlReadFile(this->external_filename.c_str(), NULL, 0);
+	parser = xmlReadFile(this->external_filename.c_str(),
+			NULL,
+			XML_PARSE_PEDANTIC |
+			XML_PARSE_NOBLANKS | XML_PARSE_NONET | XML_PARSE_NODICT |
+			XML_PARSE_NOXINCNODE
+#if LIBXML_VERSION >= 20700
+			| XML_PARSE_NOBASEFIX
+#endif
+			);
 
 	if (parser) {
 
@@ -584,21 +711,39 @@ bool MMSTaffFile::convertXML2TAFF() {
 		if (this->taff_filename!="") {
 			taff_file = new MMSFile(this->taff_filename.c_str(), MMSFM_WRITE);
 			size_t ritems;
-			taff_file->writeBuffer((void*)TAFF_IDENT, &ritems, 1, strlen(TAFF_IDENT));
-			taff_file->writeBuffer(&(this->taff_desc->type), &ritems, 1, sizeof(this->taff_desc->type));
-			taff_file->writeBuffer(&(this->taff_desc->version), &ritems, 1, sizeof(this->taff_desc->version));
+			bool wok = true;
+			writeBuffer(taff_file, (void*)TAFF_IDENT, &ritems, 1, strlen(TAFF_IDENT), &wok);
+			writeBuffer(taff_file, &(this->taff_desc->type), &ritems, 1, sizeof(this->taff_desc->type), &wok);
+			writeBuffer(taff_file, &(this->taff_desc->version), &ritems, 1, sizeof(this->taff_desc->version), &wok);
+			if (!wok) {
+				// write error, close file and free
+				delete taff_file;
+			    xmlFreeDoc(parser);
+
+		    	// reset the file
+				taff_file = new MMSFile(this->taff_filename.c_str(), MMSFM_WRITE);
+				if (taff_file) delete taff_file;
+
+			    return false;
+			}
 		}
 
-		/* get the first element */
+		// get the first element
 		xmlNode* node = xmlDocGetRootElement(parser);
 
-		/* through the doc */
+		// through the doc
 		rc = convertXML2TAFF_throughDoc(0, node, taff_file);
 
-		/* close file and free */
+		// close file and free
 		if (taff_file)
 			delete taff_file;
 	    xmlFreeDoc(parser);
+
+	    if (!rc) {
+	    	// failed, reset the file
+			taff_file = new MMSFile(this->taff_filename.c_str(), MMSFM_WRITE);
+			if (taff_file) delete taff_file;
+	    }
 	}
 	else {
 		printf("Error: cannot read external file %s\n", this->external_filename.c_str());
@@ -623,92 +768,99 @@ bool MMSTaffFile::convertIMAGE2TAFF() {
 	if (readPNG(this->external_filename.c_str(), &png_buf, &png_width, &png_height, &png_pitch, &png_size)) {
 		/* open binary destination file */
 		MMSFile *taff_file = NULL;
+		bool wok = true;
 		if (this->taff_filename!="") {
 			taff_file = new MMSFile(this->taff_filename.c_str(), MMSFM_WRITE);
 			size_t ritems;
-			taff_file->writeBuffer((void*)TAFF_IDENT, &ritems, 1, strlen(TAFF_IDENT));
-			taff_file->writeBuffer(&(this->taff_desc->type), &ritems, 1, sizeof(this->taff_desc->type));
-			taff_file->writeBuffer(&(this->taff_desc->version), &ritems, 1, sizeof(this->taff_desc->version));
+			writeBuffer(taff_file, (void*)TAFF_IDENT, &ritems, 1, strlen(TAFF_IDENT), &wok);
+			writeBuffer(taff_file, &(this->taff_desc->type), &ritems, 1, sizeof(this->taff_desc->type), &wok);
+			writeBuffer(taff_file, &(this->taff_desc->version), &ritems, 1, sizeof(this->taff_desc->version), &wok);
 
 			/* write the tag */
 			unsigned char wb[3];
 			wb[0]=MMSTAFF_TAGTABLE_TYPE_TAG;
 			wb[1]=MMSTAFF_IMAGE_TAGTABLE_TAG_RAWIMAGE;
-			taff_file->writeBuffer(wb, &ritems, 1, 2);
+			writeBuffer(taff_file, wb, &ritems, 1, 2, &wok);
 
 			/* write attributes: width */
 			wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
 			wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_width;
 			wb[2]=sizeof(int);
-			taff_file->writeBuffer(wb, &ritems, 1, 3);
-			taff_file->writeBuffer(&png_width, &ritems, 1, sizeof(int));
+			writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+			writeBuffer(taff_file, &png_width, &ritems, 1, sizeof(int), &wok);
 
 			/* write attributes: height */
 			wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
 			wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_height;
 			wb[2]=sizeof(int);
-			taff_file->writeBuffer(wb, &ritems, 1, 3);
-			taff_file->writeBuffer(&png_height, &ritems, 1, sizeof(int));
+			writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+			writeBuffer(taff_file, &png_height, &ritems, 1, sizeof(int), &wok);
 
 			/* write attributes: pitch */
 			wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
 			wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_pitch;
 			wb[2]=sizeof(int);
-			taff_file->writeBuffer(wb, &ritems, 1, 3);
-			taff_file->writeBuffer(&png_pitch, &ritems, 1, sizeof(int));
+			writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+			writeBuffer(taff_file, &png_pitch, &ritems, 1, sizeof(int), &wok);
 
 			/* write attributes: size */
 			wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
 			wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_size;
 			wb[2]=sizeof(int);
-			taff_file->writeBuffer(wb, &ritems, 1, 3);
-			taff_file->writeBuffer(&png_size, &ritems, 1, sizeof(int));
+			writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+			writeBuffer(taff_file, &png_size, &ritems, 1, sizeof(int), &wok);
 
 			/* write attributes: pixelformat */
 			wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
 			wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_pixelformat;
 			wb[2]=sizeof(int);
-			taff_file->writeBuffer(wb, &ritems, 1, 3);
+			writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
 			int pf = (int)this->destination_pixelformat;
-			taff_file->writeBuffer(&pf, &ritems, 1, sizeof(int));
+			writeBuffer(taff_file, &pf, &ritems, 1, sizeof(int), &wok);
 
 			/* write attributes: premultiplied */
 			wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
 			wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_premultiplied;
 			wb[2]=sizeof(bool);
-			taff_file->writeBuffer(wb, &ritems, 1, 3);
+			writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
 			bool pm = (this->destination_premultiplied);
-			taff_file->writeBuffer(&pm, &ritems, 1, sizeof(bool));
+			writeBuffer(taff_file, &pm, &ritems, 1, sizeof(bool), &wok);
 
 			/* write attributes: mirror_size */
 			wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
 			wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_mirror_size;
 			wb[2]=sizeof(int);
-			taff_file->writeBuffer(wb, &ritems, 1, 3);
+			writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
 			int ms = (int)this->mirror_size;
-			taff_file->writeBuffer(&ms, &ritems, 1, sizeof(int));
+			writeBuffer(taff_file, &ms, &ritems, 1, sizeof(int), &wok);
 
 			/* write attributes: data */
 			wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
 			wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_data;
 			wb[2]=0xff;
-			taff_file->writeBuffer(wb, &ritems, 1, 3);
-			taff_file->writeBuffer(&png_size, &ritems, 1, sizeof(int));
-			taff_file->writeBuffer(png_buf, &ritems, 1, png_size);
+			writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+			writeBuffer(taff_file, &png_size, &ritems, 1, sizeof(int), &wok);
+			writeBuffer(taff_file, png_buf, &ritems, 1, png_size, &wok);
 
 			/* write the close tag */
 			wb[0]=MMSTAFF_TAGTABLE_TYPE_CLOSETAG;
 			wb[1]=MMSTAFF_IMAGE_TAGTABLE_TAG_RAWIMAGE;
-			taff_file->writeBuffer(wb, &ritems, 1, 2);
+			writeBuffer(taff_file, wb, &ritems, 1, 2, &wok);
 		}
 
-		/* all is fine */
-		rc = true;
+		// set rc
+		rc = wok;
 
-		/* close file and free */
+		// close file and free
 		if (taff_file)
 			delete taff_file;
 		free(png_buf);
+
+	    if (!rc) {
+	    	// failed, reset the file
+			taff_file = new MMSFile(this->taff_filename.c_str(), MMSFM_WRITE);
+			if (taff_file) delete taff_file;
+	    }
 	}
 	else {
 		printf("Error: cannot read external file %s\n", this->external_filename.c_str());
@@ -742,7 +894,7 @@ bool MMSTaffFile::convertTAFF2XML_throughDoc(int depth, int tagid, MMSFile *exte
 		*wb = '\n';
 		memset(&wb[1], ' ', depth*4);
 		sprintf(&wb[1+depth*4], "<%s", tagt->name);
-		external_file->writeBuffer(wb, &ritems, 1, strlen(wb));
+		writeBuffer(external_file, wb, &ritems, 1, strlen(wb));
 	}
 
 	/* write attributes */
@@ -765,6 +917,15 @@ bool MMSTaffFile::convertTAFF2XML_throughDoc(int depth, int tagid, MMSFile *exte
 			case TAFF_ATTRTYPE_INT:
 				attrval = iToStr(attrval_int);
 				break;
+			case TAFF_ATTRTYPE_STATE:
+				if ((attrval_int & 0xff) == 0x01)
+					attrval = "auto";
+				else
+				if (attrval_int)
+					attrval = "true";
+				else
+					attrval = "false";
+				break;
 			default:
 				attrval = attrval_str;
 				break;
@@ -777,7 +938,7 @@ bool MMSTaffFile::convertTAFF2XML_throughDoc(int depth, int tagid, MMSFile *exte
 				*wb = '\n';
 				memset(&wb[1], ' ', depth*4+4);
 				sprintf(&wb[1+depth*4+4], "%s = \"%s\"", attr[attrid].name, attrval.c_str());
-				external_file->writeBuffer(wb, &ritems, 1, strlen(wb));
+				writeBuffer(external_file, wb, &ritems, 1, strlen(wb));
 			}
 		}
 		else {
@@ -788,7 +949,7 @@ bool MMSTaffFile::convertTAFF2XML_throughDoc(int depth, int tagid, MMSFile *exte
 				*wb = '\n';
 				memset(&wb[1], ' ', depth*4+4);
 				sprintf(&wb[1+depth*4+4], "%s = \"%s\"", attr_name, attrval_str);
-				external_file->writeBuffer(wb, &ritems, 1, strlen(wb));
+				writeBuffer(external_file, wb, &ritems, 1, strlen(wb));
 			}
 		}
 	}
@@ -796,7 +957,7 @@ bool MMSTaffFile::convertTAFF2XML_throughDoc(int depth, int tagid, MMSFile *exte
 	/* close tag */
 	if (external_file) {
 		sprintf(wb, ">\n");
-		external_file->writeBuffer(wb, &ritems, 1, strlen(wb));
+		writeBuffer(external_file, wb, &ritems, 1, strlen(wb));
 	}
 
 	/* through my child tags */
@@ -808,7 +969,7 @@ bool MMSTaffFile::convertTAFF2XML_throughDoc(int depth, int tagid, MMSFile *exte
 			if (external_file) {
 				memset(wb, ' ', depth*4);
 				sprintf(&wb[depth*4], "</%s>\n", tagt->name);
-				external_file->writeBuffer(wb, &ritems, 1, strlen(wb));
+				writeBuffer(external_file, wb, &ritems, 1, strlen(wb));
 			}
 			return true;
 		}
@@ -843,7 +1004,7 @@ bool MMSTaffFile::convertTAFF2External() {
 	case MMSTAFF_EXTERNAL_TYPE_XML:
 		return convertTAFF2XML();
 	case MMSTAFF_EXTERNAL_TYPE_IMAGE:
-		printf("currently we cannot convert taff to image\n");
+		printf("TAFF: Currently we cannot convert taff to image\n");
 		return false;
 	}
 	return false;
@@ -859,26 +1020,33 @@ bool MMSTaffFile::readFile() {
 	if (!this->taff_desc) return false;
 	if (this->taff_filename=="") return false;
 
-	/* load the file */
+	// load the file
 	MMSFile *taff_file = new MMSFile(this->taff_filename.c_str(), MMSFM_READ, false);
 	if (!taff_file) return false;
 	size_t ritems;
 	char taff_ident[32];
 	if (!taff_file->readBuffer((void*)taff_ident, &ritems, 1, strlen(TAFF_IDENT))) {
-		/* read error */
+		// read error
+		this->taff_buf = NULL;
+		delete taff_file;
+		return false;
+	}
+	if (ritems == 0) {
+		// file is empty
+		printf("TAFF: File is empty (%s)\n", this->taff_filename.c_str());
 		this->taff_buf = NULL;
 		delete taff_file;
 		return false;
 	}
 	if (memcmp(taff_ident, TAFF_IDENT, strlen(TAFF_IDENT))!=0) {
-		/* the first bytes of the file are different from TAFF_IDENT */
+		// the first bytes of the file are different from TAFF_IDENT
 		printf("TAFF: TAFF_IDENT mismatch (%s)\n", this->taff_filename.c_str());
 		this->taff_buf = NULL;
 		delete taff_file;
 		return false;
 	}
 	if (!taff_file->readBufferEx((void**)&(this->taff_buf), &ritems)) {
-		/* read error */
+		// read error
 		this->taff_buf = NULL;
 		delete taff_file;
 		return false;
@@ -886,30 +1054,30 @@ bool MMSTaffFile::readFile() {
 	delete taff_file;
 
 	if (ritems < 40) {
-		/* wrong size */
+		// wrong size
 		free(this->taff_buf);
 		this->taff_buf = NULL;
 		return false;
 	}
 
-	/* check the version of the file */
+	// check the version of the file
 	this->correct_version = false;
 	if (strcmp((char*)this->taff_buf, (char*)&(this->taff_desc->type))) {
-		/* wrong type */
+		// wrong type
 		printf("TAFF: Wrong TAFF type (%s)\n", this->taff_filename.c_str());
 		free(this->taff_buf);
 		this->taff_buf = NULL;
 		return false;
 	}
 	if (memcmp(this->taff_buf+sizeof(this->taff_desc->type), &(this->taff_desc->version), sizeof(this->taff_desc->version))) {
-		/* wrong version */
+		// wrong version
 		free(this->taff_buf);
 		this->taff_buf = NULL;
 		return false;
 	}
 	this->correct_version = true;
 
-	/* compare the modification time of the taff and external file */
+	// compare the modification time of the taff and external file
 	if (this->external_filename!="") {
         struct stat statbuf1;
         struct stat statbuf2;
@@ -919,16 +1087,19 @@ bool MMSTaffFile::readFile() {
     		return false;
     	}
         if (stat(this->external_filename.c_str(), &statbuf2)==0) {
-        	if (statbuf2.st_mtime >= statbuf1.st_mtime) {
-                /* external file has been modified, therefore the taff file maybe not up-to-date */
-        		free(this->taff_buf);
-        		this->taff_buf = NULL;
-        		return false;
-        	}
+			if (statbuf2.st_mtime <= time(NULL)) {
+				// ok, external file created in the past
+				if (statbuf2.st_mtime >= statbuf1.st_mtime) {
+					// external file has been modified, therefore the taff file maybe not up-to-date
+					free(this->taff_buf);
+					this->taff_buf = NULL;
+					return false;
+				}
+			}
         }
 	}
 
-	/* all right */
+	// all right
 	this->taff_buf_size = ritems;
 	getFirstTag();
 	this->loaded = true;
@@ -1145,6 +1316,7 @@ int MMSTaffFile::getNextAttribute(char **value_str, int *value_int, char **name)
 					case TAFF_ATTRTYPE_UCHAR:
 					case TAFF_ATTRTYPE_UCHAR100:
 					case TAFF_ATTRTYPE_INT:
+					case TAFF_ATTRTYPE_STATE:
 						*value_str = NULL;
 						*value_int = MMSTAFF_INT32_FROM_UCHAR_STREAM(&this->taff_buf[this->taff_buf_pos]);
 						break;

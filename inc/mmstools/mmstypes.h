@@ -35,6 +35,82 @@
 
 #include "mmstools/base.h"
 
+// sigc++ accumulators.......................................................
+
+//example from: http://libsigc.sourceforge.net/libsigc2/docs/reference/html/classsigc_1_1signal_1_1accumulated.html
+//! this accumulator calculates the arithmetic mean value
+struct arithmetic_mean_accumulator
+{
+  typedef double result_type;
+  template<typename T_iterator>
+  result_type operator()(T_iterator first, T_iterator last) const
+  {
+    result_type value_ = 0;
+    int n_ = 0;
+    for (; first != last; ++first, ++n_)
+      value_ += *first;
+    return value_ / n_;
+  }
+};
+
+//example from: http://libsigc.sourceforge.net/libsigc2/docs/reference/html/classsigc_1_1signal_1_1accumulated.html
+//! this accumulator stops signal emission when a slot returns zero
+struct interruptable_accumulator
+{
+  typedef bool result_type;
+  template<typename T_iterator>
+  result_type operator()(T_iterator first, T_iterator last) const
+  {
+    int n_ = 0;
+    for (; first != last; ++first, ++n_)
+      if (!*first) return false;
+    return true;
+  }
+};
+
+//! bool accumulator
+/*!
+with this accumulator the emit() method of a callback ends with
+ - true,  if the no callback methods are connected or all connected callback methods returns true
+ - false, if at least one connected callback method returns false
+*/
+struct bool_accumulator
+{
+  typedef bool result_type;
+  template<typename T_iterator>
+  result_type operator()(T_iterator first, T_iterator last) const
+  {
+    bool ret_ = true;
+    int n_ = 0;
+    for (; first != last; ++first, ++n_)
+      if (!*first) ret_ = false;
+    return ret_;
+  }
+};
+
+
+//! bool accumulator (not)
+/*!
+with this accumulator the emit() method of a callback ends with
+ - false, if the no callback methods are connected or all connected callback methods returns false
+ - true,  if at least one connected callback method returns true
+*/
+struct neg_bool_accumulator
+{
+  typedef bool result_type;
+  template<typename T_iterator>
+  result_type operator()(T_iterator first, T_iterator last) const
+  {
+    bool ret_ = false;
+    int n_ = 0;
+    for (; first != last; ++first, ++n_)
+      if (*first) ret_ = true;
+    return ret_;
+  }
+};
+
+
+
 // plane description.........................................................
 
 //! Describes up to 3 planes of an surface buffer.
@@ -42,6 +118,10 @@ class MMSFBSurfacePlanes {
 	public:
 	    //! buffer is a hardware buffer?
 	    bool	hwbuffer;
+	    //! the current pixel data describes a full opaque surface
+	    bool	opaque;
+	    //! the current pixel data describes a full transparent surface
+	    bool	transparent;
 		//! first plane
 		void	*ptr;
 		//! pitch of first plane
@@ -56,13 +136,15 @@ class MMSFBSurfacePlanes {
 		int 	pitch3;
 
 		MMSFBSurfacePlanes(void *ptr = NULL, int pitch = 0, void *ptr2 = NULL, int pitch2 = 0, void *ptr3 = NULL, int pitch3 = 0) {
-			this->hwbuffer	= false;
-			this->ptr		= ptr;
-			this->pitch		= pitch;
-			this->ptr2		= ptr2;
-			this->pitch2	= pitch2;
-			this->ptr3		= ptr3;
-			this->pitch3	= pitch3;
+			this->hwbuffer		= false;
+		    this->opaque		= false;
+		    this->transparent	= false;
+			this->ptr			= ptr;
+			this->pitch			= pitch;
+			this->ptr2			= ptr2;
+			this->pitch2		= pitch2;
+			this->ptr3			= ptr3;
+			this->pitch3		= pitch3;
 		}
 };
 
@@ -122,8 +204,8 @@ MMSFBBackend getMMSFBBackendFromString(string be);
 typedef enum {
 	//! none
 	MMSFB_OT_NONE = 0,
-	//! VESAFB (backend: DFB and FBDEV)
-	MMSFB_OT_VESAFB,
+	//! STDFB (backend: DFB and FBDEV)
+	MMSFB_OT_STDFB,
 	//! MATROXFB (backend: DFB and FBDEV)
 	MMSFB_OT_MATROXFB,
 	//! VIAFB (backend: DFB)
@@ -142,8 +224,8 @@ typedef enum {
 
 //! output type: none
 #define MMSFB_OT_NONE_STR		""
-//! output type: VESAFB (backend: DFB and FBDEV)
-#define MMSFB_OT_VESAFB_STR		"VESAFB"
+//! output type: STDFB (backend: DFB and FBDEV)
+#define MMSFB_OT_STDFB_STR		"STDFB"
 //! output type: MATROXFB (backend: DFB and FBDEV)
 #define MMSFB_OT_MATROXFB_STR	"MATROXFB"
 //! output type: VIAFB (backend: DFB)
@@ -160,16 +242,16 @@ typedef enum {
 #define MMSFB_OT_OMAPFB_STR	"OMAPFB"
 
 //! list of valid output types
-#define MMSFB_OT_VALID_VALUES			"VESAFB, MATROXFB, VIAFB, X11, XSHM, XVSHM, DAVINCIFB, OMAPFB"
+#define MMSFB_OT_VALID_VALUES			"STDFB, MATROXFB, VIAFB, X11, XSHM, XVSHM, DAVINCIFB, OMAPFB"
 
 //! list of valid output types for backend MMSFB_BE_DFB
-#define MMSFB_OT_VALID_VALUES_BE_DFB	"VESAFB, MATROXFB, VIAFB, X11, DAVINCIFB, OMAPFB"
+#define MMSFB_OT_VALID_VALUES_BE_DFB	"STDFB, MATROXFB, VIAFB, X11, DAVINCIFB, OMAPFB"
 
 //! list of valid output types for backend MMSFB_BE_X11
 #define MMSFB_OT_VALID_VALUES_BE_X11	"X11, XSHM, XVSHM"
 
 //! list of valid output types for backend MMSFB_BE_FBDEV
-#define MMSFB_OT_VALID_VALUES_BE_FBDEV	"VESAFB, MATROXFB, DAVINCIFB, OMAPFB"
+#define MMSFB_OT_VALID_VALUES_BE_FBDEV	"STDFB, MATROXFB, DAVINCIFB, OMAPFB"
 
 // conversion routines for output types
 string getMMSFBOutputTypeString(MMSFBOutputType ot);
@@ -217,15 +299,15 @@ typedef enum {
 	MMSFB_PF_RGB16,
     //! 24 bit RGB (3 byte, red 8\@16, green 8\@8, blue 8\@0)
     MMSFB_PF_RGB24,
-    //! 24 bit RGB (4 byte, nothing\@24, red 8\@16, green 8\@8, blue 8\@0)
+    //! 24 bit RGB (4 byte, nothing 8\@24, red 8\@16, green 8\@8, blue 8\@0)
     MMSFB_PF_RGB32,
     //! 32 bit ARGB (4 byte, alpha 8\@24, red 8\@16, green 8\@8, blue 8\@0)
     MMSFB_PF_ARGB,
     //! 8 bit alpha (1 byte, alpha 8\@0), e.g. anti-aliased glyphs
     MMSFB_PF_A8,
-    //! 16 bit YUV (4 byte/ 2 pixel, macropixel contains CbYCrY [31:0])
+    //! 16 bit YUV (4 byte/2 pixel, macropixel contains CbYCrY [31:0])
     MMSFB_PF_YUY2,
-    //! 16 bit YUV (4 byte/ 2 pixel, macropixel contains YCbYCr [31:0])
+    //! 16 bit YUV (4 byte/2 pixel, macropixel contains YCbYCr [31:0])
     MMSFB_PF_UYVY,
     //! 12 bit YUV (8 bit Y plane followed by 8 bit quarter size U/V planes)
     MMSFB_PF_I420,
@@ -233,7 +315,7 @@ typedef enum {
     MMSFB_PF_YV12,
     //! 32 bit ARGB (4 byte, inv. alpha 8\@24, red 8\@16, green 8\@8, blue 8\@0)
     MMSFB_PF_AiRGB,
-    //! 1 bit alpha (1 byte/ 8 pixel, most significant bit used first)
+    //! 1 bit alpha (1 byte/8 pixel, most significant bit used first)
     MMSFB_PF_A1,
     //! 12 bit YUV (8 bit Y plane followed by one 16 bit quarter size CbCr [15:0] plane)
     MMSFB_PF_NV12,
@@ -243,19 +325,19 @@ typedef enum {
     MMSFB_PF_NV21,
     //! 32 bit AYUV (4 byte, alpha 8\@24, Y 8\@16, Cb 8\@8, Cr 8\@0)
     MMSFB_PF_AYUV,
-    //! 4 bit alpha (1 byte/ 2 pixel, more significant nibble used first)
+    //! 4 bit alpha (1 byte/2 pixel, more significant nibble used first)
     MMSFB_PF_A4,
-    //! 1 bit alpha (3 byte/  alpha 1\@18, red 6\@16, green 6\@6, blue 6\@0)
+    //! 19 bit ARGB (3 byte, nothing 5\@19, alpha 1\@18, red 6\@12, green 6\@6, blue 6\@0)
     MMSFB_PF_ARGB1666,
-    //! 6 bit alpha (3 byte/  alpha 6\@18, red 6\@16, green 6\@6, blue 6\@0)
+    //! 24 bit ARGB (3 byte, alpha 6\@18, red 6\@12, green 6\@6, blue 6\@0)
     MMSFB_PF_ARGB6666,
-    //! 6 bit RGB (3 byte/   red 6\@16, green 6\@6, blue 6\@0)
+    //! 18 bit RGB (3 byte, nothing 6\@18, red 6\@12, green 6\@6, blue 6\@0)
     MMSFB_PF_RGB18,
-    //! 2 bit LUT (1 byte/ 4 pixel, 2 bit color and alpha lookup from palette)
+    //! 2 bit LUT (1 byte/4 pixel, 2 bit color and alpha lookup from palette)
     MMSFB_PF_LUT2,
-    //! 16 bit RGB (2 byte, nothing \@12, red 4\@8, green 4\@4, blue 4\@0)
+    //! 12 bit RGB (2 byte, nothing 4\@12, red 4\@8, green 4\@4, blue 4\@0)
     MMSFB_PF_RGB444,
-    //! 16 bit RGB (2 byte, nothing \@15, red 5\@10, green 5\@5, blue 5\@0)
+    //! 15 bit RGB (2 byte, nothing 1\@15, red 5\@10, green 5\@5, blue 5\@0)
     MMSFB_PF_RGB555,
 	//! 16 bit ARGB (2 byte, alpha 1\@15, red 5\@10, green 5\@5, blue 5\@0)
 	MMSFB_PF_ARGB1555,
@@ -269,35 +351,37 @@ typedef enum {
     MMSFB_PF_ARGB2554,
     //! 16 bit ARGB (2 byte, alpha 4\@12, red 4\@8, green 4\@4, blue 4\@0)
     MMSFB_PF_ARGB4444,
-    //! 20 bit ARGB (16 bit RGB565 plane followed by 4 bit alpha plane (highest bit unused))
+    //! 19 bit ARGB (16 bit RGB565 plane followed by 4 bit alpha plane (highest bit unused))
     MMSFB_PF_ARGB3565,
-    //! 24 bit RGB (3 byte, red 8\@0, green 8\@8, blue 8\@16)
-    MMSFB_PF_BGR24
+    //! 24 bit BGR (3 byte, blue 8\@16, green 8\@8, red 8\@0)
+    MMSFB_PF_BGR24,
+    //! 15 bit BGR (2 byte, nothing 1\@15, blue 5\@10, green 5\@5, red 5\@0)
+    MMSFB_PF_BGR555
 } MMSFBSurfacePixelFormat;
 
 //! pixel format: none
 #define MMSFB_PF_NONE_STR       ""
-//! pixel format: 16 bit RGB (2 byte, red 5@11, green 6@5, blue 5@0)
+//! pixel format: 16 bit RGB (2 byte, red 5\@11, green 6\@5, blue 5\@0)
 #define MMSFB_PF_RGB16_STR      "RGB16"
-//! pixel format: 24 bit RGB (3 byte, red 8@16, green 8@8, blue 8@0)
+//! pixel format: 24 bit RGB (3 byte, red 8\@16, green 8\@8, blue 8\@0)
 #define MMSFB_PF_RGB24_STR      "RGB24"
-//! pixel format: 24 bit RGB (4 byte, nothing@24, red 8@16, green 8@8, blue 8@0)
+//! pixel format: 24 bit RGB (4 byte, nothing 8\@24, red 8\@16, green 8\@8, blue 8\@0)
 #define MMSFB_PF_RGB32_STR      "RGB32"
-//! pixel format: 32 bit ARGB (4 byte, alpha 8@24, red 8@16, green 8@8, blue 8@0)
+//! pixel format: 32 bit ARGB (4 byte, alpha 8\@24, red 8\@16, green 8\@8, blue 8\@0)
 #define MMSFB_PF_ARGB_STR       "ARGB"
-//! pixel format: 8 bit alpha (1 byte, alpha 8@0), e.g. anti-aliased glyphs
+//! pixel format: 8 bit alpha (1 byte, alpha 8\@0), e.g. anti-aliased glyphs
 #define MMSFB_PF_A8_STR         "A8"
-//! pixel format: 16 bit YUV (4 byte/ 2 pixel, macropixel contains CbYCrY [31:0])
+//! pixel format: 16 bit YUV (4 byte/2 pixel, macropixel contains CbYCrY [31:0])
 #define MMSFB_PF_YUY2_STR       "YUY2"
-//! pixel format: 16 bit YUV (4 byte/ 2 pixel, macropixel contains YCbYCr [31:0])
+//! pixel format: 16 bit YUV (4 byte/2 pixel, macropixel contains YCbYCr [31:0])
 #define MMSFB_PF_UYVY_STR       "UYVY"
 //! pixel format: 12 bit YUV (8 bit Y plane followed by 8 bit quarter size U/V planes)
 #define MMSFB_PF_I420_STR       "I420"
 //! pixel format: 12 bit YUV (8 bit Y plane followed by 8 bit quarter size V/U planes)
 #define MMSFB_PF_YV12_STR       "YV12"
-//! pixel format: 32 bit ARGB (4 byte, inv. alpha 8@24, red 8@16, green 8@8, blue 8@0)
+//! pixel format: 32 bit ARGB (4 byte, inv. alpha 8\@24, red 8\@16, green 8\@8, blue 8\@0)
 #define MMSFB_PF_AiRGB_STR      "AiRGB"
-//! pixel format: 1 bit alpha (1 byte/ 8 pixel, most significant bit used first)
+//! pixel format: 1 bit alpha (1 byte/8 pixel, most significant bit used first)
 #define MMSFB_PF_A1_STR         "A1"
 //! pixel format: 12 bit YUV (8 bit Y plane followed by one 16 bit quarter size CbCr [15:0] plane)
 #define MMSFB_PF_NV12_STR       "NV12"
@@ -305,50 +389,52 @@ typedef enum {
 #define MMSFB_PF_NV16_STR       "NV16"
 //! pixel format: 12 bit YUV (8 bit Y plane followed by one 16 bit quarter size CrCb [15:0] plane)
 #define MMSFB_PF_NV21_STR       "NV21"
-//! pixel format: 32 bit AYUV (4 byte, alpha 8@24, Y 8@16, Cb 8@8, Cr 8@0)
+//! pixel format: 32 bit AYUV (4 byte, alpha 8\@24, Y 8\@16, Cb 8\@8, Cr 8\@0)
 #define MMSFB_PF_AYUV_STR       "AYUV"
-//! pixel format: 4 bit alpha (1 byte/ 2 pixel, more significant nibble used first)
+//! pixel format: 4 bit alpha (1 byte/2 pixel, more significant nibble used first)
 #define	MMSFB_PF_A4_STR			"A4"
-//! pixel format: 1 bit alpha (3 byte/  alpha 1@18, red 6@16, green 6@6, blue 6@0)
+//! pixel format: 19 bit ARGB (3 byte, nothing 5\@19, alpha 1\@18, red 6\@12, green 6\@6, blue 6\@0)
 #define	MMSFB_PF_ARGB1666_STR	"ARGB1666"
-//! pixel format: 6 bit alpha (3 byte/  alpha 6@18, red 6@16, green 6@6, blue 6@0)
+//! pixel format: 24 bit ARGB (3 byte, alpha 6\@18, red 6\@12, green 6\@6, blue 6\@0)
 #define	MMSFB_PF_ARGB6666_STR	"ARGB6666"
-//! pixel format: 6 bit RGB (3 byte/   red 6@16, green 6@6, blue 6@0)
+//! pixel format: 18 bit RGB (3 byte, nothing 6\@18, red 6\@12, green 6\@6, blue 6\@0)
 #define	MMSFB_PF_RGB18_STR		"RGB18"
-//! pixel format: 2 bit LUT (1 byte/ 4 pixel, 2 bit color and alpha lookup from palette)
+//! pixel format: 2 bit LUT (1 byte/4 pixel, 2 bit color and alpha lookup from palette)
 #define	MMSFB_PF_LUT2_STR		"LUT2"
-//! pixel format: 16 bit RGB (2 byte, nothing @12, red 4@8, green 4@4, blue 4@0)
+//! pixel format: 12 bit RGB (2 byte, nothing 4\@12, red 4\@8, green 4\@4, blue 4\@0)
 #define	MMSFB_PF_RGB444_STR		"RGB444"
-//! pixel format: 16 bit RGB (2 byte, nothing @15, red 5@10, green 5@5, blue 5@0)
+//! pixel format: 15 bit RGB (2 byte, nothing 1\@15, red 5\@10, green 5\@5, blue 5\@0)
 #define	MMSFB_PF_RGB555_STR		"RGB555"
-//! pixel format: 16 bit ARGB (2 byte, alpha 1@15, red 5@10, green 5@5, blue 5@0)
+//! pixel format: 16 bit ARGB (2 byte, alpha 1\@15, red 5\@10, green 5\@5, blue 5\@0)
 #define MMSFB_PF_ARGB1555_STR   "ARGB1555"
-//! pixel format: 8 bit RGB (1 byte, red 3@5, green 3@2, blue 2@0)
+//! pixel format: 8 bit RGB (1 byte, red 3\@5, green 3\@2, blue 2\@0)
 #define MMSFB_PF_RGB332_STR     "RGB332"
-//! pixel format: 8 bit ALUT (1 byte, alpha 4@4, color lookup 4@0)
+//! pixel format: 8 bit ALUT (1 byte, alpha 4\@4, color lookup 4\@0)
 #define MMSFB_PF_ALUT44_STR     "ALUT44"
 //! pixel format: 8 bit LUT (8 bit color and alpha lookup from palette)
 #define MMSFB_PF_LUT8_STR       "LUT8"
-//! pixel format: 16 bit ARGB (2 byte, alpha 2@14, red 5@9, green 5@4, blue 4@0)
+//! pixel format: 16 bit ARGB (2 byte, alpha 2\@14, red 5\@9, green 5\@4, blue 4\@0)
 #define MMSFB_PF_ARGB2554_STR   "ARGB2554"
-//! pixel format: 16 bit ARGB (2 byte, alpha 4@12, red 4@8, green 4@4, blue 4@0)
+//! pixel format: 16 bit ARGB (2 byte, alpha 4\@12, red 4\@8, green 4\@4, blue 4\@0)
 #define MMSFB_PF_ARGB4444_STR   "ARGB4444"
-//! pixel format: 20 bit ARGB (16 bit RGB565 plane followed by 4 bit alpha plane (highest bit unused))
+//! pixel format: 19 bit ARGB (16 bit RGB565 plane followed by 4 bit alpha plane (highest bit unused))
 #define MMSFB_PF_ARGB3565_STR	"ARGB3565"
-//! pixel format: 24 bit RGB (3 byte, red 8@0, green 8@8, blue 8@16)
+//! pixel format: 24 bit BGR (3 byte, blue 8\@16, green 8\@8, red 8\@0)
 #define MMSFB_PF_BGR24_STR      "BGR24"
+//! pixel format: 15 bit BGR (2 byte, nothing 1\@15, blue 5\@10, green 5\@5, red 5\@0)
+#define MMSFB_PF_BGR555_STR     "BGR555"
 
 //! list of valid pixelformats
-#define MMSFB_PF_VALID_VALUES	"RGB16, RGB24, RGB32, ARGB, A8, YUY2, UYVY, I420, YV12, AiRGB, A1, NV12, NV16, NV21, AYUV, A4, ARGB1666, ARGB6666, RGB18, LUT2, RGB444, RGB555, ARGB1555, RGB332, ALUT44, LUT8, ARGB2554, ARGB4444, ARGB3565"
+#define MMSFB_PF_VALID_VALUES	"RGB16, RGB24, RGB32, ARGB, A8, YUY2, UYVY, I420, YV12, AiRGB, A1, NV12, NV16, NV21, AYUV, A4, ARGB1666, ARGB6666, RGB18, LUT2, RGB444, RGB555, ARGB1555, RGB332, ALUT44, LUT8, ARGB2554, ARGB4444, ARGB3565, BGR24, BGR555"
 
 //! list of valid pixelformats used for layer surfaces
-#define MMSFB_PF_VALID_VALUES_LAYER	"RGB16, RGB24, RGB32, ARGB, YUY2, UYVY, I420, YV12, AiRGB, NV12, NV16, NV21, AYUV, ARGB1666, ARGB6666, RGB18, LUT2, RGB444, RGB555, ARGB1555, RGB332, LUT8, ARGB2554, ARGB4444, ARGB3565"
+#define MMSFB_PF_VALID_VALUES_LAYER	"RGB16, RGB24, RGB32, ARGB, YUY2, UYVY, I420, YV12, AiRGB, NV12, NV16, NV21, AYUV, ARGB1666, ARGB6666, RGB18, LUT2, RGB444, RGB555, ARGB1555, RGB332, LUT8, ARGB2554, ARGB4444, ARGB3565, BGR24, BGR555"
 
 //! list of valid pixelformats used for windows surfaces
-#define MMSFB_PF_VALID_VALUES_WINDOWS	"ARGB, AiRGB, AYUV, empty string for auto detection"
+#define MMSFB_PF_VALID_VALUES_WINDOWS	"ARGB, AiRGB, AYUV, ARGB4444, RGB16, empty string for auto detection"
 
 //! list of valid pixelformats used for worker surfaces
-#define MMSFB_PF_VALID_VALUES_SURFACES	"ARGB, AiRGB, AYUV, empty string for auto detection"
+#define MMSFB_PF_VALID_VALUES_SURFACES	"ARGB, AiRGB, AYUV, ARGB4444, RGB16, empty string for auto detection"
 
 //! list of valid pixelformats for XVSHM
 #define MMSFB_PF_VALID_VALUES_BE_X11_OT_XVSHM	"YV12"
@@ -377,7 +463,7 @@ string getMMSFBPixelFormatString(MMSFBSurfacePixelFormat pf);
 MMSFBSurfacePixelFormat getMMSFBPixelFormatFromString(string pf);
 
 
-// colors, rectangles, regions...............................................
+// color definition..........................................................
 
 //! describes a color with alpha
 class MMSFBColor {
@@ -399,19 +485,38 @@ class MMSFBColor {
 		}
 };
 
+//! Convert a color string into MMSFBColor.
+/*!
+The input string has the syntax "#rrggbbaa".
+
+    rr - hex value for red
+    gg - hex value for green
+    bb - hex value for blue
+    aa - hex value for alpha channel (value ff means full opaque)
+
+\param input  the input string
+\param color  pointer to the color to be returned
+\return true if input is correct
+\note If the function fails, the color is set to "#00000000".
+*/
+bool getMMSFBColorFromString(string input, MMSFBColor *color);
+
+
+// rectangles, regions, etc..................................................
+
 //! describes a rectangle
 class MMSFBRectangle {
 	public:
 		//! x
-		int	x;
+		int x;
 		//! y
-		int	y;
+		int y;
 		//! width
-		int	w;
+		int w;
 		//! height
-		int	h;
+		int h;
 
-		MMSFBRectangle(unsigned int x = 0, unsigned int y = 0, unsigned int w = 0, unsigned int h = 0) {
+		MMSFBRectangle(int x = 0, int y = 0, int w = 0, int h = 0) {
 			this->x = x;
 			this->y = y;
 			this->w = w;
@@ -423,15 +528,15 @@ class MMSFBRectangle {
 class MMSFBRegion {
 	public:
 		//! x1
-		int	x1;
+		int x1;
 		//! y1
-		int	y1;
+		int y1;
 		//! x2
-		int	x2;
+		int x2;
 		//! y2
-		int	y2;
+		int y2;
 
-		MMSFBRegion(unsigned int x1 = 0, unsigned int y1 = 0, unsigned int x2 = 0, unsigned int y2 = 0) {
+		MMSFBRegion(int x1 = 0, int y1 = 0, int x2 = 0, int y2 = 0) {
 			this->x1 = x1;
 			this->y1 = y1;
 			this->x2 = x2;
@@ -439,6 +544,112 @@ class MMSFBRegion {
 		}
 };
 
+//! describes a 3D point
+class MMS3DPoint {
+	private:
+		//! x
+		double x;
+		//! y
+		double y;
+		//! z
+		double z;
+
+	public:
+		MMS3DPoint(double x = 0, double y = 0, double z = 0) {
+			set(x, y, z);
+		}
+
+		bool operator==(MMS3DPoint &p) {
+			return ((this->x == p.x) && (this->y == p.y) && (this->z == p.z));
+		}
+
+		bool operator!=(MMS3DPoint &p) {
+			return ((this->x != p.x) || (this->y != p.y) || (this->z != p.z));
+		}
+
+		void set(double x = 0, double y = 0, double z = 0) {
+			this->x = x;
+			this->y = y;
+			this->z = z;
+		}
+
+		void get(double &x, double &y, double &z) {
+			x = this->x;
+			y = this->y;
+			z = this->z;
+		}
+
+	friend class MMS3DObject;
+	friend class MMS3DSpace;
+};
+
+// describes a 3D region
+class MMS3DRegion {
+	private:
+		//! x1
+		double x1;
+		//! y1
+		double y1;
+		//! z1
+		double z1;
+
+		//! x2
+		double x2;
+		//! y2
+		double y2;
+		//! z2
+		double z2;
+
+		//! x center
+		double x_center;
+		//! y center
+		double y_center;
+		//! z center
+		double z_center;
+
+	public:
+		MMS3DRegion(double x1 = 0, double y1 = 0, double z1 = 0,
+						 double x2 = 0, double y2 = 0, double z2 = 0) {
+			set(x1, y1, z1, x2, y2, z2);
+		}
+
+		bool operator==(MMS3DRegion &r) {
+			return ((this->x1 == r.x1) && (this->y1 == r.y1) && (this->z1 == r.z1)
+				 && (this->x2 == r.x2) && (this->y2 == r.y2) && (this->z2 == r.z2));
+		}
+
+		bool operator!=(MMS3DRegion &r) {
+			return ((this->x1 != r.x1) || (this->y1 != r.y1) || (this->z1 != r.z1)
+				 || (this->x2 != r.x2) || (this->y2 != r.y2) || (this->z2 != r.z2));
+		}
+
+		void set(double x1 = 0, double y1 = 0, double z1 = 0,
+				 double x2 = 0, double y2 = 0, double z2 = 0) {
+			this->x1 = x1;
+			this->y1 = y1;
+			this->z1 = z1;
+			this->x2 = x2;
+			this->y2 = y2;
+			this->z2 = z2;
+
+			this->x_center = (this->x1 + this->x2) / 2;
+			this->y_center = (this->y1 + this->y2) / 2;
+			this->z_center = (this->z1 + this->z2) / 2;
+		}
+
+		void get(double &x1, double &y1, double &z1,
+				 double &x2, double &y2, double &z2) {
+			x1 = this->x1;
+			y1 = this->y1;
+			z1 = this->z1;
+			x2 = this->x2;
+			y2 = this->y2;
+			z2 = this->z2;
+		}
+
+	friend class MMS3DObject;
+	friend class MMS3DSpace;
+};
 
 
 // pointer mode..............................................................
@@ -471,20 +682,6 @@ typedef enum {
 // conversion routines for pointer modes
 string getMMSFBPointerModeString(MMSFBPointerMode pm);
 MMSFBPointerMode getMMSFBPointerModeFromString(string pm);
-
-
-// national language support.................................................
-
-//! supported languages
-typedef enum {
-	MMSLANG_UKN,
-	MMSLANG_DE,
-	MMSLANG_EN,
-	MMSLANG_MSG
-} MMS_LANGUAGE_TYPE;
-
-
-
 
 // media backend types.......................................................
 
@@ -855,6 +1052,18 @@ typedef enum {
 // we use GStreamer function gst_element_send_event() which uses "application/x-gst-navigation"
 const char *convertMMSKeySymbolToXKeysymString(MMSKeySymbol key);
 
+
+// Special State Type .......................................................
+
+//! special state type
+typedef enum {
+	//! false
+	MMSSTATE_FALSE = 0,
+	//! true
+	MMSSTATE_TRUE,
+	//! auto
+	MMSSTATE_AUTO
+} MMSSTATE;
 
 
 #endif /* MMSTYPES_H_ */

@@ -52,13 +52,41 @@ class MMSWindowManager : public IMMSWindowManager {
         //! translator instance which can be used to translate text
         MMSTranslator		translator;
 
-        //! connection object for onTargetLangChanged callback
+        //! connection object for MMSTranslator::onTargetLangChanged callback
         sigc::connection 	onTargetLangChanged_connection;
 
+        //! theme manager instance
+        MMSThemeManager		themeManager;
 
+        //! connection object for MMSThemeManager::onThemeChanged callback
+        sigc::connection 	onThemeChanged_connection;
+
+        //! pulser object for the animated theme switch
+    	MMSPulser			pulser;
+
+        //! connection object for MMSPulser::onAnimation callback
+        sigc::connection 	onAnimation_connection;
+
+        //! connection object for MMSPulser::onAfterAnimation callback
+        sigc::connection 	onAfterAnimation_connection;
+
+    	//! temporary window for animated theme switch
+    	MMSFBWindow 		*anim_saved_screen;
+
+        //! Internal method: Make the default background window visible.
         void showBackgroundWindow();
 
-        void onTargetLangChanged(MMS_LANGUAGE_TYPE lang);
+        //! Internal method: Target Language Changed callback from MMSTranslator.
+        void onTargetLangChanged(int lang);
+
+        //! Internal method: Theme Changed callback from MMSThemeManager.
+        void onThemeChanged(string themeName, bool fade_in);
+
+        //! Internal method: Animation callback from MMSPulser used in onThemeChanged() callback.
+        bool onAnimation(MMSPulser *pulser);
+
+        //! Internal method: After Animation callback from MMSPulser used in onThemeChanged() callback.
+        void onAfterAnimation(MMSPulser *pulser);
 
 	public:
 		MMSWindowManager(MMSFBRectangle vrect);
@@ -87,9 +115,8 @@ class MMSWindowManager : public IMMSWindowManager {
         void setPointerPosition(int pointer_posx, int pointer_posy, bool pressed = true);
 
         MMSTranslator *getTranslator();
-};
 
-/* access to global mmswindowmanager */
-//extern MMSWindowManager mmswindowmanager;
+        MMSThemeManager *getThemeManager();
+};
 
 #endif /*MMSWINDOWMANAGER_H_*/

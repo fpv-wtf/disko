@@ -31,8 +31,12 @@
  **************************************************************************/
 
 #include <cstring>
+extern "C" {
+#include <libxml/parser.h>
+}
 #include "mmscore/mmsinit.h"
 #include "mms.h"
+
 
 static MMSPluginManager             *pluginmanager      = NULL;
 static MMSEventDispatcher           *eventdispatcher    = NULL;
@@ -42,12 +46,16 @@ static MMSEvent                     *masterevent        = NULL;
 static MMSEventSignup               *mastereventsignup  = NULL;
 /* static MMSImportScheduler           *importscheduler    = NULL; */
 static MMSInputManager              *inputs             = NULL;
-static MMSWindowManager             *windowmanager = NULL;
+static MMSThemeManager 				*themeManager		= NULL;
+static MMSWindowManager             *windowmanager		= NULL;
 
 void (*pluginRegisterCallback)(MMSPluginManager*) = NULL;
 
 static void on_exit() {
 	if(pluginmanager) delete pluginmanager;
+
+	// free memory from libxml2
+	xmlCleanupParser();
 }
 
 
@@ -57,12 +65,27 @@ bool mmsInit(MMSINIT_FLAGS flags, int argc, char *argv[], string configfile,
 			 MMSConfigDataGraphics *graphics, MMSConfigDataLanguage *language) {
 
 	try {
+		// get special args from configfile string
+		int args_pos;
+		string args;
+		if ((args_pos = (int)configfile.find("--disko:")) >= 0) {
+			args = configfile.substr(args_pos);
+			if (args_pos > 1)
+				configfile = configfile.substr(0, args_pos-1);
+			else
+				configfile = "";
+		}
+
         //check if config file is given per commandline
         for (int i = 1; i < argc; i++) {
-        	if (memcmp(argv[i], "--disko:config=", 15)==0)
+        	if (memcmp(argv[i], "--disko:config=", 15)==0) {
         		// yes
         		configfile = &(argv[i][15]);
+        	}
         }
+
+        // initialize libxml2
+        xmlInitParser();
 
         MMSRcParser 			rcparser;
         MMSConfigDataGlobal     *rcGlobal 	= NULL;
@@ -96,24 +119,33 @@ bool mmsInit(MMSINIT_FLAGS flags, int argc, char *argv[], string configfile,
 		    }
         }
 
-        if (rcGlobal) {
-        	// config file read
+        // is config read?
+        bool config_read = (rcGlobal);
+
+        if (!config_read) {
+        	// config file not set, load defaults
+            MMSRcParser rcparser;
+			rcparser.getMMSRc(&rcGlobal, &rcConfigDB, &rcDataDB, &rcGraphics, &rcLanguage);
+        }
+
+        // create first (static) MMSConfigData
+        if (config_read) {
         	config = new MMSConfigData(*rcGlobal, *rcConfigDB, *rcDataDB, *rcGraphics, *rcLanguage);
         }
         else {
-        	// config file not set, using defaults
-            MMSRcParser rcparser;
-			rcparser.getMMSRc(&rcGlobal, &rcConfigDB, &rcDataDB, &rcGraphics, &rcLanguage);
         	config = new MMSConfigData((global)?*global:*rcGlobal, (configdb)?*configdb:*rcConfigDB, (datadb)?*datadb:*rcDataDB,
 									   (graphics)?*graphics:*rcGraphics, (language)?*language:*rcLanguage);
         }
+
+        // overwrite config values from args and/or argv
+        rcparser.updateConfig(config, args, argc, argv);
 
         printf("\n");
         printf("****   *   ***   *  *   ***\n");
         printf(" *  *  *  *      * *   *   *\n");
         printf(" *  *  *   ***   **    *   *\n");
         printf(" *  *  *      *  * *   *   *\n");
-        printf("****   *   ***   *  *   ***  V1.6.0\n");
+        printf("****   *   ***   *  *   ***  V%s\n",DISKO_VERSION_STR);
         printf("----------------------------------------------------------------------\n");
         printf("The Linux application framework for embedded devices.\n");
         printf("\n");
@@ -123,6 +155,13 @@ bool mmsInit(MMSINIT_FLAGS flags, int argc, char *argv[], string configfile,
         printf("                           Stefan Schwarzer & Guido Madaus\n");
         printf("   Copyright (C) 2009      BerLinux Solutions GmbH\n");
         printf("----------------------------------------------------------------------\n");
+
+        int pcv = 1;
+        if (*((char *)&pcv) == 1) {
+            DEBUGMSG_OUTSTR("Core", "Platform type:                little-endian");
+        } else {
+            DEBUGMSG_OUTSTR("Core", "Platform type:                big-endian");
+        }
 
         MMSConfigDataLayer videolayer = config->getVideoLayer();
         MMSConfigDataLayer graphicslayer = config->getGraphicsLayer();
@@ -184,8 +223,8 @@ bool mmsInit(MMSINIT_FLAGS flags, int argc, char *argv[], string configfile,
 
         DEBUGMSG_OUTSTR("Core", "Fullscreen:                   " + getMMSFBFullScreenModeString(config->getFullScreen()));
 
-        DEBUGMSG_OUTSTR("Core", "Sourcelanguage:               " + langToStr(config->getSourceLang()));
-        DEBUGMSG_OUTSTR("Core", "Targetlanguage:               " + langToStr(config->getDefaultTargetLang()));
+        DEBUGMSG_OUTSTR("Core", "Sourcelanguage:               " + config->getSourceLang());
+        DEBUGMSG_OUTSTR("Core", "Targetlanguage:               " + config->getDefaultTargetLang());
         DEBUGMSG_OUTSTR("Core", "Add missing translations:     " + (config->getAddTranslations() ? string("yes") : string("no")));
 
         printf("----------------------------------------------------------------------\n");
@@ -222,9 +261,15 @@ bool mmsInit(MMSINIT_FLAGS flags, int argc, char *argv[], string configfile,
     	        	return false;
     	        }
 
+    	        // creating the background window
+    	        // note: regarding performance, this window must not have a alphachannel!
+    	        //         --> using MMSW_VIDEO flag
+    	        // note: additionally the window should never reside on the video layer
+    	        //         --> using MMSW_USEGRAPHICSLAYER flag
     	        DEBUGMSG("Core", "creating background window");
     	        MMSRootWindow *rootwin = new MMSRootWindow("background_rootwindow","","",
-    	        											MMSALIGNMENT_NOTSET,MMSW_NONE);
+    	        											MMSALIGNMENT_NOTSET,
+    	        											(MMSWINDOW_FLAGS)(MMSW_VIDEO | MMSW_USEGRAPHICSLAYER));
     	        if(!rootwin) {
     	        	DEBUGMSG("Core", "couldn't create background window.");
     	        	return false;

@@ -188,7 +188,7 @@ const string MMSConfigData::getDataDBDatabase() {
     return this->datadb.database;
 };
 
-/* graphics section getters */
+// graphics section getters
 const MMSConfigDataLayer MMSConfigData::getVideoLayer() {
     return this->graphics.videolayer;
 }
@@ -261,19 +261,40 @@ const unsigned int MMSConfigData::getTouchResY() {
 	return this->graphics.touchResY;
 }
 
-const MMS_LANGUAGE_TYPE MMSConfigData::getSourceLang() {
+// graphics section setters
+void MMSConfigData::setVideoLayer(MMSConfigDataLayer layer) {
+    this->graphics.videolayer = layer;
+}
+
+void MMSConfigData::setGraphicsLayer(MMSConfigDataLayer layer) {
+    this->graphics.graphicslayer = layer;
+}
+
+void MMSConfigData::setFullScreen(MMSFBFullScreenMode fsm) {
+	this->graphics.fullscreen = fsm;
+}
+
+void MMSConfigData::setHideApplication(bool hideapplication) {
+	this->graphics.hideapplication = hideapplication;
+}
+
+
+const string MMSConfigData::getSourceLang() {
 	return this->language.sourcelang;
 }
 
-const MMS_LANGUAGE_TYPE MMSConfigData::getDefaultTargetLang() {
+const string MMSConfigData::getDefaultTargetLang() {
 	return this->language.defaulttargetlang;
 }
 
-const bool			    MMSConfigData::getAddTranslations() {
+const bool MMSConfigData::getAddTranslations() {
 	return this->language.addtranslations;
 }
 
-const string 			MMSConfigData::getLanguagefileDir() {
+const string MMSConfigData::getLanguagefileDir() {
 	return this->language.languagefiledir;
 }
+
+
+
 

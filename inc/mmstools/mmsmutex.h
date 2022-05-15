@@ -39,6 +39,7 @@
 class MMSMutex {
 	private:
 		pthread_mutex_t mutex;
+	    pthread_mutexattr_t mutex_attr;
 
 	public:
 		MMSMutex();

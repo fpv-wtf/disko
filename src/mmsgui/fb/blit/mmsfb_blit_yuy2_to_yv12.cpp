@@ -70,7 +70,7 @@ void mmsfb_blit_yuy2_to_yv12(MMSFBSurfacePlanes *src_planes, int src_height, int
 	}
 
 	// prepare...
-	int  src_pitch_pix 		= src_pitch >> 2;
+	int src_pitch_pix 		= src_pitch >> 1;
 	int dst_pitch_pix 		= dst_pitch;
 	int dst_pitch_pix_half	= dst_pitch_pix >> 1;
 

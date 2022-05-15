@@ -42,6 +42,7 @@ long                MMSAudioCtrl::pmin;             /* range (not in percent) */
 long                MMSAudioCtrl::pmax;             /* range (not in percent) */
 string              MMSAudioCtrl::channel = "";
 snd_mixer_elem_t    *MMSAudioCtrl::elem = NULL;
+bool                MMSAudioCtrl::isSwitchable = false;
 
 /**
  * Constructor of MMSAudioCtrl class.
@@ -111,6 +112,9 @@ MMSAudioCtrl::MMSAudioCtrl(string channel) {
             /* we have found our channel*/
             /* get volume range */
             snd_mixer_selem_get_playback_volume_range(this->elem, &(this->pmin), &(this->pmax));
+
+            /* check if this elem is mutable */
+            isSwitchable = (snd_mixer_selem_has_playback_switch(elem) > 0);
 
             /* get the current volume settings */
             getVolume();
@@ -206,6 +210,17 @@ void MMSAudioCtrl::volumeDown(int count) {
  * @return  true if sound is muted
  */
 bool MMSAudioCtrl::isMute() {
+    if(isSwitchable) {
+        int valL = 0;
+        int valR = 0;
+        snd_mixer_selem_get_playback_switch(elem, SND_MIXER_SCHN_FRONT_LEFT, &valL);
+        snd_mixer_selem_get_playback_switch(elem, SND_MIXER_SCHN_FRONT_RIGHT, &valR);
+        if(valL > 0 || valR > 0) {
+            return false;
+        }
+        return true;
+    }
+
     if (this->muteFlag) {
         if (getVolume(true) > 0) {
             /* switch to off */
@@ -221,14 +236,24 @@ bool MMSAudioCtrl::isMute() {
 void MMSAudioCtrl::mute() {
     if (isMute()) {
         /* switch to on */
-        setVolume(this->volume);
+        if(isSwitchable) {
+            snd_mixer_selem_set_playback_switch(elem, SND_MIXER_SCHN_FRONT_LEFT, 1);
+            snd_mixer_selem_set_playback_switch(elem, SND_MIXER_SCHN_FRONT_RIGHT, 1);
+        } else {
+            setVolume(this->volume);
+        }
     } else {
         /* set mute */
-        snd_mixer_selem_set_playback_volume(elem, SND_MIXER_SCHN_FRONT_LEFT, 0);
-        snd_mixer_selem_set_playback_volume(elem, SND_MIXER_SCHN_FRONT_RIGHT, 0);
+        if(isSwitchable) {
+            snd_mixer_selem_set_playback_switch(elem, SND_MIXER_SCHN_FRONT_LEFT, 0);
+            snd_mixer_selem_set_playback_switch(elem, SND_MIXER_SCHN_FRONT_RIGHT, 0);
+        } else {
+            snd_mixer_selem_set_playback_volume(elem, SND_MIXER_SCHN_FRONT_LEFT, 0);
+            snd_mixer_selem_set_playback_volume(elem, SND_MIXER_SCHN_FRONT_RIGHT, 0);
 
-        /* set mute to on */
-        this->muteFlag = true;
+            /* set mute to on */
+            this->muteFlag = true;
+        }
     }
 }
 

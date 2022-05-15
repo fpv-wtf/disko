@@ -41,6 +41,10 @@
 #include "mmsgui/interfaces/immswindowmanager.h"
 #include "mmstools/mmsmutex.h"
 
+// support old renamed methods
+#define searchForWindow		findWindow
+#define searchForWidget		findWidget
+#define searchForWidgetType	findWidgetType
 
 //! The available types of windows.
 typedef enum {
@@ -80,6 +84,14 @@ typedef enum {
 
 class MMSChildWindow;
 
+//! current mode of the pulser
+typedef enum {
+	//! show action
+	MMSWINDOW_PULSER_MODE_SHOW = 0,
+	//! hide action
+	MMSWINDOW_PULSER_MODE_HIDE
+} MMSWINDOW_PULSER_MODE;
+
 //! This class is the base class for all windows.
 /*!
 This class includes the base functionality available for all windows within MMSGUI.
@@ -101,6 +113,8 @@ class MMSWindow {
             unsigned char   oldopacity;
             //! save the last focused widget here
             unsigned int    focusedWidget;
+            //! special blit done
+            bool			special_blit;
         } CHILDWINS;
 
         //! status area for the arrow widgets
@@ -165,6 +179,9 @@ class MMSWindow {
 
         //! is window initialized?
         bool                initialized;
+
+        //! pre-calc navigation done?
+        bool                precalcnav;
 
         //! name of the window
         string 				name;
@@ -304,15 +321,67 @@ class MMSWindow {
         //! child window on which the user has pressed the (mouse) button
         MMSWindow			*buttonpress_childwin;
 
+        //! window will be stretched to the layer or the parent window using stretchBlit(), default is false
+        bool 				stretchmode;
+
+        //! stretch the window to X percent of the window WIDTH to the left side
+        //! the value is valid, if window is in stretch mode
+        //! a value of 25600 means 100% (normal blit() will be used)
+        int					stretchLeft;
+
+        //! stretch the window to X percent of the window HEIGHT to the up side
+        //! the value is valid, if window is in stretch mode
+        //! a value of 25600 means 100% (normal blit() will be used)
+        int					stretchUp;
+
+        //! stretch the window to X percent of the window WIDTH to the right side
+        //! the value is valid, if window is in stretch mode
+        //! a value of 25600 means 100% (normal blit() will be used)
+        int					stretchRight;
+
+        //! stretch the window to X percent of the window HEIGHT to the down side
+        //! the value is valid, if window is in stretch mode
+        //! a value of 25600 means 100% (normal blit() will be used)
+        int					stretchDown;
+
+
+        //! index in childwins vector for the first window with the always on top flag
+        unsigned int        always_on_top_index;
+
+
+        //! Pulser for e.g. fade/move animations during show/hide
+        MMSPulser				pulser;
+
+        //! connection object for MMSPulser::onBeforeAnimation callback
+        sigc::connection 		onBeforeAnimation_connection;
+
+        //! connection object for MMSPulser::onAnimation callback
+        sigc::connection 		onAnimation_connection;
+
+        //! connection object for MMSPulser::onAfterAnimation callback
+        sigc::connection 		onAfterAnimation_connection;
+
+        //! current pulser mode
+        MMSWINDOW_PULSER_MODE	pulser_mode;
+
+
+        unsigned int	anim_opacity;
+        MMSFBRectangle	anim_rect;
+        bool			anim_fade;
+        MMSDIRECTION	anim_move;
+    	unsigned int 	anim_opacity_step;
+		int 			anim_move_step;
+
+
 
 
         //! Internal method: Creates the window.
         bool create(string dx, string dy, string w, string h, MMSALIGNMENT alignment, MMSWINDOW_FLAGS flags,
-        		    bool *own_surface);
+        		    bool *own_surface, bool *backbuffer);
 
         //! Internal method: Creates the window.
         bool create(string w, string h, MMSALIGNMENT alignment, MMSWINDOW_FLAGS flags,
-					bool *own_surface);
+					bool *own_surface, bool *backbuffer);
 
         //! Internal method: Resize the window.
         bool resize(bool refresh = true);
@@ -352,8 +421,14 @@ class MMSWindow {
         //! Internal method: Update the status of the arrow widgets.
         void switchArrowWidgets();
 
-        //! Internal method: Init me.
+        //! Internal method: Init navigation.
+        bool initnav();
+
+        //! Internal method: Load images and setup other things.
         virtual bool init();
+
+        //! Internal method: Release images and other things.
+        virtual bool release();
 
         //! Internal method: Draw me.
         virtual void draw(bool toRedrawOnly = false, MMSFBRectangle *rect2update = NULL,
@@ -406,11 +481,21 @@ class MMSWindow {
         //! Internal method: Unlock the window. Will be used by the widgets.
         void unlock();
 
-        //! Internal method: Will be called from the MMSWindowAction thread if the window should appear.
-        virtual bool showAction(bool *stopaction);
+        bool onBeforeAnimation(MMSPulser *pulser);
+        bool onAnimation(MMSPulser *pulser);
+        void onAfterAnimation(MMSPulser *pulser);
+
+        virtual bool beforeShowAction(MMSPulser *pulser);
+        virtual bool showAction(MMSPulser *pulser);
+        virtual void afterShowAction(MMSPulser *pulser);
+
+        virtual bool beforeHideAction(MMSPulser *pulser);
+        virtual bool hideAction(MMSPulser *pulser);
+        virtual void afterHideAction(MMSPulser *pulser);
+
 
         //! Internal method: Will be called from the MMSWindowAction thread if the window should disappear.
-        virtual bool hideAction(bool *stopaction);
+//        virtual bool hideAction(bool *stopaction);
 
         //! Internal method: Refresh a part of a window. Will be used by the widgets.
         void refreshFromChild(MMSWidget *child, MMSFBRectangle *rect2update = NULL, bool check_shown = true);
@@ -419,7 +504,7 @@ class MMSWindow {
         void setFocusedWidget(MMSWidget *child, bool set, bool switchfocus = false);
 
         //! Internal method: Will be called by MMSInputManager if the window has the input focus.
-        bool handleInput(vector<MMSInputEvent> *inputeventset);
+        bool handleInput(MMSInputEvent *inputevent);
 
         //! Internal method: (Re-)calculate the position and size of all widgets.
         void recalculateChildren();
@@ -429,6 +514,12 @@ class MMSWindow {
 
         //! Internal method: Hide the window without animation.
 		void instantHide();
+
+        //! Internal method: Inform the window, that the language has changed.
+        void targetLangChanged(int lang, bool refresh = true);
+
+        //! Internal method: Inform the window, that the theme has changed.
+        void themeChanged(string &themeName, bool refresh = true);
 
     protected:
 
@@ -468,7 +559,7 @@ class MMSWindow {
         \param name		name of the window
         \return pointer to the MMSWindow object or NULL
         */
-        MMSWindow* searchForWindow(string name);
+        MMSWindow* findWindow(string name);
 
         //! Makes a window visible.
         /*!
@@ -536,10 +627,11 @@ class MMSWindow {
         */
         int getNumberOfFocusableChildWins();
 
-        //! Refresh (redraw) the whole window.
+        //! Refresh (redraw) the whole window or a part of it.
         /*!
         It is possible to update window attributes without refresh.
         In this case you have to refresh() the window 'manually' to make the changes visible.
+        \param region	region of the window which is to refresh, default NULL means the whole window
 
         For example you can call:
 
@@ -554,7 +646,7 @@ class MMSWindow {
         This works also for widgets. You can update a few widgets without direct refresh
         and call window->refresh() afterwards.
         */
-        void refresh();
+        void refresh(MMSFBRegion *region = NULL);
 
         //! Flip the surface of the window to make changes visible.
         /*!
@@ -612,25 +704,35 @@ class MMSWindow {
         */
         bool getFocus();
 
-        //! Search a widget with a given name.
+        //! Find a widget with a given name.
         /*!
         \param name		name of the widget
         \return pointer to the widget which was found or NULL
         */
-        MMSWidget* searchForWidget(string name);
+        MMSWidget* findWidget(string name);
 
-        //! Search a widget with a given type.
+        //! Find a widget with a given type.
         /*!
         \param type		type of the widget
         \return pointer to the widget which was found or NULL
         */
-        MMSWidget* searchForWidgetType(MMSWIDGETTYPE type);
+        MMSWidget* findWidgetType(MMSWIDGETTYPE type);
+
+        //! Find a widget with a given name and type.
+        /*!
+        Find a root widget with the given name. If the found widget has not the
+        given type, then it searches for the given type under the root widget node.
+        \param name		name of the widget
+        \param type		type of the widget
+        \return pointer to the widget which was found or NULL
+        */
+        MMSWidget* findWidgetAndType(string name, MMSWIDGETTYPE type);
 
         //! Operator [] which you can use to find a widget.
         /*!
         \param name		name of the widget
         \return pointer to the widget which was found or NULL
-        \see searchForWidget()
+        \see findWidget()
         */
         MMSWidget* operator[](string name);
 
@@ -687,9 +789,29 @@ class MMSWindow {
         bool raiseToTop(int zlevel = 0);
         bool lowerToBottom();
 
+        bool moveTo(int x, int y, bool refresh = true);
 
-		//! inform the window, that language has changed
-		void targetLangChanged(MMS_LANGUAGE_TYPE lang, bool refresh = true);
+
+
+
+        //! Stretch the window to the layer or the parent window using stretchBlit().
+        /*!
+        \param left		stretch the window to X percent of the window WIDTH to the left side,
+						a value of 100 means 100%
+        \param up		stretch the window to X percent of the window HEIGHT to the up side,
+						a value of 100 means 100%
+        \param right	stretch the window to X percent of the window WIDTH to the right side,
+						a value of 100 means 100%
+        \param down		stretch the window to X percent of the window HEIGHT to the down side,
+						a value of 100 means 100%
+        \return true, if the values are accepted
+        \note Call stretch() or stretch(100, 100, 100, 100) to switch-of the stretch mode.
+        \note The formulas (((left-100)+(right-100)+100) > 0) and (((up-100)+(down-100)+100) > 0)
+              need to be met! Else nothing is to be displayed!
+        \note This function was implemented to get cool effects. If you display windows permanently in
+              stretch mode the performance will be drastically decreased.
+        */
+        bool stretch(double left = 100, double up = 100, double right = 100, double down = 100);
 
 
 
@@ -703,13 +825,9 @@ class MMSWindow {
 
         	bool myclass::mycallbackmethod(MMSWindow *win);
 
-        	Parameters:
+        	\param win	is the pointer to the window which is to be shown
 
-        		win -> is the pointer to the window which is to be shown
-
-        	Returns:
-
-        		true if the show process should continue, else false if the window should not appear
+        	\return true if the show process should continue, else false if the window should not appear
 
         To connect your callback to onBeforeShow do this:
 
@@ -736,11 +854,8 @@ class MMSWindow {
 
         	void myclass::mycallbackmethod(MMSWindow *win, bool already_shown);
 
-        	Parameters:
-
-        		win -> is the pointer to the window which is shown now
-
-        		already_shown -> the window was already shown?
+        	\param win				is the pointer to the window which is shown now
+       		\param already_shown	the window was already shown?
 
         To connect your callback to onAfterShow do this:
 
@@ -769,15 +884,10 @@ class MMSWindow {
 
         	bool myclass::mycallbackmethod(MMSWindow *win, bool goback);
 
-        	Parameters:
+        	\param win		is the pointer to the window which is to be hidden
+       		\param goback	the application can decide, what to do if true/false, see hide()
 
-        		win -> is the pointer to the window which is to be hidden
-
-        		goback -> the application can decide, what to do if true/false, see hide()
-
-        	Returns:
-
-        		true if the hide process should continue, else false if the window should not disappear
+        	\return true if the hide process should continue, else false if the window should not disappear
 
         To connect your callback to onBeforeHide do this:
 
@@ -804,11 +914,8 @@ class MMSWindow {
 
         	void myclass::mycallbackmethod(MMSWindow *win, bool goback);
 
-        	Parameters:
-
-        		win -> is the pointer to the window which is hidden now
-
-        		goback -> the application can decide, what to do if true/false, see hide()
+        	\param win		is the pointer to the window which is hidden now
+       		\param goback	the application can decide, what to do if true/false, see hide()
 
         To connect your callback to onHide do this:
 
@@ -835,15 +942,10 @@ class MMSWindow {
 
         	bool myclass::mycallbackmethod(MMSWindow *win, MMSInputEvent *inputevent);
 
-        	Parameters:
+        	\param win			is the pointer to the window
+       		\param inputevent	the input event
 
-        		win -> is the pointer to the window
-
-        		inputevent -> the input event
-
-        	Returns:
-
-        		callback should return true if the input was handled, else false
+        	\return callback should return true if the input was handled, else false
 
         To connect your callback to onHandleInput do this:
 
@@ -861,6 +963,36 @@ class MMSWindow {
             You HAVE TO call the disconnect() method of sigc::connection explicitly. The destructor will NOT do this!!!
         */
         sigc::signal<bool, MMSWindow*, MMSInputEvent*>::accumulated<neg_bool_accumulator> *onHandleInput;
+
+        //! Set one or more callbacks for the onBeforeHandleInput event.
+        /*!
+        The connected callbacks will be called if an input event was raised, before any standard operation took place
+
+        A callback method must be defined like this:
+
+        	bool myclass::mycallbackmethod(MMSWindow *win, MMSInputEvent *inputevent);
+
+        	\param win			is the pointer to the window
+       		\param inputevent	the input event
+
+        	\return callback should return true if the input was handled, else false
+
+        To connect your callback to onHandleInput do this:
+
+            sigc::connection connection;
+            connection = mywindow->onHandleInput->connect(sigc::mem_fun(myobject,&myclass::mycallbackmethod));
+
+        To disconnect your callback do this:
+
+            connection.disconnect();
+
+        Please note:
+
+            You HAVE TO disconnect myobject from onHandleInput BEFORE myobject will be deleted!!!
+            Else an abnormal program termination can occur.
+            You HAVE TO call the disconnect() method of sigc::connection explicitly. The destructor will NOT do this!!!
+        */
+        sigc::signal<bool, MMSWindow*, MMSInputEvent*>::accumulated<neg_bool_accumulator> *onBeforeHandleInput;
 
 
     public:
@@ -1080,6 +1212,26 @@ class MMSWindow {
         */
         bool getStaticZOrder(bool &staticzorder);
 
+    	//! Detect if the window will be permanently displayed at the top of the window stack.
+        /*!
+        \param alwaysontop	returns the always on top flag
+        \return true, if value is successfully returned
+        */
+        bool getAlwaysOnTop(bool &alwaysontop);
+
+    	//! Detect if the window can be focused.
+        /*!
+        \param focusable	returns the focusable flag
+        \return true, if value is successfully returned
+        */
+        bool getFocusable(bool &focusable);
+
+    	//! Detect if the window has an backbuffer.
+        /*!
+        \param backbuffer	returns the backbuffer flag
+        \return true, if value is successfully returned
+        */
+        bool getBackBuffer(bool &backbuffer);
 
         //! Get the color of the window border.
         /*!
@@ -1342,6 +1494,24 @@ class MMSWindow {
         */
         void setStaticZOrder(bool staticzorder);
 
+        //! Set the always on top flag of the window.
+        /*!
+        \param alwaysontop	if true, the window will be permanently displayed at the top of the window stack
+        */
+        void setAlwaysOnTop(bool alwaysontop);
+
+        //! Set the focusable flag of the window.
+        /*!
+        \param focusable	if true, the window will can get the focus
+        */
+        void setFocusable(bool focusable);
+
+        //! Set the backbuffer flag of the window.
+        /*!
+        \param backbuffer	if true, the window surface has a front and a backbuffer
+        */
+        void setBackBuffer(bool backbuffer);
+
         //! Set the color of the window border.
         /*!
         \param color	the border color
@@ -1406,7 +1576,8 @@ class MMSWindow {
         */
         void updateFromThemeClass(MMSWindowClass *themeClass);
 
-    /* friends */
+    // friends
+	friend class MMSWindowManager;
     friend class MMSInputManager;
     friend class MMSWindowAction;
     friend class MMSMainWindow;

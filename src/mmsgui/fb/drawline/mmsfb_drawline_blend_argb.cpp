@@ -57,11 +57,11 @@
 	    	| ((b >> 8) ? 0xff 		 :  b); \
 	    dst[x+y*dst_pitch_pix] = d; } }
 
-void mmsfb_drawline_blend_argb(unsigned int *dst, int dst_pitch, int dst_height,
+void mmsfb_drawline_blend_argb(MMSFBSurfacePlanes *dst_planes, int dst_height,
 						       MMSFBRegion &clipreg, int x1, int y1, int x2, int y2, MMSFBColor &color) {
 	if (color.a == 0xff) {
 		// source pixel is not transparent
-		mmsfb_drawline_argb(dst, dst_pitch, dst_height, clipreg, x1, y1, x2, y2, color);
+		mmsfb_drawline_argb(dst_planes, dst_height, clipreg, x1, y1, x2, y2, color);
 		return;
 	}
 
@@ -75,6 +75,10 @@ void mmsfb_drawline_blend_argb(unsigned int *dst, int dst_pitch, int dst_height,
 	// return immediately if alpha channel of the color is 0x00
 	if (!color.a)
 		return;
+
+	// get the first destination ptr/pitch
+	unsigned int *dst = (unsigned int *)dst_planes->ptr;
+	int dst_pitch = dst_planes->pitch;
 
 	// prepare...
 	int dst_pitch_pix = dst_pitch >> 2;

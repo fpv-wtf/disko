@@ -86,6 +86,10 @@ MMSPluginData *MMSPluginService::getPluginByID(int id) {
     MMSPluginPropertyDAO myPropertyDAO(this->dbconn);
 
     MMSPluginData *plugin = myPluginDAO.findPluginByID(id);
+    if(!plugin) {
+    	return NULL;
+    }
+
 
     vector <MMSPropertyData *> properties;
     properties = myPropertyDAO.findAllPluginPropertiesByPlugin(plugin);
@@ -245,4 +249,20 @@ MMSPluginTypeData* MMSPluginService::getPluginTypeByName(string name) {
 vector<MMSPluginCategoryData*> MMSPluginService::getPluginCategories() {
     MMSPluginCategoryDAO categoryDAO(this->dbconn);
     return categoryDAO.findAllCategories();
+}
+
+void MMSPluginService::getSystemProperties(std::map<string,MMSPropertyData*> &result) {
+    MMSPluginDAO myPluginDAO(this->dbconn);
+    MMSPluginPropertyDAO myPropertyDAO(this->dbconn);
+    vector <MMSPropertyData *> properties;
+
+    MMSPluginData *plugin = myPluginDAO.findPluginByID(-2);
+    if(!plugin) {
+    	return;
+    }
+
+    properties = myPropertyDAO.findAllPluginPropertiesByPlugin(plugin);
+    for(vector <MMSPropertyData *>::iterator it = properties.begin(); it!= properties.end(); it++) {
+    	result.insert(std::make_pair(string((*it)->getParameter()),*it));
+    }
 }

@@ -44,6 +44,7 @@ MMSFBWindowManager::MMSFBWindowManager() {
     // init me
     this->layer = NULL;
     this->layer_surface = NULL;
+    this->dst_surface = NULL;
     this->layer_pixelformat = MMSFB_PF_NONE;
     this->high_freq_surface = NULL;
     this->high_freq_saved_surface = NULL;
@@ -69,6 +70,7 @@ MMSFBWindowManager::MMSFBWindowManager() {
     this->pointer_surface = NULL;
     this->pointer_opacity = 0;
     this->button_pressed = false;
+    this->pointer_fadecnt = 0;
 }
 
 MMSFBWindowManager::~MMSFBWindowManager() {
@@ -104,6 +106,7 @@ bool MMSFBWindowManager::init(MMSFBLayer *layer, bool show_pointer) {
     // get the surface of the layer
     if (!this->layer->getSurface(&this->layer_surface))
         return false;
+    this->dst_surface = this->layer_surface;
 
     // get the pixelformat of the layer surface
     if (!this->layer_surface->getPixelFormat(&this->layer_pixelformat))
@@ -120,19 +123,30 @@ bool MMSFBWindowManager::init(MMSFBLayer *layer, bool show_pointer) {
 
     // use taff?
 	this->usetaff = false;
-    if (this->pixelformat == MMSFB_PF_ARGB) {
+    switch (this->pixelformat) {
+    case MMSFB_PF_ARGB:
     	this->usetaff = true;
     	this->taffpf = MMSTAFF_PF_ARGB;
-    }
-    else
-    if (this->pixelformat == MMSFB_PF_AiRGB) {
+    	break;
+    case MMSFB_PF_AiRGB:
     	this->usetaff = true;
     	this->taffpf = MMSTAFF_PF_AiRGB;
-    }
-    else
-    if (this->pixelformat == MMSFB_PF_AYUV) {
+    	break;
+    case MMSFB_PF_AYUV:
     	this->usetaff = true;
     	this->taffpf = MMSTAFF_PF_AYUV;
+    	break;
+    case MMSFB_PF_ARGB4444:
+    	this->usetaff = true;
+    	this->taffpf = MMSTAFF_PF_ARGB4444;
+    	break;
+    case MMSFB_PF_RGB16:
+    	// if running in RGB16 mode, we use an ARGB surface for the mouse pointer
+    	this->usetaff = true;
+    	this->taffpf = MMSTAFF_PF_ARGB;
+    	break;
+    default:
+    	break;
     }
 
     return true;
@@ -378,9 +392,24 @@ bool MMSFBWindowManager::loadWindowConfig(MMSFBWindow *window, VISIBLE_WINDOWS *
 		sr.y1 += vwin->vrect.y;
 		sr.x2 = sr.x1 + vwin->vrect.w - 1;
 		sr.y2 = sr.y1 + vwin->vrect.h - 1;
-		if ((sr.x1 >= vwin->region.x1)&&(sr.y1 >= vwin->region.y1)&&(sr.x2 <= vwin->region.x2)&&(sr.y2 <= vwin->region.y2)) {
+		if (sr.x1 < vwin->region.x1)
+			sr.x1 = vwin->region.x1;
+		if (sr.y1 < vwin->region.y1)
+			sr.y1 = vwin->region.y1;
+		if (sr.x2 > vwin->region.x2)
+			sr.x2 = vwin->region.x2;
+		if (sr.y2 > vwin->region.y2)
+			sr.y2 = vwin->region.y2;
+		if ((sr.x1 <= vwin->region.x2)&&(sr.y1 <= vwin->region.y2)&&(sr.x2 >= vwin->region.x1)&&(sr.y2 >= vwin->region.y1)) {
 			// adjusted region okay, set it
 			vwin->region = sr;
+		}
+		else {
+			// window is outside it's visible region
+			vwin->region.x1 = 0;
+			vwin->region.y1 = 0;
+			vwin->region.x2 = -1;
+			vwin->region.y2 = -1;
 		}
     }
     vwin->alphachannel = winconf.surface_config.surface_buffer->alphachannel;
@@ -563,7 +592,7 @@ bool MMSFBWindowManager::flipSurface(MMSFBSurface *surface, MMSFBRegion *region,
 					ls_region.y1 = 0;
 				}
 				int ls_w, ls_h;
-				if (this->layer_surface->getSize(&ls_w, &ls_h)) {
+				if (this->dst_surface->getSize(&ls_w, &ls_h)) {
 					if (ls_region.x2 >= ls_w)
 						ls_region.x2 = ls_w - 1;
 					if (ls_region.y2 >= ls_h)
@@ -610,26 +639,6 @@ bool MMSFBWindowManager::flipSurface(MMSFBSurface *surface, MMSFBRegion *region,
         if (vw->saved_surface) {
             /* save the frames if window works direct on the layer surface */
             if (vw->lastflip % 1000 < 40) {
-/*
-logger.writeLog("AAA>");
-
-void        *  ret_ptr_src;
-int            ret_pitch_src;
-void        *  ret_ptr_dst;
-int            ret_pitch_dst;
-
-vw->saved_surface->getDFBSurface()->Lock (vw->saved_surface->getDFBSurface(),
-                                          DSLF_WRITE, &ret_ptr_dst, &ret_pitch_dst);
-this->layer_surface->getDFBSurface()->Lock (this->layer_surface->getDFBSurface(),
-                                          DSLF_WRITE, &ret_ptr_src, &ret_pitch_src);
-
-memcpy(ret_ptr_dst, ret_ptr_src, ret_pitch_src * 576);
-
-vw->saved_surface->getDFBSurface()->Unlock (vw->saved_surface->getDFBSurface());
-this->layer_surface->getDFBSurface()->Unlock (this->layer_surface->getDFBSurface());
-
-logger.writeLog("BBB>");
-*/
             }
         }
 
@@ -674,7 +683,7 @@ logger.writeLog("BBB>");
     }
 
     // set the region of the layer surface
-    this->layer_surface->setClip(&ls_region);
+    this->dst_surface->setClip(&ls_region);
 
     // check if i have to clear the background
     if (!vw)
@@ -734,32 +743,32 @@ logger.writeLog("BBB>");
             }
 
             // set the blitting flags and color
-            if ((aw->alphachannel)&&((win_found)||(!this->layer_surface->config.surface_buffer->alphachannel))) {
+            if ((aw->alphachannel)&&((win_found)||(!this->dst_surface->config.surface_buffer->alphachannel))) {
             	// the window has an alphachannel
                 if (aw->opacity < 255) {
-                    this->layer_surface->setBlittingFlags((MMSFBBlittingFlags) (MMSFB_BLIT_BLEND_ALPHACHANNEL|MMSFB_BLIT_BLEND_COLORALPHA));
-                    this->layer_surface->setColor(0, 0, 0, aw->opacity);
+                    this->dst_surface->setBlittingFlags((MMSFBBlittingFlags) (MMSFB_BLIT_BLEND_ALPHACHANNEL|MMSFB_BLIT_BLEND_COLORALPHA));
+                    this->dst_surface->setColor(0, 0, 0, aw->opacity);
                 }
                 else {
-                    this->layer_surface->setBlittingFlags((MMSFBBlittingFlags) MMSFB_BLIT_BLEND_ALPHACHANNEL);
+                    this->dst_surface->setBlittingFlags((MMSFBBlittingFlags) MMSFB_BLIT_BLEND_ALPHACHANNEL);
                 }
 
                 // first window?
                 if (!win_found) {
                 	// yes, clear the layer before blitting the first window surface
                     if (cleared)
-                   		this->layer_surface->clear();
+                   		this->dst_surface->clear();
                 	win_found = true;
                 }
             }
             else {
             	// the window has no alphachannel
                 if (aw->opacity < 255) {
-                    this->layer_surface->setBlittingFlags((MMSFBBlittingFlags) MMSFB_BLIT_BLEND_COLORALPHA);
-                    this->layer_surface->setColor(0, 0, 0, aw->opacity);
+                    this->dst_surface->setBlittingFlags((MMSFBBlittingFlags) MMSFB_BLIT_BLEND_COLORALPHA);
+                    this->dst_surface->setColor(0, 0, 0, aw->opacity);
                 }
                 else {
-                    this->layer_surface->setBlittingFlags((MMSFBBlittingFlags) MMSFB_BLIT_NOFX);
+                    this->dst_surface->setBlittingFlags((MMSFBBlittingFlags) MMSFB_BLIT_NOFX);
                 }
 
                 // first window?
@@ -770,7 +779,7 @@ logger.writeLog("BBB>");
                     if (cleared)
                     	if ((aw->opacity < 255)||((dst_x != ls_region.x1) || (dst_y != ls_region.y1)
                     	 || (dst_x + src_rect.w <= ls_region.x2) || (dst_y + src_rect.h <= ls_region.y2))) {
-                    		this->layer_surface->clear();
+                    		this->dst_surface->clear();
                     	}
 
                 	win_found = true;
@@ -780,11 +789,11 @@ logger.writeLog("BBB>");
             // check if layer surface and blit
             if (aw->islayersurface) {
                 if (aw->saved_surface) {
-                    this->layer_surface->blit(aw->saved_surface, &src_rect, dst_x, dst_y);
+                    this->dst_surface->blit(aw->saved_surface, &src_rect, dst_x, dst_y);
                 }
             }
             else {
-				this->layer_surface->blit(aw->surface, &src_rect, dst_x, dst_y);
+				this->dst_surface->blit(aw->surface, &src_rect, dst_x, dst_y);
             }
         }
     }
@@ -792,22 +801,18 @@ logger.writeLog("BBB>");
     if (!win_found) {
         // if no window is drawn, check if we have to clear the layer region
 	    if (cleared)
-	        this->layer_surface->clear();
+	        this->dst_surface->clear();
     }
 
     // draw the pointer
     drawPointer(&ls_region);
 
-/*if (ls_region.x1==52)
-	this->layer_surface->clear();
-if (ls_region.x1==366)
-	this->layer_surface->clear();*/
 	// reset the clip
-    this->layer_surface->setClip(NULL);
+    this->dst_surface->setClip(NULL);
 
     // make changes visible
     if (refresh)
-    	this->layer_surface->flip(&ls_region);
+    	this->dst_surface->flip(&ls_region);
 
 
     // unlock
@@ -845,13 +850,25 @@ bool MMSFBWindowManager::setWindowOpacity(MMSFBWindow *window) {
     return false;
 }
 
-bool MMSFBWindowManager::setWindowPosition(MMSFBWindow *window) {
+bool MMSFBWindowManager::setWindowPosition(MMSFBWindow *window, MMSFBRectangle *vrect) {
 
     /* check if initialized */
     INITCHECK;
 
     /* stop parallel processing */
     lock.lock();
+
+	// change visible rectangle and position in one step?
+    if (vrect) {
+    	// yes, change visible rectangle
+        for (unsigned int i=0; i < this->windows.size(); i++) {
+            if (this->windows.at(i).window == window) {
+    			// set rect
+            	this->windows.at(i).vrect = *vrect;
+                break;
+            }
+        }
+    }
 
     /* search for item */
     for (unsigned int i=0; i < this->vwins.size(); i++)
@@ -1058,6 +1075,74 @@ bool MMSFBWindowManager::setWindowVisibleRectangle(MMSFBWindow *window, MMSFBRec
     return ret;
 }
 
+bool MMSFBWindowManager::getWindowVisibleRectangle(MMSFBWindow *window, MMSFBRectangle *rect) {
+	bool ret = false;
+
+    // check if initialized
+    INITCHECK;
+
+    // stop parallel processing
+    lock.lock();
+
+    // search for item in available list
+    for (unsigned int i=0; i < this->windows.size(); i++)
+        if (this->windows.at(i).window == window) {
+			// set rect
+        	if (rect) *rect = this->windows.at(i).vrect;
+        	if ((this->windows.at(i).vrect.w > 0)&&(this->windows.at(i).vrect.h > 0))
+        		ret = true;
+            break;
+        }
+
+    lock.unlock();
+    return ret;
+}
+
+bool MMSFBWindowManager::getScreenshot(MMSFBWindow *window) {
+	bool ret = false;
+
+    // check if initialized
+    INITCHECK;
+
+    // stop parallel processing
+    lock.lock();
+
+    // search for item in available list
+    for (unsigned int i=0; i < this->windows.size(); i++)
+        if (this->windows.at(i).window == window) {
+        	// window found, hide the window if shown
+        	bool shown = window->isShown();
+        	window->hide();
+
+        	// switch the dst_surface
+        	MMSFBSurface *saved_suf = this->dst_surface;
+        	if (window->getSurface(&this->dst_surface)) {
+				// draw the complete screen to the surface of the window
+        		MMSFBRegion region;
+        		this->dst_surface->getSize(&region.x2, &region.y2);
+        		region.x1 = 0;
+        		region.y1 = 0;
+        		region.x2-= 1;
+        		region.y2-= 1;
+				flipSurface(NULL, &region, true, false);
+        	}
+
+        	// restore the dst_surface
+        	this->dst_surface = saved_suf;
+
+        	// show the window again
+        	if (shown)
+        		window->show();
+
+        	ret = true;
+            break;
+        }
+
+    lock.unlock();
+    return ret;
+}
+
+
 void MMSFBWindowManager::setPointerPosition(int pointer_posx, int pointer_posy, bool pressed) {
 	// changed?
 	if (this->button_pressed == pressed)
@@ -1111,6 +1196,7 @@ void MMSFBWindowManager::setPointerPosition(int pointer_posx, int pointer_posy, 
 
 	// set opacity
     this->pointer_opacity = 255;
+	this->pointer_fadecnt = 0;
 
 	// check if i have to flip one or two regions
 	if   ((old_region.x1 > this->pointer_region.x2)
@@ -1356,7 +1442,29 @@ unsigned char MMSFBWindowManager::getPointerOpacity() {
 }
 
 void MMSFBWindowManager::setPointerOpacity(unsigned char opacity) {
+	// set it
 	this->pointer_opacity = opacity;
+	this->pointer_fadecnt = 0;
 	flipSurface(NULL, &this->pointer_region, false);
+}
+
+void MMSFBWindowManager::fadePointer() {
+	if (!this->button_pressed) {
+		if (this->pointer_opacity > 0) {
+			if (this->pointer_fadecnt == 0)
+				this->pointer_fadecnt = 1;
+			else
+				this->pointer_fadecnt*= 3;
+
+			if (this->pointer_fadecnt >= 3) {
+				// set it
+				if (this->pointer_opacity > this->pointer_fadecnt / 3)
+					this->pointer_opacity-= this->pointer_fadecnt / 3;
+				else
+					this->pointer_opacity = 0;
+				flipSurface(NULL, &this->pointer_region, false);
+			}
+		}
+	}
 }
 

@@ -34,24 +34,30 @@
 #include "mmsgui/mmssliderwidget.h"
 #include <string.h>
 
+#define MMSMENUWIDGET_ANIM_MAX_OFFSET 20
 
 MMSMenuWidget::MMSMenuWidget(MMSWindow *root, string className, MMSTheme *theme) : MMSWidget::MMSWidget() {
-    /* initialize the callbacks */
+    // initialize the callbacks
     onSelectItem = new sigc::signal<void, MMSWidget*>;
     onBeforeScroll = new sigc::signal<void, MMSWidget*>;
+
+    // initialize the animation callbacks
+    this->onBeforeAnimation_connection	= this->pulser.onBeforeAnimation.connect(sigc::mem_fun(this, &MMSMenuWidget::onBeforeAnimation));
+    this->onAnimation_connection		= this->pulser.onAnimation.connect(sigc::mem_fun(this, &MMSMenuWidget::onAnimation));
+    this->onAfterAnimation_connection	= this->pulser.onAfterAnimation.connect(sigc::mem_fun(this, &MMSMenuWidget::onAfterAnimation));
 
     create(root, className, theme);
 }
 
 MMSMenuWidget::~MMSMenuWidget() {
-    /* delete the callbacks */
+    // delete the callbacks
     if (onSelectItem) delete onSelectItem;
     if (onBeforeScroll) delete onBeforeScroll;
 
-    // delete images
-    if (this->rootwindow) {
-        this->rootwindow->im->releaseImage(this->selimage);
-    }
+    // disconnect callbacks from pulser
+    this->onBeforeAnimation_connection.disconnect();
+    this->onAnimation_connection.disconnect();
+    this->onAfterAnimation_connection.disconnect();
 
     if (this->itemTemplate)
         delete this->itemTemplate;
@@ -130,6 +136,59 @@ MMSWidget *MMSMenuWidget::copyWidget() {
     }
 
     return newWidget;
+}
+
+bool MMSMenuWidget::init() {
+    // init widget basics
+    if (!MMSWidget::init())
+        return false;
+
+    // load my images
+    string path, name;
+    if (!getSelImagePath(path)) path = "";
+    if (!getSelImageName(name)) name = "";
+    this->selimage = this->rootwindow->im->getImage(path, name);
+
+    return true;
+}
+
+bool MMSMenuWidget::release() {
+    // release widget basics
+    if (!MMSWidget::release())
+        return false;
+
+    // release my images
+	this->rootwindow->im->releaseImage(this->selimage);
+	this->selimage = NULL;
+
+    return true;
+}
+
+bool MMSMenuWidget::draw(bool *backgroundFilled) {
+
+    bool myBackgroundFilled = false;
+
+    if (backgroundFilled) {
+    	if (this->has_own_surface)
+    		*backgroundFilled = false;
+    }
+    else
+        backgroundFilled = &myBackgroundFilled;
+
+    /* lock */
+    this->surface->lock();
+
+    /* draw widget basics */
+    if (MMSWidget::draw(backgroundFilled)) {
+        /* update window surface with an area of surface */
+        updateWindowSurfaceWithSurface(!*backgroundFilled);
+    }
+
+    /* unlock */
+    this->surface->unlock();
+
+    /* draw widgets debug frame */
+    return MMSWidget::drawDebug();
 }
 
 
@@ -1005,7 +1064,7 @@ void MMSMenuWidget::initParentWindow(void) {
 	if (pw!="") {
 		MMSWindow *p = this->rootwindow->getParent(true);
 		if (p)
-			this->parent_window = p->searchForWindow(pw);
+			this->parent_window = p->findWindow(pw);
 	}
 	if (!this->parent_window)
 		this->parent_window = this->rootwindow;
@@ -1128,13 +1187,13 @@ bool MMSMenuWidget::switchToSubMenu() {
 	if (!sm->window) {
 		MMSWindow *p = this->parent_window->getParent();
 		if (!p) return false;
-		sm->window=p->searchForWindow(sm->name);
+		sm->window=p->findWindow(sm->name);
 	}
 	if (!sm->window) return false;
 
 	// get access to the menu widget of the submenu window
 	if (!sm->menu) {
-		sm->menu = (MMSMenuWidget *)sm->window->searchForWidgetType(MMSWIDGETTYPE_MENU);
+		sm->menu = (MMSMenuWidget *)sm->window->findWidgetType(MMSWIDGETTYPE_MENU);
 		if (!sm->menu) return false;
 	}
 
@@ -1732,6 +1791,35 @@ bool MMSMenuWidget::scrollUpEx(unsigned int count, bool refresh, bool test, bool
 }
 
 
+bool MMSMenuWidget::onBeforeAnimation(MMSPulser *pulser) {
+	this->scrolling_offset=0;
+	this->anim_width = getItemHMargin() * 2 + this->item_w;
+	return true;
+}
+
+bool MMSMenuWidget::onAnimation(MMSPulser *pulser) {
+
+	// next offset
+	switch (this->pulser_mode) {
+	case MMSMENUWIDGET_PULSER_MODE_SCROLL_LEFT:
+		scrolling_offset = (int)(((this->anim_width * pulser->getOffset()) / MMSMENUWIDGET_ANIM_MAX_OFFSET) + 0.5);
+		break;
+	case MMSMENUWIDGET_PULSER_MODE_SCROLL_RIGHT:
+		scrolling_offset = -(int)(((this->anim_width * pulser->getOffset()) / MMSMENUWIDGET_ANIM_MAX_OFFSET) + 0.5);
+		break;
+	}
+
+	// update screen
+	this->refresh();
+
+	return true;
+}
+
+void MMSMenuWidget::onAfterAnimation(MMSPulser *pulser) {
+	this->scrolling_offset=0;
+	return;
+}
+
 bool MMSMenuWidget::scrollRightEx(unsigned int count, bool refresh, bool test, bool leave_selection) {
     bool pxChanged = false;
     int oldx;
@@ -1948,44 +2036,19 @@ bool MMSMenuWidget::scrollRightEx(unsigned int count, bool refresh, bool test, b
     else {
         /* menu with fixed selection */
         if (cols > 1) {
-            /* in test mode we can say that we can scroll */
+            // in test mode we can say that we can scroll
             if (test)
                 return true;
 
-            /* callback */
+            // callback
             this->onBeforeScroll->emit(this);
 
             if ((smooth_scrolling)&&(refresh)) {
-           	 //scrolling animation, smooth scrolling
-				int sloop;
-				MMSMENUWIDGET_GET_SLOOP(sloop);
-				int soffs = (getItemHMargin()*2 + this->item_w) / sloop;
-				scrolling_offset=0;
-				for (int z = 0; z < sloop - 1; z++) {
-					// this first sleep is needed for continuous scrolling
-					MMSMENUWIDGET_SSLEEP;
-
-					// next offset
-			        scrolling_offset-=soffs;
-
-			        // get start timestamp if needed
-			        MMSMENUWIDGET_GET_SSTART;
-
-			        // update screen
-			        this->refresh();
-
-			        // get end timestamp if needed
-			        MMSMENUWIDGET_GET_SEND;
-				}
-
-				// calc the arithmetic mean?
-				MMSMENUWIDGET_CALC_DELAY;
-
-				// last sleep
-				MMSMENUWIDGET_SSLEEP;
-
-				// reset offset
-				scrolling_offset=0;
+            	// do the animation
+            	this->pulser.setStepsPerSecond(MMSMENUWIDGET_ANIM_MAX_OFFSET * 5);
+				this->pulser.setMaxOffset(MMSMENUWIDGET_ANIM_MAX_OFFSET, MMSPULSER_SEQ_LOG_SOFT_START_AND_END);
+            	this->pulser_mode = MMSMENUWIDGET_PULSER_MODE_SCROLL_RIGHT;
+            	this->pulser.start(false);
             }
 
 			/* correct menu with more than one column */
@@ -2214,7 +2277,7 @@ bool MMSMenuWidget::scrollLeftEx(unsigned int count, bool refresh, bool test, bo
     else {
         /* menu with fixed selection */
         if (cols > 1) {
-            /* in test mode we can say that we can scroll */
+            // in test mode we can say that we can scroll
             if (test)
                 return true;
 
@@ -2222,37 +2285,13 @@ bool MMSMenuWidget::scrollLeftEx(unsigned int count, bool refresh, bool test, bo
             this->onBeforeScroll->emit(this);
 
             if ((smooth_scrolling)&&(refresh)) {
-            	// selection animation, smooth scrolling
-				int sloop;
-				MMSMENUWIDGET_GET_SLOOP(sloop);
-				int soffs = (getItemHMargin()*2 + this->item_w) / sloop;
-				scrolling_offset=0;
-				for (int z = 0; z < sloop - 1; z++) {
-					// this first sleep is needed for continuous scrolling
-					MMSMENUWIDGET_SSLEEP;
-
-					// next offset
-			        scrolling_offset+=soffs;
-
-			        // get start timestamp if needed
-			        MMSMENUWIDGET_GET_SSTART;
-
-			        // update screen
-			        this->refresh();
-
-			        // get end timestamp if needed
-			        MMSMENUWIDGET_GET_SEND;
-				}
-
-				// calc the arithmetic mean?
-				MMSMENUWIDGET_CALC_DELAY;
-
-				// last sleep
-				MMSMENUWIDGET_SSLEEP;
-
-				// reset offset
-				scrolling_offset=0;
+            	// do the animation
+            	this->pulser.setStepsPerSecond(MMSMENUWIDGET_ANIM_MAX_OFFSET * 5);
+				this->pulser.setMaxOffset(MMSMENUWIDGET_ANIM_MAX_OFFSET, MMSPULSER_SEQ_LOG_SOFT_START_AND_END);
+            	this->pulser_mode = MMSMENUWIDGET_PULSER_MODE_SCROLL_LEFT;
+            	this->pulser.start(false);
             }
+
 
 			/* correct menu with more than one column */
             count%=cols;
@@ -2802,46 +2841,6 @@ unsigned int MMSMenuWidget::getHItems() {
 }
 
 
-
-bool MMSMenuWidget::init() {
-    /* init widget basics */
-    if (!MMSWidget::init())
-        return false;
-
-    string path, name;
-    if (!getSelImagePath(path)) path = "";
-    if (!getSelImageName(name)) name = "";
-    this->selimage = this->rootwindow->im->getImage(path, name);
-
-    return true;
-}
-
-bool MMSMenuWidget::draw(bool *backgroundFilled) {
-
-    bool myBackgroundFilled = false;
-
-    if (backgroundFilled) {
-    	if (this->has_own_surface)
-    		*backgroundFilled = false;
-    }
-    else
-        backgroundFilled = &myBackgroundFilled;
-
-    /* lock */
-    this->surface->lock();
-
-    /* draw widget basics */
-    if (MMSWidget::draw(backgroundFilled)) {
-        /* update window surface with an area of surface */
-        updateWindowSurfaceWithSurface(!*backgroundFilled);
-    }
-
-    /* unlock */
-    this->surface->unlock();
-
-    /* draw widgets debug frame */
-    return MMSWidget::drawDebug();
-}
 
 bool MMSMenuWidget::setSubMenuName(unsigned int item, const char *name) {
 	if (item >= this->iteminfos.size()) return false;

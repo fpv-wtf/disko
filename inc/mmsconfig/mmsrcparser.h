@@ -59,18 +59,27 @@ class MMSRcParser {
     	void throughLanguage(xmlNode* node);
     	void throughFile(xmlNode* node);
 
-    	/* helper */
+    	void updateConfigParms(MMSConfigData *config, char *ap);
 
 	public:
 		MMSRcParser();
 		~MMSRcParser();
 
 		void parseFile(string filename);
-		void getMMSRc(MMSConfigDataGlobal 	**global,
-			          MMSConfigDataDB     	**configdb,
-			          MMSConfigDataDB     	**datadb,
-			          MMSConfigDataGraphics	**graphics,
-			          MMSConfigDataLanguage **language);
+
+		void getMMSRc(MMSConfigDataGlobal 	**global   = NULL,
+			          MMSConfigDataDB     	**configdb = NULL,
+			          MMSConfigDataDB     	**datadb   = NULL,
+			          MMSConfigDataGraphics	**graphics = NULL,
+			          MMSConfigDataLanguage **language = NULL);
+
+		void getMMSRc(MMSConfigDataGlobal 	*global   = NULL,
+			          MMSConfigDataDB     	*configdb = NULL,
+			          MMSConfigDataDB     	*datadb   = NULL,
+			          MMSConfigDataGraphics	*graphics = NULL,
+			          MMSConfigDataLanguage *language = NULL);
+
+		void updateConfig(MMSConfigData *config, string args, int argc = 0, char *argv[] = NULL);
 };
 
 MMS_CREATEERROR(MMSRcParserError);

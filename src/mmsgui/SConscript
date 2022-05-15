@@ -20,4 +20,7 @@ for header in headerFiles:
 share = Glob(env['TOP_DIR'] + '/share/mmsgui/*')
 env.Install(idir_data + '/mmsgui', share)
 
+share = Glob(env['TOP_DIR'] + '/share/themes/*')
+env.Install(idir_data + '/themes', share)
+
 env['diskoSources'].append(sourceFiles)

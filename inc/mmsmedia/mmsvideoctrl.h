@@ -44,9 +44,12 @@
  *
  * @ingroup     mmsmedia
  *
+ * @author      Stefan Schwarzer (stefan.schwarzer@diskohq.org)
+ * @author      Matthias Hardt (matthias.hardt@diskohq.org)
  * @author      Jens Schneider (pupeider@gmx.de)
- * @version     1.5.0
- * @date        12/31/2008
+ * @author      Guido Madaus (guido.madaus@diskohq.org)
+ * @author      Patrick Helterhoff (patrick.helterhoff@diskohq.org)
+ * @author		René Bählkow (rene.baehlkow@diskohq.org)
  *
  * This class controls global video output settings.
  */

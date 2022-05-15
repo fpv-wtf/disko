@@ -429,17 +429,31 @@ bool MMSFBWindow::getPosition(int *x, int *y) {
     return true;
 }
 
-bool MMSFBWindow::moveTo(int x, int y) {
+bool MMSFBWindow::moveTo(int x, int y, bool move_vrect) {
 
-    /* check if initialized */
+    // check if initialized
     INITCHECK;
 
-    /* save the position */
+    // get visible rectangle
+    MMSFBRectangle vrect;
+    if (move_vrect) {
+		if (getVisibleRectangle(&vrect)) {
+			vrect.x+= this->config.posx - x;
+			vrect.y+= this->config.posy - y;
+		}
+		else
+			move_vrect = false;
+    }
+
+    // save the position
     this->config.posx = x;
     this->config.posy = y;
 
-    /* inform the window manager */
-    mmsfbwindowmanager->setWindowPosition(this);
+	// inform the window manager
+	if (move_vrect)
+		mmsfbwindowmanager->setWindowPosition(this, &vrect);
+	else
+		mmsfbwindowmanager->setWindowPosition(this);
 
     return true;
 }
@@ -496,6 +510,24 @@ bool MMSFBWindow::setVisibleRectangle(MMSFBRectangle *rect) {
 
     // inform the window manager
     return mmsfbwindowmanager->setWindowVisibleRectangle(this, rect);
+}
+
+bool MMSFBWindow::getVisibleRectangle(MMSFBRectangle *rect) {
+
+    // check if initialized
+    INITCHECK;
+
+    // get it from the window manager
+    return mmsfbwindowmanager->getWindowVisibleRectangle(this, rect);
+}
+
+bool MMSFBWindow::getScreenshot() {
+
+    // check if initialized
+    INITCHECK;
+
+    // get it from the window manager
+    return mmsfbwindowmanager->getScreenshot(this);
 }
 
 #endif

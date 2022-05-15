@@ -50,7 +50,6 @@ bool MMSXMLClientInterface::parseAnswer(string *answer, int *rc, string *error) 
     bool             ret = false;
     xmlDocPtr		 doc;
 
-    xmlInitParser();
     doc = xmlReadMemory(answer->c_str(),answer->length(),"memory.xml",NULL,0);
 
     if(!doc) {

@@ -34,6 +34,7 @@
 #define MMSTHEME_H_
 
 #include "mmstools/mmserror.h"
+#include "mmsgui/theme/mmsthemeclass.h"
 #include "mmsgui/theme/mmsdescriptionclass.h"
 #include "mmsgui/theme/mmstemplateclass.h"
 #include "mmsgui/theme/mmsmainwindowclass.h"
@@ -103,11 +104,23 @@ typedef enum {
 
 class MMSTheme {
     private:
-        string              path;       /* path to theme */
-        string              themeName;  /* name of the theme e.g. "default" */
-        string              themePath;  /* path to theme files */
-        string              themeFile;  /* complete name of the theme file */
-        MMSDescriptionClass description;/* description of the theme */
+    	//! path to the theme
+        string              path;
+
+        //! name of the theme e.g. "default"
+        string              themeName;
+
+        //! path to theme files
+        string              themePath;
+
+        //! complete name of the theme file
+        string              themeFile;
+
+        //! attributes of the mmstheme tag
+        MMSThemeClass 		theme_tag;
+
+        //! description of the theme
+        MMSDescriptionClass description;
 
         vector<MMSTemplateClass*>       	templateClasses;
         vector<MMSMainWindowClass*>     	mainWindowClasses;

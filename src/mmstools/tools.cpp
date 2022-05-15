@@ -33,7 +33,7 @@
 #include "mmstools/tools.h"
 #include "mmstools/mmsmutex.h"
 #include "mmsconfig/mmsconfigdata.h"
-#ifdef _XOPEN_SOURCE
+#ifdef __HAVE_WORDEXP__
 #include <wordexp.h>
 #endif
 #include <string.h>
@@ -54,7 +54,7 @@ static MMSMutex       debugMsgMutex;
 
 
 string substituteEnvVars(string input) {
-#ifdef _XOPEN_SOURCE
+#ifdef __HAVE_WORDEXP__
 	wordexp_t p;
     char **w;
     string output = "";
@@ -70,6 +70,7 @@ string substituteEnvVars(string input) {
     }
     return output;
 #else
+#warning "wordexp not found: substituteEnvVars() has no effect"
     return input;
 #endif
 }
@@ -86,18 +87,11 @@ string maskChars(string str) {
 }
 
 string *strToUpr(string *src) {
-    char *dest;
-    unsigned int i, len;
-    dest=strdup(src->c_str());
+    for(string::iterator i=src->begin(); i!= src->end(); i++) {
 
-    len = strlen(dest);
-    for(i=0; i<=len; i++) {
-
-    	if((dest[i] >= 'a') && (dest[i] <= 'z'))
-            dest[i]-=32;
+    	if((*i >= 'a') && (*i <= 'z'))
+            (*i)-=32;
     }
-    *src = dest;
-    free(dest);
 
     return src;
 }
@@ -314,7 +308,7 @@ int strToInt(string s) {
 }
 
 string iToStr(int i) {
-    char mychar[1024];
+    char mychar[24];
     string mystr;
 
     sprintf(mychar,"%d",i);
@@ -322,6 +316,7 @@ string iToStr(int i) {
     return mystr;
 }
 
+/* ToDo: get the maximum number of digits for this */
 string fToStr(double i) {
     char mychar[1024];
     string mystr;
@@ -517,7 +512,7 @@ bool strToBool(string s) {
 		return false;
 }
 
-void executeCmd(string cmd) {
+void executeCmd(string cmd, pid_t *cpid) {
 	pid_t pid;
 	int i,y;
 	int argc;
@@ -577,8 +572,12 @@ void executeCmd(string cmd) {
 
 	pid = fork();
 		if(pid!=-1) {
-		if(pid>0)
+		if(pid>0) {
+		    if (cpid) {
+		      (*cpid) = pid;
+		    }
 			return;
+		}
 		if(pid==0) {
 			unsetenv("LD_PRELOAD");
 			execvp(argv[0],argv);
@@ -723,25 +722,7 @@ unsigned int getMDiff(unsigned int start_ts, unsigned int end_ts) {
 	return diff;
 }
 
-MMS_LANGUAGE_TYPE strToLang(const char *value) {
-	if(strncasecmp(value,"de",3)==0) {
-		return MMSLANG_DE;
-	}
-	if(strncasecmp(value,"msg",3)==0) {
-		return MMSLANG_MSG;
-	}
-	if(strncasecmp(value,"en",3)==0) {
-		return MMSLANG_EN;
-	}
-
-	return MMSLANG_UKN;
-}
-
-string langToStr(MMS_LANGUAGE_TYPE lang) {
-	switch(lang) {
-		case MMSLANG_DE: return "de";
-		case MMSLANG_EN: return "en";
-		case MMSLANG_MSG: return "msg";
-		default: return "ukn";
-	}
+int64_t timespecDiff(struct timespec *timeA, struct timespec *timeB) {
+  return ((timeA->tv_sec * 1000000000) + timeA->tv_nsec) -
+           ((timeB->tv_sec * 1000000000) + timeB->tv_nsec);
 }

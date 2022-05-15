@@ -40,15 +40,6 @@ MMSSliderWidget::~MMSSliderWidget() {
 	// delete the callbacks
     if (this->onSliderIncrement) delete this->onSliderIncrement;
     if (this->onSliderDecrement) delete this->onSliderDecrement;
-
-    if (this->rootwindow) {
-        this->rootwindow->im->releaseImage(this->image);
-        this->rootwindow->im->releaseImage(this->selimage);
-        this->rootwindow->im->releaseImage(this->image_p);
-        this->rootwindow->im->releaseImage(this->selimage_p);
-        this->rootwindow->im->releaseImage(this->image_i);
-        this->rootwindow->im->releaseImage(this->selimage_i);
-    }
 }
 
 bool MMSSliderWidget::create(MMSWindow *root, string className, MMSTheme *theme) {
@@ -62,7 +53,7 @@ bool MMSSliderWidget::create(MMSWindow *root, string className, MMSTheme *theme)
     this->da->baseWidgetClass = &(this->da->theme->sliderWidgetClass.widgetClass);
     if (this->sliderWidgetClass) this->da->widgetClass = &(this->sliderWidgetClass->widgetClass); else this->da->widgetClass = NULL;
 
-    /* clear */
+    // clear
     this->image = NULL;
     this->selimage = NULL;
     this->image_p = NULL;
@@ -70,11 +61,11 @@ bool MMSSliderWidget::create(MMSWindow *root, string className, MMSTheme *theme)
     this->image_i = NULL;
     this->selimage_i = NULL;
 
-    /* initialize the callbacks */
+    // initialize the callbacks
     this->onSliderIncrement = new sigc::signal<bool, MMSWidget*>::accumulated<neg_bool_accumulator>;
     this->onSliderDecrement = new sigc::signal<bool, MMSWidget*>::accumulated<neg_bool_accumulator>;
 
-    /* create widget base */
+    // create widget base
     return MMSWidget::create(root, true, false, false, true, true, true, true);
 }
 
@@ -112,17 +103,39 @@ MMSWidget *MMSSliderWidget::copyWidget() {
 }
 
 bool MMSSliderWidget::init() {
-    /* init widget basics */
+    // init widget basics
     if (!MMSWidget::init())
         return false;
 
-    /* load images */
+    // load images
     this->image = this->rootwindow->im->getImage(getImagePath(), getImageName());
     this->selimage = this->rootwindow->im->getImage(getSelImagePath(), getSelImageName());
     this->image_p = this->rootwindow->im->getImage(getImagePath_p(), getImageName_p());
     this->selimage_p = this->rootwindow->im->getImage(getSelImagePath_p(), getSelImageName_p());
     this->image_i = this->rootwindow->im->getImage(getImagePath_i(), getImageName_i());
     this->selimage_i = this->rootwindow->im->getImage(getSelImagePath_i(), getSelImageName_i());
+
+    return true;
+}
+
+bool MMSSliderWidget::release() {
+    // release widget basics
+    if (!MMSWidget::release())
+        return false;
+
+    // release my images
+    this->rootwindow->im->releaseImage(this->image);
+    this->image = NULL;
+    this->rootwindow->im->releaseImage(this->selimage);
+    this->selimage = NULL;
+    this->rootwindow->im->releaseImage(this->image_p);
+    this->image_p = NULL;
+    this->rootwindow->im->releaseImage(this->selimage_p);
+    this->selimage_p = NULL;
+    this->rootwindow->im->releaseImage(this->image_i);
+    this->image_i = NULL;
+    this->rootwindow->im->releaseImage(this->selimage_i);
+    this->selimage_i = NULL;
 
     return true;
 }

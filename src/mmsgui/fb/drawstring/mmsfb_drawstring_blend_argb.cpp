@@ -33,7 +33,7 @@
 #include "mmsgui/fb/mmsfbconv.h"
 #include "mmstools/mmstools.h"
 
-void mmsfb_drawstring_blend_argb(MMSFBFont *font, void *dst_ptr, int dst_pitch,
+void mmsfb_drawstring_blend_argb(MMSFBSurfacePlanes *dst_planes, MMSFBFont *font,
 								 MMSFBRegion &clipreg, string &text, int len, int x, int y, MMSFBColor &color) {
 	// first time?
 	static bool firsttime = true;
@@ -41,6 +41,10 @@ void mmsfb_drawstring_blend_argb(MMSFBFont *font, void *dst_ptr, int dst_pitch,
 		printf("DISKO: Using blend text ARGB.\n");
 		firsttime = false;
 	}
+
+	// get the first destination ptr/pitch
+	void *dst_ptr = dst_planes->ptr;
+	int dst_pitch = dst_planes->pitch;
 
 	// lock font and destination surface
 	MMSFBSURFACE_BLIT_TEXT_INIT(2);

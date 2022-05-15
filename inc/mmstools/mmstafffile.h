@@ -56,7 +56,9 @@ typedef enum {
 	//! valid values: "-2147483648".."2147483647"
 	TAFF_ATTRTYPE_INT,
 	//! any binary data
-	TAFF_ATTRTYPE_BINDATA
+	TAFF_ATTRTYPE_BINDATA,
+	//! valid values: "true", "false", "auto"
+	TAFF_ATTRTYPE_STATE
 } TAFF_ATTRTYPE;
 
 //! Describe a TAFF attribute
@@ -117,7 +119,11 @@ typedef enum {
 	//! 32 bit ARGB (4 byte, inv. alpha 8\@24, red 8\@16, green 8\@8, blue 8\@0)
 	MMSTAFF_PF_AiRGB,
 	//! 32 bit AYUV (4 byte, alpha 8\@24, Y 8\@16, Cb 8\@8, Cr 8\@0)
-	MMSTAFF_PF_AYUV
+	MMSTAFF_PF_AYUV,
+    //! 16 bit ARGB (2 byte, alpha 4\@12, red 4\@8, green 4\@4, blue 4\@0)
+    MMSTAFF_PF_ARGB4444,
+    //! 16 bit RGB (2 byte, red 5\@11, green 6\@5, blue 5\@0)
+    MMSTAFF_PF_RGB16
 } MMSTAFF_PF;
 
 //! convert 4 bytes from byte stream to an 32 bit integer (needed especially by ARM)
@@ -187,6 +193,9 @@ class MMSTaffFile {
 
 		//! buffer postion of the current tag
 		int		current_tag_pos;
+
+        //! Internal method: Writes a buffer to a file.
+        bool writeBuffer(MMSFile *file, void *ptr, size_t *ritems, size_t size, size_t nitems, bool *write_status = NULL);
 
 		//! Internal method: Read a PNG Image.
 		bool readPNG(const char *filename, void **buf, int *width, int *height, int *pitch, int *size);

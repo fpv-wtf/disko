@@ -36,7 +36,6 @@
 MMSTheme *globalTheme = new MMSTheme();
 
 
-TAFF_ATTRDESC MMSGUI_MMSTHEME_ATTR_I[]			= MMSGUI_MMSTHEME_ATTR_INIT;
 TAFF_ATTRDESC MMSGUI_MMSDIALOG_ATTR_I[]			= MMSGUI_MMSDIALOG_ATTR_INIT;
 TAFF_ATTRDESC MMSGUI_BASE_ATTR_I[]				= MMSGUI_BASE_ATTR_INIT;
 TAFF_ATTRDESC MMSGUI_NONE_ATTR_I[]              = {{ NULL, TAFF_ATTRTYPE_NONE }};
@@ -84,7 +83,7 @@ TAFF_TAGTABLE mmsgui_taff_tagtable[] = {
 	{	NULL, 			NULL, 	NULL,			NULL							}
 };
 
-TAFF_DESCRIPTION mmsgui_taff_description = { "mmsgui", 10, mmsgui_taff_tagtable };
+TAFF_DESCRIPTION mmsgui_taff_description = { "mmsgui", 15, mmsgui_taff_tagtable };
 
 
 
@@ -451,6 +450,9 @@ MMSTheme::MMSTheme() {
         this->mainWindowClass.windowClass.setMoveOut(MMSDIRECTION_NOTSET);
         this->mainWindowClass.windowClass.setModal(false);
         this->mainWindowClass.windowClass.setStaticZOrder(false);
+        this->mainWindowClass.windowClass.setAlwaysOnTop(false);
+        this->mainWindowClass.windowClass.setFocusable(true);
+        this->mainWindowClass.windowClass.setBackBuffer(false);
 
         /* base window border settings */
         this->mainWindowClass.windowClass.border.setColor(color);
@@ -493,6 +495,9 @@ MMSTheme::MMSTheme() {
         this->popupWindowClass.windowClass.setMoveOut(MMSDIRECTION_NOTSET);
         this->popupWindowClass.windowClass.setModal(false);
         this->popupWindowClass.windowClass.setStaticZOrder(false);
+        this->popupWindowClass.windowClass.setAlwaysOnTop(false);
+        this->popupWindowClass.windowClass.setFocusable(false);
+        this->popupWindowClass.windowClass.setBackBuffer(false);
 
         /* base window border settings */
         this->popupWindowClass.windowClass.border.setColor(color);
@@ -538,6 +543,9 @@ MMSTheme::MMSTheme() {
         this->rootWindowClass.windowClass.setMoveOut(MMSDIRECTION_NOTSET);
         this->rootWindowClass.windowClass.setModal(false);
         this->rootWindowClass.windowClass.setStaticZOrder(false);
+        this->rootWindowClass.windowClass.setAlwaysOnTop(false);
+        this->rootWindowClass.windowClass.setFocusable(true);
+        this->rootWindowClass.windowClass.setBackBuffer(false);
 
         /* base window border settings */
         this->rootWindowClass.windowClass.border.setColor(color);
@@ -580,6 +588,9 @@ MMSTheme::MMSTheme() {
         this->childWindowClass.windowClass.setMoveOut(MMSDIRECTION_NOTSET);
         this->childWindowClass.windowClass.setModal(false);
         this->childWindowClass.windowClass.setStaticZOrder(false);
+        this->childWindowClass.windowClass.setAlwaysOnTop(false);
+        this->childWindowClass.windowClass.setFocusable(true);
+        this->childWindowClass.windowClass.setBackBuffer(false);
 
         /* base window border settings */
         this->childWindowClass.windowClass.border.setColor(color);
@@ -1032,6 +1043,8 @@ MMSTheme::MMSTheme() {
         this->textBoxWidgetClass.setSelColor(c);
         this->textBoxWidgetClass.setText("");
         this->textBoxWidgetClass.setTranslate(true);
+        this->textBoxWidgetClass.setFilePath("");
+        this->textBoxWidgetClass.setFileName("");
     }
 
     /* MMSArrowWidget */
@@ -1231,7 +1244,7 @@ MMSTheme::MMSTheme() {
         this->inputWidgetClass.widgetClass.border.setMargin(0);
         this->inputWidgetClass.widgetClass.border.setRCorners(false);
 
-        /* label settings */
+        /* input settings */
         this->inputWidgetClass.setFontPath("./themes/default");
         this->inputWidgetClass.setFontName("decker.ttf");
         this->inputWidgetClass.setFontSize(16);
@@ -1248,6 +1261,7 @@ MMSTheme::MMSTheme() {
         c.b = 255;
         this->inputWidgetClass.setSelColor(c);
         this->inputWidgetClass.setText("");
+        this->inputWidgetClass.setCursorState(MMSSTATE_AUTO);
     }
 
 

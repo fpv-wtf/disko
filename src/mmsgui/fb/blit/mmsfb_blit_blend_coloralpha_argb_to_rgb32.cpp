@@ -96,7 +96,7 @@ void mmsfb_blit_blend_coloralpha_argb_to_rgb32(MMSFBSurfacePlanes *src_planes, i
 			// load pixel from memory and check if the previous pixel is the same
 			register unsigned int SRC = *src;
 
-			// is the source alpha channel 0x00 or 0xff?
+			// is the source alpha channel != 0x00?
 			register unsigned int A = SRC >> 24;
 			if (A) {
 				// source alpha is > 0x00 and <= 0xff

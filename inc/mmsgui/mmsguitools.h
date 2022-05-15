@@ -49,8 +49,12 @@ typedef enum {
 typedef struct {
 	MMSINPUTEVENTTYPE		type;
 	MMSKeySymbol			key;
-	int		    			posx;
-	int						posy;
+	short	    			posx;
+	short					posy;
+	short					dx;
+	short					dy;
+	short					absx;
+	short					absy;
 } MMSInputEvent;
 
 
@@ -71,8 +75,6 @@ typedef struct {
 \return true if input is correct and retpix is filled
 */
 bool getPixelFromSizeHint(int *retpix, string hint, int maxpixel, int secondaxis);
-
-bool getColorFromString(string input, MMSFBColor *color);
 
 #ifdef  __HAVE_DIRECTFB__
 bool loadImage(IDirectFBImageProvider **image, string path, string filename);

@@ -33,6 +33,8 @@
 #ifndef MMSGUI_H_
 #define MMSGUI_H_
 
+#include "mmsgui/3d/mms3dspace.h"
+
 #include "mmsgui/mmsimagemanager.h"
 #include "mmsgui/theme/mmstheme.h"
 #include "mmsgui/theme/mmsthememanager.h"
@@ -43,6 +45,6 @@
 
 #include "mmsgui/mmswidgets.h"
 
-#include "mmsgui/additional/mmsfiledialog.h"
+#include "mmsgui/additional/mmsguicontrols.h"
 
 #endif /*MMSGUI_H_*/

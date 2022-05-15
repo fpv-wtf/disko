@@ -149,9 +149,18 @@ void MMSCheckBoxWidgetClass::unsetAll() {
     unsetChecked();
 }
 
-void MMSCheckBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path) {
+void MMSCheckBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path, bool reset_paths) {
     MMSFBColor color;
-    bool class_set = false;
+
+    if ((reset_paths)&&(path)&&(*path!="")) {
+    	// unset my paths
+	    unsetCheckedBgImagePath();
+	    unsetCheckedSelBgImagePath();
+	    unsetCheckedBgImagePath_p();
+	    unsetCheckedSelBgImagePath_p();
+	    unsetCheckedBgImagePath_i();
+	    unsetCheckedSelBgImagePath_i();
+    }
 
     if (!prefix) {
 		startTAFFScan
@@ -159,12 +168,11 @@ void MMSCheckBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *p
 	        switch (attrid) {
 			case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_class:
 	            setClassName(attrval_str);
-	            class_set = true;
 				break;
 			case MMSGUI_CHECKBOXWIDGET_ATTR::MMSGUI_CHECKBOXWIDGET_ATTR_IDS_checked_bgcolor:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isCheckedBgColor()) getCheckedBgColor(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setCheckedBgColor(color);
 	            break;
 			case MMSGUI_CHECKBOXWIDGET_ATTR::MMSGUI_CHECKBOXWIDGET_ATTR_IDS_checked_bgcolor_a:
@@ -194,7 +202,7 @@ void MMSCheckBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *p
 			case MMSGUI_CHECKBOXWIDGET_ATTR::MMSGUI_CHECKBOXWIDGET_ATTR_IDS_checked_selbgcolor:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isCheckedSelBgColor()) getCheckedSelBgColor(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setCheckedSelBgColor(color);
 	            break;
 			case MMSGUI_CHECKBOXWIDGET_ATTR::MMSGUI_CHECKBOXWIDGET_ATTR_IDS_checked_selbgcolor_a:
@@ -224,7 +232,7 @@ void MMSCheckBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *p
 			case MMSGUI_CHECKBOXWIDGET_ATTR::MMSGUI_CHECKBOXWIDGET_ATTR_IDS_checked_bgcolor_p:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isCheckedBgColor_p()) getCheckedBgColor_p(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setCheckedBgColor_p(color);
 	            break;
 			case MMSGUI_CHECKBOXWIDGET_ATTR::MMSGUI_CHECKBOXWIDGET_ATTR_IDS_checked_bgcolor_p_a:
@@ -254,7 +262,7 @@ void MMSCheckBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *p
 			case MMSGUI_CHECKBOXWIDGET_ATTR::MMSGUI_CHECKBOXWIDGET_ATTR_IDS_checked_selbgcolor_p:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isCheckedSelBgColor_p()) getCheckedSelBgColor_p(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setCheckedSelBgColor_p(color);
 	            break;
 			case MMSGUI_CHECKBOXWIDGET_ATTR::MMSGUI_CHECKBOXWIDGET_ATTR_IDS_checked_selbgcolor_p_a:
@@ -284,7 +292,7 @@ void MMSCheckBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *p
 			case MMSGUI_CHECKBOXWIDGET_ATTR::MMSGUI_CHECKBOXWIDGET_ATTR_IDS_checked_bgcolor_i:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isCheckedBgColor_i()) getCheckedBgColor_i(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setCheckedBgColor_i(color);
 	            break;
 			case MMSGUI_CHECKBOXWIDGET_ATTR::MMSGUI_CHECKBOXWIDGET_ATTR_IDS_checked_bgcolor_i_a:
@@ -314,7 +322,7 @@ void MMSCheckBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *p
 			case MMSGUI_CHECKBOXWIDGET_ATTR::MMSGUI_CHECKBOXWIDGET_ATTR_IDS_checked_selbgcolor_i:
 				color.a = color.r = color.g = color.b = 0;
 	            if (isCheckedSelBgColor_i()) getCheckedSelBgColor_i(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setCheckedSelBgColor_i(color);
 	            break;
 			case MMSGUI_CHECKBOXWIDGET_ATTR::MMSGUI_CHECKBOXWIDGET_ATTR_IDS_checked_selbgcolor_i_a:
@@ -460,7 +468,7 @@ void MMSCheckBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *p
             if (ISATTRNAME(checked_bgcolor)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isCheckedBgColor()) getCheckedBgColor(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setCheckedBgColor(color);
             }
             else
@@ -495,7 +503,7 @@ void MMSCheckBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *p
             if (ISATTRNAME(checked_selbgcolor)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isCheckedSelBgColor()) getCheckedSelBgColor(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setCheckedSelBgColor(color);
             }
             else
@@ -530,7 +538,7 @@ void MMSCheckBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *p
             if (ISATTRNAME(checked_bgcolor_p)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isCheckedBgColor_p()) getCheckedBgColor_p(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setCheckedBgColor_p(color);
             }
             else
@@ -565,7 +573,7 @@ void MMSCheckBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *p
             if (ISATTRNAME(checked_selbgcolor_p)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isCheckedSelBgColor_p()) getCheckedSelBgColor_p(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setCheckedSelBgColor_p(color);
             }
             else
@@ -600,7 +608,7 @@ void MMSCheckBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *p
             if (ISATTRNAME(checked_bgcolor_i)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isCheckedBgColor_i()) getCheckedBgColor_i(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setCheckedBgColor_i(color);
             }
             else
@@ -635,7 +643,7 @@ void MMSCheckBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *p
             if (ISATTRNAME(checked_selbgcolor_i)) {
 				color.a = color.r = color.g = color.b = 0;
 	            if (isCheckedSelBgColor_i()) getCheckedSelBgColor_i(color);
-	            if (getColorFromString(attrval_str, &color))
+	            if (getMMSFBColorFromString(attrval_str, &color))
 	                setCheckedSelBgColor_i(color);
             }
             else
@@ -788,7 +796,8 @@ void MMSCheckBoxWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *p
     	endTAFFScan_WITHOUT_ID
     }
 
-    if ((!class_set)&&(path)&&(*path!="")) {
+    if ((reset_paths)&&(path)&&(*path!="")) {
+    	// set my paths
 		if (!isCheckedBgImagePath())
 		    setCheckedBgImagePath(*path);
 		if (!isCheckedSelBgImagePath())

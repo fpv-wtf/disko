@@ -33,8 +33,8 @@
 #include "mmsgui/fb/mmsfbconv.h"
 #include "mmstools/mmstools.h"
 
-void mmsfb_stretchblit_blend_argb_to_argb(MMSFBExternalSurfaceBuffer *extbuf, int src_height, int sx, int sy, int sw, int sh,
-										  unsigned int *dst, int dst_pitch, int dst_height, int dx, int dy, int dw, int dh) {
+void mmsfb_stretchblit_blend_argb_to_argb(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+										  MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy, int dw, int dh) {
 	// first time?
 	static bool firsttime = true;
 	if (firsttime) {
@@ -43,8 +43,12 @@ void mmsfb_stretchblit_blend_argb_to_argb(MMSFBExternalSurfaceBuffer *extbuf, in
 	}
 
 	// get the first source ptr/pitch
-	unsigned int *src = (unsigned int *)extbuf->ptr;
-	int src_pitch = extbuf->pitch;
+	unsigned int *src = (unsigned int *)src_planes->ptr;
+	int src_pitch = src_planes->pitch;
+
+	// get the first destination ptr/pitch
+	unsigned int *dst = (unsigned int *)dst_planes->ptr;
+	int dst_pitch = dst_planes->pitch;
 
 	// prepare...
 	int  src_pitch_pix = src_pitch >> 2;
@@ -156,13 +160,13 @@ void mmsfb_stretchblit_blend_argb_to_argb(MMSFBExternalSurfaceBuffer *extbuf, in
 				}
 				src-=sw;
 				vertcnt-=0x10000;
-				dst = old_dst +  dst_pitch/4;
+				dst = old_dst + dst_pitch_pix;
 				old_dst = dst;
 			} while (vertcnt & 0xffff0000);
 		}
 
 		// next line
-		src+=src_pitch/4;
+		src+=src_pitch_pix;
 	}
 }
 

@@ -60,6 +60,9 @@ MMSWindowClass::MMSWindowClass() {
     initMoveOut();
     initModal();
     initStaticZOrder();
+    initAlwaysOnTop();
+    initFocusable();
+    initBackBuffer();
 }
 
 MMSWindowClass::~MMSWindowClass() {
@@ -89,6 +92,9 @@ MMSWindowClass::~MMSWindowClass() {
     freeMoveOut();
     freeModal();
     freeStaticZOrder();
+    freeAlwaysOnTop();
+    freeFocusable();
+    freeBackBuffer();
 }
 
 MMSWindowClass &MMSWindowClass::operator=(const MMSWindowClass &c) {
@@ -158,18 +164,22 @@ void MMSWindowClass::unsetAll() {
     unsetMoveOut();
     unsetModal();
     unsetStaticZOrder();
+    unsetAlwaysOnTop();
+    unsetFocusable();
+    unsetBackBuffer();
 }
 
-void MMSWindowClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *path) {
+void MMSWindowClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *path, bool reset_paths) {
     MMSFBColor color;
-    bool class_set = false;
+
+    if ((reset_paths)&&(path)&&(*path!="")) {
+    	// unset my paths
+    	unsetBgImagePath();
+    }
 
 	startTAFFScan
 	{
         switch (attrid) {
-		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_class:
-            class_set = true;
-			break;
 		case MMSGUI_WINDOW_ATTR::MMSGUI_WINDOW_ATTR_IDS_alignment:
             setAlignment(getAlignmentFromString(attrval_str));
             break;
@@ -188,7 +198,7 @@ void MMSWindowClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *path) {
 		case MMSGUI_WINDOW_ATTR::MMSGUI_WINDOW_ATTR_IDS_bgcolor:
 			color.a = color.r = color.g = color.b = 0;
             if (isBgColor()) getBgColor(color);
-            if (getColorFromString(attrval_str, &color))
+            if (getMMSFBColorFromString(attrval_str, &color))
                 setBgColor(color);
             break;
 		case MMSGUI_WINDOW_ATTR::MMSGUI_WINDOW_ATTR_IDS_bgcolor_a:
@@ -285,11 +295,21 @@ void MMSWindowClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *path) {
 		case MMSGUI_WINDOW_ATTR::MMSGUI_WINDOW_ATTR_IDS_static_zorder:
             setStaticZOrder((attrval_int) ? true : false);
             break;
+		case MMSGUI_WINDOW_ATTR::MMSGUI_WINDOW_ATTR_IDS_always_on_top:
+            setAlwaysOnTop((attrval_int) ? true : false);
+            break;
+		case MMSGUI_WINDOW_ATTR::MMSGUI_WINDOW_ATTR_IDS_focusable:
+            setFocusable((attrval_int) ? true : false);
+            break;
+		case MMSGUI_WINDOW_ATTR::MMSGUI_WINDOW_ATTR_IDS_backbuffer:
+            setBackBuffer((attrval_int) ? true : false);
+            break;
 		}
 	}
 	endTAFFScan
 
-    if ((!class_set)&&(path)&&(*path!="")) {
+    if ((reset_paths)&&(path)&&(*path!="")) {
+    	// set my paths
     	if (!isBgImagePath())
     		setBgImagePath(*path);
     }
@@ -919,5 +939,77 @@ void MMSWindowClass::setStaticZOrder(bool staticzorder) {
 
 bool MMSWindowClass::getStaticZOrder(bool &staticzorder) {
 	MMSTHEMECLASS_GET_BASIC(staticzorder);
+}
+
+void MMSWindowClass::initAlwaysOnTop() {
+	MMSTHEMECLASS_INIT_BASIC(alwaysontop);
+}
+
+void MMSWindowClass::freeAlwaysOnTop() {
+	MMSTHEMECLASS_FREE_BASIC(alwaysontop);
+}
+
+bool MMSWindowClass::isAlwaysOnTop() {
+	MMSTHEMECLASS_ISSET(alwaysontop);
+}
+
+void MMSWindowClass::unsetAlwaysOnTop() {
+	MMSTHEMECLASS_UNSET(alwaysontop);
+}
+
+void MMSWindowClass::setAlwaysOnTop(bool alwaysontop) {
+	MMSTHEMECLASS_SET_BASIC(alwaysontop);
+}
+
+bool MMSWindowClass::getAlwaysOnTop(bool &alwaysontop) {
+	MMSTHEMECLASS_GET_BASIC(alwaysontop);
+}
+
+void MMSWindowClass::initFocusable() {
+	MMSTHEMECLASS_INIT_BASIC(focusable);
+}
+
+void MMSWindowClass::freeFocusable() {
+	MMSTHEMECLASS_FREE_BASIC(focusable);
+}
+
+bool MMSWindowClass::isFocusable() {
+	MMSTHEMECLASS_ISSET(focusable);
+}
+
+void MMSWindowClass::unsetFocusable() {
+	MMSTHEMECLASS_UNSET(focusable);
+}
+
+void MMSWindowClass::setFocusable(bool focusable) {
+	MMSTHEMECLASS_SET_BASIC(focusable);
+}
+
+bool MMSWindowClass::getFocusable(bool &focusable) {
+	MMSTHEMECLASS_GET_BASIC(focusable);
+}
+
+void MMSWindowClass::initBackBuffer() {
+	MMSTHEMECLASS_INIT_BASIC(backbuffer);
+}
+
+void MMSWindowClass::freeBackBuffer() {
+	MMSTHEMECLASS_FREE_BASIC(backbuffer);
+}
+
+bool MMSWindowClass::isBackBuffer() {
+	MMSTHEMECLASS_ISSET(backbuffer);
+}
+
+void MMSWindowClass::unsetBackBuffer() {
+	MMSTHEMECLASS_UNSET(backbuffer);
+}
+
+void MMSWindowClass::setBackBuffer(bool backbuffer) {
+	MMSTHEMECLASS_SET_BASIC(backbuffer);
+}
+
+bool MMSWindowClass::getBackBuffer(bool &backbuffer) {
+	MMSTHEMECLASS_GET_BASIC(backbuffer);
 }
 

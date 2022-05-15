@@ -33,7 +33,10 @@
 #ifndef MMSINIT_H_
 #define MMSINIT_H_
 
+extern "C" {
 #include <stdlib.h>
+}
+
 #include <string>
 #include <mmsbase/interfaces/immsswitcher.h>
 
@@ -48,7 +51,7 @@ typedef int MMSINIT_FLAGS;
 #define MMSINIT_PLUGINMANAGER 	0x00000002
 //! initializing the event manager
 #define MMSINIT_EVENTS 			0x00000004
-//! initializing the graphic backends (x11/dfb)
+//! initializing the graphic backends (x11/dfb/fbdev/...)
 #define MMSINIT_GRAPHICS 		0x00000008
 //! initializing the input manager
 #define MMSINIT_INPUTS 			0x00000010

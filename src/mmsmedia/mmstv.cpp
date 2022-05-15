@@ -29,7 +29,7 @@
  *   Free Software Foundation, Inc.,                                       *
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA            *
  **************************************************************************/
-
+#include "disko.h"
 #include "mmsmedia/mmstv.h"
 #include <strings.h>
 
@@ -124,6 +124,10 @@ void MMSTV::xineOpen() {
  * @param   channel [in]    channel name to be played
  */
 void MMSTV::startPlaying(const string channel) {
+#ifdef __HAVE_XINE__
+  this->xineOpen();
+#endif
+
     if(strncasecmp(channel.c_str(), "OTH:",4)==0) {
     	FILE *fp;
     	fp=fopen(channel.c_str(),"r");
