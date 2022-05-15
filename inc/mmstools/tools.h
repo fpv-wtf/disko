@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -67,6 +67,18 @@
 #define MSG2OUT(ident, msg...) writeMessage2Stdout(ident, __FILE__, __LINE__, msg)
 
 
+#ifdef __ENABLE_DEBUG__
+#define WRITE_MSG(ident, msg...) printf("%s: ", ident);printf(msg);printf("\n");
+#define WRITE_MSGI(msg...) printf("%s: ", identity.c_str());printf(msg);printf("\n");
+#else
+#define WRITE_MSG(ident, msg...)
+#define WRITE_MSGI(msg...)
+#endif
+
+#define WRITE_ERR(ident, msg...) fprintf(stderr, "%s: ", ident);fprintf(stderr, msg);printf("\n");
+#define WRITE_ERRI(msg...) fprintf(stderr, "%s: ", identity.c_str());fprintf(stderr, msg);printf("\n");
+
+
 /**
  * substitutes environment variables in a string
  *
@@ -83,7 +95,13 @@ string *strToUpr(string *src);
 
 string strToUpr(string src);
 
+string *strToLwr(string *src);
+
+string strToLwr(string src);
+
 int hexToInt(const char *in);
+
+string ucharToHex(unsigned char in);
 
 bool getCurrentTimeBuffer(char *dtbuf, char *datebuf=NULL, char *timebuf=NULL,
                           time_t *clock=NULL);
@@ -143,5 +161,27 @@ unsigned int getMTimeStamp();
 unsigned int getMDiff(unsigned int start_ts, unsigned int end_ts);
 
 int64_t timespecDiff(struct timespec *timeA, struct timespec *timeB);
+
+
+
+void rotateUCharBuffer180(unsigned char *buffer, int pitch, int w, int h);
+void rotateUShortIntBuffer180(unsigned short int *buffer, int pitch, int w, int h);
+void rotateUIntBuffer180(unsigned int *buffer, int pitch, int w, int h);
+
+
+#ifdef __HAVE_BACKTRACE__
+void print_trace(char *prefix);
+#endif
+
+
+//! Convert a bidirectional string.
+/*!
+\param in_str	source string (UTF-8)
+\param out_str	destination string (UTF-8)
+\return true if successfully converted
+\note in_str and out_str can be the same
+*/
+bool convBidiString(const string &in_str, string &out_str);
+
 
 #endif /*TOOLS_H_*/

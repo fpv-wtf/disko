@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -40,7 +40,7 @@
 class MMSFBDevOmap : public MMSFBDev {
     private:
     	typedef struct {
-        	MMSFBDevOmap   			*fbdev;
+        	MMSFBDev   				*fbdev;
         	char					device[100];
         	int						width;
         	int						height;
@@ -48,16 +48,24 @@ class MMSFBDevOmap : public MMSFBDev {
         	int						backbuffer;
     	} MMSFBDevOmapLayer;
 
+    	int	console;
     	MMSFBDevOmapLayer	osd0;
     	MMSFBDevOmapLayer	vid;
     	MMSFBDevOmapLayer	osd1;
     	MMSFBDevOmapLayer	*primary;
 
+    	bool openDevice(int id);
+
+        bool onGenFBPixelFormatDev(MMSFBSurfacePixelFormat pf, unsigned int *nonstd_format, MMSFBPixelDef *pixeldef);
+        bool onDisableDev(int fd, string device_file);
+        bool onActivateDev(int fd, string device_file, struct fb_var_screeninfo *var_screeninfo,
+						   int width, int height, MMSFBSurfacePixelFormat pixelformat, bool switch_mode);
+
     public:
         MMSFBDevOmap();
         virtual ~MMSFBDevOmap();
 
-        bool openDevice(char *device_file = NULL, int console = -1);
+        bool openDevice(char *device_file = NULL, int console = MMSFBDEV_QUERY_CONSOLE);
         void closeDevice();
 
         bool waitForVSync();
@@ -68,8 +76,6 @@ class MMSFBDevOmap : public MMSFBDev {
 
         bool releaseLayer(int layer_id);
         bool restoreLayer(int layer_id);
-
-        bool setMode(int width, int height, MMSFBSurfacePixelFormat pixelformat, int backbuffer = 0);
 
     private:
 

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -105,6 +105,9 @@ class MMSFBWindowManager {
         MMSFBSurfacePixelFormat	pixelformat;	// pixelformat for all my images
         bool					usetaff;		// use the taff (image) format?
         MMSTAFF_PF				taffpf;			// pixelformat for the taff converter
+
+        //! set to true if disko is running in OpenGL mode (GL/GLES)
+        bool	ogl_mode;
 
         void lockWM();
         void unlockWM();

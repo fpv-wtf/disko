@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -31,6 +31,9 @@
  **************************************************************************/
 
 #include "mmsgui/fb/mmsfbconv.h"
+
+#ifdef __HAVE_PF_ARGB__
+
 #include "mmstools/mmstools.h"
 
 void mmsfb_fillrectangle_blend_argb(MMSFBSurfacePlanes *dst_planes, int dst_height,
@@ -66,19 +69,6 @@ void mmsfb_fillrectangle_blend_argb(MMSFBSurfacePlanes *dst_planes, int dst_heig
 			| (color.r << 16)
 			| (color.g << 8)
 			| color.b;
-
-	// set flags for dst_planes
-	switch (A) {
-	case 0xff:
-		// full opaque
-		dst_planes->opaque = true;
-		dst_planes->transparent = false;
-		break;
-	default:
-		// semitransparent, but leave opaque flag as is
-		dst_planes->transparent = false;
-		break;
-	}
 
 	if (color.a == 0xff) {
 		// source pixel is not transparent, copy it directly to the destination
@@ -160,4 +150,4 @@ void mmsfb_fillrectangle_blend_argb(MMSFBSurfacePlanes *dst_planes, int dst_heig
 	}
 }
 
-
+#endif

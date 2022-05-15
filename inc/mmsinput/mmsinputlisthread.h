@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -35,6 +35,13 @@
 
 #include "mmstools/mmstools.h"
 #include "mmsinput/mmsinputlishandler.h"
+#include <linux/keyboard.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/kd.h>
+#include <linux/vt.h>
+
+#include <linux/input.h>
 
 class MMSInputLISThread : public MMSThread {
 	private:
@@ -63,6 +70,7 @@ class MMSInputLISThread : public MMSThread {
 		bool button_pressed;
 		
 		int lastX, lastY;
+		struct input_event lastevent;
 
 		bool openDevice();
 		void closeDevice();

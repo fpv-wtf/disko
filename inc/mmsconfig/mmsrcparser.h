@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -55,7 +55,15 @@ class MMSRcParser {
     	void checkVersion(xmlNode* node);
     	void throughGlobal(xmlNode* node);
     	void throughDBSettings(xmlNode* node);
+
+    	void check_outputtype(MMSFBOutputType outputtype, xmlChar *parname, xmlChar *parvalue);
+    	void get_outputtype(THROUGH_GRAPHICS_MODE mode, xmlChar *parname, xmlChar *parvalue);
+    	void get_xres(THROUGH_GRAPHICS_MODE mode, xmlChar *parvalue);
+    	void get_yres(THROUGH_GRAPHICS_MODE mode, xmlChar *parvalue);
+    	void get_xpos(THROUGH_GRAPHICS_MODE mode, xmlChar *parvalue);
+    	void get_ypos(THROUGH_GRAPHICS_MODE mode, xmlChar *parvalue);
     	void throughGraphics(xmlNode* node, THROUGH_GRAPHICS_MODE mode = THROUGH_GRAPHICS_MODE_NORMAL);
+
     	void throughLanguage(xmlNode* node);
     	void throughFile(xmlNode* node);
 

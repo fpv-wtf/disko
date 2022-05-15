@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2010 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -38,26 +38,34 @@
 #include <string.h>
 #include <stdexcept>
 
-string MMSTranslator::source = "";
-string MMSTranslator::target = "";
+bool MMSTranslator::firsttime = true;
+MMSLanguage MMSTranslator::sourcelang = MMSLANG_NONE;
+MMSLanguage MMSTranslator::targetlang = MMSLANG_NONE;
 int MMSTranslator::sourceIdx = -1;
 int MMSTranslator::targetIdx = -1;
-MMSTRANSLATION_INDEX MMSTranslator::transIdx;
-MMSTRANSLATION_MAP MMSTranslator::transmap;
-MMSTRANSLATION_FILES MMSTranslator::files;
+MMSTranslator::MMSTRANSLATION_INDEX MMSTranslator::transIdx;
+MMSTranslator::MMSTRANSLATION_MAP MMSTranslator::transmap;
+MMSTranslator::MMSTRANSLATION_FILES MMSTranslator::files;
 
-sigc::signal<void, unsigned int>  MMSTranslator::onTargetLangChanged;
+sigc::signal<void, MMSLanguage>  MMSTranslator::onTargetLangChanged;
 bool MMSTranslator::addtranslations;
 
 MMSTranslator::MMSTranslator() {
-	if(this->source.empty()) {
+	if (this->firsttime) {
 		MMSConfigData config;
-		this->source = config.getSourceLang();
-		this->target = config.getDefaultTargetLang();
+		this->sourcelang = config.getSourceLang();
+		this->targetlang = config.getDefaultTargetLang();
 		this->addtranslations = config.getAddTranslations();
+		this->firsttime = false;
 	}
 
-	if(!this->source.empty() && !this->target.empty())
+/*
+QUESTION: sourcelang not used? why???
+	if (this->sourcelang != MMSLANG_NONE && this->targetlang != MMSLANG_NONE)
+		loadTranslations();
+*/
+
+	if (this->targetlang != MMSLANG_NONE)
 		loadTranslations();
 }
 
@@ -79,28 +87,31 @@ void MMSTranslator::loadTranslations() {
 		vector<MMSPluginData *> data = service.getAllPlugins();
 
 		for(vector<MMSPluginData *>::iterator it = data.begin();it!=data.end();it++) {
-			MMSFileSearch search((*it)->getPath(),"translation.??",false);
+			MMSFileSearch search((*it)->getPath(), "translation.??", true);
 			MMSFILEENTRY_LIST ret =  search.execute();
 			for(MMSFILEENTRY_LIST::iterator it2 = ret.begin(); it2 != ret.end();it2++) {
-				string filename = (*it)->getPath() + "/" + basename((*it2)->name.c_str());
-				processFile(filename);
+				processFile((*it2)->name);
 			}
 		}
-	} catch (MMSError *err) {
+	} catch (MMSError &err) {
 		DEBUGMSG("MMSTranslator", "No plugins database found for translation.");
 	}
 
-	MMSFileSearch search(config.getLanguagefileDir(),"translation.??",false);
+	MMSFileSearch search(config.getLanguagefileDir(), "translation.??", false);
 	MMSFILEENTRY_LIST ret =  search.execute();
 	for(MMSFILEENTRY_LIST::iterator it2 = ret.begin(); it2 != ret.end();it2++) {
 		processFile((*it2)->name);
 	}
 
-	this->sourceIdx = this->transIdx.find(this->source)->second;
-	this->targetIdx = this->transIdx.find(this->target)->second;
+//	this->sourceIdx = this->transIdx.find(this->sourcelang)->second;
+	this->targetIdx = this->transIdx.find(this->targetlang)->second;
 }
 
 void MMSTranslator::addMissing(const string &phrase, const bool completemiss) {
+	if(phrase.empty()) {
+		return;
+	}
+
 	size_t size = this->files.size();
 
 	if(completemiss) {
@@ -137,7 +148,7 @@ void MMSTranslator::addMissing(const string &phrase, const bool completemiss) {
 
 
 void MMSTranslator::translate(const string &source, string &dest) {
-	if(this->targetIdx == -1) {
+	if((this->targetIdx == -1) || source.empty()) {
 		dest = source;
 		return;
 	}
@@ -152,22 +163,34 @@ void MMSTranslator::translate(const string &source, string &dest) {
 		dest = it->second.at(this->targetIdx);
 		if(dest.empty()) {
 			dest = source;
-			if(this->addtranslations) {
-				addMissing(source);
-			}
 		}
 	}
+
+	size_t lookHere = 0;
+    size_t foundHere;
+    string from = "\\n";
+    string to = "\n";
+    while((foundHere = dest.find(from, lookHere)) != string::npos) {
+		dest.replace(foundHere, from.size(), to);
+		lookHere = foundHere + to.size();
+    }
+
 }
 
-bool MMSTranslator::setTargetLang(const string &countryCode) {
-	MMSTRANSLATION_INDEX::iterator it = this->transIdx.find(countryCode);
-	if(it == this->transIdx.end())
+bool MMSTranslator::setTargetLang(MMSLanguage lang) {
+	MMSTRANSLATION_INDEX::iterator it = this->transIdx.find(lang);
+	if (it == this->transIdx.end())
 		return false;
 
+	this->targetlang = lang;
 	this->targetIdx = it->second;
-	this->onTargetLangChanged.emit(this->targetIdx);
+	this->onTargetLangChanged.emit(this->targetlang);
 
 	return true;
+}
+
+MMSLanguage MMSTranslator::getTargetLang() {
+	return this->targetlang;
 }
 
 void MMSTranslator::processFile(const string &file) {
@@ -176,11 +199,12 @@ void MMSTranslator::processFile(const string &file) {
 	string from, to;
 	size_t idx;
 	string countryCode = file.substr(file.find("translation")+12);
+	MMSLanguage lang = getMMSLanguageFromString(strToUpr(countryCode));
 
-	MMSTRANSLATION_INDEX::iterator it = this->transIdx.find(countryCode);
+	MMSTRANSLATION_INDEX::iterator it = this->transIdx.find(lang);
 	if(it == this->transIdx.end()) {
 		idx = this->files.size();
-		this->transIdx[countryCode] = idx;
+		this->transIdx[lang] = idx;
 		this->files.push_back(file);
 		for(MMSTRANSLATION_MAP::iterator it = this->transmap.begin(); it != this->transmap.end(); ++it) {
 			it->second.resize(idx + 1, "");
@@ -199,7 +223,12 @@ void MMSTranslator::processFile(const string &file) {
 			if(f != this->transmap.end()) {
 				//already have the source
 				DEBUGMSG("MMSTranslator", "insert: '%s'", from.c_str());
-				f->second.at(idx) = to;
+				try {
+					f->second.at(idx) = to;
+				} catch(std::exception &ex) {
+					f->second.resize(idx + 1, "");
+					f->second.at(idx) = to;
+				}
 			} else {
 				DEBUGMSG("MMSTranslator", "fresh insert: '%s'", from.c_str());
 				vector<string> trans(idx + 1);

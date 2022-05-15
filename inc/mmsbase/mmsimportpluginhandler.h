@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -42,10 +42,10 @@
 
 MMS_CREATEERROR(MMSImportPluginError);
 
-
 class MMSImportPluginHandler {
     private:
         bool 				loaded;
+        bool				initialized;
         MMSPluginData 		plugindata;
         IMMSImportPlugin	*plugin;
         MMSShlHandler 		*handler;
@@ -63,6 +63,7 @@ class MMSImportPluginHandler {
         ~MMSImportPluginHandler();
 
         bool isLoaded();
+        bool isInitialized();
         void load();
         void unload();
         MMSPluginData getPluginData();

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -39,32 +39,32 @@
 namespace MMSGUI_CHECKBOXWIDGET_ATTR {
 
 	#define MMSGUI_CHECKBOXWIDGET_ATTR_ATTRDESC \
-	{ "checked_bgcolor", TAFF_ATTRTYPE_STRING }, \
+	{ "checked_bgcolor", TAFF_ATTRTYPE_COLOR }, \
 	{ "checked_bgcolor.a", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_bgcolor.r", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_bgcolor.g", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_bgcolor.b", TAFF_ATTRTYPE_UCHAR }, \
-	{ "checked_selbgcolor", TAFF_ATTRTYPE_STRING }, \
+	{ "checked_selbgcolor", TAFF_ATTRTYPE_COLOR }, \
 	{ "checked_selbgcolor.a", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_selbgcolor.r", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_selbgcolor.g", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_selbgcolor.b", TAFF_ATTRTYPE_UCHAR }, \
-	{ "checked_bgcolor_p", TAFF_ATTRTYPE_STRING }, \
+	{ "checked_bgcolor_p", TAFF_ATTRTYPE_COLOR }, \
 	{ "checked_bgcolor_p.a", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_bgcolor_p.r", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_bgcolor_p.g", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_bgcolor_p.b", TAFF_ATTRTYPE_UCHAR }, \
-	{ "checked_selbgcolor_p", TAFF_ATTRTYPE_STRING }, \
+	{ "checked_selbgcolor_p", TAFF_ATTRTYPE_COLOR }, \
 	{ "checked_selbgcolor_p.a", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_selbgcolor_p.r", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_selbgcolor_p.g", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_selbgcolor_p.b", TAFF_ATTRTYPE_UCHAR }, \
-	{ "checked_bgcolor_i", TAFF_ATTRTYPE_STRING }, \
+	{ "checked_bgcolor_i", TAFF_ATTRTYPE_COLOR }, \
 	{ "checked_bgcolor_i.a", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_bgcolor_i.r", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_bgcolor_i.g", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_bgcolor_i.b", TAFF_ATTRTYPE_UCHAR }, \
-	{ "checked_selbgcolor_i", TAFF_ATTRTYPE_STRING }, \
+	{ "checked_selbgcolor_i", TAFF_ATTRTYPE_COLOR }, \
 	{ "checked_selbgcolor_i.a", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_selbgcolor_i.r", TAFF_ATTRTYPE_UCHAR }, \
 	{ "checked_selbgcolor_i.g", TAFF_ATTRTYPE_UCHAR }, \

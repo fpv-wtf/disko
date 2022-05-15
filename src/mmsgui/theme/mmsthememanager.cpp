@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -32,8 +32,9 @@
 
 #include "mmsgui/theme/mmsthememanager.h"
 #include "mmsinfo/mmsinfo.h"
+#include "mmsconfig/mmsconfigdata.h"
 
-#define INITCHECK if (!this->initialized) throw new MMSThemeManagerError(1, "MMSThemeManager is not initialized!");
+#define INITCHECK if (!this->initialized) throw MMSThemeManagerError(1, "MMSThemeManager is not initialized!");
 
 // static variables
 bool								MMSThemeManager::initialized = false;
@@ -74,25 +75,25 @@ void MMSThemeManager::loadTheme(string path, string themeName, MMSTheme *theme) 
     //check for file
     if(!file_exist(themefile))
         if(!file_exist(themetafffile))
-        	throw new MMSThemeManagerError(1, "theme file (" + themefile + ") not found");
+        	throw MMSThemeManagerError(1, "theme file (" + themefile + ") not found");
 
     /* open the taff file */
 	MMSTaffFile *tafff = new MMSTaffFile(themetafffile, &mmsgui_taff_description,
 										 themefile, MMSTAFF_EXTERNAL_TYPE_XML);
 
 	if (!tafff)
-        throw new MMSThemeManagerError(1, "could not load theme file " + themefile);
+        throw MMSThemeManagerError(1, "could not load theme file " + themefile);
 
 	if (!tafff->isLoaded()) {
 		delete tafff;
-        throw new MMSThemeManagerError(1, "could not load theme file " + themefile);
+        throw MMSThemeManagerError(1, "could not load theme file " + themefile);
 	}
 
 	/* get root tag */
 	int tagid = tafff->getFirstTag();
 	if (tagid < 0) {
 		delete tafff;
-        throw new MMSThemeManagerError(1, "invalid taff file " + themetafffile);
+        throw MMSThemeManagerError(1, "invalid taff file " + themetafffile);
 	}
 
 	/* through the file */
@@ -112,7 +113,7 @@ void MMSThemeManager::loadGlobalTheme(string themeName) {
             // overload with special theme delivered with the disko framework
             loadTheme((string)getPrefix() + "/share/disko", themeName, globalTheme);
         }
-    } catch(MMSError *error) {}
+    } catch(MMSError &error) {}
 
     // load global default theme
     loadTheme("", DEFAULT_THEME, globalTheme);
@@ -142,7 +143,7 @@ void MMSThemeManager::loadLocalTheme(MMSTheme *theme, string path, string themeN
             // overload with special theme delivered with the disko framework
             loadTheme((string)getPrefix() + "/share/disko", themeName, theme);
         }
-    } catch(MMSError *error) {}
+    } catch(MMSError &error) {}
 
     // load global default theme
     loadTheme("", DEFAULT_THEME, theme);
@@ -176,7 +177,8 @@ MMSTheme *MMSThemeManager::loadLocalTheme(string path, string themeName) {
     }
 
 	// load new theme
-	MMSTheme *theme = new MMSTheme();
+	MMSConfigData config;
+	MMSTheme *theme = new MMSTheme(config.getInitialLoad(), config.getDebugFrames());
 	loadLocalTheme(theme, path, themeName);
 
 	// add theme to list

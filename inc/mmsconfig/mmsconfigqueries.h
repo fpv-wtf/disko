@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -38,8 +38,8 @@
 /* All queries used in the PluginDAO class                                              */
 /*                                                                                      */
 /****************************************************************************************/
-#define PLUGINDAO_SAVE(ID, Name, Title, Description, Filename, Path, Active, Icon, Icon_s, Icon_small, Icon_small_s, CategoryID, Orderpos) \
-        "insert into Plugins(PluginTypeID,PluginName,PluginTitle,PluginDescription,Filename,PluginPath,Active,Icon,SelectedIcon,SmallIcon,SmallSelectedIcon,CategoryID,Orderpos) values('" \
+#define PLUGINDAO_SAVE(ID, Name, Title, Description, Filename, Path, Active, Icon, Icon_s, Icon_small, Icon_small_s, CategoryID, Orderpos, Version) \
+        "insert into Plugins(PluginTypeID,PluginName,PluginTitle,PluginDescription,Filename,PluginPath,Active,Icon,SelectedIcon,SmallIcon,SmallSelectedIcon,CategoryID,Orderpos,Version) values('" \
         + ID + "','"          \
         + Name + "','"        \
         + Title + "','"       \
@@ -52,27 +52,29 @@
         + Icon_small + "','"  \
         + Icon_small_s + "','"  \
         + CategoryID + "','"  \
-        + Orderpos + "')"
+        + Orderpos + "','" \
+        + Version + "')"
 
-#define PLUGINDAO_UPDATE(Filename, Active, Description, CategoryID, Orderpos, ID) \
+#define PLUGINDAO_UPDATE(Filename, Active, Description, CategoryID, Orderpos, ID, Version) \
         "update Plugins set Filename='" + Filename + "',"   \
         + "Active='" + Active + "',"                        \
         + "PluginDescription='" + Description + "', " +      \
         + "CategoryID='" + CategoryID + "', " +      \
-        + "Orderpos='" + Orderpos + "' " +      \
+        + "Orderpos='" + Orderpos + "', " +      \
+        + "Version='" + Version + "' " + \
         "where ID = '" + ID + "'"
 
 #define PLUGINDAO_FIND_ALL_ACTIVE_PLUGINS \
-		"select Plug.ID, Plug.PluginName, Plug.PluginTitle, Plug.PluginDescription, Plug.Filename, Plug.PluginPath, Plug.Active, Plug.Icon, Plug.SelectedIcon, Plug.SmallIcon, Plug.SmallSelectedIcon, Plug.PluginTypeID, Plug.CategoryID, Plug.OrderPos, Cat.CategoryName, PlugType.PluginTypeName from Plugins Plug left join Category Cat ON Cat.ID = Plug.CategoryID left join PluginTypes PlugType ON PlugType.ID = Plug.PluginTypeID where Plug.Active = 'Y' and Plug.ID != -2"
+		"select Plug.*, Cat.CategoryName, PlugType.PluginTypeName from Plugins Plug left join Category Cat ON Cat.ID = Plug.CategoryID left join PluginTypes PlugType ON PlugType.ID = Plug.PluginTypeID where Plug.Active = 'Y' and Plug.ID != -2"
 
 #define PLUGINDAO_FIND_ALL_PLUGINS	 \
-	    "select Plug.ID, Plug.PluginName, Plug.PluginTitle, Plug.PluginDescription, Plug.Filename, Plug.PluginPath, Plug.Active, Plug.Icon, Plug.SelectedIcon, Plug.SmallIcon, Plug.SmallSelectedIcon, Plug.PluginTypeID, Plug.CategoryID, Plug.OrderPos, Cat.CategoryName, PlugType.PluginTypeName from Plugins Plug left join Category Cat ON Cat.ID = Plug.CategoryID left join PluginTypes PlugType ON PlugType.ID = Plug.PluginTypeID where Plug.ID != -2"
+	    "select Plug.*, Cat.CategoryName, PlugType.PluginTypeName from Plugins Plug left join Category Cat ON Cat.ID = Plug.CategoryID left join PluginTypes PlugType ON PlugType.ID = Plug.PluginTypeID where Plug.ID != -2"
 
 #define PLUGINDAO_F_PLUGIN_BY_NAME(Name) \
-	    "select Plug.ID, Plug.PluginName, Plug.PluginTitle, Plug.PluginDescription, Plug.Filename, Plug.PluginPath, Plug.Active, Plug.Icon, Plug.SelectedIcon, Plug.SmallIcon, Plug.SmallSelectedIcon, Plug.PluginTypeID, Plug.CategoryID, Plug.OrderPos, Cat.CategoryName, PlugType.PluginTypeName from Plugins Plug left join Category Cat ON Cat.ID = Plug.CategoryID left join PluginTypes PlugType ON PlugType.ID = Plug.PluginTypeID where Plug.PluginName = '" + Name + "';"
+	    "select Plug.*, Cat.CategoryName, PlugType.PluginTypeName from Plugins Plug left join Category Cat ON Cat.ID = Plug.CategoryID left join PluginTypes PlugType ON PlugType.ID = Plug.PluginTypeID where Plug.PluginName = '" + Name + "';"
 
 #define PLUGINDAO_F_PLUGIN_BY_ID(ID) \
-    	"select Plug.ID, Plug.PluginName, Plug.PluginTitle, Plug.PluginDescription, Plug.Filename, Plug.PluginPath, Plug.Active, Plug.Icon, Plug.SelectedIcon, Plug.SmallIcon, Plug.SmallSelectedIcon, Plug.PluginTypeID, Plug.CategoryID, Plug.OrderPos, Cat.CategoryName, PlugType.PluginTypeName from Plugins Plug left join Category Cat ON Cat.ID = Plug.CategoryID left join PluginTypes PlugType ON PlugType.ID = Plug.PluginTypeID where Plug.ID = " + ID
+    	"select Plug.*, Cat.CategoryName, PlugType.PluginTypeName from Plugins Plug left join Category Cat ON Cat.ID = Plug.CategoryID left join PluginTypes PlugType ON PlugType.ID = Plug.PluginTypeID where Plug.ID = " + ID
 
 #define PLUGINDAO_F_ACTIVE_PLUGINS_BY_CATEGORY(CATEGORY) \
 	    "select Plug.*,Cat.CategoryName,Types.PluginTypename from Plugins Plug left join Category Cat ON Cat.CategoryName ='" + CATEGORY + "' left join PluginTypes Types ON Types.ID = Plug.PluginTypeID WHERE Plug.CategoryID = Cat.ID and Plug.Active = 'Y'"

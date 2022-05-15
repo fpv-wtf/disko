@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -65,6 +65,7 @@ class MMSPluginData {
         MMSImportPropertyData       *importProperties;
         MMSPluginCategoryData       *category;
         int							orderpos;
+        string						version;
 
         void    setId(int id);
 
@@ -122,6 +123,9 @@ class MMSPluginData {
 
         int		getOrderpos();
         void    setOrderpos(int orderpos);
+
+        string	getVersion();
+        void	setVersion(string version);
 };
 
 #endif /*MMSPLUGINDATA_H_*/

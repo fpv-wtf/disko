@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -40,22 +40,37 @@
 class MMSFBManager {
 
     private:
-        MMSFBLayer          *graphicslayer;
-        MMSFBLayer          *videolayer;
-        int                 videolayerid;
-        int                 graphicslayerid;
-        MMSConfigData       config;
-        int                 layercount;
+        //! access to the config data
+        MMSConfigData	config;
+
+        //! have to open a virtual console?
+    	bool	virtual_console;
+
+        //! osd layer
+        MMSFBLayer	*graphicslayer;
+
+        //! video layer
+        MMSFBLayer	*videolayer;
+
+        //! number of layers
+        int	layercount;
+
+        //! id of the osd layer, in one layer mode it is equal to video layer id
+        int	graphicslayerid;
+
+        //! id of the video layer, in one layer mode it is equal to osd layer id
+        int	videolayerid;
 
     public:
-        /* constructor */
+        // constructor
         MMSFBManager();
 
-        /* destructor */
+        // destructor
         ~MMSFBManager();
 
         bool init(int argc, char **argv,
-				  string appl_name = "Disko Application", string appl_icon_name = "Disko Application");
+				  string appl_name = "Disko Application", string appl_icon_name = "Disko Application",
+				  bool virtual_console = true, bool flip_flush = false);
         void release();
 
         void applySettings();
@@ -65,7 +80,7 @@ class MMSFBManager {
         int getLayerCount();
 };
 
-/* access to global mmsfbmanager */
+// access to global mmsfbmanager
 extern MMSFBManager mmsfbmanager;
 
 #endif /*MMSFBMANAGER_H_*/

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -98,13 +98,13 @@ MMSSwitcher::MMSSwitcher(MMSPluginData *plugindata) :
 
         /* load switcher dialog */
         this->window = (MMSMainWindow*)dm.loadDialog(config.getData() + "/themes/" + config.getTheme() + "/switcher.xml");
-        if(!this->window) throw new MMSError(0, "Error loading switchers root window");
+        if(!this->window) throw MMSError(0, "Error loading switchers root window");
 
         /* get access to the menu bar */
         this->menuBar = (MMSChildWindow *)this->window->findWindow(SWITCHER_MENUBAR);
-        if(!this->menuBar) throw new MMSError(0, "Error loading switchers menuBar childwindow");
+        if(!this->menuBar) throw MMSError(0, "Error loading switchers menuBar childwindow");
         this->menu    = dynamic_cast<MMSMenuWidget*>(this->menuBar->findWidget(SWITCHER_MENU));
-        if(!this->menu) throw new MMSError(0, "Error loading switchers menu");
+        if(!this->menu) throw MMSError(0, "Error loading switchers menu");
 
         /* get access to the static menu bar */
         this->menuBar_static = (MMSChildWindow *)this->window->findWindow(SWITCHER_MENUBAR_STATIC);
@@ -115,57 +115,8 @@ MMSSwitcher::MMSSwitcher(MMSPluginData *plugindata) :
 
         /* fill the menu */
         MMSPluginService service(&source);
-        osdplugs = service.getOSDPlugins();
-        for(unsigned int i = 0; i < osdplugs.size();i++) {
-        	// new item
-            MMSWidget *pluginItem = this->menu->newItem();
-            if (!pluginItem) break;
-
-            // set plugin data to the item
-            DEBUGMSG("MMSSwitcher", osdplugs.at(i)->getName().c_str());
-            pluginItem->setBinData((void*)osdplugs.at(i));
-
-            // set values if widgets are defined
-            setMenuItemValues(pluginItem);
-
-
-        	// new static item
-            if (this->menu_static) {
-	            pluginItem = this->menu_static->newItem();
-	            if (pluginItem) {
-			        // set plugin data to the item
-			        pluginItem->setBinData((void*)osdplugs.at(i));
-
-			        // set values if widgets are defined
-			        setMenuItemValues(pluginItem);
-	            }
-            }
-        }
-        centralplugs = service.getCentralPlugins();
-        for(unsigned int i = 0; i < centralplugs.size();i++) {
-        	// new item
-            MMSWidget *pluginItem = menu->newItem();
-            if (!pluginItem) break;
-
-            // set plugin data to the item
-            DEBUGMSG("MMSSwitcher", centralplugs.at(i)->getName().c_str());
-            pluginItem->setBinData((void*)centralplugs.at(i));
-
-            // set values if widgets are defined
-            setMenuItemValues(pluginItem);
-
-        	// new static item
-            if (this->menu_static) {
-	            pluginItem = this->menu_static->newItem();
-	            if (pluginItem) {
-			        // set plugin data to the item
-			        pluginItem->setBinData((void*)centralplugs.at(i));
-
-			        // set values if widgets are defined
-			        setMenuItemValues(pluginItem);
-	            }
-            }
-        }
+        addPluginsToMenu(service.getOSDPlugins());
+        addPluginsToMenu(service.getCentralPlugins());
 
         /* show the menu bar */
         if (this->menuBar_static) {
@@ -191,11 +142,9 @@ MMSSwitcher::MMSSwitcher(MMSPluginData *plugindata) :
         this->switcherThread = new MMSSwitcherThread(this, NULL, NULL, NULL, NULL);
         this->switcherThread->start();
 
-    } catch(MMSError *error) {
-        DEBUGMSG("Switcher", "Abort due to: " + error->getMessage());
-        string msg = error->getMessage();
-        delete error;
-        throw new MMSError(0, msg);
+    } catch(MMSError &error) {
+        DEBUGMSG("Switcher", "Abort due to: " + error.getMessage());
+        throw error;
     }
 }
 
@@ -203,6 +152,35 @@ MMSSwitcher::~MMSSwitcher() {
 	DEBUGMSG("Switcher", "deletion");
     this->plugins.clear();
 	this->subscriptions.clear();
+}
+
+const void MMSSwitcher::addPluginsToMenu(const vector<MMSPluginData *> &plugins) {
+	vector<MMSPluginData*>::const_iterator i;
+	vector<MMSPluginData*>::const_iterator end = plugins.end();
+	for(i = plugins.begin(); i != end; ++i) {
+    	// new item
+        MMSWidget *pluginItem = this->menu->newItem();
+        if (!pluginItem) break;
+
+        // set plugin data to the item
+        DEBUGMSG("MMSSwitcher", (*i)->getName().c_str());
+        pluginItem->setBinData((void*)(*i));
+
+        // set values if widgets are defined
+        setMenuItemValues(pluginItem);
+
+    	// new static item
+        if (this->menu_static) {
+            pluginItem = this->menu_static->newItem();
+            if (pluginItem) {
+		        // set plugin data to the item
+		        pluginItem->setBinData((void*)(*i));
+
+		        // set values if widgets are defined
+		        setMenuItemValues(pluginItem);
+            }
+        }
+    }
 }
 
 void MMSSwitcher::setMenuItemValues(MMSWidget *item) {
@@ -226,7 +204,7 @@ void MMSSwitcher::setMenuItemValues(MMSWidget *item) {
 
         name = plugindata->getIcon();
 		if (!searchingForImage(plugindata->getPath(), name, &path))
-            if (path!="")
+            if (!path.empty())
             	pluginIcon->setImage(path, name);
             else
 				pluginIcon->setImageName(name);
@@ -235,7 +213,7 @@ void MMSSwitcher::setMenuItemValues(MMSWidget *item) {
 
         name = plugindata->getSelectedIcon();
 		if (!searchingForImage(plugindata->getPath(), name, &path))
-            if (path!="")
+            if (!path.empty())
             	pluginIcon->setSelImage(path, name);
             else
 				pluginIcon->setSelImageName(name);
@@ -246,45 +224,70 @@ void MMSSwitcher::setMenuItemValues(MMSWidget *item) {
 
 int MMSSwitcher::searchingForImage(string pluginpath, string imagename, string *path) {
 
-    /* searching for image */
+    // searching for image
     MMSFile *myfile;
     int err;
 
-    if (imagename=="") {
+    if (imagename.empty()) {
         *path = "";
         return 1;
     }
 
-    /* first: current plugin theme */
+    // first: current plugin theme, try with ".taff" extension
     *path = pluginpath + "/themes/" + config.getTheme() + "/";
-    myfile = new MMSFile(*path + imagename);
+    myfile = new MMSFile(*path + imagename + ".taff");
     err = myfile->getLastError();
     delete myfile;
     if (err) {
-        /* second: plugin default theme */
+        // try without ".taff" extension
+        myfile = new MMSFile(*path + imagename);
+        err = myfile->getLastError();
+        delete myfile;
+    }
+
+    if (err) {
+        // second: plugin default theme, try with ".taff" extension
         if (config.getTheme() != DEFAULT_THEME) {
             *path = pluginpath + "/themes/" + DEFAULT_THEME + "/";
+            myfile = new MMSFile(*path + imagename + ".taff");
+            err = myfile->getLastError();
+            delete myfile;
+            if (err) {
+                // try without ".taff" extension
+                myfile = new MMSFile(*path + imagename);
+                err = myfile->getLastError();
+                delete myfile;
+            }
+        }
+    }
+    if (err) {
+        // third: current theme, try with ".taff" extension
+        *path = "./themes/" + config.getTheme() + "/";
+        myfile = new MMSFile(*path + imagename + ".taff");
+        err = myfile->getLastError();
+        delete myfile;
+        if (err) {
+        	// try without ".taff" extension
             myfile = new MMSFile(*path + imagename);
             err = myfile->getLastError();
             delete myfile;
         }
-    }
-    if (err) {
-        /* third: current theme */
-        *path = "./themes/" + config.getTheme() + "/";
-        myfile = new MMSFile(*path + imagename);
-        err = myfile->getLastError();
-        delete myfile;
         if (!err) *path = "";
     }
     if (err) {
-        /* fourth: default theme */
+        // fourth: default theme, try with ".taff" extension
         if (config.getTheme() != DEFAULT_THEME) {
             *path = "./themes/";
             *path = *path + DEFAULT_THEME + "/";
-            myfile = new MMSFile(*path + imagename);
+            myfile = new MMSFile(*path + imagename + ".taff");
             err = myfile->getLastError();
             delete myfile;
+            if (err) {
+            	// try without ".taff" extension
+                myfile = new MMSFile(*path + imagename);
+                err = myfile->getLastError();
+                delete myfile;
+            }
             if (!err) *path = "";
         }
     }
@@ -346,7 +349,6 @@ void MMSSwitcher::subscribeKey(MMSKeySymbol key){
 
 
 void MMSSwitcher::onBeforeScroll(MMSWidget *widget) {
-
     // no plugin set
     this->curr_plugin = -1;
 
@@ -365,8 +367,6 @@ void MMSSwitcher::onBeforeScroll(MMSWidget *widget) {
 }
 
 void MMSSwitcher::onSelectItem(MMSWidget *widget) {
-//return;
-
 	if (!widget)
         widget = this->menu->getSelectedItem();
 
@@ -421,15 +421,19 @@ void MMSSwitcher::onReturn(MMSWidget *widget) {
             handler->invokeShow(NULL);
         }
 
-    } catch(MMSError *error) {
-        DEBUGMSG("Switcher", "Abort due to: " + error->getMessage());
+    } catch(MMSError &error) {
+        DEBUGMSG("Switcher", "Abort due to: " + error.getMessage());
     }
 }
 
 void MMSSwitcher::show() {
-    if(!this->plugins.empty())
-        onSelectItem(NULL);
-    this->window->show();
+	MMSConfigData config;
+	int firstplugin = atoi(config.getFirstPlugin().c_str());
+	if(firstplugin > 0) {
+		this->switchToPluginEx(firstplugin);
+	} else {
+		this->window->show();
+	}
 }
 
 void MMSSwitcher::hide() {
@@ -439,14 +443,7 @@ void MMSSwitcher::hide() {
 MMSChildWindow* MMSSwitcher::loadPreviewDialog(string filename, MMSTheme *theme, int id) {
     MMSChildWindow *win;
 
-     try {
-         win = this->dm.loadChildDialog(filename, theme);
-     }
-     catch(MMSError *error) {
-         string msg = error->getMessage();
-         delete error;
-         throw MMSError(0, msg);
-    }
+	win = this->dm.loadChildDialog(filename, theme);
 
     if(win) {
     	// save the window pointer
@@ -520,6 +517,10 @@ bool MMSSwitcher::switchToPluginEx(int toplugin) {
     if (toplugin >= 0) {
     	try {
             MMSPluginData *data = &this->plugins[toplugin]->plugindata;
+            if(!data) {
+            	DEBUGMSG("Switcher", "Plugin with ID = %d not found", toplugin);
+            	return false;
+            }
 
             if(data->getType()->getName() == "OSD_PLUGIN") {
                 MMSOSDPluginHandler *handler = this->pluginmanager->getOSDPluginHandler(data->getId());
@@ -531,8 +532,8 @@ bool MMSSwitcher::switchToPluginEx(int toplugin) {
             }
 
             return true;
-	    } catch(MMSError *error) {
-	      	DEBUGMSG("Switcher", "Abort due to: " + error->getMessage());
+	    } catch(MMSError &error) {
+	      	DEBUGMSG("Switcher", "Abort due to: " + error.getMessage());
 	    }
     }
 
@@ -583,18 +584,7 @@ bool MMSSwitcher::revertToLastPlugin() {
 }
 
 MMSChildWindow* MMSSwitcher::loadChildWindow(string filename, MMSTheme *theme) {
-	MMSChildWindow *win=NULL;
-
-	 try {
-		 win = this->dm.loadChildDialog(filename, theme);
-	 }
-	 catch(MMSError *error) {
-		 string msg = error->getMessage();
-		 delete error;
-		 throw MMSError(0, msg);
-	}
-
-	return win;
+	return this->dm.loadChildDialog(filename, theme);
 }
 
 void MMSSwitcher::refresh()

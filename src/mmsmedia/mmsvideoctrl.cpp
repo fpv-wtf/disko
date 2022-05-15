@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -36,7 +36,7 @@
 
 MMS_CREATEERROR(MMSVideoCtrlError);
 
-#define THROW_DFB_ERROR(dfbres,msg) {if (dfbres) { string s1 = msg; string s2 = DirectFBErrorString((DFBResult)dfbres); throw new MMSVideoCtrlError(dfbres,s1 + " [" + s2 + "]"); }else{ throw new MMSVideoCtrlError(0,msg); }}
+#define THROW_DFB_ERROR(dfbres,msg) {if (dfbres) { string s1 = msg; string s2 = DirectFBErrorString((DFBResult)dfbres); throw MMSVideoCtrlError(dfbres,s1 + " [" + s2 + "]"); }else{ throw MMSVideoCtrlError(0,msg); }}
 
 DFBDisplayLayerDescription    MMSVideoCtrl::desc;
 DFBColorAdjustment           MMSVideoCtrl::cadj;
@@ -119,7 +119,7 @@ void MMSVideoCtrl::adjustBrightness(unsigned val) {
     DFBResult   dfbres;
 
     if (!(this->desc.caps & DLCAPS_BRIGHTNESS))
-        throw new MMSVideoCtrlError(0, "Adjustment of brightness is not supported.");
+        throw MMSVideoCtrlError(0, "Adjustment of brightness is not supported.");
     this->cadj.flags        = DCAF_BRIGHTNESS;
     this->cadj.brightness   = val;
     if ((dfbres = this->layer->SetColorAdjustment(this->layer, &this->cadj)) != DFB_OK)
@@ -135,7 +135,7 @@ void MMSVideoCtrl::adjustContrast(unsigned val) {
     DFBResult   dfbres;
 
     if (!(this->desc.caps & DLCAPS_CONTRAST))
-        throw new MMSVideoCtrlError(0, "Adjustment of contrast is not supported.");
+        throw MMSVideoCtrlError(0, "Adjustment of contrast is not supported.");
     this->cadj.flags        = DCAF_CONTRAST;
     this->cadj.contrast     = val;
     if ((dfbres = this->layer->SetColorAdjustment(this->layer, &this->cadj)) != DFB_OK)
@@ -151,7 +151,7 @@ void MMSVideoCtrl::adjustHue(unsigned val) {
     DFBResult   dfbres;
 
     if (!(this->desc.caps & DLCAPS_HUE))
-        throw new MMSVideoCtrlError(0, "Adjustment of hue is not supported.");
+        throw MMSVideoCtrlError(0, "Adjustment of hue is not supported.");
     this->cadj.flags        = DCAF_HUE;
     this->cadj.hue          = val;
     if ((dfbres = this->layer->SetColorAdjustment(this->layer, &this->cadj)) != DFB_OK)
@@ -167,7 +167,7 @@ void MMSVideoCtrl::adjustSaturation(unsigned val) {
     DFBResult   dfbres;
 
     if (!(this->desc.caps & DLCAPS_SATURATION))
-        throw new MMSVideoCtrlError(0, "Adjustment of saturation is not supported.");
+        throw MMSVideoCtrlError(0, "Adjustment of saturation is not supported.");
     this->cadj.flags        = DCAF_SATURATION;
     this->cadj.saturation   = val;
     if ((dfbres = this->layer->SetColorAdjustment(this->layer, &this->cadj)) != DFB_OK)

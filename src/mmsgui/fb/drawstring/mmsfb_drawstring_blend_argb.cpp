@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -56,7 +56,7 @@ void mmsfb_drawstring_blend_argb(MMSFBSurfacePlanes *dst_planes, MMSFBFont *font
 	register unsigned int SRCPIX = 0xff000000 | (((unsigned int)color.r) << 16) | (((unsigned int)color.g) << 8) | (unsigned int)color.b;
 	MMSFBFONT_GET_UNICODE_CHAR(text, len) {
 		// load the glyph
-		MMSFBSURFACE_BLIT_TEXT_LOAD_GLYPH(character);
+		MMSFBSURFACE_BLIT_TEXT_LOAD_GLYPH(font, character);
 
 		// start rendering of glyph to destination
 		MMSFBSURFACE_BLIT_TEXT_START_RENDER(unsigned int);

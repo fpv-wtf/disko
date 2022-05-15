@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -40,6 +40,12 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#ifdef __HAVE_BACKTRACE__
+#include <execinfo.h>
+#endif
+#ifdef __HAVE_FRIBIDI__
+#include <fribidi/fribidi.h>
+#endif
 
 /* Once-only initialisation of the key */
 static pthread_once_t buffer_key_once = PTHREAD_ONCE_INIT;
@@ -103,6 +109,23 @@ string strToUpr(string src) {
     return s;
 }
 
+string *strToLwr(string *src) {
+    for(string::iterator i=src->begin(); i!= src->end(); i++) {
+
+    	if((*i >= 'A') && (*i <= 'Z'))
+            (*i)+=32;
+    }
+
+    return src;
+}
+
+string strToLwr(string src) {
+    string s;
+    s=src;
+    strToLwr(&s);
+    return s;
+}
+
 int hexToInt(const char *in) {
     int ret=0;
 
@@ -128,6 +151,12 @@ int hexToInt(const char *in) {
         ret+=(int)*in-'a'+10;
 
     return ret;
+}
+
+string ucharToHex(unsigned char in) {
+	char buf[3];
+	sprintf(buf, "%02x", in);
+	return buf;
 }
 
 string getSimpleTimeString() {
@@ -611,7 +640,7 @@ void writeDebugMessage(const char *identity, const char *filename, const int lin
     if(!strlen(logfile))
     	fp = stderr;
 	else if((fp=fopen(logfile, "a+"))==NULL)
-		throw new MMSError(errno, "Can't open logfile [" + string(strerror(errno)) + "]");
+		throw MMSError(errno, "Can't open logfile [" + string(strerror(errno)) + "]");
 
 	gettimeofday(&tv, NULL);
     getCurrentTimeBuffer(NULL, NULL, timebuf, NULL);
@@ -644,7 +673,7 @@ void writeDebugMessage(const char *identity, const char *filename, const int lin
     if(!strlen(logfile))
     	fp = stderr;
 	else if((fp=fopen(logfile, "a+"))==NULL)
-		throw new MMSError(errno, "Can't open logfile [" + string(strerror(errno)) + "]");
+		throw MMSError(errno, "Can't open logfile [" + string(strerror(errno)) + "]");
 
 	gettimeofday(&tv, NULL);
     getCurrentTimeBuffer(NULL, NULL, timebuf, NULL);
@@ -718,7 +747,8 @@ unsigned int getMDiff(unsigned int start_ts, unsigned int end_ts) {
 	if (start_ts <= end_ts)
 		diff = end_ts - start_ts;
 	else
-		diff = MAX_MTIMESTAMP - end_ts + 1 + start_ts;
+		diff = MAX_MTIMESTAMP - start_ts + 1 + end_ts;
+
 	return diff;
 }
 
@@ -726,3 +756,138 @@ int64_t timespecDiff(struct timespec *timeA, struct timespec *timeB) {
   return ((timeA->tv_sec * 1000000000) + timeA->tv_nsec) -
            ((timeB->tv_sec * 1000000000) + timeB->tv_nsec);
 }
+
+
+
+
+
+void rotateUCharBuffer180(unsigned char *buffer, int pitch, int w, int h) {
+	for (int y = 0; y < (h + 1) / 2; y++) {
+		unsigned char tmp;
+		unsigned char *ptr1 = &buffer[y * pitch];
+		unsigned char *ptr2 = &buffer[(h - 1 - y) * pitch];
+		bool sameline = (ptr1 == ptr2);
+		ptr2+= w - 1;
+		for (int x = 0; x < ((!sameline) ? w : w / 2); x++) {
+			tmp = *ptr2;
+			*ptr2 = *ptr1;
+			*ptr1 = tmp;
+			ptr1++;
+			ptr2--;
+		}
+	}
+}
+
+void rotateUShortIntBuffer180(unsigned short int *buffer, int pitch, int w, int h) {
+	for (int y = 0; y < (h + 1) / 2; y++) {
+		unsigned short int tmp;
+		unsigned short int *ptr1 = (unsigned short int *)&((unsigned char *)buffer)[y * pitch];
+		unsigned short int *ptr2 = (unsigned short int *)&((unsigned char *)buffer)[(h - 1 - y) * pitch];
+		bool sameline = (ptr1 == ptr2);
+		ptr2+= w - 1;
+		for (int x = 0; x < ((!sameline) ? w : w / 2); x++) {
+			tmp = *ptr2;
+			*ptr2 = *ptr1;
+			*ptr1 = tmp;
+			ptr1++;
+			ptr2--;
+		}
+	}
+}
+
+void rotateUIntBuffer180(unsigned int *buffer, int pitch, int w, int h) {
+	for (int y = 0; y < (h + 1) / 2; y++) {
+		unsigned int tmp;
+		unsigned int *ptr1 = (unsigned int *)&((unsigned char *)buffer)[y * pitch];
+		unsigned int *ptr2 = (unsigned int *)&((unsigned char *)buffer)[(h - 1 - y) * pitch];
+		bool sameline = (ptr1 == ptr2);
+		ptr2+= w - 1;
+		for (int x = 0; x < ((!sameline) ? w : w / 2); x++) {
+			tmp = *ptr2;
+			*ptr2 = *ptr1;
+			*ptr1 = tmp;
+			ptr1++;
+			ptr2--;
+		}
+	}
+}
+
+#ifdef __HAVE_BACKTRACE__
+void print_trace(char *prefix) {
+	void 	*array[10];
+	size_t 	size;
+	char 	**strings;
+	size_t 	i;
+
+	size 	= backtrace(array, 10);
+	strings = backtrace_symbols(array, size);
+
+	fprintf(stderr, "******************* %s ****************\n", prefix);
+
+	for(i = 2; i < size; i++)
+	  fprintf(stderr, "%s\n", strings[i]);
+
+	free(strings);
+}
+#endif
+
+
+
+bool convBidiString(const string &in_str, string &out_str) {
+#ifdef __HAVE_FRIBIDI__
+	bool ret = false;
+	const char *char_set = "UTF-8";
+	FriBidiCharSet char_set_num;
+
+	// get charset and init
+	if (!(char_set_num = fribidi_parse_charset((char *)char_set))) {
+		printf("DISKO: FriBidi error, unrecognized character set '%s'\n", char_set);
+		return false;
+	}
+	fribidi_set_mirroring(true);
+	fribidi_set_reorder_nsm(false);
+
+	// check input length
+	FriBidiStrIndex len = in_str.length();
+	if (len <= 0) {
+		out_str = "";
+		return true;
+	}
+
+	// allocate temp buffers
+	int memsize = sizeof(FriBidiChar) * (len + 1);
+	FriBidiChar *logical = (FriBidiChar *)malloc(memsize);
+	FriBidiChar *visual  = (FriBidiChar *)malloc(memsize);
+	char        *ostr    = (char *)malloc(memsize);
+
+	if (logical && visual && ostr) {
+		// convert input string into FriBidiChar buffer
+		len = fribidi_charset_to_unicode(char_set_num, (char *)in_str.c_str(), len, logical);
+
+		// create a bidi visual string
+		FriBidiCharType base = FRIBIDI_TYPE_ON;
+		if ((ret = fribidi_log2vis(logical, len, &base, visual, NULL, NULL, NULL))) {
+			// convert it back to output string
+			FriBidiStrIndex new_len = fribidi_unicode_to_charset(char_set_num, visual, len, ostr);
+			if (new_len <= 0) {
+				printf("DISKO: FriBidi error, fribidi_unicode_to_charset() failed\n");
+				ret = false;
+			}
+			else {
+				out_str = ostr;
+			}
+		}
+	}
+
+	// free temp buffers
+	if (logical) free(logical);
+	if (visual)  free(visual);
+	if (ostr)    free(ostr);
+
+	return ret;
+#else
+	// no bidi conversion lib
+	return false;
+#endif
+}
+

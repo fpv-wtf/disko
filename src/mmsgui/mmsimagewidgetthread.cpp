@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -246,11 +246,15 @@ void MMSImageWidgetThread::doIt() {
             }
         }
 
-        /* refresh the widget */
-        if (changed)
-            this->image->refresh();
+        // refresh the widget
+        if (changed) {
+            // refresh is required
+        	this->image->enableRefresh();
 
-        /* sleep */
+            this->image->refresh();
+        }
+
+        // sleep
         if (delaytime > 0)
             wait(delaytime*1000);
         else

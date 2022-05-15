@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -77,7 +77,7 @@ class MMSWindowManager : public IMMSWindowManager {
         void showBackgroundWindow();
 
         //! Internal method: Target Language Changed callback from MMSTranslator.
-        void onTargetLangChanged(int lang);
+        void onTargetLangChanged(MMSLanguage lang);
 
         //! Internal method: Theme Changed callback from MMSThemeManager.
         void onThemeChanged(string themeName, bool fade_in);
@@ -117,6 +117,8 @@ class MMSWindowManager : public IMMSWindowManager {
         MMSTranslator *getTranslator();
 
         MMSThemeManager *getThemeManager();
+
+        unsigned int printStack(char *buffer = NULL);
 };
 
 #endif /*MMSWINDOWMANAGER_H_*/

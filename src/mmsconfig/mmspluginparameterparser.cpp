@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -71,7 +71,7 @@ bool MMSPluginParameterParser::validate(MMSPluginData *plugin) {
                 query.append("\"]");
                 xmlpp::NodeSet set = root->find(query);
                 if(set.empty())
-                    throw new MMSPluginParameterParserError(0,"Plugin " + plugin->getName() + " has no parameter named " + (*it)->getParameter());
+                    throw MMSPluginParameterParserError(0,"Plugin " + plugin->getName() + " has no parameter named " + (*it)->getParameter());
 
             }
             delete doc;
@@ -108,7 +108,7 @@ void MMSPluginParameterParser::createProperty(MMSPluginData *plugin,string name)
     	parser = xmlReadFile((char *)parameterfile.c_str(), NULL, 0);
 
 		if(parser == NULL) {
-			throw new MMSPluginParameterParserError(1,"Could not parse file:" + parameterfile);
+			throw MMSPluginParameterParserError(1,"Could not parse file:" + parameterfile);
 		}
 		else {
 			xmlNode* pNode = xmlDocGetRootElement(parser);
@@ -120,7 +120,7 @@ void MMSPluginParameterParser::createProperty(MMSPluginData *plugin,string name)
 
 	  		if(xmlStrcmp(pNode->name, (const xmlChar *) query.c_str())) {
 	  			DEBUGMSG("PLUGINPARAMETERPARSER", "invalid configuration file (%s) - does not contain correct root node", parameterfile.c_str());
-                throw new MMSPluginParameterParserError(0,"Plugin " + plugin->getName() + " has no parameter named " + name);
+                throw MMSPluginParameterParserError(0,"Plugin " + plugin->getName() + " has no parameter named " + name);
 	  		}
 
             // ok we  have a parameter description create a new property
@@ -136,7 +136,7 @@ void MMSPluginParameterParser::createProperty(MMSPluginData *plugin,string name)
                 else {
             	    /*free the document */
             	    xmlFreeDoc(parser);
-                    throw new MMSPluginParameterParserError(0,"the data type \"" + string((char*)type) + "\" defined in the parameter.xml of " + plugin->getName() + " is unknown.");
+                    throw MMSPluginParameterParserError(0,"the data type \"" + string((char*)type) + "\" defined in the parameter.xml of " + plugin->getName() + " is unknown.");
                 }
             }
         	xmlFree(type);
@@ -183,7 +183,7 @@ void MMSPluginParameterParser::fillProperties(MMSPluginData *plugin) {
 	logger.writeLog("Fillproperies");
 
     if(plugin== NULL)
-        throw new MMSPluginParameterParserError(0,"no plugin given");
+        throw MMSPluginParameterParserError(0,"no plugin given");
 
     LIBXML_TEST_VERSION
 
@@ -194,7 +194,7 @@ void MMSPluginParameterParser::fillProperties(MMSPluginData *plugin) {
     	parser = xmlReadFile((char *)parameterfile.c_str(), NULL, 0);
 
     	if(parser == NULL) {
-    			throw new MMSPluginParameterParserError(1,"Could not parse file:" + parameterfile);
+    			throw MMSPluginParameterParserError(1,"Could not parse file:" + parameterfile);
     	}
     	else {
     		xmlNode* pNode = xmlDocGetRootElement(parser);
@@ -204,11 +204,11 @@ void MMSPluginParameterParser::fillProperties(MMSPluginData *plugin) {
 
             if(xmlStrcmp(pNode->name, (const xmlChar *) query.c_str())) {
 	  			logger.writeLog("invalid configuration file (" + parameterfile + ") - does not contain correct root node");
-                throw new MMSPluginParameterParserError(0,"Plugin " + plugin->getName() + " has no parameter named " + string((char *)pNode->name));
+                throw MMSPluginParameterParserError(0,"Plugin " + plugin->getName() + " has no parameter named " + string((char *)pNode->name));
 	  		}
 
             if(myset.empty())
-                throw new MMSPluginParameterParserError(MMSPLUGINPARAMETERPARSER_ERROR_NOPARAMETERS,"Plugin has no parameters");
+                throw MMSPluginParameterParserError(MMSPLUGINPARAMETERPARSER_ERROR_NOPARAMETERS,"Plugin has no parameters");
             else
                 logger.writeLog("got " + iToStr(myset.size()) + " parameters");
 
@@ -246,7 +246,7 @@ void MMSPluginParameterParser::fillProperties(MMSPluginData *plugin) {
     }
     catch(const std::exception& ex) {
         return;
-//        throw new MMSPluginParameterParserError(0,ex.what());
+//        throw MMSPluginParameterParserError(0,ex.what());
     }
 #endif
 

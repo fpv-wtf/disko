@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -81,8 +81,14 @@ possible that the animation is running in a separate thread (see start(true)).
 */
 class MMSPulser : public MMSThread {
     private:
-    	//! shows if the animation is running
+		//! helper mutex to perform a safe start
+		MMSMutex	startlock;
+
+		//! shows if the animation is running
     	bool	animRunning;
+
+    	//! true if animation thread should stop
+		bool	cancel;
 
     	//! recalculation requested?
     	bool	recalc_requested;
@@ -193,6 +199,9 @@ class MMSPulser : public MMSThread {
         \return true or false
         */
 		bool isRunning();
+
+        //! Signals the animation thread that it has to stop immediately.
+		void stop();
 
         //! Set animation steps per second.
         /*!
@@ -318,7 +327,7 @@ class MMSPulser : public MMSThread {
         /*!
         \return real duration in milliseconds
         \note This value will be increased during the animation and has its final state at the
-              of the animation (e.g. in onAfterAnimation callback).
+              end of the animation (e.g. in onAfterAnimation callback).
         */
 		unsigned int getRealDuration();
 

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -31,6 +31,9 @@
  **************************************************************************/
 
 #include "mmsgui/fb/mmsfbconv.h"
+
+#ifdef __HAVE_PF_RGB16__
+
 #include "mmstools/mmstools.h"
 
 void mmsfb_fillrectangle_rgb16(MMSFBSurfacePlanes *dst_planes, int dst_height,
@@ -64,32 +67,54 @@ void mmsfb_fillrectangle_rgb16(MMSFBSurfacePlanes *dst_planes, int dst_height,
 			| (g << 5)
 			| b;
 
-	// copy pixel directly to the destination
-	// for all lines
-	while (dst < dst_end) {
-		// for all pixels in the line
+	if ((SRC >> 8) != (SRC & 0xff)) {
+		// different values for hi and lo byte
+		// copy pixel directly to the destination
+		// for all lines
+		while (dst < dst_end) {
+			// for all pixels in the line
 #ifdef __HAVE_SSE__
-		// fill memory 2-byte-wise (much faster than loop see below)
+			// fill memory 2-byte-wise (much faster than loop see below)
 //		__asm__ __volatile__ ( "\trep stosw\n" : : "D" (dst), "a" (SRC), "c" (dw));
-		short d0, d1, d2;
-		__asm__ __volatile__ ( "\tcld\n\trep stosw" \
-				: "=&D" (d0), "=&a" (d1), "=&c" (d2) \
-				: "0" (dst), "1" (SRC), "2" (dw) \
-				: "memory", "cc");
+			short d0, d1, d2;
+			__asm__ __volatile__ ( "\tcld\n\trep stosw" \
+					: "=&D" (d0), "=&a" (d1), "=&c" (d2) \
+					: "0" (dst), "1" (SRC), "2" (dw) \
+					: "memory", "cc");
 
-		// go to the next line
-		dst+= dst_pitch_pix;
+			// go to the next line
+			dst+= dst_pitch_pix;
 #else
-		unsigned short int *line_end = dst + dw;
-		while (dst < line_end) {
-			*dst = SRC;
-			dst++;
-		}
+			unsigned short int *line_end = dst + dw;
+			while (dst < line_end) {
+				*dst = SRC;
+				dst++;
+			}
 
-		// go to the next line
-		dst+= dst_pitch_diff;
+			// go to the next line
+			dst+= dst_pitch_diff;
 #endif
+		}
+	}
+	else {
+		// hi and lo byte are equal, so clear it with value from lo byte
+		register int mw = dw << 1;
+		register unsigned char lo = SRC & 0xff;
+		if (mw != dst_pitch) {
+			// for all lines
+			while (dst < dst_end) {
+				// reset all pixels in the line
+				memset(dst, lo, mw);
+
+				// go to the next line
+				dst+= dst_pitch_pix;
+			}
+		}
+		else {
+			// clear one big block
+			memset(dst, lo, (int)((char*)dst_end - (char*)dst));
+		}
 	}
 }
 
-
+#endif

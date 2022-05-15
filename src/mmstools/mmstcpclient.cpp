@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -52,39 +52,39 @@ bool MMSTCPClient::connectToServer() {
 	struct in_addr  	ia;
 	struct sockaddr_in	sa;
 
-	DEBUGMSG("MMSTCPClient", "connect to %s:%u",this->host.c_str(), this->port);
+	WRITE_MSG("MMSTCPClient", "connect to %s:%u",this->host.c_str(), this->port);
 
 	if (this->s>=0) {
-		DEBUGMSG("MMSTCPClient", "already connected");
+		WRITE_MSG("MMSTCPClient", "already connected");
 		return true;
 	}
 
-	/* get host ip in network byte order */
+	// get host ip in network byte order
 	he = gethostbyname(this->host.c_str());
-	DEBUGMSG("MMSTCPClient", "hostname: %s", he->h_name);
+	WRITE_MSG("MMSTCPClient", "hostname: %s", he->h_name);
 
-	/* get host ip in numbers-and-dots */
+	// get host ip in numbers-and-dots
 	ia.s_addr = *((unsigned long int*)*(he->h_addr_list));
 	this->hostip = inet_ntoa(ia);
 
-	/* get a socket */
+	// get a socket
 	if ((this->s = socket(AF_INET, SOCK_STREAM, 0))<=0) {
-		DEBUGMSG("MMSTCPClient", "socket() failed");
+		WRITE_ERR("MMSTCPClient", "socket() failed");
 		return false;
 	}
 
-	/* connect to hostip */
+	// connect to hostip
 	memset(&sa, 0, sizeof(sa));
 	sa.sin_family = AF_INET;
 	sa.sin_port = htons(this->port); //this->port / 0x100 + (this->port % 0x100) * 0x100;
 	sa.sin_addr.s_addr = inet_addr(this->host.c_str());
 	if (connect(this->s, (struct sockaddr *)&sa, sizeof(struct sockaddr_in))!=0) {
-		DEBUGMSG("MMSTCPClient", "connect failed (%s)",this->host.c_str(), this->port, strerror(errno));
+		WRITE_ERR("MMSTCPClient", "connect to %s:%d failed: %s",this->host.c_str(), this->port, strerror(errno));
 		disconnectFromServer();
 		return false;
 	}
 
-	/* connection established */
+	// connection established
 	return true;
 }
 
@@ -100,11 +100,11 @@ bool MMSTCPClient::sendString(string rbuf) {
 	int		len, from;
 
 	if (!isConnected()) {
-		DEBUGMSG("MMSTCPClient", "in send not connected");
+		WRITE_ERR("MMSTCPClient", "in send not connected");
 		return false;
 	}
 
-	/* send request */
+	// send request
 	from = 0;
 	do {
 		strcpy(mybuf, (rbuf.substr(from, sizeof(mybuf)-1)).c_str());
@@ -113,7 +113,7 @@ bool MMSTCPClient::sendString(string rbuf) {
 		from+=len;
 	} while (len>0);
 	send(this->s, "\0", 1, 0);
-	DEBUGMSG("MMSTCPClient", "sent %d bytes", from + 1);
+	WRITE_MSG("MMSTCPClient", "sent %d bytes", from + 1);
 	return true;
 }
 
@@ -123,7 +123,7 @@ bool MMSTCPClient::receiveString(string *abuf) {
 
 	if (!isConnected()) return false;
 
-	/* receive answer */
+	// receive answer
 	*abuf = "";
 	do {
 		if ((len = recv(this->s, mybuf, sizeof(mybuf)-1, 0))<0) return false;
@@ -147,7 +147,8 @@ bool MMSTCPClient::receiveString(string *abuf, int buflen) {
 	mybuf = new char[buflen+1];
 
 	memset(mybuf,0,buflen+1);
-	/* receive answer */
+
+	// receive answer
 	*abuf = "";
 	do {
 		if ((len = recv(this->s, &mybuf[received], buflen-received, MSG_WAITALL))<0) return false;
@@ -170,7 +171,8 @@ bool MMSTCPClient::peekString(string *abuf, int buflen) {
 
 	if (!isConnected()) return false;
 	memset(mybuf,0,128000+1);
-	/* receive answer */
+
+	// receive answer
 	*abuf = "";
 	do {
 		if ((len = recv(this->s, &mybuf[received], buflen-received, MSG_PEEK))<0) return false;
@@ -189,15 +191,14 @@ bool MMSTCPClient::sendAndReceive(string rbuf, string *abuf) {
 	bool	retcode = false;
 
 	if (!connectToServer()) {
-		DEBUGMSG("MMSTCPClient", "cannot connect");
 		return false;
 	}
 
-	DEBUGMSG("MMSTCPClient", "send string");
+	WRITE_MSG("MMSTCPClient", "send string");
 	if (sendString(rbuf)) {
-		DEBUGMSG("MMSTCPClient", "receive string");
+		WRITE_MSG("MMSTCPClient", "receive string");
 		if (receiveString(abuf)) {
-			DEBUGMSG("MMSTCPClient", "receive string");
+			WRITE_MSG("MMSTCPClient", "receive string");
 			retcode = true;
 		}
 	}

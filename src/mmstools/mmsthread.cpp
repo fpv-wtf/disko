@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -33,6 +33,7 @@
 #include "mmstools/mmsthread.h"
 #include "mmstools/mmserror.h"
 #include "mmstools/tools.h"
+#include <map>
 
 #ifdef __HAVE_DIRECTFB__
 extern "C" {
@@ -45,88 +46,164 @@ D_DEBUG_DOMAIN( MMS_Thread, "MMS/Thread", "MMS Thread" );
 
 #endif /* __HAVE_DIRECTFB__ */
 
-static void *startmythread(void *thiz) {
-	static_cast<MMSThread *>(thiz)->run();
-	return NULL;
-}
+
+typedef struct {
+	void *udata;
+	void (*handlerfunc)(void *);
+} CLEANUP_STRUCT;
+
 
 static std::map<pthread_t, CLEANUP_STRUCT *> cleanups;
 
-MMSThread::MMSThread(string identity, int priority, bool detach) {
+
+MMSThread::MMSThread(string identity, int priority, bool autodetach) {
 #ifdef __HAVE_DIRECTFB__
     D_DEBUG_AT( MMS_Thread, "MMSThread( %s )\n", identity.c_str() );
 
     direct_trace_print_stack(NULL);
 #endif /* __HAVE_DIRECTFB__ */
 
+    // save parameters
     this->identity = identity;
     this->priority = priority;
 
-    this->isrunning = false;
-    this->isdetached = false;
-    this->autoDetach = detach;
-    this->stacksize = 1000000;
+    // setup initial values
+    this->starting = false;
+    this->running = false;
+    this->detached = false;
+    this->autodetach = autodetach;
+    setStacksize();
 }
+
+
+MMSThread::~MMSThread() {
+}
+
+
+void *MMSThread::runThread(void *thiz) {
+	static_cast<MMSThread *>(thiz)->run();
+	return NULL;
+}
+
 
 void MMSThread::run() {
 	try {
 #ifdef __HAVE_DIRECTFB__
         direct_thread_set_name( this->identity.c_str() );
 #endif /* __HAVE_DIRECTFB__ */
-        if(this->autoDetach) {
+        if(this->autodetach) {
         	this->detach();
         }
-        this->isrunning = true;
-		threadMain();
-        this->isrunning = false;
 
-	} catch(MMSError *error) {
-        this->isrunning = false;
-	    DEBUGMSG(this->identity.c_str(), "Abort due to: %s", error->getMessage().c_str());
+        // switch from starting state to running
+        this->running = true;
+        this->starting = false;
+
+        // call real routine
+		threadMain();
+
+		// mark thread as stopped
+        this->running = false;
+
+	} catch(MMSError &error) {
+        this->running = false;
+        this->starting = false;
+	    DEBUGMSG(this->identity.c_str(), "Abort due to: " + error.getMessage());
 	}
 }
 
 bool MMSThread::start() {
-	if (this->isrunning)
+	// safe start
+	// we have two states: starting and running
+	this->startlock.lock();
+	if (isRunning()) {
+		this->startlock.unlock();
 		return false;
+	}
+	this->starting = true;
+	this->startlock.unlock();
 
-	/* initialize the priority */
+	// starting thread, setup priority and stacksize
     pthread_attr_init(&this->tattr);
-    pthread_attr_getschedparam(&tattr, &param);
-    param.sched_priority = this->priority;
-    pthread_attr_setschedparam(&tattr, &param);
-    pthread_attr_setstacksize(&tattr, this->stacksize);
+    pthread_attr_getschedparam(&this->tattr, &this->param);
+    this->param.sched_priority = this->priority;
+    pthread_attr_setschedparam(&this->tattr, &this->param);
+    pthread_attr_setstacksize(&this->tattr, this->stacksize);
 
-    /* create the new thread */
-    pthread_create(&this->id, &tattr, startmythread, static_cast<void *>(this));
+    // create the new thread
+    int rc;
+	for (int i = 0; i < 3; i++) {
+		// create: try or retry
+		rc = pthread_create(&this->id, &this->tattr, this->runThread, static_cast<void *>(this));
+		if (!rc) {
+			// successfully created
+			break;
+		}
+		usleep(50000);
+	}
 
+    // free attributes from "parent" thread
     pthread_attr_destroy(&this->tattr);
 
+    if (rc) {
+    	// failed to start the thread
+    	this->starting = false;
+    	return false;
+    }
+
+    // fine, thread is started
+    // at this point it is also possible, that the new thread is finished again
     return true;
 }
 
-void MMSThread::detach() {
-	pthread_detach(this->id);
-	this->isdetached = true;
-}
 
 bool MMSThread::isRunning() {
-	return this->isrunning;
+	// check starting and running states
+	if (this->starting) return true;
+	return this->running;
 }
 
-int MMSThread::cancel() {
-	int status;
-	if(this->isrunning)
-		status = pthread_cancel(this->id);
-	this->isrunning=false;
-	return status;
 
+void MMSThread::detach() {
+	pthread_detach(this->id);
+	this->detached = true;
 }
+
+
+bool MMSThread::cancel() {
+	if (!isRunning()) {
+		// thread is not running
+		return false;
+	}
+
+	// try to cancel the thread
+	int rc;
+	for (int i = 0; i < 3; i++) {
+		// cancel: try or retry
+		rc = pthread_cancel(this->id);
+		if (!rc) {
+			// successfully canceled
+			break;
+		}
+	}
+
+	if (rc) {
+		// could not cancel the thread
+		return false;
+	}
+
+	// mark thread as stopped
+	this->running = false;
+	this->starting = false;
+	return true;
+}
+
 
 void MMSThread::join() {
-    if (!this->isdetached)
+    if (!this->detached)
         pthread_join(this->id, NULL);
 }
+
 
 void MMSThread::setStacksize(size_t stacksize) {
 	this->stacksize = stacksize;
@@ -157,24 +234,25 @@ void callGarbageHandler() {
 
 	it = cleanups.find(self);
 	if(it!=cleanups.end()) {
-		/* call the garbage handler */
+		// call the garbage handler
 		it->second->handlerfunc(it->second->udata);
 
-		/* remove handler */
+		// remove handler
 		delete it->second;
 		cleanups.erase(self);
 	}
 }
 
-void cleargargabeHandler() {
+void clearGarbageHandler() {
 	std::map<pthread_t, CLEANUP_STRUCT *>::iterator it;
 	pthread_t self = pthread_self();
 
 	it = cleanups.find(self);
 	if(it!=cleanups.end()) {
 
-		/* remove handler */
+		// remove handler
 		delete it->second;
 		cleanups.erase(self);
 	}
 }
+

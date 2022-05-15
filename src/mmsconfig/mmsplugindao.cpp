@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -69,7 +69,8 @@ void MMSPluginDAO::save(MMSPluginData *data) {
     									data->getSmallIcon(),
     									data->getSmallSelectedIcon(),
     									iToStr((data->getCategory() != NULL ? data->getCategory()->getID() : 0)),
-    									iToStr(data->getOrderpos())));
+    									iToStr(data->getOrderpos()),
+    									data->getVersion()));
 
 
     /* set the ID */
@@ -84,7 +85,8 @@ void MMSPluginDAO::update(MMSPluginData *data) {
         								data->getDescription(),
         								iToStr((data->getCategory() != NULL ? data->getCategory()->getID() : 0)),
         								iToStr(data->getOrderpos()),
-        								iToStr(data->getId())));
+        								iToStr(data->getId()),
+        								data->getVersion()));
 }
 
 void MMSPluginDAO::saveOrUpdate(MMSPluginData *data) {
@@ -125,6 +127,7 @@ MMSPluginData *MMSPluginDAO::moveRecordToData(MMSRecordSet &rs) {
     data->setSelectedIcon(rs["SelectedIcon"]);
     data->setSmallIcon(rs["SmallIcon"]);
     data->setOrderpos(atoi(rs["Orderpos"].c_str()));
+    data->setVersion(rs["Version"]);
 
     return data;
 }
@@ -153,9 +156,6 @@ MMSPluginData *MMSPluginDAO::findPluginByName(string name) {
 
     if(!rs["PluginTypeID"].empty())
         plugintype->setID(atoi(rs["PluginTypeID"].c_str()));
-
-    if(!rs["OrderPos"].empty())
-    	plugin->setOrderpos(atoi(rs["OrderPos"].c_str()));
 
     plugintype->setName(rs["PluginTypeName"]);
     plugin->setType(plugintype);
@@ -189,9 +189,6 @@ MMSPluginData *MMSPluginDAO::findPluginByID(int id) {
 
     if(!rs["PluginTypeID"].empty())
         plugintype->setID(atoi(rs["PluginTypeID"].c_str()));
-
-    if(!rs["OrderPos"].empty())
-    	plugin->setOrderpos(atoi(rs["OrderPos"].c_str()));
 
     plugintype->setName(rs["PluginTypeName"]);
     plugin->setType(plugintype);
@@ -231,10 +228,7 @@ vector<MMSPluginData *> MMSPluginDAO::findAllPlugins(const bool inactiveToo){
 		if(!rs["PluginTypeID"].empty())
         	plugintype->setID(atoi(rs["PluginTypeID"].c_str()));
 
-		if(!rs["OrderPos"].empty())
-	    	plugin->setOrderpos(atoi(rs["OrderPos"].c_str()));
-
-		plugintype->setName(rs["PluginTypeName"]);
+	    plugintype->setName(rs["PluginTypeName"]);
         plugin->setType(plugintype);
         plugin->setCategory(category);
 
@@ -270,9 +264,6 @@ vector<MMSPluginData *> MMSPluginDAO::findAllPluginsByCategory(MMSPluginCategory
         plugintype->setID(atoi(rs["PluginTypeID"].c_str()));
         plugintype->setName(rs["PluginTypeName"]);
         plugin->setType(plugintype);
-
-        if(!rs["OrderPos"].empty())
-        	plugin->setOrderpos(atoi(rs["OrderPos"].c_str()));
 
         /* push to list */
         pluginList.push_back(plugin);
@@ -319,9 +310,6 @@ vector<MMSPluginData *> MMSPluginDAO::findAllPluginsByType(string typeName, cons
 
         if(!rs["CategoryName"].empty())
             plugincategory->setName(rs["CategoryName"]);
-
-        if(!rs["OrderPos"].empty())
-        	plugin->setOrderpos(atoi(rs["OrderPos"].c_str()));
 
         plugintype->setID(atoi(rs["PluginTypeID"].c_str()));
         plugintype->setName(rs["PluginTypeName"]);

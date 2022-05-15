@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -54,7 +54,7 @@
  */
 MMSDBFreeTDS::MMSDBFreeTDS(DataSource *_datasource) : IMMSDB(_datasource) {
 	if(!this->datasource)
-		throw new MMSError(0, "Cannot instantiate MMSDBFreeTDS without datasource");
+		throw MMSError(0, "Cannot instantiate MMSDBFreeTDS without datasource");
 }
 
 /**
@@ -107,13 +107,13 @@ void MMSDBFreeTDS::connect() {
 	this->dbhandle = (SQLHDBC*)calloc(sizeof(SQLHDBC), 1);
 
 	if((rc = SQLAllocHandle(SQL_HANDLE_ENV,SQL_NULL_HANDLE, &this->henv)) != SQL_SUCCESS)
-        throw(new MMSError(rc, "SQLAllocHandle() failed. [" + errmsg(rc,DIAG_TYPE_ENV, this->henv) +"]"));
+        throw MMSError(rc, "SQLAllocHandle() failed. [" + errmsg(rc,DIAG_TYPE_ENV, this->henv) +"]");
 
     if((rc = SQLSetEnvAttr(this->henv,SQL_ATTR_ODBC_VERSION,(SQLPOINTER)SQL_OV_ODBC3,0)) != SQL_SUCCESS)
-        throw(new MMSError(rc, "SQLSetEnvAttr() failed. [" + errmsg(rc,DIAG_TYPE_ENV, this->henv) +"]"));
+        throw MMSError(rc, "SQLSetEnvAttr() failed. [" + errmsg(rc,DIAG_TYPE_ENV, this->henv) +"]");
 
     if((rc = SQLAllocHandle(SQL_HANDLE_DBC, this->henv, this->dbhandle)) != SQL_SUCCESS)
-        throw(new MMSError(rc, "SQLAllocHandle() failed. [" + errmsg(rc,DIAG_TYPE_ENV, this->henv) +"]"));
+        throw MMSError(rc, "SQLAllocHandle() failed. [" + errmsg(rc,DIAG_TYPE_ENV, this->henv) +"]");
 
     snprintf(connection_string,sizeof(connection_string),
 		    "Server=%s;UID=%s;PWD=%s;Database=%s;Port=%d;TDS_Version=8.0;",
@@ -128,7 +128,7 @@ void MMSDBFreeTDS::connect() {
 
     if((rc = SQLDriverConnect(*(this->dbhandle), NULL, (SQLCHAR *)connection_string, SQL_NTS,
    	    (SQLCHAR *)connection_string,sizeof(connection_string),NULL, SQL_DRIVER_COMPLETE)) != SQL_SUCCESS)
-        throw(new MMSError(rc, "SQLDriverConnect() failed. [" + errmsg(rc,DIAG_TYPE_ENV, this->henv) +"]"));
+        throw MMSError(rc, "SQLDriverConnect() failed. [" + errmsg(rc,DIAG_TYPE_ENV, this->henv) +"]");
 
     logger.writeLog("connect to database successful");
 	return;
@@ -179,7 +179,7 @@ int MMSDBFreeTDS::query(string statement, MMSRecordSet *rs) {
 	myrs->setRecordNum(0);
 
     if((rc = SQLAllocHandle(SQL_HANDLE_STMT, *this->dbhandle, &this->hstmt)) != SQL_SUCCESS)
-        throw(new MMSError(rc, "SQLAllocHandle() failed. [" + errmsg(rc,DIAG_TYPE_ENV, this->henv) +"]"));
+        throw MMSError(rc, "SQLAllocHandle() failed. [" + errmsg(rc,DIAG_TYPE_ENV, this->henv) +"]");
 
 	logger.writeLog(statement);
 
@@ -187,7 +187,7 @@ int MMSDBFreeTDS::query(string statement, MMSRecordSet *rs) {
 	rc = SQLExecDirect(this->hstmt, (SQLCHAR *) statement.c_str(), SQL_NTS);
 
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
-        throw(new MMSError(rc, "Execution of query failed with rc " + iToStr(rc) + ". [" + errmsg(rc, DIAG_TYPE_STMT, this->hstmt) +"]"));
+        throw MMSError(rc, "Execution of query failed with rc " + iToStr(rc) + ". [" + errmsg(rc, DIAG_TYPE_STMT, this->hstmt) +"]");
 
 	SQLNumResultCols(this->hstmt, &columns);
 
@@ -250,12 +250,12 @@ int MMSDBFreeTDS::query(string statement) {
 
 	// start the query
     if((rc = SQLAllocHandle(SQL_HANDLE_STMT, *this->dbhandle, &this->hstmt)) != SQL_SUCCESS)
-        throw(new MMSError(rc, "SQLAllocHandle() failed. [" + errmsg(rc,DIAG_TYPE_ENV, this->henv) +"]"));
+        throw MMSError(rc, "SQLAllocHandle() failed. [" + errmsg(rc,DIAG_TYPE_ENV, this->henv) +"]");
 
 	logger.writeLog(statement);
     // start a stored procedure
 	if((rc = SQLExecDirect(this->hstmt, (SQLCHAR *) statement.c_str(), statement.length())) != SQL_SUCCESS)
-        throw(new MMSError(rc, "Execution of query failed. [" + errmsg(rc, DIAG_TYPE_STMT, this->hstmt) +"]"));
+        throw MMSError(rc, "Execution of query failed. [" + errmsg(rc, DIAG_TYPE_STMT, this->hstmt) +"]");
 
 	SQLNumResultCols(this->hstmt, &columns);
 

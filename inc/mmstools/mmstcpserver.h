@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -47,7 +47,9 @@ class MMSTCPServer : public MMSThread {
 
 	public:
 		MMSTCPServer(vector<MMSServerInterface *> interfaces,
-					 string host = "0.0.0.0", unsigned int port = 9999);
+					 string host = "0.0.0.0", unsigned int port = 9999, string identity = "MMSTCPServer");
+		MMSTCPServer(MMSServerInterface *interface,
+					 string host = "0.0.0.0", unsigned int port = 9999, string identity = "MMSTCPServer");
 		virtual void threadMain();
 };
 

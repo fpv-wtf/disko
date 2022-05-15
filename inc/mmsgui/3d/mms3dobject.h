@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -33,50 +33,59 @@
 #ifndef MMS3DOBJECT_H_
 #define MMS3DOBJECT_H_
 
-#include "mmstools/mmstypes.h"
+#include "mmsgui/3d/mms3dmatrixstack.h"
 
-//! Describes a 3D object.
-/*!
-\author Jens Schneider
-*/
 class MMS3DObject {
-	private:
-		MMS3DRegion region;
+private:
+	//! scene in which the object is drawn
+	class MMS3DScene *scene;
 
-		vector<MMS3DPoint>	org_points;
-		vector<MMS3DPoint>	tmp_points;
-		vector<MMS3DPoint>	fin_points;
+	//! id of the object in the scene
+	int obj_id;
 
-		bool finalized;
+	//! parent object or NULL
+	MMS3DObject *parent;
 
-		bool rotate_object;
-		double rotate_xa;
-		double rotate_ya;
-		double rotate_za;
+	//! stores base matrix and matrix operations
+	MMS3DMatrixStack	matrixStack;
 
-	public:
-		MMS3DObject(MMS3DRegion &region);
-
-		void setPoint(MMS3DPoint &p);
-
-		void setPoint(double x, double y, double z);
-
-		void reset();
-
-		void rotate_point_x(MMS3DPoint *src, MMS3DPoint *dst);
-		void rotate_point_y(MMS3DPoint *src, MMS3DPoint *dst);
-		void rotate_point_z(MMS3DPoint *src, MMS3DPoint *dst);
-
-		void rotate_x(double angle = 0);
-		void rotate_y(double angle = 0);
-		void rotate_z(double angle = 0);
-
-		void finalize();
+	//! children objects
+	vector<MMS3DObject*> children;
 
 
-	friend class MMS3DLine;
-	friend class MMS3DCircle;
-	friend class MMS3DSpace;
+	void setBaseMatrix(MMS3DMatrix matrix);
+
+	bool getResultMatrix(MMS3DMatrix result);
+
+	bool genMatrices();
+
+public:
+	MMS3DObject(class MMS3DScene *scene);
+
+	MMS3DObject(class MMS3DScene *scene, int material, int texture);
+
+	bool addObject(MMS3DObject *object);
+
+	bool show();
+
+	bool hide();
+
+	bool cullFace(bool cullface);
+
+	void reset();
+
+	bool scale(float sx, float sy, float sz);
+
+	bool translate(float tx, float ty, float tz);
+
+	bool rotate(float angle, float x, float y, float z);
+
+
+	friend class MMS3DScene;
+	friend class MMS3DRectangle;
+	friend class MMS3DSphere;
+	friend class MMS3DTorus;
+	friend class MMS3DCylinder;
 };
 
-#endif /*MMS3DOBJECT_H_*/
+#endif /* MMS3DOBJECT_H_ */

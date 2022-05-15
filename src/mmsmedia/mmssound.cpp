@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -81,7 +81,11 @@ MMSSound::~MMSSound() {
  * Calls MMSAV::open() with the queue_cb callback.
  */
 void MMSSound::xineOpen() {
+
     MMSAV::xineOpen(queue_cb);
+
+    // ignore video
+    xine_set_param(this->stream, XINE_PARAM_IGNORE_VIDEO, true);
 }
 #endif
 
@@ -97,6 +101,10 @@ void MMSSound::xineOpen() {
 void MMSSound::startPlaying(string mrl, bool cont) {
 /*    if(!this->stream)
         this->open();*/
+#ifdef __HAVE_XINE__
+	if(!this->stream) MMSAV::xineOpen(queue_cb, (void*)this);
+#endif
+
     MMSAV::startPlaying(mrl, cont);
 }
 

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -33,52 +33,146 @@
 #ifndef MMSTHREAD_H_
 #define MMSTHREAD_H_
 
-#include <pthread.h>
-#include <sched.h>
+#include "mmstools/mmsmutex.h"
 #include "mmstools/mmslogger.h"
+#include <sched.h>
 
-#include <map>
 
-typedef struct {
-	void *udata;
-	void (*handlerfunc)(void *);
-} CLEANUP_STRUCT;
+//! This class is the base class for all threads.
+/*!
+This class includes the base functionality available for all threads within MMS/DISKO.
+This class cannot be constructed. Only classes which are derived from this class can be constructed.
+\author Jens Schneider
+*/
+class MMSThread {
+
+	private:
+		//! helper mutex to perform a safe start
+		MMSMutex	startlock;
+
+		//! starting thread is in progress
+		bool		starting;
+
+		//! thread is running
+		bool		running;
+
+		//! if thread is detached, its resources are automatically released when it terminates
+		bool		detached;
+
+
+		//! thread attributes
+        pthread_attr_t	tattr;
+
+        //! scheduling parameter
+        sched_param		param;
+
+        //! id of the thread, valid for the running state
+		pthread_t		id;
+
+
+		//! requested priority of the thread
+		int			priority;
+
+		//! should thread automatically detached?
+		bool		autodetach;
+
+		//! requested stack size
+		size_t		stacksize;
+
+
+		//! static helper routine to call this->run()
+        static void *runThread(void *thiz);
+
+        //! the code of this method runs in the new thread and calls the virtual threadMain()
+        void run();
+
+	public:
+		//! identification string
+        string	identity;
+
+
+	public:
+
+		//! Constructor
+		/*!
+        \param identity    identification string
+        \param priority    requested priority of the thread, default is 0
+        \param autodetach  automatically detach the thread after starting, default is true
+		*/
+		MMSThread(string identity = "MMSThread", int priority = 0, bool autodetach = true);
+
+
+		//! Destructor
+		virtual ~MMSThread();
+
+
+        //! Virtual main method for the thread.
+        /*!
+        This virtual method is empty and have to be setup with code by a derived class.
+        The MMSThread class is only the base class and cannot be constructed.
+        */
+        virtual void threadMain() = 0;
+
+
+        //! Create and start a new thread.
+        /*!
+        \return true if thread is started
+        \note The method returns false, if the thread is already running or cannot be started.
+        \note If the method returns true, it is possible, that the new thread is already finished.
+        \see isRunning()
+        */
+        virtual bool start();
+
+
+        //! Check if the thread is running.
+        /*!
+        \return true if running
+        \note This check is a combination between the "starting" and "running" states. This means
+              that if the thread is currently starting this method also returns true.
+        \see start()
+        */
+		virtual bool isRunning();
+
+
+        //! Mark the thread as detached.
+        /*!
+        \note If a thread is detached, its resources are automatically released when it terminates.
+        */
+		void detach();
+
+
+        //! Cancel execution of a thread.
+        /*!
+        \return true if successfully canceled
+        \note The method returns false, if the thread is not running or cannot be canceled.
+        */
+		bool cancel();
+
+
+        //! The caller of this method will wait of the termination of the thread.
+        /*!
+        \note This works only, if the thread is NOT detached.
+        \see MMSThread(), detach()
+        */
+		void join();
+
+
+        //! Set the size of the stack for the new thread.
+        /*!
+        The stack size determines the minimum size (in bytes) that will be allocated.
+        \param stacksize  size of the stack in bytes
+        \note The default stack size is 1000000 bytes.
+        \note The stack size must be changed before the start() method will be called.
+        */
+		void setStacksize(size_t stacksize = 1000000);
+};
 
 
 void addGarbageHandler(void (*handlerfunc)(void *), void *data);
 
 void callGarbageHandler();
 
-void cleargargabeHandler();
+void clearGarbageHandler();
 
-class MMSThread {
-
-	private:
-		int				priority;
-        pthread_attr_t	tattr;
-        sched_param		param;
-		pthread_t 		id;
-		bool 			isrunning;
-		bool            isdetached;
-		bool            autoDetach;
-		size_t			stacksize;
-
-	public:
-        string    identity;
-
-//	protected:
-		void run();
-
-	public:
-		MMSThread(string identity = "MMSThread", int priority = 0, bool detach = true);
-        virtual ~MMSThread() {};
-		virtual void threadMain() = 0;
-		bool start();
-		void detach();
-		virtual bool isRunning();
-		int cancel();
-		void join();
-		void setStacksize(size_t stacksize);
-};
 
 #endif /*MMSTHREAD_H_*/

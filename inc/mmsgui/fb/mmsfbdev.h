@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -38,6 +38,12 @@
 #include "mmsgui/fb/mmsfbconv.h"
 #include "mmsgui/fb/fb.h"
 #include <termios.h>
+
+//! openDevice() console parameter, use free virtual console
+#define MMSFBDEV_QUERY_CONSOLE	-1
+
+//! openDevice() console parameter, do not open a virtual console
+#define MMSFBDEV_NO_CONSOLE		-2
 
 // added missing ioctl
 #ifndef FBIO_WAITFORVSYNC
@@ -114,11 +120,16 @@ class MMSFBDev {
 
         bool readModes();
 
+        void genFBPixelFormat(MMSFBSurfacePixelFormat pf, unsigned int *nonstd_format, MMSFBPixelDef *pixeldef);
+        void disable(int fd, string device_file);
+        bool activate(int fd, string device_file, struct fb_var_screeninfo *var_screeninfo,
+        			  int width, int height, MMSFBSurfacePixelFormat pixelformat, bool switch_mode = true);
+
     public:
         MMSFBDev();
         virtual ~MMSFBDev();
 
-        virtual bool openDevice(char *device_file = NULL, int console = -1);
+        virtual bool openDevice(char *device_file = NULL, int console = MMSFBDEV_QUERY_CONSOLE);
         virtual void closeDevice();
         bool isInitialized();
 
@@ -141,6 +152,10 @@ class MMSFBDev {
 
         bool setMode(int width, int height, MMSFBSurfacePixelFormat pixelformat, int backbuffer = 0);
 
+        sigc::signal<bool, MMSFBSurfacePixelFormat, unsigned int*, MMSFBPixelDef*>::accumulated<neg_bool_accumulator> onGenFBPixelFormat;
+        sigc::signal<bool, int, string>::accumulated<neg_bool_accumulator> onDisable;
+        sigc::signal<bool, int, string, fb_var_screeninfo *, int, int, MMSFBSurfacePixelFormat, bool>::accumulated<neg_bool_accumulator> onActivate;
+
     private:
         typedef struct {
         	//! /dev/tty0 file descriptor
@@ -161,7 +176,7 @@ class MMSFBDev {
 
         VT	vt;
 
-        bool vtOpen(int console = -1);
+        bool vtOpen(int console = MMSFBDEV_QUERY_CONSOLE);
         void vtClose();
         virtual bool vtGetFd(int *fd);
 

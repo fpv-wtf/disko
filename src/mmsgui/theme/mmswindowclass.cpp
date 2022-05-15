@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -31,6 +31,7 @@
  **************************************************************************/
 
 #include "mmsgui/theme/mmswindowclass.h"
+#include "mmsconfig/mmsconfigdata.h"
 #include <string.h>
 
 MMSWindowClass::MMSWindowClass() {
@@ -63,6 +64,7 @@ MMSWindowClass::MMSWindowClass() {
     initAlwaysOnTop();
     initFocusable();
     initBackBuffer();
+    initInitialLoad();
 }
 
 MMSWindowClass::~MMSWindowClass() {
@@ -95,6 +97,7 @@ MMSWindowClass::~MMSWindowClass() {
     freeAlwaysOnTop();
     freeFocusable();
     freeBackBuffer();
+    freeInitialLoad();
 }
 
 MMSWindowClass &MMSWindowClass::operator=(const MMSWindowClass &c) {
@@ -167,6 +170,7 @@ void MMSWindowClass::unsetAll() {
     unsetAlwaysOnTop();
     unsetFocusable();
     unsetBackBuffer();
+    unsetInitialLoad();
 }
 
 void MMSWindowClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *path, bool reset_paths) {
@@ -196,10 +200,7 @@ void MMSWindowClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *path, boo
             setHeight(attrval_str);
             break;
 		case MMSGUI_WINDOW_ATTR::MMSGUI_WINDOW_ATTR_IDS_bgcolor:
-			color.a = color.r = color.g = color.b = 0;
-            if (isBgColor()) getBgColor(color);
-            if (getMMSFBColorFromString(attrval_str, &color))
-                setBgColor(color);
+            setBgColor(MMSFBColor((unsigned int)attrval_int));
             break;
 		case MMSGUI_WINDOW_ATTR::MMSGUI_WINDOW_ATTR_IDS_bgcolor_a:
 			color.a = color.r = color.g = color.b = 0;
@@ -281,6 +282,15 @@ void MMSWindowClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *path, boo
             setNavigateRight(attrval_str);
             break;
 		case MMSGUI_WINDOW_ATTR::MMSGUI_WINDOW_ATTR_IDS_own_surface:
+#ifdef __HAVE_DIRECTFB__
+			if(attrval_int) {
+				MMSConfigData config;
+				if(config.getBackend() == MMSFB_BE_DFB) {
+					cerr << "Warning: DirectFB backend does not support own_surface=true (ignored)" << endl;
+					break;
+				}
+			}
+#endif
             setOwnSurface((attrval_int) ? true : false);
             break;
 		case MMSGUI_WINDOW_ATTR::MMSGUI_WINDOW_ATTR_IDS_movein:
@@ -303,6 +313,9 @@ void MMSWindowClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *path, boo
             break;
 		case MMSGUI_WINDOW_ATTR::MMSGUI_WINDOW_ATTR_IDS_backbuffer:
             setBackBuffer((attrval_int) ? true : false);
+            break;
+		case MMSGUI_WINDOW_ATTR::MMSGUI_WINDOW_ATTR_IDS_initial_load:
+            setInitialLoad((attrval_int) ? true : false);
             break;
 		}
 	}
@@ -1011,5 +1024,29 @@ void MMSWindowClass::setBackBuffer(bool backbuffer) {
 
 bool MMSWindowClass::getBackBuffer(bool &backbuffer) {
 	MMSTHEMECLASS_GET_BASIC(backbuffer);
+}
+
+void MMSWindowClass::initInitialLoad() {
+	MMSTHEMECLASS_INIT_BASIC(initialload);
+}
+
+void MMSWindowClass::freeInitialLoad() {
+	MMSTHEMECLASS_FREE_BASIC(initialload);
+}
+
+bool MMSWindowClass::isInitialLoad() {
+	MMSTHEMECLASS_ISSET(initialload);
+}
+
+void MMSWindowClass::unsetInitialLoad() {
+	MMSTHEMECLASS_UNSET(initialload);
+}
+
+void MMSWindowClass::setInitialLoad(bool initialload) {
+	MMSTHEMECLASS_SET_BASIC(initialload);
+}
+
+bool MMSWindowClass::getInitialLoad(bool &initialload) {
+	MMSTHEMECLASS_GET_BASIC(initialload);
 }
 

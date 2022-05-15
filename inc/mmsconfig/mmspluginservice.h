@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -46,7 +46,10 @@ class MMSPluginService {
     private:
         IMMSDB 		*dbconn;
 
-    public:
+		const void setPluginProperties(MMSPluginData *plugin) const;
+		const void setPluginProperties(vector<MMSPluginData*> &pluginList) const;
+
+	public:
         MMSPluginService (DataSource *datasource);
         virtual ~MMSPluginService();
 

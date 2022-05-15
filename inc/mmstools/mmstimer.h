@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -72,6 +72,8 @@ class MMSTimer: public MMSThread
 		 * \param singleShot    If this is set to true, the timer will
 		 *                      emit only once, else it will do it
 		 *                      repetitive.
+		 *
+		 * \note If singleShot is set to true, internally the thread will be stopped after the signal is emitted.
 		 */
 		MMSTimer(bool singleShot = false);
 
@@ -84,15 +86,22 @@ class MMSTimer: public MMSThread
 		 * \brief Starts timer.
 		 *
 		 * \param milliSeconds    the timer interval in milli seconds
+		 * \param firsttime_ms    the first timeOut will be emitted after firsttime_ms milliseconds
+		 *                        default 0 means that the first timeOut will also be emitted after milliSeconds
+		 *
+		 * \note If the timer is stopped (see stop()), it will be restarted using restart() but with new settings.
+		 * \see stop()
 		 */
-		bool start(unsigned int milliSeconds);
+		bool start(unsigned int milliSeconds, unsigned int firsttime_ms = 0);
 
 		/*!
 		 * \brief Restarts timer.
 		 *
 		 * A running timer stops first and no signal emits. After this
-		 * a new timer starts with the full interval set with
-		 * \see start(unsigned int milliSecs).
+		 * a new timer starts with the full interval (milliSeconds) set with start().
+		 *
+		 * \see start()
+		 * \see stop()
 		 */
 		bool restart();
 
@@ -100,6 +109,9 @@ class MMSTimer: public MMSThread
 		 * \brief Stops timer.
 		 *
 		 * A running timer stops and no signal emits.
+		 *
+		 * \note No signal will be emitted anymore, but internally the thread will be hold with pthread_cond_wait().
+		 * \see restart()
 		 */
 		bool stop();
 
@@ -119,8 +131,11 @@ class MMSTimer: public MMSThread
 			QUIT
 		} 				action;
 
+		bool			firsttime;
 		__time_t 		secs;
 		long int 		nSecs;
+		__time_t 		ft_secs;
+		long int 		ft_nSecs;
 
 		pthread_cond_t 	cond;
 		pthread_mutex_t	mutex;

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -36,9 +36,15 @@
 #include <string.h>
 #include "mmsgui/mmsimagemanager.h"
 #include "mmsgui/mmsgifloader.h"
+#include "mmsgui/mmsfbmanager.h"
 
 
 MMSImageManager::MMSImageManager(MMSFBLayer *layer) {
+	if (!layer) {
+		// use default layer
+		layer = mmsfbmanager.getGraphicsLayer();
+	}
+
 	// save layer
 	this->layer = layer;
 
@@ -74,6 +80,10 @@ MMSImageManager::MMSImageManager(MMSFBLayer *layer) {
     	this->usetaff = true;
     	this->taffpf = MMSTAFF_PF_RGB16;
     	break;
+    case MMSFB_PF_ABGR:
+    	this->usetaff = true;
+    	this->taffpf = MMSTAFF_PF_ABGR;
+    	break;
     default:
     	break;
     }
@@ -91,12 +101,12 @@ MMSImageManager::~MMSImageManager() {
 
 
 MMSFBSurface *MMSImageManager::getImage(const string &path, const string &filename, MMSIM_DESC_SUF **surfdesc,
-										int mirror_size) {
-    string                  imagefile;
-    MMSIM_DESC              *im_desc = NULL;
-    int                     reload_image = -1;
+										int mirror_size, bool gen_taff) {
+    string		imagefile;
+    MMSIM_DESC	*im_desc = NULL;
+    int			reload_image = -1;
 
-    /* build filename */
+    // build filename
     imagefile = path;
     if (imagefile != "") imagefile+= "/";
     imagefile += filename;
@@ -105,25 +115,36 @@ MMSFBSurface *MMSImageManager::getImage(const string &path, const string &filena
     if (imagefile.substr(imagefile.size()-1,1)=="/")
         return NULL;
 
+	if (gen_taff) {
+		// check if we have to switch off the taff file generation
+		if (strToUpr(imagefile.substr(0,7)) == "HTTP://") {
+			gen_taff = false;
+		}
+		else
+		if (strToUpr(imagefile.substr(0,6)) == "FTP://") {
+			gen_taff = false;
+		}
+	}
+
     // lock threads
     this->lock.lock();
 
     DEBUGMSG("MMSGUI", "Load request for path=%s, name=%s", path.c_str(), filename.c_str());
 
-    /* search within images list */
+    // searching within images list
     for (unsigned int i = 0; i < this->images.size(); i++) {
         if (this->images.at(i)->imagefile == imagefile) {
-            /* already loaded, check if the file has changed */
+            // already loaded, check if the file has changed
             struct stat statbuf;
             if (stat(imagefile.c_str(), &statbuf)==0) {
                 if (statbuf.st_mtime != this->images.at(i)->mtime) {
-                    /* file was modified, reload it */
+                    // file was modified, reload it
                     reload_image = (int)i;
                     this->images.at(i)->mtime = statbuf.st_mtime;
                     break;
                 }
                 else {
-                    /* do not reload */
+                    // do not reload
 					DEBUGMSG("MMSGUI", "Reusing already loaded image path=%s, name=%s", path.c_str(), filename.c_str());
                     this->images.at(i)->usecount++;
                     if (surfdesc)
@@ -133,7 +154,7 @@ MMSFBSurface *MMSImageManager::getImage(const string &path, const string &filena
                 }
             }
             else {
-                /* do not reload */
+                // do not reload
 				DEBUGMSG("MMSGUI", "Reusing already loaded image path=%s, name=%s", path.c_str(), filename.c_str());
                 this->images.at(i)->usecount++;
                 if (surfdesc)
@@ -144,7 +165,7 @@ MMSFBSurface *MMSImageManager::getImage(const string &path, const string &filena
         }
     }
 
-    /* init im_desc */
+    // init im_desc
     im_desc = new MMSIM_DESC;
     memset(im_desc->suf, 0, sizeof(im_desc->suf));
     im_desc->suf[0].delaytime = im_desc->suf[1].delaytime = MMSIM_DESC_SUF_END;
@@ -153,13 +174,13 @@ MMSFBSurface *MMSImageManager::getImage(const string &path, const string &filena
 
 	DEBUGMSG("MMSGUI", "Loading image path=%s, name=%s", path.c_str(), filename.c_str());
 
-    /* first try to load GIF formated files */
+    // first try to load GIF formated files
     if (isGIF(imagefile)) {
-        /* it's an GIF file */
+        // it's an GIF file
         im_desc->imagefile = imagefile;
 
         if (reload_image < 0) {
-            /* get the modification time of the file */
+            // get the modification time of the file
             struct stat statbuf;
             if (stat(imagefile.c_str(), &statbuf)==0)
                 im_desc->mtime = statbuf.st_mtime;
@@ -168,7 +189,7 @@ MMSFBSurface *MMSImageManager::getImage(const string &path, const string &filena
         }
 
         if (reload_image < 0) {
-            /* load it */
+            // load it
             MMSGIFLoader *gifloader = new MMSGIFLoader(im_desc, this->layer);
             gifloader->start();
             gifloader->block();
@@ -176,7 +197,7 @@ MMSFBSurface *MMSImageManager::getImage(const string &path, const string &filena
             if (im_desc->sufcount > 0) {
             	DEBUGMSG("MMSGUI", "ImageManager has loaded: '%s'", imagefile.c_str());
 
-                /* add to images list and return the surface */
+                // add to images list and return the surface
                 im_desc->usecount = 1;
                 this->images.push_back(im_desc);
                 if (surfdesc)
@@ -185,7 +206,7 @@ MMSFBSurface *MMSImageManager::getImage(const string &path, const string &filena
                 return im_desc->suf[0].surface;
             }
             else {
-                /* failed to load */
+                // failed to load
             	DEBUGMSG("MMSGUI", "cannot load image file '%s'",imagefile.c_str());
                 delete im_desc;
                 this->lock.unlock();
@@ -193,7 +214,7 @@ MMSFBSurface *MMSImageManager::getImage(const string &path, const string &filena
             }
         }
         else {
-            /* increase usecount */
+            // increase usecount
             this->images.at(reload_image)->usecount++;
 
 //TODO
@@ -205,7 +226,7 @@ MMSFBSurface *MMSImageManager::getImage(const string &path, const string &filena
         }
     }
     else {
-        /* failed, try to read from taff? */
+        // failed, try to read from taff?
 /*
 struct  timeval tv;
 gettimeofday(&tv, NULL);
@@ -220,38 +241,81 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 	    	// first : try to read taff image without special pixelformat
     		// second: try with pixelformat from my surfaces
     		bool retry = false;
+			MMSTaffFile *tafff = NULL;
     		do {
-    			MMSTaffFile *tafff;
     			if (retry) {
 	    			retry = false;
 	    			DEBUGOUT("ImageManager, retry\n");
+
     				// have to convert taff with special destination pixelformat
-    				tafff = new MMSTaffFile(imagefile + ".taff", NULL,
-		    								"", MMSTAFF_EXTERNAL_TYPE_IMAGE);
-        			if (tafff) {
+	    			if (gen_taff) {
+	    				// here we have to use *.taff file, which should store converted image data
+						tafff = new MMSTaffFile(imagefile + ".taff", NULL,
+												"", MMSTAFF_EXTERNAL_TYPE_IMAGE);
+	    			}
+	    			else {
+	    				// hold converted image data in memory, do NOT write it to an *.taff file
+						tafff = new MMSTaffFile("", NULL,
+												"", MMSTAFF_EXTERNAL_TYPE_IMAGE,
+												false, false, false, true, false);
+	    			}
+
+	    			if (tafff) {
         				// set external file and requested pixelformat
 	    				tafff->setExternal(imagefile, MMSTAFF_EXTERNAL_TYPE_IMAGE);
 	    				DEBUGOUT("ImageManager, taffpf = %d\n", taffpf);
-	    				tafff->setDestinationPixelFormat(taffpf);
+
+	    				if (config.getGraphicsLayer().outputtype == MMSFB_OT_OGL) {
+							// for ogl we don't need premultiplied images
+							tafff->setDestinationPixelFormat(taffpf, false);
+	    				}
+	    				else {
+	    					// use premultiplied images
+	    					tafff->setDestinationPixelFormat(taffpf, true);
+	    				}
+
+	    				// set mirror size
 	    				tafff->setMirrorEffect(mirror_size);
+
+	    				// rotate image by 180°?
+	    				tafff->rotate180(MMSFBBase_rotate180);
+
 	    				// convert it
 	    				if (!tafff->convertExternal2TAFF()) {
 	    					// conversion failed
 	    					delete tafff;
+	    					tafff = NULL;
 	    					break;
 	    				}
-	    				delete tafff;
+
+	    				if (gen_taff) {
+	    					// delete this tafff instance, because it will be re-loaded
+	    					delete tafff;
+	    					tafff = NULL;
+	    				}
         			}
     			}
 
 				// load image, but do not auto rewrite taff because have to set special attributes like mirror effect
-				tafff = new MMSTaffFile(imagefile + ".taff", NULL,
-										imagefile, MMSTAFF_EXTERNAL_TYPE_IMAGE,
-	    								false, false, false, false, false);
+    			if (gen_taff) {
+					tafff = new MMSTaffFile(imagefile + ".taff", NULL,
+											imagefile, MMSTAFF_EXTERNAL_TYPE_IMAGE,
+											false, false, false, false, false);
+    			}
+    			else {
+					if (!tafff) {
+						retry = true;
+						continue;
+    				}
+    			}
     			if (tafff) {
     				if (!tafff->isLoaded()) {
         				// set special attributes like mirror effect
-	    				tafff->setMirrorEffect(mirror_size);
+    					tafff->setMirrorEffect(mirror_size);
+
+	    				// rotate image by 180°?
+	    				tafff->rotate180(MMSFBBase_rotate180);
+
 	    				// convert it
 	    				if (!tafff->convertExternal2TAFF()) {
 	    					// conversion failed
@@ -259,6 +323,9 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 	    					break;
 	    				}
 	    				delete tafff;
+	    				tafff = NULL;
+
+	    				// here we have to read from *.taff file, because special attributes will be written to file
 	    				tafff = new MMSTaffFile(imagefile + ".taff", NULL,
 	    	    								"", MMSTAFF_EXTERNAL_TYPE_IMAGE);
     				}
@@ -278,6 +345,8 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 				    	MMSTAFF_PF 	img_pixelformat = MMSTAFF_PF_ARGB;
 				    	bool 		img_premultiplied = true;
 				    	int 		img_mirror_size = 0;
+				    	bool		img_alphachannel = true;
+				    	bool		img_rotate_180 = false;
 
 				    	while ((attrid=tafff->getNextAttribute(&value_str, &value_int, NULL))>=0) {
 				    		switch (attrid) {
@@ -305,6 +374,12 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 				    		case MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_mirror_size:
 				    			img_mirror_size = value_int;
 				    			break;
+				    		case MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_alphachannel:
+				    			img_alphachannel = (value_int);
+				    			break;
+				    		case MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_rotate_180:
+				    			img_rotate_180 = (value_int);
+				    			break;
 				    		}
 				    	}
 
@@ -327,7 +402,7 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 				    		// the image from the file has not the same mirror_size
 				    		if (!retry) {
 				    			// retry with given mirror_size
-				    			DEBUGOUT("ImageManager, request new mirrot_size\n");
+				    			DEBUGOUT("ImageManager, request new mirror_size\n");
 				    			retry = true;
 				    			delete tafff;
 				    			continue;
@@ -336,13 +411,67 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 				    			retry = false;
 				    	}
 				    	else
+						if (img_premultiplied && (config.getGraphicsLayer().outputtype == MMSFB_OT_OGL)) {
+							DEBUGOUT("ImageManager, premultiplied image\n");
+							// for ogl we don't need premultiplied images
+							if (!retry) {
+								// retry without pre-multiplication
+								DEBUGOUT("ImageManager, retry without pre-multiplication\n");
+								retry = true;
+								delete tafff;
+								continue;
+							}
+							else
+								retry = false;
+						}
+						else
+						if (!img_premultiplied && (config.getGraphicsLayer().outputtype != MMSFB_OT_OGL)) {
+							DEBUGOUT("ImageManager, image not premultiplied\n");
+							// we use premultiplied images
+							if (!retry) {
+								// retry with pre-multiplication
+								DEBUGOUT("ImageManager, retry with pre-multiplication\n");
+								retry = true;
+								delete tafff;
+								continue;
+							}
+							else
+								retry = false;
+						}
+						else
+						if (img_rotate_180 && !MMSFBBase_rotate180) {
+				    		DEBUGOUT("ImageManager, taff image is rotated by 180 degree, but NOT requested\n");
+				    		if (!retry) {
+				    			// reset rotation
+				    			DEBUGOUT("ImageManager, reset rotation\n");
+				    			retry = true;
+				    			delete tafff;
+				    			continue;
+				    		}
+				    		else
+				    			retry = false;
+						}
+						else
+						if (!img_rotate_180 && MMSFBBase_rotate180) {
+				    		DEBUGOUT("ImageManager, taff image is NOT rotated by 180 degree, but requested\n");
+				    		if (!retry) {
+				    			// retry with rotation
+				    			DEBUGOUT("ImageManager, rotate 180 degree\n");
+				    			retry = true;
+				    			delete tafff;
+				    			continue;
+				    		}
+				    		else
+				    			retry = false;
+						}
+						else
 				    	if ((img_width)&&(img_height)&&(img_pitch)&&(img_size)&&(img_buf)) {
-				        	/* successfully read */
+				        	// successfully read
 //				    		DEBUGOUT("ImageManager, use pixf = %d\n", (int)taffpf);
 				            im_desc->imagefile = imagefile;
 
 				            if (reload_image < 0) {
-				                /* get the modification time of the file */
+				                // get the modification time of the file
 				                struct stat statbuf;
 				                if (stat(imagefile.c_str(), &statbuf)==0)
 				                    im_desc->mtime = statbuf.st_mtime;
@@ -351,7 +480,8 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 				            }
 
 				            if (reload_image < 0) {
-				                /* create a surface */
+//printf("ImageManager has loaded: '%s'   - %s\n", imagefile.c_str(),(img_alphachannel)?"alpha":"no alpha");
+				                // create a surface
 				                if (!this->layer->createSurface(&(im_desc->suf[0].surface), img_width, img_height, this->pixelformat)) {
 				                    DEBUGMSG("MMSGUI", "cannot create surface for image file '%s'", imagefile.c_str());
 				                    delete im_desc;
@@ -360,38 +490,18 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 				                }
 				                im_desc->sufcount = 1;
 
-				                /* copy img_buf to the surface */
-				                char *suf_ptr;
-				                int suf_pitch;
-				                im_desc->suf[0].surface->lock(MMSFB_LOCK_WRITE, (void**)&suf_ptr, &suf_pitch);
+								// blit from external buffer to surface
+								im_desc->suf[0].surface->blitBuffer(img_buf, img_pitch, this->pixelformat,
+																	img_width, img_height, NULL, 0, 0,
+																	!img_alphachannel);
 
-				                if (img_pitch == suf_pitch)
-				                	memcpy(suf_ptr, img_buf, img_pitch * img_height);
-				                else {
-				                	/* copy each line */
-				                	char *img_b = (char*)img_buf;
-				                	for (int i = 0; i < img_height; i++) {
-				                		memcpy(suf_ptr, img_b, img_pitch);
-				                		suf_ptr+=suf_pitch;
-				                		img_b+=img_pitch;
-				                	}
-				                }
-				                im_desc->suf[0].surface->unlock();
-
-				                /* free */
+				                // free
 				                delete tafff;
-	/*
-	gettimeofday(&tv, NULL);
-	DEBUGOUT("end < %d\n", tv.tv_usec);
-
-	string ss;
-	im_desc->suf[0].surface->getPixelFormat(&ss);
-	DEBUGOUT("png loaded: width=%d,height=%d,pitch=%d,pf=%s\n", img_width, img_height, dfbsuf_pitch,  ss.c_str());
-	*/
+				                tafff = NULL;
 
 				                DEBUGMSG("MMSGUI", "ImageManager has loaded: '%s'", imagefile.c_str());
 
-				                /* add to images list and return the surface */
+				                // add to images list and return the surface
 				                im_desc->usecount = 1;
 				                this->images.push_back(im_desc);
 				                if (surfdesc)
@@ -400,25 +510,25 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 				                return im_desc->suf[0].surface;
 				            }
 				            else {
-				                /* increase usecount */
+				                // increase usecount
 				                this->images.at(reload_image)->usecount++;
 
-				                /* check if I have to resize the surface */
+				                // check if I have to resize the surface
 				                int w, h;
 				                this->images.at(reload_image)->suf[0].surface->getSize(&w, &h);
 				                if ((w != img_width) || (h != img_height))
 				                    this->images.at(reload_image)->suf[0].surface->resize(img_width, img_height);
 
-				                /* copy img_buf to the surface */
+				                // copy img_buf to the surface
 				                char *suf_ptr;
 				                int suf_pitch;
 				                im_desc->suf[0].surface->lock(MMSFB_LOCK_WRITE, (void**)&suf_ptr, &suf_pitch);
 
 				                if (img_pitch == suf_pitch)
-				                	/* copy in one block */
+				                	// copy in one block
 				                	memcpy(suf_ptr, img_buf, img_pitch * img_height);
 				                else {
-				                	/* copy each line */
+				                	// copy each line
 				                	char *img_b = (char*)img_buf;
 				                	for (int i = 0; i < img_height; i++) {
 				                		memcpy(suf_ptr, img_b, img_pitch);
@@ -428,12 +538,13 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 				                }
 				                im_desc->suf[0].surface->unlock();
 
-				                /* free */
+				                // free
 				                delete tafff;
+				                tafff = NULL;
 
 				                DEBUGMSG("MMSGUI", "ImageManager has reloaded: '%s'", imagefile.c_str());
 
-				                /* return the surface */
+				                // return the surface
 				                delete im_desc;
 				                if (surfdesc)
 				                    *surfdesc = this->images.at(reload_image)->suf;
@@ -443,8 +554,9 @@ DEBUGOUT("start > %d\n", tv.tv_usec);
 				    	}
 		    		}
 
-		            /* free */
+		            // free
 		            delete tafff;
+		            tafff = NULL;
 		        }
     		} while (retry);
     	}
@@ -698,6 +810,8 @@ void MMSImageManager::releaseImage(MMSFBSurface *surface) {
             if (this->images.at(i)->usecount <= 0) {
                 /* this surface is not used anymore */
             	DEBUGMSG("MMSGUI", "ImageManager deletes: '%s'", this->images.at(i)->imagefile.c_str());
+
+//printf("ImageManager deletes: '%s'\n", this->images.at(i)->imagefile.c_str());
 
                 for (int j = 0; j < this->images.at(i)->sufcount; j++)
                     if (this->images.at(i)->suf[j].surface)

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -67,6 +67,14 @@ class MMSPopupWindow : public MMSWindow {
         /* theme access methods */
         unsigned int getDuration();
 
+		/**
+		 * Sets the duration in seconds to display the popupwindow when show()
+		 * is called.
+		 * 
+		 * If the window is already shown, the current timeout is resetted.
+		 * 
+		 * @param	duration [in]	time in seconds to display the popupwindow
+		 */
         void setDuration(unsigned int duration);
 
         void updateFromThemeClass(MMSPopupWindowClass *themeClass);

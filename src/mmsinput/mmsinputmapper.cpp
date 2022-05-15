@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -47,7 +47,7 @@ MMSInputMapper::MMSInputMapper(string mapfile, string name) {
 		parser = xmlReadFile((char *)mapfile.c_str(), NULL, 0);
 
 		if(parser == NULL) {
-			throw new MMSError(1, "Could not parse file:" + mapfile);
+			throw MMSError(1, "Could not parse file:" + mapfile);
 		}
 		else {
 
@@ -56,7 +56,7 @@ MMSInputMapper::MMSInputMapper(string mapfile, string name) {
 			// check if incorrent input mapfile found
 			if(xmlStrcmp(pNode->name, (const xmlChar *) "mmsinputmaps")) {
 				std::cout << "invalid mapfile (" << mapfile << ") - does not contain mmsinputmaps root node" << std::endl;
-				throw new MMSError(1, "invalid file");
+				throw MMSError(1, "invalid file");
 			}
 
 			pNode = pNode->xmlChildrenNode;
@@ -102,8 +102,8 @@ MMSInputMapper::MMSInputMapper(string mapfile, string name) {
 			}
         }
 	}
-	catch(MMSError *error) {
-		DEBUGMSG("MMSINPUTMANAGER", "Error loading inputmaps (" + mapfile + "." + name + ") [" + error->getMessage() + "]");
+	catch(MMSError &error) {
+		DEBUGMSG("MMSINPUTMANAGER", "Error loading inputmaps (" + mapfile + "." + name + ") [" + error.getMessage() + "]");
 	}
 
 	DEBUGMSG("MMSINPUTMANAGER", "Parsing inputmap finished.");

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -72,13 +72,13 @@ class MMSFileSearch {
 		DIR *dirhandle;
 		bool match(char *entry);
 		void scanDir(list<MMSFILE_ENTRY *> *result,DIR *dirhandle, string cwd);
-		void seperateMask();
+		void separateMask();
 		MMSFILESEARCH_OPTION option;
 
 	public:
 		MMSFileSearch(string directory, string mask, bool recursive=true, bool caseinsensitive=false, bool getdirs = false);
 		void setRecursive(bool recursive);
-		void setDircetory(string directory);
+		void setDirectory(string directory);
 		void setString(string mask);
 		void setCaseInsensitive(bool caseinsensitive);
 		MMSFILEENTRY_LIST execute();

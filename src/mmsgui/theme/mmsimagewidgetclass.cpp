@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -36,9 +36,11 @@
 //store attribute descriptions here
 TAFF_ATTRDESC MMSGUI_IMAGEWIDGET_ATTR_I[] = MMSGUI_IMAGEWIDGET_ATTR_INIT;
 
-//address attribute names
+// address attribute names
 #define GETATTRNAME(aname) MMSGUI_IMAGEWIDGET_ATTR_I[MMSGUI_IMAGEWIDGET_ATTR::MMSGUI_IMAGEWIDGET_ATTR_IDS_##aname].name
-#define ISATTRNAME(aname) (strcmp(attrname, GETATTRNAME(aname))==0)
+
+// address attribute types
+#define GETATTRTYPE(aname) MMSGUI_IMAGEWIDGET_ATTR_I[MMSGUI_IMAGEWIDGET_ATTR::MMSGUI_IMAGEWIDGET_ATTR_IDS_##aname].type
 
 
 MMSImageWidgetClass::MMSImageWidgetClass() {
@@ -64,6 +66,7 @@ void MMSImageWidgetClass::unsetAll() {
     unsetFitHeight();
     unsetAlignment();
     unsetMirrorSize();
+    unsetGenTaff();
 }
 
 void MMSImageWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path, bool reset_paths) {
@@ -196,6 +199,9 @@ void MMSImageWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pref
 			case MMSGUI_IMAGEWIDGET_ATTR::MMSGUI_IMAGEWIDGET_ATTR_IDS_mirror_size:
 	            setMirrorSize(attrval_int);
 				break;
+			case MMSGUI_IMAGEWIDGET_ATTR::MMSGUI_IMAGEWIDGET_ATTR_IDS_gen_taff:
+	            setGenTaff((attrval_int) ? true : false);
+				break;
 			}
 		}
 		endTAFFScan
@@ -205,14 +211,20 @@ void MMSImageWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pref
 
     	startTAFFScan_WITHOUT_ID
     	{
-    		/* check if attrname has correct prefix */
+    		// check if attrname has correct prefix
     		if (pl >= strlen(attrname))
         		continue;
             if (memcmp(attrname, prefix->c_str(), pl)!=0)
             	continue;
             attrname = &attrname[pl];
 
-    		/* okay, correct prefix, check attributes now */
+            // special storage for macros
+			bool attrval_str_valid;
+			bool int_val_set;
+			bool byte_val_set;
+			int  *p_int_val = &attrval_int;
+
+    		// okay, correct prefix, check attributes now
             if (ISATTRNAME(image)) {
 	            if (*attrval_str)
 	                setImagePath("");
@@ -346,6 +358,10 @@ void MMSImageWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pref
             if (ISATTRNAME(mirror_size)) {
 	            setMirrorSize(attrval_int);
 			}
+            else
+            if (ISATTRNAME(gen_taff)) {
+	            setGenTaff((attrval_int) ? true : false);
+            }
     	}
     	endTAFFScan_WITHOUT_ID
     }
@@ -665,6 +681,23 @@ void MMSImageWidgetClass::unsetMirrorSize() {
 
 unsigned int MMSImageWidgetClass::getMirrorSize() {
     return this->mirrorsize;
+}
+
+bool MMSImageWidgetClass::isGenTaff() {
+    return this->isgentaff;
+}
+
+void MMSImageWidgetClass::setGenTaff(bool gentaff) {
+    this->gentaff = gentaff;
+    this->isgentaff = true;
+}
+
+void MMSImageWidgetClass::unsetGenTaff() {
+    this->isgentaff = false;
+}
+
+bool MMSImageWidgetClass::getGenTaff() {
+    return this->gentaff;
 }
 
 

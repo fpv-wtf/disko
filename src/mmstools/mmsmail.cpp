@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -124,11 +124,11 @@ void MMSMail::send() {
 	}
 	catch (vmime::exception& e)
 	{
-		throw new MMSError(0, e.what());
+		throw MMSError(0, e.what());
 	}
 	catch (std::exception& e)
 	{
-		throw new MMSError(0, e.what());
+		throw MMSError(0, e.what());
 	}
 }
 #endif

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -31,6 +31,10 @@
  **************************************************************************/
 
 #include "mmsgui/fb/mmsfbconv.h"
+
+#ifdef __HAVE_PF_ARGB__
+#ifdef __HAVE_PF_ARGB3565__
+
 #include "mmstools/mmstools.h"
 
 #define MMSFB_BLIT_ARGB_TO_ARGB3565(src, dst, alpha)	\
@@ -159,3 +163,5 @@ void mmsfb_blit_argb_to_argb3565(MMSFBSurfacePlanes *src_planes, int src_height,
 	}
 }
 
+#endif
+#endif

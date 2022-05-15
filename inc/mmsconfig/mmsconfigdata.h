@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -53,6 +53,8 @@ class MMSConfigDataGlobal {
         bool   shutdown;
         string shutdowncmd;
 	    string inputmode;
+	    string actmonaddress;
+	    unsigned int actmonport;
 
 	    MMSConfigDataGlobal() :
 	    	logfile("/tmp/mmscore"),
@@ -66,7 +68,9 @@ class MMSConfigDataGlobal {
 	    	firstplugin("<none>"),
 	        shutdown(false),
 	        shutdowncmd(""),
-		    inputmode("") {}
+		    inputmode(""),
+			actmonaddress("127.0.0.1"),
+			actmonport(9999) {}
 };
 
 class MMSConfigDataDB {
@@ -89,6 +93,7 @@ class MMSConfigDataDB {
 
 class MMSConfigDataLayer {
     public:
+	    MMSFBOutputType			outputtype;
 		int    					id;
     	MMSFBRectangle			rect;
 		MMSFBSurfacePixelFormat pixelformat;
@@ -96,9 +101,10 @@ class MMSConfigDataLayer {
 	    string 					buffermode;
 
    	    MMSConfigDataLayer() :
+   		    outputtype(MMSFB_OT_XSHM),
    			id(0),
    			rect(MMSFBRectangle(50,50,800,600)),
-   			pixelformat(MMSFB_PF_RGB16),
+   			pixelformat(MMSFB_PF_RGB32),
    		    options(""),
    		    buffermode("BACKSYSTEM") {}
 };
@@ -106,7 +112,6 @@ class MMSConfigDataLayer {
 class MMSConfigDataGraphics {
     public:
 	    MMSFBBackend 			backend;
-	    MMSFBOutputType			outputtype;
 	    MMSConfigDataLayer		videolayer;
 	    MMSConfigDataLayer		graphicslayer;
 	    MMSFBRectangle			vrect;
@@ -117,16 +122,16 @@ class MMSConfigDataGraphics {
 	    bool   					extendedaccel;
 	    string 					allocmethod;
 	    MMSFBFullScreenMode		fullscreen;
+	    int						rotatescreen;
 	    bool					hideapplication;
+	    bool					initialload;
+	    bool					debugframes;
 		bool					touchSwapX;					/**< swap x axis (maximum value becomes minimum) */
 		bool					touchSwapY;					/**< swap y axis (maximum value becomes minimum) */
 		bool					touchSwapXY;				/**< swap x and y axis (x axis events are handled as y axis and vice versa) */
-		unsigned int			touchResX;					/**< x resolution of touchscreen (if values from driver are false) */
-		unsigned int			touchResY;					/**< y resolution of touchscreen (if values from driver are false) */
 
    	    MMSConfigDataGraphics() :
-   		    backend(MMSFB_BE_NONE),							// set MMSFB_BE_NONE for compatibility reason
-   		    outputtype(MMSFB_OT_NONE),
+   		    backend(MMSFB_BE_X11),
    		    vrect(MMSFBRectangle(0,0,0,0)),
    		    touchrect(MMSFBRectangle(0,0,0,0)),
    		    pointer(MMSFB_PM_FALSE),						// use the mouse pointer, default no
@@ -135,24 +140,25 @@ class MMSConfigDataGraphics {
    		    extendedaccel(true),							// use lowlevel disko routines for faster pixel manipulation
    		    allocmethod(""),								// the current alloc method
    		    fullscreen(MMSFB_FSM_FALSE),					// x11 fullscreen?, default no
+   		    rotatescreen(0),								// rotate screen by X degree, default 0
    		    hideapplication(false),
+   		    initialload(false),
+   		    debugframes(false),
    		    touchSwapX(false),
    		    touchSwapY(false),
-   		    touchSwapXY(false),
-   		    touchResX(0),
-   		    touchResY(0) {}
+   		    touchSwapXY(false) {}
 };
 
 class MMSConfigDataLanguage {
 	public:
-		string sourcelang;
-		string defaulttargetlang;
+		MMSLanguage sourcelang;
+		MMSLanguage defaulttargetlang;
 		bool   addtranslations;
 		string languagefiledir;
 
 		MMSConfigDataLanguage() :
-			sourcelang(""),
-			defaulttargetlang(""),
+			sourcelang(MMSLANG_NONE),
+			defaulttargetlang(MMSLANG_NONE),
 			addtranslations(false),
 			languagefiledir("") {}
 };
@@ -189,6 +195,8 @@ class MMSConfigData {
         const bool   getShutdown();
         const string getShutdownCmd();
         const string getInputMode();
+        const string getActMonAddress();
+        const unsigned int getActMonPort();
 
         // db section getters
         const string       getConfigDBDBMS();
@@ -208,7 +216,6 @@ class MMSConfigData {
         const MMSConfigDataLayer getVideoLayer();
         const MMSConfigDataLayer getGraphicsLayer();
         const MMSFBBackend getBackend();
-        const MMSFBOutputType getOutputType();
         const MMSFBRectangle getVRect();
         const MMSFBRectangle getTouchRect();
         const MMSFBPointerMode getPointer();
@@ -217,22 +224,26 @@ class MMSConfigData {
         const bool   getExtendedAccel();
         const string getAllocMethod();
         const MMSFBFullScreenMode   getFullScreen();
+        const int getRotateScreen();
         const bool   getHideApplication();
+        const bool   getInitialLoad();
+        const bool   getDebugFrames();
         const bool   getTouchSwapX();
         const bool   getTouchSwapY();
         const bool   getTouchSwapXY();
-        const unsigned int getTouchResX();
-        const unsigned int getTouchResY();
 
         // graphics section setters
         void setVideoLayer(MMSConfigDataLayer layer);
         void setGraphicsLayer(MMSConfigDataLayer layer);
         void setFullScreen(MMSFBFullScreenMode fsm);
+        void setRotateScreen(int rs);
         void setHideApplication(bool hideapplication);
+        void setInitialLoad(bool initialload);
+        void setDebugFrames(bool debugframes);
 
         // language section getters
-    	const string getSourceLang();
-    	const string getDefaultTargetLang();
+    	const MMSLanguage getSourceLang();
+    	const MMSLanguage getDefaultTargetLang();
     	const bool	 getAddTranslations();
     	const string getLanguagefileDir();
 

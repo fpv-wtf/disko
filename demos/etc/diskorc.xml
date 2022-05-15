@@ -1,0 +1,43 @@
+<mmsrc version="1.7.0">
+    <global>
+        <parameter name="logfile"     value="./logfile" />
+        <parameter name="inputmap"    value="default" />
+        <parameter name="prefix"      value="./" />
+        <parameter name="sysconfig"   value="./etc" />
+        <parameter name="data"        value="./share" />
+        <parameter name="theme"       value="default" />
+        <parameter name="firstplugin" value="" />
+        <parameter name="shutdown"    value="false"/>
+        <parameter name="shutdowncmd" value=""/>
+        <parameter name="inputmode"   value="CLICK"/>
+    </global>
+    <graphics>
+        <parameter name="fullscreen" 		         value="false" />
+        <parameter name="xres"                       value="800"   />
+        <parameter name="yres"                       value="480"   />
+        <parameter name="backend"  	                 value="x11"   />
+        <parameter name="outputtype"                 value="ogl"   />
+        <parameter name="videolayerid"               value="0"     />
+        <parameter name="videolayerpixelformat"      value="RGB32"  />
+        <parameter name="videolayeroptions"          value=""             />
+        <parameter name="videolayerbuffermode"       value="BACKSYSTEM"    />
+        <parameter name="graphicslayerid"            value="0"     />
+        <parameter name="graphicslayerpixelformat"   value="RGB32"  />
+        <parameter name="graphicslayeroptions"       value=""  />
+        <parameter name="graphicslayerbuffermode"    value="BACKSYSTEM"    />
+        <parameter name="vrect.x"                    value="0"     />
+        <parameter name="vrect.y"                    value="0"     />
+        <parameter name="vrect.w"                    value="0"   />
+        <parameter name="vrect.h"                    value="0"   />
+        <parameter name="touchrect.x"                value="0"     />
+        <parameter name="touchrect.y"                value="0"     />
+        <parameter name="touchrect.w"                value="0"     />
+        <parameter name="touchrect.h"                value="0"     />
+        <parameter name="pointer"                    value="external"   />
+        <parameter name="graphicswindowpixelformat"  value="ARGB"/>
+        <parameter name="graphicssurfacepixelformat" value="ARGB"    />
+        <parameter name="extendedaccel"              value="true"    />
+        <parameter name="allocmethod"                value="malloc"    />
+	<parameter name="hideapplication"            	 value="false"    />
+    </graphics>
+</mmsrc>

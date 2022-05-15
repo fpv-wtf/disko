@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -57,7 +57,13 @@ namespace MMSGUI_SLIDERWIDGET_ATTR {
 		{ "selimage_i", TAFF_ATTRTYPE_STRING }, \
 		{ "selimage_i.path", TAFF_ATTRTYPE_STRING }, \
 		{ "selimage_i.name", TAFF_ATTRTYPE_STRING }, \
-		{ "position", TAFF_ATTRTYPE_UCHAR100 }
+		{ "position", TAFF_ATTRTYPE_UCHAR100 }, \
+		{ "barimage", TAFF_ATTRTYPE_STRING }, \
+		{ "barimage.path", TAFF_ATTRTYPE_STRING }, \
+		{ "barimage.name", TAFF_ATTRTYPE_STRING }, \
+		{ "selbarimage", TAFF_ATTRTYPE_STRING }, \
+		{ "selbarimage.path", TAFF_ATTRTYPE_STRING }, \
+		{ "selbarimage.name", TAFF_ATTRTYPE_STRING }
 
 	#define MMSGUI_SLIDERWIDGET_ATTR_IDS \
 		MMSGUI_SLIDERWIDGET_ATTR_IDS_image, \
@@ -78,7 +84,13 @@ namespace MMSGUI_SLIDERWIDGET_ATTR {
 		MMSGUI_SLIDERWIDGET_ATTR_IDS_selimage_i, \
 		MMSGUI_SLIDERWIDGET_ATTR_IDS_selimage_i_path, \
 		MMSGUI_SLIDERWIDGET_ATTR_IDS_selimage_i_name, \
-		MMSGUI_SLIDERWIDGET_ATTR_IDS_position
+		MMSGUI_SLIDERWIDGET_ATTR_IDS_position, \
+		MMSGUI_SLIDERWIDGET_ATTR_IDS_barimage, \
+		MMSGUI_SLIDERWIDGET_ATTR_IDS_barimage_path, \
+		MMSGUI_SLIDERWIDGET_ATTR_IDS_barimage_name, \
+		MMSGUI_SLIDERWIDGET_ATTR_IDS_selbarimage, \
+		MMSGUI_SLIDERWIDGET_ATTR_IDS_selbarimage_path, \
+		MMSGUI_SLIDERWIDGET_ATTR_IDS_selbarimage_name
 
 	#define MMSGUI_SLIDERWIDGET_ATTR_INIT { \
 		MMSGUI_BASE_ATTR_ATTRDESC, \
@@ -190,6 +202,35 @@ class MMSSliderWidgetClass {
 
         //! position between 0 and 100 percent
         unsigned int position;
+
+
+
+        //! is barimagepath set?
+        bool         isbarimagepath;
+
+        //! path to the barimage if the widget is not selected
+        string       barimagepath;
+
+        //! is barimagename set?
+        bool         isbarimagename;
+
+        //! barimage filename if the widget is not selected
+        string       barimagename;
+
+        //! is selbarimagepath set?
+        bool         isselbarimagepath;
+
+        //! path to the barimage if the widget is selected
+        string       selbarimagepath;
+
+        //! is selbarimagename set?
+        bool         isselbarimagename;
+
+        //! barimage filename if the widget is selected
+        string       selbarimagename;
+
+
+
 
         //! Read and set all attributes from the given TAFF buffer.
         /*!
@@ -444,6 +485,83 @@ class MMSSliderWidgetClass {
         void setPosition(unsigned int position);
         void unsetPosition();
         unsigned int getPosition();
+
+
+
+
+        //! Check if the barimagepath is set. This path will be used for the unselected widget.
+        bool isBarImagePath();
+
+        //! Set the barimagepath which is used to draw the unselected widget.
+        /*!
+        \param barimagepath  path to unselected barimage
+        */
+        void setBarImagePath(string barimagepath);
+
+        //! Mark the barimagepath as not set.
+        void unsetBarImagePath();
+
+        //! Get the barimagepath which is used to draw the unselected widget.
+        /*!
+        \return path to the unselected barimage
+        */
+        string getBarImagePath();
+
+        //! Check if the barimagename is set. This name will be used for the unselected widget.
+        bool isBarImageName();
+
+        //! Set the barimagename which is used to draw the unselected widget.
+        /*!
+        \param barimagename  name of the unselected barimage
+        */
+        void setBarImageName(string barimagename);
+
+        //! Mark the barimagename as not set.
+        void unsetBarImageName();
+
+        //! Get the barimagename which is used to draw the unselected widget.
+        /*!
+        \return name of the unselected barimage
+        */
+        string getBarImageName();
+
+        //! Check if the selbarimagepath is set. This path will be used for the selected widget.
+        bool isSelBarImagePath();
+
+        //! Set the selbarimagepath which is used to draw the selected widget.
+        /*!
+        \param selbarimagepath  path to selected barimage
+        */
+        void setSelBarImagePath(string selbarimagepath);
+
+        //! Mark the selbarimagepath as not set.
+        void unsetSelBarImagePath();
+
+        //! Get the selbarimagepath which is used to draw the selected widget.
+        /*!
+        \return path to the selected barimage
+        */
+        string getSelBarImagePath();
+
+        //! Check if the selbarimagename is set. This name will be used for the selected widget.
+        bool isSelBarImageName();
+
+        //! Set the selbarimagename which is used to draw the selected widget.
+        /*!
+        \param selbarimagename  name of the selected barimage
+        */
+        void setSelBarImageName(string selbarimagename);
+
+        //! Mark the selbarimagename as not set.
+        void unsetSelBarImageName();
+
+        //! Get the selbarimagename which is used to draw the selected widget.
+        /*!
+        \return name of the selected barimage
+        */
+        string getSelBarImageName();
+
+
 
     /* friends */
     friend class MMSThemeManager;

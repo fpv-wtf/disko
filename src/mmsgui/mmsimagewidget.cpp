@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -65,6 +65,15 @@ bool MMSImageWidget::create(MMSWindow *root, string className, MMSTheme *theme) 
     if (this->imageWidgetClass) this->da->widgetClass = &(this->imageWidgetClass->widgetClass); else this->da->widgetClass = NULL;
 
     // clear
+    this->imagepath_set = false;
+    this->selimagepath_set = false;
+
+    this->imagepath_p_set = false;
+    this->selimagepath_p_set = false;
+
+    this->imagepath_i_set = false;
+    this->selimagepath_i_set = false;
+
     this->image = NULL;
     image_loaded = false;
     image_curr_index = 0;
@@ -97,19 +106,20 @@ bool MMSImageWidget::create(MMSWindow *root, string className, MMSTheme *theme) 
     	delete imageThread;
     }
     imageThread = NULL;
+	this->current_fgset = false;
 
     // create widget base
     return MMSWidget::create(root, true, false, false, true, true, true, true);
 }
 
 void MMSImageWidget::loadMyImage(string path, string filename, MMSFBSurface **surface, MMSIM_DESC_SUF **surfdesc,
-								 unsigned int *index, unsigned int mirror_size) {
+								 unsigned int *index, unsigned int mirror_size, bool gen_taff) {
     /* pause the imageThread */
     if (this->imageThread)
         this->imageThread->pause(true);
 
     /* get image from imagemanager */
-    *surface = this->rootwindow->im->getImage(path, filename, surfdesc, mirror_size);
+    *surface = this->rootwindow->im->getImage(path, filename, surfdesc, mirror_size, gen_taff);
     *index = 0;
     if (!*surface) {
         if (this->imageThread)
@@ -164,24 +174,24 @@ MMSWidget *MMSImageWidget::copyWidget() {
     		b = false;
         if ((!b)||(newWidget->isVisible())) {
             loadMyImage(newWidget->getImagePath(), newWidget->getImageName(),
-                        &newWidget->image, &(newWidget->image_suf), &image_curr_index, getMirrorSize());
+                        &newWidget->image, &(newWidget->image_suf), &image_curr_index, getMirrorSize(), getGenTaff());
             image_loaded = true;
             loadMyImage(newWidget->getSelImagePath(), newWidget->getSelImageName(),
-                        &newWidget->selimage, &(newWidget->selimage_suf), &selimage_curr_index, getMirrorSize());
+                        &newWidget->selimage, &(newWidget->selimage_suf), &selimage_curr_index, getMirrorSize(), getGenTaff());
             selimage_loaded = true;
 
             loadMyImage(newWidget->getImagePath_p(), newWidget->getImageName_p(),
-                        &newWidget->image_p, &(newWidget->image_p_suf), &image_p_curr_index, getMirrorSize());
+                        &newWidget->image_p, &(newWidget->image_p_suf), &image_p_curr_index, getMirrorSize(), getGenTaff());
             image_p_loaded = true;
             loadMyImage(newWidget->getSelImagePath_p(), newWidget->getSelImageName_p(),
-                        &newWidget->selimage_p, &(newWidget->selimage_p_suf), &selimage_p_curr_index, getMirrorSize());
+                        &newWidget->selimage_p, &(newWidget->selimage_p_suf), &selimage_p_curr_index, getMirrorSize(), getGenTaff());
             selimage_p_loaded = true;
 
             loadMyImage(newWidget->getImagePath_i(), newWidget->getImageName_i(),
-                        &newWidget->image_i, &(newWidget->image_i_suf), &image_i_curr_index, getMirrorSize());
+                        &newWidget->image_i, &(newWidget->image_i_suf), &image_i_curr_index, getMirrorSize(), getGenTaff());
             image_i_loaded = true;
             loadMyImage(newWidget->getSelImagePath_i(), newWidget->getSelImageName_i(),
-                        &newWidget->selimage_i, &(newWidget->selimage_i_suf), &selimage_i_curr_index, getMirrorSize());
+                        &newWidget->selimage_i, &(newWidget->selimage_i_suf), &selimage_i_curr_index, getMirrorSize(), getGenTaff());
             selimage_i_loaded = true;
         }
     }
@@ -201,29 +211,29 @@ bool MMSImageWidget::init() {
     if ((!b)||(this->isVisible())) {
         // load images
         if (!image_loaded) {
-            loadMyImage(getImagePath(), getImageName(), &this->image, &(this->image_suf), &image_curr_index, getMirrorSize());
+            loadMyImage(getImagePath(), getImageName(), &this->image, &(this->image_suf), &image_curr_index, getMirrorSize(), getGenTaff());
             image_loaded = true;
         }
         if (!selimage_loaded) {
-            loadMyImage(getSelImagePath(), getSelImageName(), &this->selimage, &(this->selimage_suf), &selimage_curr_index, getMirrorSize());
+            loadMyImage(getSelImagePath(), getSelImageName(), &this->selimage, &(this->selimage_suf), &selimage_curr_index, getMirrorSize(), getGenTaff());
             selimage_loaded = true;
         }
 
         if (!image_p_loaded) {
-            loadMyImage(getImagePath_p(), getImageName_p(), &this->image_p, &(this->image_p_suf), &image_p_curr_index, getMirrorSize());
+            loadMyImage(getImagePath_p(), getImageName_p(), &this->image_p, &(this->image_p_suf), &image_p_curr_index, getMirrorSize(), getGenTaff());
             image_p_loaded = true;
         }
         if (!selimage_p_loaded) {
-            loadMyImage(getSelImagePath_p(), getSelImageName_p(), &this->selimage_p, &(this->selimage_p_suf), &selimage_p_curr_index, getMirrorSize());
+            loadMyImage(getSelImagePath_p(), getSelImageName_p(), &this->selimage_p, &(this->selimage_p_suf), &selimage_p_curr_index, getMirrorSize(), getGenTaff());
             selimage_p_loaded = true;
         }
 
         if (!image_i_loaded) {
-            loadMyImage(getImagePath_i(), getImageName_i(), &this->image_i, &(this->image_i_suf), &image_i_curr_index, getMirrorSize());
+            loadMyImage(getImagePath_i(), getImageName_i(), &this->image_i, &(this->image_i_suf), &image_i_curr_index, getMirrorSize(), getGenTaff());
             image_i_loaded = true;
         }
         if (!selimage_i_loaded) {
-            loadMyImage(getSelImagePath_i(), getSelImageName_i(), &this->selimage_i, &(this->selimage_i_suf), &selimage_i_curr_index, getMirrorSize());
+            loadMyImage(getSelImagePath_i(), getSelImageName_i(), &this->selimage_i, &(this->selimage_i_suf), &selimage_i_curr_index, getMirrorSize(), getGenTaff());
             selimage_i_loaded = true;
         }
     }
@@ -367,6 +377,76 @@ void MMSImageWidget::workWithRatio(MMSFBSurface *suf, MMSFBRectangle *surfaceGeo
     }
 }
 
+void MMSImageWidget::getForeground(MMSFBSurface **image, MMSFBSurface **image2) {
+	*image = NULL;
+	*image2= NULL;
+
+    if (isActivated()) {
+
+        if (isSelected()) {
+        	*image = (this->selimage)?this->selimage_suf[selimage_curr_index].surface:NULL;
+        	*image2= (this->image)?this->image_suf[image_curr_index].surface:NULL;
+        }
+        else {
+        	*image = (this->image)?this->image_suf[image_curr_index].surface:NULL;
+        	*image2= (this->selimage)?this->selimage_suf[selimage_curr_index].surface:NULL;
+        }
+        if (isPressed()) {
+            if (isSelected()) {
+            	if (this->selimage_p)
+            		*image = this->selimage_p_suf[selimage_p_curr_index].surface;
+            	if (this->image_p)
+            		*image2= this->image_p_suf[image_p_curr_index].surface;
+            }
+            else {
+            	if (this->image_p)
+            		*image = this->image_p_suf[image_p_curr_index].surface;
+            	if (this->selimage_p)
+            		*image2= this->selimage_p_suf[selimage_p_curr_index].surface;
+            }
+        }
+    }
+    else {
+        if (isSelected()) {
+        	*image = (this->selimage_i)?this->selimage_i_suf[selimage_i_curr_index].surface:NULL;
+        	*image2= (this->image_i)?this->image_i_suf[image_i_curr_index].surface:NULL;
+        }
+        else {
+        	*image = (this->image_i)?this->image_i_suf[image_i_curr_index].surface:NULL;
+        	*image2= (this->selimage_i)?this->selimage_i_suf[selimage_i_curr_index].surface:NULL;
+        }
+    }
+}
+
+bool MMSImageWidget::enableRefresh(bool enable) {
+	if (!MMSWidget::enableRefresh(enable)) return false;
+
+	// mark foreground as not set
+	this->current_fgset = false;
+
+	return true;
+}
+
+bool MMSImageWidget::checkRefreshStatus() {
+	if (MMSWidget::checkRefreshStatus()) return true;
+
+	if (this->current_fgset) {
+		// current foreground initialized
+		MMSFBSurface *image, *image2;
+		getForeground(&image, &image2);
+
+		if (image == this->current_fgimage && image2 == this->current_fgimage2) {
+			// foreground images not changed, so we do not enable refreshing
+			return false;
+		}
+	}
+
+	// (re-)enable refreshing
+	enableRefresh();
+
+	return true;
+}
+
 
 bool MMSImageWidget::draw(bool *backgroundFilled) {
     bool myBackgroundFilled = false;
@@ -383,7 +463,6 @@ bool MMSImageWidget::draw(bool *backgroundFilled) {
 
     /* draw widget basics */
     if (MMSWidget::draw(backgroundFilled)) {
-
         /* draw my things */
         MMSFBRectangle surfaceGeom;
 
@@ -391,45 +470,12 @@ bool MMSImageWidget::draw(bool *backgroundFilled) {
         unsigned int blend;
         getBlend(blend);
 
-        /* searching for the image */
-        MMSFBSurface *suf = NULL;
-        MMSFBSurface *suf2= NULL;
-
-        if (isActivated()) {
-
-            if (isSelected()) {
-                suf = (this->selimage)?this->selimage_suf[selimage_curr_index].surface:NULL;
-                suf2= (this->image)?this->image_suf[image_curr_index].surface:NULL;
-            }
-            else {
-                suf = (this->image)?this->image_suf[image_curr_index].surface:NULL;
-                suf2= (this->selimage)?this->selimage_suf[selimage_curr_index].surface:NULL;
-            }
-	        if (isPressed()) {
-                if (isSelected()) {
-                	if (this->selimage_p)
-                		suf = this->selimage_p_suf[selimage_p_curr_index].surface;
-                	if (this->image_p)
-                		suf2= this->image_p_suf[image_p_curr_index].surface;
-                }
-                else {
-                	if (this->image_p)
-                		suf = this->image_p_suf[image_p_curr_index].surface;
-                	if (this->selimage_p)
-                		suf2= this->selimage_p_suf[selimage_p_curr_index].surface;
-                }
-            }
-        }
-        else {
-            if (isSelected()) {
-                suf = (this->selimage_i)?this->selimage_i_suf[selimage_i_curr_index].surface:NULL;
-                suf2= (this->image_i)?this->image_i_suf[image_i_curr_index].surface:NULL;
-            }
-            else {
-                suf = (this->image_i)?this->image_i_suf[image_i_curr_index].surface:NULL;
-                suf2= (this->selimage_i)?this->selimage_i_suf[selimage_i_curr_index].surface:NULL;
-            }
-        }
+        // get images
+        MMSFBSurface *suf, *suf2;
+        getForeground(&suf, &suf2);
+        this->current_fgimage   = suf;
+        this->current_fgimage2  = suf2;
+        this->current_fgset     = true;
 
 		if (!blend) {
 			/* blend not set */
@@ -510,27 +556,27 @@ void MMSImageWidget::setVisible(bool visible, bool refresh) {
 	            /* load image on demand */
 	            if (!this->isVisible()) {
 	                if (!image_loaded) {
-	                    loadMyImage(getImagePath(), getImageName(), &this->image, &(this->image_suf), &image_curr_index, getMirrorSize());
+	                    loadMyImage(getImagePath(), getImageName(), &this->image, &(this->image_suf), &image_curr_index, getMirrorSize(), getGenTaff());
 	                    image_loaded = true;
 	                }
 	                if (!selimage_loaded) {
-	                    loadMyImage(getSelImagePath(), getSelImageName(), &this->selimage, &(this->selimage_suf), &selimage_curr_index, getMirrorSize());
+	                    loadMyImage(getSelImagePath(), getSelImageName(), &this->selimage, &(this->selimage_suf), &selimage_curr_index, getMirrorSize(), getGenTaff());
 	                    selimage_loaded = true;
 	                }
 	                if (!image_p_loaded) {
-	                    loadMyImage(getImagePath_p(), getImageName_p(), &this->image_p, &(this->image_p_suf), &image_p_curr_index, getMirrorSize());
+	                    loadMyImage(getImagePath_p(), getImageName_p(), &this->image_p, &(this->image_p_suf), &image_p_curr_index, getMirrorSize(), getGenTaff());
 	                    image_p_loaded = true;
 	                }
 	                if (!selimage_p_loaded) {
-	                    loadMyImage(getSelImagePath_p(), getSelImageName_p(), &this->selimage_p, &(this->selimage_p_suf), &selimage_p_curr_index, getMirrorSize());
+	                    loadMyImage(getSelImagePath_p(), getSelImageName_p(), &this->selimage_p, &(this->selimage_p_suf), &selimage_p_curr_index, getMirrorSize(), getGenTaff());
 	                    selimage_p_loaded = true;
 	                }
 	                if (!image_i_loaded) {
-	                    loadMyImage(getImagePath_i(), getImageName_i(), &this->image_i, &(this->image_i_suf), &image_i_curr_index, getMirrorSize());
+	                    loadMyImage(getImagePath_i(), getImageName_i(), &this->image_i, &(this->image_i_suf), &image_i_curr_index, getMirrorSize(), getGenTaff());
 	                    image_i_loaded = true;
 	                }
 	                if (!selimage_i_loaded) {
-	                    loadMyImage(getSelImagePath_i(), getSelImageName_i(), &this->selimage_i, &(this->selimage_i_suf), &selimage_i_curr_index, getMirrorSize());
+	                    loadMyImage(getSelImagePath_i(), getSelImageName_i(), &this->selimage_i, &(this->selimage_i_suf), &selimage_i_curr_index, getMirrorSize(), getGenTaff());
 	                    selimage_i_loaded = true;
 	                }
 	            }
@@ -653,14 +699,23 @@ unsigned int MMSImageWidget::getMirrorSize() {
     GETIMAGE(MirrorSize);
 }
 
+bool MMSImageWidget::getGenTaff() {
+    GETIMAGE(GenTaff);
+}
+
+
 /***********************************************/
 /* begin of theme access methods (set methods) */
 /***********************************************/
 
 void MMSImageWidget::setImagePath(string imagepath, bool load, bool refresh) {
     myImageWidgetClass.setImagePath(imagepath);
+    this->imagepath_set = true;
     if (load)
         if (this->rootwindow) {
+			// refresh required?
+			enableRefresh((this->image == this->current_fgimage || this->image == this->current_fgimage2));
+
             this->rootwindow->im->releaseImage(this->image);
             this->image = NULL;
             image_loaded = false;
@@ -668,7 +723,7 @@ void MMSImageWidget::setImagePath(string imagepath, bool load, bool refresh) {
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getImagePath(), getImageName(), &this->image, &(this->image_suf), &image_curr_index, getMirrorSize());
+                loadMyImage(getImagePath(), getImageName(), &this->image, &(this->image_suf), &image_curr_index, getMirrorSize(), getGenTaff());
                 image_loaded = true;
             }
         }
@@ -677,17 +732,21 @@ void MMSImageWidget::setImagePath(string imagepath, bool load, bool refresh) {
 }
 
 void MMSImageWidget::setImageName(string imagename, bool load, bool refresh) {
+	if (!this->imagepath_set) myImageWidgetClass.unsetImagePath();
     myImageWidgetClass.setImageName(imagename);
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->image);
+			// refresh required?
+			enableRefresh((this->image == this->current_fgimage || this->image == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->image);
             this->image = NULL;
             image_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getImagePath(), getImageName(), &this->image, &(this->image_suf), &image_curr_index, getMirrorSize());
+                loadMyImage(getImagePath(), getImageName(), &this->image, &(this->image_suf), &image_curr_index, getMirrorSize(), getGenTaff());
                 image_loaded = true;
             }
         }
@@ -700,14 +759,17 @@ void MMSImageWidget::setImage(string imagepath, string imagename, bool load, boo
     myImageWidgetClass.setImageName(imagename);
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->image);
+			// refresh required?
+			enableRefresh((this->image == this->current_fgimage || this->image == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->image);
             this->image = NULL;
             image_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getImagePath(), getImageName(), &this->image, &(this->image_suf), &image_curr_index, getMirrorSize());
+                loadMyImage(getImagePath(), getImageName(), &this->image, &(this->image_suf), &image_curr_index, getMirrorSize(), getGenTaff());
                 image_loaded = true;
             }
         }
@@ -717,16 +779,20 @@ void MMSImageWidget::setImage(string imagepath, string imagename, bool load, boo
 
 void MMSImageWidget::setSelImagePath(string selimagepath, bool load, bool refresh) {
     myImageWidgetClass.setSelImagePath(selimagepath);
+    this->selimagepath_set = true;
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->selimage);
+			// refresh required?
+			enableRefresh((this->selimage == this->current_fgimage || this->selimage == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->selimage);
             this->selimage = NULL;
             selimage_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getSelImagePath(), getSelImageName(), &this->selimage, &(this->selimage_suf), &selimage_curr_index, getMirrorSize());
+                loadMyImage(getSelImagePath(), getSelImageName(), &this->selimage, &(this->selimage_suf), &selimage_curr_index, getMirrorSize(), getGenTaff());
                 selimage_loaded = true;
             }
         }
@@ -735,17 +801,21 @@ void MMSImageWidget::setSelImagePath(string selimagepath, bool load, bool refres
 }
 
 void MMSImageWidget::setSelImageName(string selimagename, bool load, bool refresh) {
+	if (!this->selimagepath_set) myImageWidgetClass.unsetSelImagePath();
     myImageWidgetClass.setSelImageName(selimagename);
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->selimage);
+			// refresh required?
+			enableRefresh((this->selimage == this->current_fgimage || this->selimage == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->selimage);
             this->selimage = NULL;
             selimage_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getSelImagePath(), getSelImageName(), &this->selimage, &(this->selimage_suf), &selimage_curr_index, getMirrorSize());
+                loadMyImage(getSelImagePath(), getSelImageName(), &this->selimage, &(this->selimage_suf), &selimage_curr_index, getMirrorSize(), getGenTaff());
                 selimage_loaded = true;
             }
         }
@@ -758,14 +828,17 @@ void MMSImageWidget::setSelImage(string selimagepath, string selimagename, bool 
     myImageWidgetClass.setSelImageName(selimagename);
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->selimage);
+			// refresh required?
+			enableRefresh((this->selimage == this->current_fgimage || this->selimage == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->selimage);
             this->selimage = NULL;
             selimage_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getSelImagePath(), getSelImageName(), &this->selimage, &(this->selimage_suf), &selimage_curr_index, getMirrorSize());
+                loadMyImage(getSelImagePath(), getSelImageName(), &this->selimage, &(this->selimage_suf), &selimage_curr_index, getMirrorSize(), getGenTaff());
                 selimage_loaded = true;
             }
         }
@@ -777,16 +850,20 @@ void MMSImageWidget::setSelImage(string selimagepath, string selimagename, bool 
 
 void MMSImageWidget::setImagePath_p(string imagepath_p, bool load, bool refresh) {
     myImageWidgetClass.setImagePath_p(imagepath_p);
+    this->imagepath_p_set = true;
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->image_p);
+			// refresh required?
+			enableRefresh((this->image_p == this->current_fgimage || this->image_p == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->image_p);
             this->image_p = NULL;
             image_p_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getImagePath_p(), getImageName_p(), &this->image_p, &(this->image_p_suf), &image_p_curr_index, getMirrorSize());
+                loadMyImage(getImagePath_p(), getImageName_p(), &this->image_p, &(this->image_p_suf), &image_p_curr_index, getMirrorSize(), getGenTaff());
                 image_p_loaded = true;
             }
         }
@@ -795,17 +872,21 @@ void MMSImageWidget::setImagePath_p(string imagepath_p, bool load, bool refresh)
 }
 
 void MMSImageWidget::setImageName_p(string imagename_p, bool load, bool refresh) {
+	if (!this->imagepath_p_set) myImageWidgetClass.unsetImagePath_p();
     myImageWidgetClass.setImageName_p(imagename_p);
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->image_p);
+			// refresh required?
+			enableRefresh((this->image_p == this->current_fgimage || this->image_p == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->image_p);
             this->image_p = NULL;
             image_p_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getImagePath_p(), getImageName_p(), &this->image_p, &(this->image_p_suf), &image_p_curr_index, getMirrorSize());
+                loadMyImage(getImagePath_p(), getImageName_p(), &this->image_p, &(this->image_p_suf), &image_p_curr_index, getMirrorSize(), getGenTaff());
                 image_p_loaded = true;
             }
         }
@@ -818,14 +899,17 @@ void MMSImageWidget::setImage_p(string imagepath_p, string imagename_p, bool loa
     myImageWidgetClass.setImageName_p(imagename_p);
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->image_p);
+			// refresh required?
+			enableRefresh((this->image_p == this->current_fgimage || this->image_p == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->image_p);
             this->image_p = NULL;
             image_p_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getImagePath_p(), getImageName_p(), &this->image_p, &(this->image_p_suf), &image_p_curr_index, getMirrorSize());
+                loadMyImage(getImagePath_p(), getImageName_p(), &this->image_p, &(this->image_p_suf), &image_p_curr_index, getMirrorSize(), getGenTaff());
                 image_p_loaded = true;
             }
         }
@@ -835,16 +919,20 @@ void MMSImageWidget::setImage_p(string imagepath_p, string imagename_p, bool loa
 
 void MMSImageWidget::setSelImagePath_p(string selimagepath_p, bool load, bool refresh) {
     myImageWidgetClass.setSelImagePath_p(selimagepath_p);
+    this->selimagepath_p_set = true;
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->selimage_p);
+			// refresh required?
+			enableRefresh((this->selimage_p == this->current_fgimage || this->selimage_p == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->selimage_p);
             this->selimage_p = NULL;
             selimage_p_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getSelImagePath_p(), getSelImageName_p(), &this->selimage_p, &(this->selimage_p_suf), &selimage_p_curr_index, getMirrorSize());
+                loadMyImage(getSelImagePath_p(), getSelImageName_p(), &this->selimage_p, &(this->selimage_p_suf), &selimage_p_curr_index, getMirrorSize(), getGenTaff());
                 selimage_p_loaded = true;
             }
         }
@@ -853,17 +941,21 @@ void MMSImageWidget::setSelImagePath_p(string selimagepath_p, bool load, bool re
 }
 
 void MMSImageWidget::setSelImageName_p(string selimagename_p, bool load, bool refresh) {
+	if (!this->selimagepath_p_set) myImageWidgetClass.unsetSelImagePath_p();
     myImageWidgetClass.setSelImageName_p(selimagename_p);
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->selimage_p);
+			// refresh required?
+			enableRefresh((this->selimage_p == this->current_fgimage || this->selimage_p == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->selimage_p);
             this->selimage_p = NULL;
             selimage_p_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getSelImagePath_p(), getSelImageName_p(), &this->selimage_p, &(this->selimage_p_suf), &selimage_p_curr_index, getMirrorSize());
+                loadMyImage(getSelImagePath_p(), getSelImageName_p(), &this->selimage_p, &(this->selimage_p_suf), &selimage_p_curr_index, getMirrorSize(), getGenTaff());
                 selimage_p_loaded = true;
             }
         }
@@ -876,14 +968,17 @@ void MMSImageWidget::setSelImage_p(string selimagepath_p, string selimagename_p,
     myImageWidgetClass.setSelImageName_p(selimagename_p);
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->selimage_p);
+			// refresh required?
+			enableRefresh((this->selimage_p == this->current_fgimage || this->selimage_p == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->selimage_p);
             this->selimage_p = NULL;
             selimage_p_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getSelImagePath_p(), getSelImageName_p(), &this->selimage_p, &(this->selimage_p_suf), &selimage_p_curr_index, getMirrorSize());
+                loadMyImage(getSelImagePath_p(), getSelImageName_p(), &this->selimage_p, &(this->selimage_p_suf), &selimage_p_curr_index, getMirrorSize(), getGenTaff());
                 selimage_p_loaded = true;
             }
         }
@@ -895,16 +990,20 @@ void MMSImageWidget::setSelImage_p(string selimagepath_p, string selimagename_p,
 
 void MMSImageWidget::setImagePath_i(string imagepath_i, bool load, bool refresh) {
     myImageWidgetClass.setImagePath_i(imagepath_i);
+    this->imagepath_i_set = true;
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->image_i);
+			// refresh required?
+			enableRefresh((this->image_i == this->current_fgimage || this->image_i == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->image_i);
             this->image_i = NULL;
             image_i_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getImagePath_i(), getImageName_i(), &this->image_i, &(this->image_i_suf), &image_i_curr_index, getMirrorSize());
+                loadMyImage(getImagePath_i(), getImageName_i(), &this->image_i, &(this->image_i_suf), &image_i_curr_index, getMirrorSize(), getGenTaff());
                 image_i_loaded = true;
             }
         }
@@ -913,17 +1012,21 @@ void MMSImageWidget::setImagePath_i(string imagepath_i, bool load, bool refresh)
 }
 
 void MMSImageWidget::setImageName_i(string imagename_i, bool load, bool refresh) {
+	if (!this->imagepath_i_set) myImageWidgetClass.unsetImagePath_i();
     myImageWidgetClass.setImageName_i(imagename_i);
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->image_i);
+			// refresh required?
+			enableRefresh((this->image_i == this->current_fgimage || this->image_i == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->image_i);
             this->image_i = NULL;
             image_i_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getImagePath_i(), getImageName_i(), &this->image_i, &(this->image_i_suf), &image_i_curr_index, getMirrorSize());
+                loadMyImage(getImagePath_i(), getImageName_i(), &this->image_i, &(this->image_i_suf), &image_i_curr_index, getMirrorSize(), getGenTaff());
                 image_i_loaded = true;
             }
         }
@@ -936,14 +1039,17 @@ void MMSImageWidget::setImage_i(string imagepath_i, string imagename_i, bool loa
     myImageWidgetClass.setImageName_i(imagename_i);
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->image_i);
+			// refresh required?
+			enableRefresh((this->image_i == this->current_fgimage || this->image_i == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->image_i);
             this->image_i = NULL;
             image_i_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getImagePath_i(), getImageName_i(), &this->image_i, &(this->image_i_suf), &image_i_curr_index, getMirrorSize());
+                loadMyImage(getImagePath_i(), getImageName_i(), &this->image_i, &(this->image_i_suf), &image_i_curr_index, getMirrorSize(), getGenTaff());
                 image_i_loaded = true;
             }
         }
@@ -953,16 +1059,20 @@ void MMSImageWidget::setImage_i(string imagepath_i, string imagename_i, bool loa
 
 void MMSImageWidget::setSelImagePath_i(string selimagepath_i, bool load, bool refresh) {
     myImageWidgetClass.setSelImagePath_i(selimagepath_i);
+    this->selimagepath_i_set = true;
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->selimage_i);
+			// refresh required?
+			enableRefresh((this->selimage_i == this->current_fgimage || this->selimage_i == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->selimage_i);
             this->selimage_i = NULL;
             selimage_i_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getSelImagePath_i(), getSelImageName_i(), &this->selimage_i, &(this->selimage_i_suf), &selimage_i_curr_index, getMirrorSize());
+                loadMyImage(getSelImagePath_i(), getSelImageName_i(), &this->selimage_i, &(this->selimage_i_suf), &selimage_i_curr_index, getMirrorSize(), getGenTaff());
                 selimage_i_loaded = true;
             }
         }
@@ -971,17 +1081,21 @@ void MMSImageWidget::setSelImagePath_i(string selimagepath_i, bool load, bool re
 }
 
 void MMSImageWidget::setSelImageName_i(string selimagename_i, bool load, bool refresh) {
+	if (!this->selimagepath_i_set) myImageWidgetClass.unsetSelImagePath_i();
     myImageWidgetClass.setSelImageName_i(selimagename_i);
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->selimage_i);
+			// refresh required?
+			enableRefresh((this->selimage_i == this->current_fgimage || this->selimage_i == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->selimage_i);
             this->selimage_i = NULL;
             selimage_i_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getSelImagePath_i(), getSelImageName_i(), &this->selimage_i, &(this->selimage_i_suf), &selimage_i_curr_index, getMirrorSize());
+                loadMyImage(getSelImagePath_i(), getSelImageName_i(), &this->selimage_i, &(this->selimage_i_suf), &selimage_i_curr_index, getMirrorSize(), getGenTaff());
                 selimage_i_loaded = true;
             }
         }
@@ -994,14 +1108,17 @@ void MMSImageWidget::setSelImage_i(string selimagepath_i, string selimagename_i,
     myImageWidgetClass.setSelImageName_i(selimagename_i);
     if (load)
         if (this->rootwindow) {
-            this->rootwindow->im->releaseImage(this->selimage_i);
+			// refresh required?
+			enableRefresh((this->selimage_i == this->current_fgimage || this->selimage_i == this->current_fgimage2));
+
+			this->rootwindow->im->releaseImage(this->selimage_i);
             this->selimage_i = NULL;
             selimage_i_loaded = false;
             bool b;
             if (!getImagesOnDemand(b))
             	b = false;
             if ((!b)||(this->isVisible())) {
-                loadMyImage(getSelImagePath_i(), getSelImageName_i(), &this->selimage_i, &(this->selimage_i_suf), &selimage_i_curr_index, getMirrorSize());
+                loadMyImage(getSelImagePath_i(), getSelImageName_i(), &this->selimage_i, &(this->selimage_i_suf), &selimage_i_curr_index, getMirrorSize(), getGenTaff());
                 selimage_i_loaded = true;
             }
         }
@@ -1011,30 +1128,60 @@ void MMSImageWidget::setSelImage_i(string selimagepath_i, string selimagename_i,
 
 void MMSImageWidget::setUseRatio(bool useratio, bool refresh) {
     myImageWidgetClass.setUseRatio(useratio);
+
+    // refresh is required
+    enableRefresh();
+
     if (refresh)
         this->refresh();
 }
 
 void MMSImageWidget::setFitWidth(bool fitwidth, bool refresh) {
     myImageWidgetClass.setFitWidth(fitwidth);
+
+    // refresh is required
+    enableRefresh();
+
     if (refresh)
         this->refresh();
 }
 
 void MMSImageWidget::setFitHeight(bool fitheight, bool refresh) {
     myImageWidgetClass.setFitHeight(fitheight);
+
+    // refresh is required
+    enableRefresh();
+
     if (refresh)
         this->refresh();
 }
 
 void MMSImageWidget::setAlignment(MMSALIGNMENT alignment, bool refresh) {
     myImageWidgetClass.setAlignment(alignment);
+
+    // refresh is required
+    enableRefresh();
+
     if (refresh)
         this->refresh();
 }
 
 void MMSImageWidget::setMirrorSize(unsigned int mirrorsize, bool refresh) {
     myImageWidgetClass.setMirrorSize(mirrorsize);
+
+    // refresh is required
+    enableRefresh();
+
+    if (refresh)
+        this->refresh();
+}
+
+void MMSImageWidget::setGenTaff(bool gentaff, bool refresh) {
+    myImageWidgetClass.setGenTaff(gentaff);
+
+    // refresh is required
+    enableRefresh();
+
     if (refresh)
         this->refresh();
 }
@@ -1074,6 +1221,8 @@ void MMSImageWidget::updateFromThemeClass(MMSImageWidgetClass *themeClass) {
         setAlignment(themeClass->getAlignment());
     if (themeClass->isMirrorSize())
         setMirrorSize(themeClass->getMirrorSize());
+    if (themeClass->isGenTaff())
+        setGenTaff(themeClass->getGenTaff());
 
     MMSWidget::updateFromThemeClass(&(themeClass->widgetClass));
 }

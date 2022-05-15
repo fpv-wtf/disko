@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -31,7 +31,19 @@
  **************************************************************************/
 
 #include "mmsinfo/mmsinfo.h"
+#include <cstdlib>
 
+/**
+ * Retrieves the installation prefix of disko.
+ *
+ * This is usually set at compile time, but can
+ * be overridden by the environment variable
+ * DISKO_PREFIX.
+ *
+ * @return top-level-directory of disko installation
+ */
 const char *getPrefix() {
-	return DISKO_PREFIX;
+	char *envPrefix = getenv("DISKO_PREFIX");
+
+	return (envPrefix ? envPrefix : DISKO_PREFIX);
 }

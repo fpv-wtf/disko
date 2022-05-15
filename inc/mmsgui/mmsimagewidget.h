@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -49,6 +49,15 @@ class MMSImageWidget : public MMSWidget {
         MMSImageWidgetClass *imageWidgetClass;
         MMSImageWidgetClass myImageWidgetClass;
 
+        bool imagepath_set;
+        bool selimagepath_set;
+
+        bool imagepath_p_set;
+        bool selimagepath_p_set;
+
+        bool imagepath_i_set;
+        bool selimagepath_i_set;
+
         MMSFBSurface    *image;
         MMSIM_DESC_SUF  *image_suf;
         unsigned int    image_curr_index;
@@ -79,14 +88,28 @@ class MMSImageWidget : public MMSWidget {
 
         class MMSImageWidgetThread  *imageThread;
 
+        //! current foreground values set?
+        bool			current_fgset;
+
+        //! current foreground image
+        MMSFBSurface	*current_fgimage;
+
+        //! current foreground image2
+        MMSFBSurface	*current_fgimage2;
+
         bool create(MMSWindow *root, string className, MMSTheme *theme);
 
         bool init();
         bool release();
+
+        void getForeground(MMSFBSurface	**image, MMSFBSurface **image2);
+        bool enableRefresh(bool enable = true);
+        bool checkRefreshStatus();
+
         bool draw(bool *backgroundFilled = NULL);
 
         void loadMyImage(string path, string filename, MMSFBSurface **surface, MMSIM_DESC_SUF **surfdesc,
-        				 unsigned int *index, unsigned int mirror_size);
+        				 unsigned int *index, unsigned int mirror_size, bool gen_taff);
 
         void workWithRatio(MMSFBSurface *suf, MMSFBRectangle *surfaceGeom);
 
@@ -117,6 +140,7 @@ class MMSImageWidget : public MMSWidget {
         bool getFitHeight();
         MMSALIGNMENT getAlignment();
         unsigned int getMirrorSize();
+        bool getGenTaff();
 
         void setImagePath(string imagepath, bool load = true, bool refresh = true);
         void setImageName(string imagename, bool load = true, bool refresh = true);
@@ -141,6 +165,7 @@ class MMSImageWidget : public MMSWidget {
         void setFitHeight(bool fitheight, bool refresh = true);
         void setAlignment(MMSALIGNMENT alignment, bool refresh = true);
         void setMirrorSize(unsigned int mirrorsize, bool refresh = true);
+        void setGenTaff(bool gentaff, bool refresh = true);
 
         void updateFromThemeClass(MMSImageWidgetClass *themeClass);
 

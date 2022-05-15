@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -43,7 +43,6 @@
 #include <sys/mman.h>
 #include <sys/kd.h>
 #include <linux/vt.h>
-#include "mmsgui/fb/omapfb.h"
 #include "mmsgui/fb/mmsfbdev.h"
 
 #define INITCHECK  if(!this->isinitialized){MMSFB_SetError(0,"MMSFBDev is not initialized");return false;}
@@ -175,6 +174,11 @@ bool MMSFBDev::buildPixelFormat() {
     		&& (var_screeninfo.red.offset == 16) && (var_screeninfo.green.offset == 8) && (var_screeninfo.blue.offset == 0)) {
     		this->layers[0].pixelformat = MMSFB_PF_ARGB;
     	}
+    	else
+    	if    ((var_screeninfo.red.length == 8)  && (var_screeninfo.green.length == 8) && (var_screeninfo.blue.length == 8)
+    		&& (var_screeninfo.red.offset == 0) && (var_screeninfo.green.offset == 8) && (var_screeninfo.blue.offset == 16)) {
+    		this->layers[0].pixelformat = MMSFB_PF_ABGR;
+    	}
     	break;
     }
 
@@ -268,7 +272,7 @@ bool MMSFBDev::openDevice(char *device_file, int console) {
 
     if (device_file) {
         // open given device
-        this->fd = open(device_file, O_RDWR);
+    	this->fd = open(device_file, O_RDWR);
         if (this->fd < 0) {
         	printf("MMSFBDev: opening device %s failed\n", device_file);
             return false;
@@ -315,7 +319,7 @@ bool MMSFBDev::openDevice(char *device_file, int console) {
 
     // get fix screen infos
     if (ioctl(this->fd, FBIOGET_FSCREENINFO, &this->fix_screeninfo) < 0) {
-    	printf("MMSFBDev: could not get fix screen infos\n");
+    	printf("MMSFBDev: could not get fix screen infos from %s\n", this->device_file.c_str());
     	closeDevice();
         return false;
     }
@@ -326,7 +330,7 @@ bool MMSFBDev::openDevice(char *device_file, int console) {
                                      PROT_READ | PROT_WRITE, MAP_SHARED, this->fd, 0)) == MAP_FAILED) {
         if ((this->framebuffer_base=mmap(NULL, this->fix_screeninfo.smem_len,
                                          PROT_READ | PROT_WRITE, MAP_PRIVATE, this->fd, 0)) == MAP_FAILED) {
-			printf("MMSFBDev: could not mmap framebuffer memory\n");
+			printf("MMSFBDev: could not mmap framebuffer memory for %s\n", this->device_file.c_str());
 			this->framebuffer_base = NULL;
 			closeDevice();
 			return false;
@@ -335,7 +339,7 @@ bool MMSFBDev::openDevice(char *device_file, int console) {
 
     // get variable screen infos
     if (ioctl(this->fd, FBIOGET_VSCREENINFO, &this->org_var_screeninfo) < 0) {
-    	printf("MMSFBDev: could not get var screen infos\n");
+    	printf("MMSFBDev: could not get var screen infos from %s\n", this->device_file.c_str());
     	closeDevice();
         return false;
     }
@@ -344,7 +348,7 @@ bool MMSFBDev::openDevice(char *device_file, int console) {
     this->var_screeninfo = this->org_var_screeninfo;
     this->var_screeninfo.accel_flags = 0;
     if (ioctl(this->fd, FBIOPUT_VSCREENINFO, &this->var_screeninfo) < 0) {
-    	printf("MMSFBDev: could not disable console acceleration\n");
+    	printf("MMSFBDev: could not disable console acceleration for %s\n", this->device_file.c_str());
     	closeDevice();
         return false;
     }
@@ -606,17 +610,22 @@ bool MMSFBDev::unmapMmio(unsigned char *mmio) {
 	return true;
 }
 
-bool MMSFBDev::setMode(int width, int height, MMSFBSurfacePixelFormat pixelformat, int backbuffer) {
-	bool do_switch = false;
+void MMSFBDev::genFBPixelFormat(MMSFBSurfacePixelFormat pf, unsigned int *nonstd_format, MMSFBPixelDef *pixeldef) {
 
-	// is initialized?
-	INITCHECK;
+	// generate std format
+	if (nonstd_format) *nonstd_format = 0;
+	getBitsPerPixel(pf, pixeldef);
 
-	if (width <= 0 || height <= 0) {
-		// have to disable the framebuffer
+	// try to get a fb specific format
+	this->onGenFBPixelFormat.emit(pf, nonstd_format, pixeldef);
+}
+
+void MMSFBDev::disable(int fd, string device_file) {
+	// have to disable the framebuffer
+	if (!this->onDisable.emit(fd, device_file)) {
 		// use FBIOPUT_VSCREENINFO and FBIOBLANK together
 		struct fb_var_screeninfo var_screeninfo;
-	    ioctl(this->fd, FBIOGET_VSCREENINFO, &var_screeninfo);
+		ioctl(fd, FBIOGET_VSCREENINFO, &var_screeninfo);
 		var_screeninfo.activate = FB_ACTIVATE_NOW;
 		var_screeninfo.accel_flags = 0;
 		var_screeninfo.xres = 0;
@@ -626,89 +635,138 @@ bool MMSFBDev::setMode(int width, int height, MMSFBSurfacePixelFormat pixelforma
 		var_screeninfo.xoffset = 0;
 		var_screeninfo.yoffset = 0;
 		var_screeninfo.grayscale = 0;
-	    ioctl(this->fd, FBIOPUT_VSCREENINFO, &var_screeninfo);
-		ioctl(this->fd, FBIOBLANK, 1);
+		ioctl(fd, FBIOPUT_VSCREENINFO, &var_screeninfo);
+		ioctl(fd, FBIOBLANK, 1);
+	}
+}
+
+bool MMSFBDev::activate(int fd, string device_file, struct fb_var_screeninfo *var_screeninfo,
+						int width, int height, MMSFBSurfacePixelFormat pixelformat, bool switch_mode) {
+
+	// try callback
+	if (!this->onActivate.emit(fd, device_file, var_screeninfo, width, height, pixelformat, switch_mode)) {
+		// no callback set or callback failed
+		if (switch_mode) {
+			if (ioctl(fd, FBIOPUT_VSCREENINFO, var_screeninfo) < 0) {
+				printf("MMSFBDev: could not switch to mode %dx%d, pixelformat %s (%d bits, nonstd %d), %s\n",
+						width, height, getMMSFBPixelFormatString(pixelformat).c_str(),
+						var_screeninfo->bits_per_pixel, var_screeninfo->nonstd,
+						device_file.c_str());
+				return false;
+			}
+		}
+	}
+
+    // get fix screen infos
+    if (ioctl(this->fd, FBIOGET_FSCREENINFO, &this->fix_screeninfo) < 0) {
+    	printf("MMSFBDev: could not get fix screen infos from %s\n", this->device_file.c_str());
+        return false;
+    }
+    printFixScreenInfo();
+
+    // get variable screen infos
+    if (ioctl(this->fd, FBIOGET_VSCREENINFO, &this->var_screeninfo) < 0) {
+    	printf("MMSFBDev: could not get var screen infos from %s\n", this->device_file.c_str());
+        return false;
+    }
+    printVarScreenInfo();
+
+    return true;
+}
+
+bool MMSFBDev::setMode(int width, int height, MMSFBSurfacePixelFormat pixelformat, int backbuffer) {
+	bool do_switch = false;
+
+	// is initialized?
+	INITCHECK;
+
+	if (width <= 0 || height <= 0) {
+		// have to disable the framebuffer
+		disable(this->fd, this->device_file);
 		return true;
 	}
 
     // reload fix screen infos before changing it
     if (ioctl(this->fd, FBIOGET_FSCREENINFO, &this->fix_screeninfo) < 0) {
-    	printf("MMSFBDev: could not get fix screen infos\n");
+    	printf("MMSFBDev: could not get fix screen infos from %s\n", this->device_file.c_str());
         return false;
     }
     printFixScreenInfo();
 
     // reload variable screen infos before changing it
     if (ioctl(this->fd, FBIOGET_VSCREENINFO, &this->var_screeninfo) < 0) {
-    	printf("MMSFBDev: could not get var screen infos\n");
+    	printf("MMSFBDev: could not get var screen infos from %s\n", this->device_file.c_str());
         return false;
     }
     printVarScreenInfo();
 
     if (backbuffer) {
     	if ((!this->fix_screeninfo.ypanstep)&&(!this->fix_screeninfo.ywrapstep)) {
-        	printf("MMSFBDev: backbuffer requested, but hardware does not support it\n");
+        	printf("MMSFBDev: backbuffer requested, but hardware does not support it for %s\n", this->device_file.c_str());
             return false;
     	}
     }
 
 	// get bits per pixel and its length/offset
-	int red_length, red_offset;
-	int green_length, green_offset;
-	int blue_length, blue_offset;
-	int transp_length, transp_offset;
-	int bits_per_pixel = getBitsPerPixel(pixelformat,
-										 &red_length, &red_offset,
-										 &green_length, &green_offset,
-										 &blue_length, &blue_offset,
-										 &transp_length, &transp_offset);
+	unsigned int nonstd_format;
+	MMSFBPixelDef pixeldef;
+	genFBPixelFormat(pixelformat, &nonstd_format, &pixeldef);
 
 	// check if mode is already set
-    if (!backbuffer) {
-    	// do it only if no back buffer requested
+    if (!nonstd_format) {
+    	// do it only if a std format is requested
 		if    ((width == (int)this->var_screeninfo.xres) && (height == (int)this->var_screeninfo.yres)
-			&& (bits_per_pixel == (int)this->var_screeninfo.bits_per_pixel) && (this->layers[0].pixelformat == pixelformat)) {
+			&& (pixeldef.bits == (int)this->var_screeninfo.bits_per_pixel) && (this->layers[0].pixelformat == pixelformat)
+			&& (!backbuffer || (this->var_screeninfo.yres_virtual >= this->var_screeninfo.yres * (backbuffer+1)))) {
 			// mode already set, no switch required
-			printf("MMSFBDev: using preset mode %dx%d, pixelformat %s (%d bits)\n",
-					width, height, getMMSFBPixelFormatString(pixelformat).c_str(), bits_per_pixel);
+			printf("MMSFBDev: using preset mode %dx%d, pixelformat %s (%d bits), %s\n",
+					width, height, getMMSFBPixelFormatString(pixelformat).c_str(), pixeldef.bits,
+					this->device_file.c_str());
+
+			// we have to activate the device (can be disabled), but mode switch is not required
+		    activate(this->fd, this->device_file, &this->var_screeninfo, width, height, pixelformat, false);
 			return true;
 		}
     }
 
-	// searching for mode
-    for (int cnt = 0; cnt < this->modes_cnt; cnt++) {
-    	struct fb_var_screeninfo *mode = &this->modes[cnt];
-    	if ((width == (int)mode->xres) && (height == (int)mode->yres) && (bits_per_pixel == (int)mode->bits_per_pixel)) {
-    		// mode matches, switch to it
-    	    this->var_screeninfo = *mode;
+    if (!do_switch) {
+		// searching for mode
+		for (int cnt = 0; cnt < this->modes_cnt; cnt++) {
+			struct fb_var_screeninfo *mode = &this->modes[cnt];
+			if ((width == (int)mode->xres) && (height == (int)mode->yres) && (pixeldef.bits == (int)mode->bits_per_pixel)) {
+				// mode matches, switch to it
+				this->var_screeninfo = *mode;
 
-    	    this->var_screeninfo.activate = FB_ACTIVATE_NOW;
-    	    this->var_screeninfo.accel_flags = 0;
+				this->var_screeninfo.activate = FB_ACTIVATE_NOW;
+				this->var_screeninfo.accel_flags = 0;
 
-    	    this->var_screeninfo.red.length = red_length;
-			this->var_screeninfo.red.offset = red_offset;
-			this->var_screeninfo.green.length = green_length;
-			this->var_screeninfo.green.offset = green_offset;
-			this->var_screeninfo.blue.length = blue_length;
-			this->var_screeninfo.blue.offset = blue_offset;
-			this->var_screeninfo.transp.length = transp_length;
-			this->var_screeninfo.transp.offset = transp_offset;
+        	    this->var_screeninfo.nonstd = nonstd_format;
 
-			this->var_screeninfo.xres_virtual = this->var_screeninfo.xres;
-			this->var_screeninfo.yres_virtual = this->var_screeninfo.yres * (backbuffer+1);
-			this->var_screeninfo.xoffset = 0;
-			this->var_screeninfo.yoffset = 0;
-			this->var_screeninfo.grayscale = 0;
+				this->var_screeninfo.red.length = pixeldef.red_length;
+				this->var_screeninfo.red.offset = pixeldef.red_offset;
+				this->var_screeninfo.green.length = pixeldef.green_length;
+				this->var_screeninfo.green.offset = pixeldef.green_offset;
+				this->var_screeninfo.blue.length = pixeldef.blue_length;
+				this->var_screeninfo.blue.offset = pixeldef.blue_offset;
+				this->var_screeninfo.transp.length = pixeldef.transp_length;
+				this->var_screeninfo.transp.offset = pixeldef.transp_offset;
 
-			do_switch = true;
-			break;
-    	}
-	}
+				this->var_screeninfo.xres_virtual = this->var_screeninfo.xres;
+				this->var_screeninfo.yres_virtual = this->var_screeninfo.yres * (backbuffer+1);
+				this->var_screeninfo.xoffset = 0;
+				this->var_screeninfo.yoffset = 0;
+				this->var_screeninfo.grayscale = 0;
+
+				do_switch = true;
+				break;
+			}
+		}
+    }
 
     if (!do_switch) {
         // no mode found
     	printf("MMSFBDev: no mode %dx%d, bit depth %d (%s) found in /etc/fb.modes\n",
-    			width, height, bits_per_pixel, getMMSFBPixelFormatString(pixelformat).c_str());
+    			width, height, pixeldef.bits, getMMSFBPixelFormatString(pixelformat).c_str());
 
     	// searching for mode with any pixelformat
         for (int cnt = 0; cnt < this->modes_cnt; cnt++) {
@@ -722,15 +780,17 @@ bool MMSFBDev::setMode(int width, int height, MMSFBSurfacePixelFormat pixelforma
                 this->var_screeninfo.activate = FB_ACTIVATE_NOW;
         	    this->var_screeninfo.accel_flags = 0;
 
-        	    this->var_screeninfo.bits_per_pixel = bits_per_pixel;
-        	    this->var_screeninfo.red.length = red_length;
-    			this->var_screeninfo.red.offset = red_offset;
-    			this->var_screeninfo.green.length = green_length;
-    			this->var_screeninfo.green.offset = green_offset;
-    			this->var_screeninfo.blue.length = blue_length;
-    			this->var_screeninfo.blue.offset = blue_offset;
-    			this->var_screeninfo.transp.length = transp_length;
-    			this->var_screeninfo.transp.offset = transp_offset;
+        	    this->var_screeninfo.nonstd = nonstd_format;
+
+        	    this->var_screeninfo.bits_per_pixel = pixeldef.bits;
+        	    this->var_screeninfo.red.length = pixeldef.red_length;
+    			this->var_screeninfo.red.offset = pixeldef.red_offset;
+    			this->var_screeninfo.green.length = pixeldef.green_length;
+    			this->var_screeninfo.green.offset = pixeldef.green_offset;
+    			this->var_screeninfo.blue.length = pixeldef.blue_length;
+    			this->var_screeninfo.blue.offset = pixeldef.blue_offset;
+    			this->var_screeninfo.transp.length = pixeldef.transp_length;
+    			this->var_screeninfo.transp.offset = pixeldef.transp_offset;
 
     			this->var_screeninfo.xres_virtual = this->var_screeninfo.xres;
     			this->var_screeninfo.yres_virtual = this->var_screeninfo.yres * (backbuffer+1);
@@ -751,21 +811,24 @@ bool MMSFBDev::setMode(int width, int height, MMSFBSurfacePixelFormat pixelforma
         // check if resolution has changed
     	if  ((width == (int)this->var_screeninfo.xres) && (height == (int)this->var_screeninfo.yres)) {
 			// resolution has not changed, so try to change only the pixelformat
-			printf("MMSFBDev: resolution is the same, so try to change the pixelformat to %s\n",
-					getMMSFBPixelFormatString(pixelformat).c_str());
+			printf("MMSFBDev: resolution is the same, so try to change the pixelformat to %s, %s\n",
+					getMMSFBPixelFormatString(pixelformat).c_str(),
+					this->device_file.c_str());
 
 			this->var_screeninfo.activate = FB_ACTIVATE_NOW;
 			this->var_screeninfo.accel_flags = 0;
 
-			this->var_screeninfo.bits_per_pixel = bits_per_pixel;
-			this->var_screeninfo.red.length = red_length;
-			this->var_screeninfo.red.offset = red_offset;
-			this->var_screeninfo.green.length = green_length;
-			this->var_screeninfo.green.offset = green_offset;
-			this->var_screeninfo.blue.length = blue_length;
-			this->var_screeninfo.blue.offset = blue_offset;
-			this->var_screeninfo.transp.length = transp_length;
-			this->var_screeninfo.transp.offset = transp_offset;
+    	    this->var_screeninfo.nonstd = nonstd_format;
+
+    	    this->var_screeninfo.bits_per_pixel = pixeldef.bits;
+			this->var_screeninfo.red.length = pixeldef.red_length;
+			this->var_screeninfo.red.offset = pixeldef.red_offset;
+			this->var_screeninfo.green.length = pixeldef.green_length;
+			this->var_screeninfo.green.offset = pixeldef.green_offset;
+			this->var_screeninfo.blue.length = pixeldef.blue_length;
+			this->var_screeninfo.blue.offset = pixeldef.blue_offset;
+			this->var_screeninfo.transp.length = pixeldef.transp_length;
+			this->var_screeninfo.transp.offset = pixeldef.transp_offset;
 
 			if (backbuffer) {
     			this->var_screeninfo.xres_virtual = this->var_screeninfo.xres;
@@ -777,11 +840,11 @@ bool MMSFBDev::setMode(int width, int height, MMSFBSurfacePixelFormat pixelforma
 			do_switch = true;
 		}
     	else
-    		//if  (1) {
 		if  (this->layers[0].pixelformat == pixelformat) {
 			// pixelformat has not changed, so try to change only the resolution
-			printf("MMSFBDev: pixelformat is the same, so try to change the resolution to %dx%d\n",
-					width, height);
+			printf("MMSFBDev: pixelformat is the same, so try to change the resolution to %dx%d, %s\n",
+					width, height,
+					this->device_file.c_str());
 
 			this->var_screeninfo.activate = FB_ACTIVATE_NOW;
 			this->var_screeninfo.accel_flags = 0;
@@ -800,69 +863,35 @@ bool MMSFBDev::setMode(int width, int height, MMSFBSurfacePixelFormat pixelforma
     }
 
 	if (do_switch) {
-		//this->var_screeninfo.nonstd = 12;
 		// switch now
-	    if (ioctl(this->fd, FBIOPUT_VSCREENINFO, &this->var_screeninfo) < 0) {
-	    	printf("MMSFBDev: could not switch to mode %dx%d, pixelformat %s (%d bits)\n",
-	    			width, height, getMMSFBPixelFormatString(pixelformat).c_str(), bits_per_pixel);
+	    if (!activate(this->fd, this->device_file, &this->var_screeninfo, width, height, pixelformat)) {
 	        return false;
 	    }
 
-	    // get fix screen infos
-	    if (ioctl(this->fd, FBIOGET_FSCREENINFO, &this->fix_screeninfo) < 0) {
-	    	printf("MMSFBDev: could not get fix screen infos\n");
-	        return false;
-	    }
-	    printFixScreenInfo();
+	    // check the result of activation
+		if    ((width == (int)this->var_screeninfo.xres) && (height == (int)this->var_screeninfo.yres)
+			&& (pixeldef.bits == (int)this->var_screeninfo.bits_per_pixel)) {
 
-	    // get variable screen infos
-	    if (ioctl(this->fd, FBIOGET_VSCREENINFO, &this->var_screeninfo) < 0) {
-	    	printf("MMSFBDev: could not get var screen infos\n");
-	        return false;
-	    }
-	    printVarScreenInfo();
+			printf("MMSFBDev: mode successfully switched to %dx%d, pixelformat %s (%d bits), %s\n",
+					width, height, getMMSFBPixelFormatString(pixelformat).c_str(), pixeldef.bits,
+					this->device_file.c_str());
 
-/*
-    	printf("MMSFBDev: query plane\n");
-
- 	    struct omapfb_plane_info plane_info;
-	    ioctl (this->fd, OMAPFB_QUERY_PLANE, &plane_info);
-	    plane_info.enabled = 1;
-	    plane_info.pos_x = 0;
-	    plane_info.pos_y = 0;
-	    plane_info.out_width = this->var_screeninfo.xres;
-	    plane_info.out_height = this->var_screeninfo.yres;
-
-	    printf("MMSFBDev: setup plane\n");
-	    if (ioctl (this->fd, OMAPFB_SETUP_PLANE, &plane_info)) {
-	    	printf("MMSFBDev: could not setup plane\n");
-	        return false;
-
-	    }
-    	printf("MMSFBDev: done setup plane\n");
-*/
-//return true;
-
-    	if    ((width == (int)this->var_screeninfo.xres) && (height == (int)this->var_screeninfo.yres)
-    		&& (bits_per_pixel == (int)this->var_screeninfo.bits_per_pixel)) {
-
-			printf("MMSFBDev: mode successfully switched to %dx%d, pixelformat %s (%d bits)\n",
-					width, height, getMMSFBPixelFormatString(pixelformat).c_str(), bits_per_pixel);
-
-    		if (backbuffer) {
+			if (backbuffer) {
 				if (this->var_screeninfo.yres_virtual < this->var_screeninfo.yres * (backbuffer+1)) {
-					printf("MMSFBDev: buffer size %dx%d is to small (%dx%d requested)\n",
+					printf("MMSFBDev: buffer size %dx%d is to small (%dx%d requested), %s\n",
 							this->var_screeninfo.xres_virtual, this->var_screeninfo.yres_virtual,
-							this->var_screeninfo.xres, this->var_screeninfo.yres * (backbuffer+1));
+							this->var_screeninfo.xres, this->var_screeninfo.yres * (backbuffer+1),
+							this->device_file.c_str());
 					return false;
 				}
-    		}
-    	}
-    	else {
-			printf("MMSFBDev: mode switch to %dx%d, pixelformat %s (%d bits) failed\n",
-					width, height, getMMSFBPixelFormatString(pixelformat).c_str(), bits_per_pixel);
+			}
+		}
+		else {
+			printf("MMSFBDev: mode switch to %dx%d, pixelformat %s (%d bits) failed, %s\n",
+					width, height, getMMSFBPixelFormatString(pixelformat).c_str(), pixeldef.bits,
+					this->device_file.c_str());
 			return false;
-    	}
+		}
 
 		// build the pixelformat
 		if (!buildPixelFormat()) {

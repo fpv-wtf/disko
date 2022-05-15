@@ -1,0 +1,713 @@
+<mmstheme name="default" >
+    <!-- default label -->
+    <class
+        name = "default_label"
+        type = "label"
+
+        font.name = "DejaVuSans.ttf"
+        font.size = "17"
+
+        alignment = "center"
+
+        color    = "#ffffffff"
+        color_i  = "#ffffffff"
+		selcolor = "#2dacdeff"
+	/>
+	<class 
+		name = "default_textbox"
+		type = "textbox"
+		
+        font.name = "DejaVuSans.ttf"
+        font.size = "17"
+
+        alignment = "top-center"
+        margin = "8"
+
+        color    = "#ffffffff"
+        color_i  = "#ffffffff"
+        selcolor = "#ffffffff"
+        selcolor_i="#ffffffff"
+	/>
+	<class
+		name = "default_slider"
+		type = "slider"
+		 
+		border.image.top-left     = "border/widget_top_left.png"
+		border.image.top          = "border/widget_vert.png"
+		border.image.top-right    = "border/widget_top_right.png"
+		border.image.right        = "border/widget_horiz.png"
+		border.image.bottom-right = "border/widget_bottom_right.png"
+		border.image.bottom       = "border/widget_vert.png"
+		border.image.bottom-left  = "border/widget_bottom_left.png"
+		border.image.left         = "border/widget_horiz.png"
+
+		image.name = "element/slider_control.png"
+
+		border.thickness = "12"
+		
+		bgcolor 	= "#6cc5e8ff"
+		selbgcolor  = "#6cc5e8ff"
+
+	/>
+	<class 
+		name = "default_progressbar"
+		type = "progressbar"
+			
+		border.image.top-left     = "border/widget_top_left.png"
+		border.image.top          = "border/widget_vert.png"
+		border.image.top-right    = "border/widget_top_right.png"
+		border.image.right        = "border/widget_horiz.png"
+		border.image.bottom-right = "border/widget_bottom_right.png"
+		border.image.bottom       = "border/widget_vert.png"
+		border.image.bottom-left  = "border/widget_bottom_left.png"
+		border.image.left         = "border/widget_horiz.png"
+
+		border.thickness = "12"
+		
+		bgcolor 	= "#e3e4e5ff"
+		selbgcolor  = "#e3e4e5ff"
+		color		= "#6cc5e8ff"
+		
+	/>
+	<class
+		name = "default_widgetbg"
+		type = "image"
+
+		border.image.top-left     = "border/widget_top_left.png"
+		border.image.top          = "border/widget_vert.png"
+		border.image.top-right    = "border/widget_top_right.png"
+		border.image.right        = "border/widget_horiz.png"
+		border.image.bottom-right = "border/widget_bottom_right.png"
+		border.image.bottom       = "border/widget_vert.png"
+		border.image.bottom-left  = "border/widget_bottom_left.png"
+		border.image.left         = "border/widget_horiz.png"
+
+		border.thickness = "12"
+
+		bgcolor 	= "#e3e4e5ff"
+		selbgcolor  = "#e3e4e5ff"
+		
+	/>
+	<class
+		name = "label_widgetbg"
+		type = "image"
+
+		border.image.top-left     = "border/label_top_left.png"
+		border.image.top          = "border/label_vert.png"
+		border.image.top-right    = "border/label_top_right.png"
+		border.image.right        = "border/label_horiz.png"
+		border.image.bottom-right = "border/label_bottom_right.png"
+		border.image.bottom       = "border/label_vert.png"
+		border.image.bottom-left  = "border/label_bottom_left.png"
+		border.image.left         = "border/label_horiz.png"
+
+		border.selimage.top-left     = "border/label_top_left.png"
+		border.selimage.top          = "border/label_vert.png"
+		border.selimage.top-right    = "border/label_top_right.png"
+		border.selimage.right        = "border/label_horiz.png"
+		border.selimage.bottom-right = "border/label_bottom_right.png"
+		border.selimage.bottom       = "border/label_vert.png"
+		border.selimage.bottom-left  = "border/label_bottom_left.png"
+		border.selimage.left         = "border/label_horiz.png"
+
+		border.thickness = "12"
+
+		bgcolor="#6cc5e8B4"
+		selbgcolor="#6cc5e8B4"
+		
+	/>
+    <class
+        name = "folio_label"
+        type = "label"
+
+        font.path = ""
+        font.name = "DejaVuSans.ttf"
+        font.size = "17"
+        alignment = "center"
+        color     = "#ffffffff"
+        color_i   = "#ffffffff"
+		selcolor  = "#2dacdeff"
+
+		border.selimage.top-left     = "border/label_top_left.png"
+		border.selimage.top          = "border/label_vert.png"
+		border.selimage.top-right    = "border/label_top_right.png"
+		border.selimage.right        = "border/label_horiz.png"
+		border.selimage.bottom-right = "border/label_bottom_right.png"
+		border.selimage.bottom       = "border/label_vert.png"
+		border.selimage.bottom-left  = "border/label_bottom_left.png"
+		border.selimage.left         = "border/label_horiz.png"
+
+		border.image.top-left     = "border/label_top_left.png"
+		border.image.top          = "border/label_vert.png"
+		border.image.top-right    = "border/label_top_right.png"
+		border.image.right        = "border/label_horiz.png"
+		border.image.bottom-right = "border/label_bottom_right.png"
+		border.image.bottom       = "border/label_vert.png"
+		border.image.bottom-left  = "border/label_bottom_left.png"
+		border.image.left         = "border/label_horiz.png"
+
+		border.thickness = "12"
+		
+	/>
+	<class
+		name = "folio_widgetbg"
+		type = "image"
+
+		border.thickness="12"
+
+		border.image.path         = "" 
+		border.image.top-left     = "border/window_top_left.png"
+		border.image.top          = "border/window_vert.png"
+		border.image.top-right    = "border/window_top_right.png"
+		border.image.right        = "border/window_horiz.png"
+		border.image.bottom-right = "border/window_bottom_right.png"
+		border.image.bottom       = "border/window_vert.png"
+		border.image.bottom-left  = "border/window_bottom_left.png"
+		border.image.left         = "border/window_horiz.png"
+
+		bgcolor="#e3e4e530"
+		selbgcolor="#e3e4e530"
+		
+	/>
+
+	<class
+		name = "default_checkbox"
+		type = "checkbox"
+		checked_bgimage.name = "element/checkbox_checked.png"
+		checked_selbgimage.name = "element/checkbox_checked.png"
+
+		bgimage.name = "element/checkbox.png"
+		selbgimage.name = "element/checkbox.png"
+
+		border.image.top-left     = "border/widget_top_left.png"
+		border.image.top          = "border/widget_vert.png"
+		border.image.top-right    = "border/widget_top_right.png"
+		border.image.right        = "border/widget_horiz.png"
+		border.image.bottom-right = "border/widget_bottom_right.png"
+		border.image.bottom       = "border/widget_vert.png"
+		border.image.bottom-left  = "border/widget_bottom_left.png"
+		border.image.left         = "border/widget_horiz.png"
+
+		border.selimage.top-left     = "border/label_top_left.png"
+		border.selimage.top          = "border/label_vert.png"
+		border.selimage.top-right    = "border/label_top_right.png"
+		border.selimage.right        = "border/label_horiz.png"
+		border.selimage.bottom-right = "border/label_bottom_right.png"
+		border.selimage.bottom       = "border/label_vert.png"
+		border.selimage.bottom-left  = "border/label_bottom_left.png"
+		border.selimage.left         = "border/label_horiz.png"
+
+		border.thickness = "12"
+
+		bgcolor 	= "#e3e4e5ff"
+		selbgcolor  = "#e3e4e5ff"
+
+
+	/>
+    <class
+        name = "background_rootwindow"
+        type = "rootwindow"
+
+        alignment   = "center"
+        dx          = "0px"
+        dy          = "0px"
+        w           = "100%"
+        h           = "100%"
+        bgcolor     = "#00000000"
+        bgimage.name= "bg.png"
+        opacity     = "255"
+        fadein      = "false"
+        fadeout     = "false"
+        debug       = "false"
+        margin      = "0"
+        own_surface = "false"
+
+        border.thickness = "0"
+        border.margin    = "0"
+  	/>
+
+	
+	<!--  *********************************** -->
+	<!--  Basic Look of a childwindow -->
+	<childwindow 
+		border.thickness="12"
+
+		border.image.path         = "" 
+		border.image.top-left     = "border/window_top_left.png"
+		border.image.top          = "border/window_vert.png"
+		border.image.top-right    = "border/window_top_right.png"
+		border.image.right        = "border/window_horiz.png"
+		border.image.bottom-right = "border/window_bottom_right.png"
+		border.image.bottom       = "border/window_vert.png"
+		border.image.bottom-left  = "border/window_bottom_left.png"
+		border.image.left         = "border/window_horiz.png"
+
+		bgcolor="#e3e4e530"
+        own_surface = "true"
+	/>
+	
+	<!--  childwindow used as clipping region -->
+	<class 
+		name = "clipping_childwindow"
+		type = "childwindow"
+
+		border.thickness="0"
+
+		border.image.path         = "" 
+		border.image.top-left     = ""
+		border.image.top          = ""
+		border.image.top-right    = ""
+		border.image.right        = ""
+		border.image.bottom-right = ""
+		border.image.bottom       = ""
+		border.image.bottom-left  = ""
+		border.image.left         = ""
+
+		bgcolor="#00000000"
+	/>
+
+
+	<class 
+		name = "label_childwindow"
+		type = "childwindow"
+		
+		border.thickness="12"
+
+		border.image.path         = "" 
+		border.image.top-left     = "border/label_top_left.png"
+		border.image.top          = "border/label_vert.png"
+		border.image.top-right    = "border/label_top_right.png"
+		border.image.right        = "border/label_horiz.png"
+		border.image.bottom-right = "border/label_bottom_right.png"
+		border.image.bottom       = "border/label_vert.png"
+		border.image.bottom-left  = "border/label_bottom_left.png"
+		border.image.left         = "border/label_horiz.png"
+		
+		bgcolor="#6cc5e8B4"
+	/>
+
+
+	<!--  *********************************** -->
+	<!--  Main Menu -->
+<!--		border.image.bottom-right = "border/window_bottom_right.png"        photos/fuerteventura_1.png-->
+	<class 
+		name = "mainmenubar"
+		type = "childwindow"
+		
+		movein = "down"
+
+		border.thickness="12"
+
+		border.image.path         = "" 
+		border.image.top-left     = "border/window_top_left.png"
+		border.image.top          = "border/window_vert.png"
+		border.image.top-right    = "border/window_top_right.png"
+		border.image.right        = "border/window_horiz.png"
+		border.image.bottom-right = "border/window_bottom_right.png"
+		border.image.bottom       = "border/window_vert.png"
+		border.image.bottom-left  = "border/window_block.png"
+		border.image.left         = "border/window_horiz.png"
+	/>
+	<class 
+		name = "top_right_childwindow"
+		type = "childwindow"
+		
+		movein = "down"
+
+		border.thickness="12"
+
+		border.image.path         = "" 
+		border.image.top-left     = "border/window_top_left.png"
+		border.image.top          = "border/window_vert.png"
+		border.image.top-right    = "border/window_top_right.png"
+		border.image.right        = "border/window_horiz.png"
+		border.image.bottom-right = "border/window_block.png"
+		border.image.bottom       = "border/window_vert.png"
+		border.image.bottom-left  = "border/window_bottom_left.png"
+		border.image.left         = "border/window_horiz.png"
+	/>
+	
+	<!-- definition main menu -->
+    <class
+        name = "mainmenu"
+        type = "menu"
+
+        bgcolor        = "#00000000"
+	    bgimage        = ""
+        selbgcolor     = "#00000000"
+	    selbgimage     = ""
+		margin         = "0"
+		focusable      = "true"
+		selectable     = "true"
+		up_arrow       = ""
+		down_arrow     = ""
+		left_arrow     = ""
+		right_arrow    = ""
+		navigate_up    = ""
+		navigate_down  = ""
+		navigate_left  = ""
+		navigate_right = ""
+
+		item_width   = "127px"
+		item_height  = "50px"
+		item_hmargin = "0"
+		item_vmargin = "0"
+		cols         = "5"
+		dim_items    = "0"
+		fixed_pos    = "-1"
+		hloop        = "false"
+		vloop        = "true"
+		trans_items  = "0"
+		dim_top      = "0"
+		dim_bottom   = "0"
+		dim_left     = "0"
+		dim_right    = "0"
+		trans_top    = "0"
+		trans_bottom = "0"
+		trans_left   = "0"
+		trans_right  = "0"
+		zoomsel_width  = "0px"
+		zoomsel_height = "0px"
+		zoomsel_shiftx = "0px"
+		zoomsel_shifty = "0px"
+		smooth_scrolling = "false"
+
+		selimage.name=""
+		smooth_selection = "false"
+		return_onscroll = "true"
+		
+		smooth_delay = "250"
+		inputmode = "MOVE"
+		
+		>
+		<button name="mainmenu_image" margin="0">
+			<hbox>
+				<gap size="7px" />
+				<image size="120px" class="mainmenu_image"  data="" >
+					<hbox>
+						<gap size="16px"/>
+						<vbox>
+							<label name="item_name" class="default_label" font.size="14" alignment="bottom-left"
+											color="#ffffffff" selcolor="#2dacdeff" />
+							<gap size="13px" />
+						</vbox>
+					</hbox>
+				</image>
+			</hbox>
+		</button>
+	</class>
+	<class
+		name = "mainmenu_image"
+		type = "image"
+
+		bgimage.name="menuitem.png"		
+		selbgimage.name="menuitem.png"		
+		bgimage_p.name="menuitem_p.png"		
+		selbgimage_p.name="menuitem_p.png"		
+	/>
+
+	
+	<!-- ************************************************************************************************** -->	
+	<!-- These are the Classes for the OSK																	--> 
+	<!-- ************************************************************************************************** -->	
+	<class 
+		name = "keyboard_window"
+		type = "childwindow"
+		
+
+		border.thickness="12"
+
+		border.image.path         = "" 
+		border.image.top-left     = "border/window_top_left.png"
+		border.image.top          = "border/window_vert.png"
+		border.image.top-right    = "border/window_top_right.png"
+		border.image.right        = "border/window_horiz.png"
+		border.image.bottom-right = "border/window_block.png"
+		border.image.bottom       = "border/window_vert.png"
+		border.image.bottom-left  = "border/window_block.png"
+		border.image.left         = "border/window_horiz.png"
+	/>
+	<class
+		name = "osk_button"
+		type = "button"
+		
+		bgimage.name   = "osk/key_regular.png"
+		bgimage_p.name = "osk/key_regular_p.png"
+
+		selectable = "false"
+	/>
+	<class
+		name = "osk_button_99"
+		type = "button"
+		
+		bgimage.name   = "osk/key_99.png"
+		bgimage_p.name = "osk/key_99_p.png"
+
+		selectable = "false"
+	/>
+	<class
+		name = "osk_button_81"
+		type = "button"
+		
+		bgimage.name   = "osk/key_81.png"
+		bgimage_p.name = "osk/key_81_p.png"
+
+		selectable = "false"
+	/>
+	<class
+		name = "osk_button_64"
+		type = "button"
+		
+		bgimage.name   = "osk/key_64.png"
+		bgimage_p.name = "osk/key_64_p.png"
+
+		selectable = "false"
+	/>
+	<class
+		name = "osk_return_top"
+		type = "button"
+		
+		bgimage.name   = "osk/key_return_top.png"
+		bgimage_p.name = "osk/key_return_top_p.png"
+
+		selectable = "false"
+	/>
+	<class
+		name = "osk_return_bottom"
+		type = "button"
+		
+		bgimage.name   = "osk/key_return_bottom.png"
+		bgimage_p.name = "osk/key_return_bottom_p.png"
+
+		selectable = "false"
+	/>
+	
+	<class
+		name = "osk_label_normal"
+		type = "label"
+
+		font.name = "DejaVuSans.ttf"
+		font.size = "22"
+
+		alignment = "bottom-left"
+
+		color   = "#ffffffff"
+		color_p = "#2dacdeff"
+
+		selectable = "false"
+	/>
+
+	<class
+		name = "osk_input"
+		type = "input"
+		
+		focusable      = "false"
+		selectable     = "false"
+		clickable      = "false"
+	
+		font.name = "DejaVuSansMono.ttf"
+		font.size = "26"
+
+		alignment = "left"
+
+		color     = "#ffffffff"
+	/>
+
+
+<image/>
+	
+	<!-- ************************************************************************************************** -->
+	<!-- These are the Classes for the Carrousel															-->
+	<!-- ************************************************************************************************** -->
+    <class
+        name = "carrousel_menu"
+        type = "menu"
+
+        bgcolor        = "#00000000"
+	    bgimage        = ""
+        selbgcolor     = "#00000000"
+	    selbgimage     = ""
+		margin         = "0"
+		focusable      = "true"
+		selectable     = "true"
+		up_arrow       = ""
+		down_arrow     = ""
+		left_arrow     = ""
+		right_arrow    = ""
+		navigate_up    = ""
+		navigate_down  = ""
+		navigate_left  = ""
+		navigate_right = ""
+
+		item_width   = "138px"
+		item_height  = "138px"
+		item_hmargin = "5"
+		item_vmargin = "0"
+		cols         = "7"
+		dim_items    = "0"
+		fixed_pos    = "3"
+		hloop        = "false"
+		vloop        = "false"
+		trans_items  = "0"
+		dim_top      = "0"
+		dim_bottom   = "0"
+		dim_left     = "0"
+		dim_right    = "0"
+		trans_top    = "0"
+		trans_bottom = "0"
+		trans_left   = "0"
+		trans_right  = "0"
+		zoomsel_width  = "50px"
+		zoomsel_height = "14px"
+		zoomsel_shiftx = "0px"
+		zoomsel_shifty = "7px"
+		smooth_scrolling = "true"
+		smooth_delay = "350"
+		>
+		<button name="button">
+			<vbox>
+				<image name="icon" />
+				<image name="title" size="56px" mirror_size="28"/>
+			</vbox>
+		</button>
+	</class>
+
+	
+	
+	<!-- definition photos menu -->
+    <class
+        name = "photos_menu"
+        type = "menu"
+
+        bgcolor        = "#00000000"
+	    bgimage        = ""
+        selbgcolor     = "#00000000"
+	    selbgimage     = ""
+		margin         = "0"
+		focusable      = "true"
+		selectable     = "true"
+		up_arrow       = ""
+		down_arrow     = ""
+		left_arrow     = ""
+		right_arrow    = ""
+		navigate_up    = ""
+		navigate_down  = ""
+		navigate_left  = ""
+		navigate_right = ""
+
+		item_width   = "224px"
+		item_height  = "168px"
+		item_hmargin = "6"
+		item_vmargin = "6"
+		cols         = "3"
+		dim_items    = "0"
+		fixed_pos    = "-1"
+		hloop        = "false"
+		vloop        = "false"
+		trans_items  = "0"
+		dim_top      = "0"
+		dim_bottom   = "0"
+		dim_left     = "0"
+		dim_right    = "0"
+		trans_top    = "0"
+		trans_bottom = "0"
+		trans_left   = "0"
+		trans_right  = "0"
+		zoomsel_width  = "0px"
+		zoomsel_height = "0px"
+		zoomsel_shiftx = "0px"
+		zoomsel_shifty = "0px"
+		smooth_scrolling = "false"
+		>
+		<image name="photos_image">
+			<vbox>
+				<gap/>
+				<image size="22px" bgcolor="#000000a0" selbgcolor="#000000a0">
+					<hbox>
+						<gap size="4px"/>
+						<label name="photos_image_caption" class="default_label" font.size="14" alignment="left"/>
+						<gap size="4px"/>
+					</hbox>
+				</image>
+			</vbox>
+		</image>
+	</class>
+
+
+    <!-- button class -->
+    <class
+        name = "default_button"
+        type = "button"
+        
+		bgimage.name    = "osk/key_81.png"
+		selbgimage.name = "osk/key_81_p.png"
+		
+		border.thickness="12"
+		border.image.path         = "" 
+
+		border.image.top-left     = "border/widget_top_left.png"
+		border.image.top          = "border/widget_vert.png"
+		border.image.top-right    = "border/widget_top_right.png"
+		border.image.right        = "border/widget_horiz.png"
+		border.image.bottom-right = "border/widget_bottom_right.png"
+		border.image.bottom       = "border/widget_vert.png"
+		border.image.bottom-left  = "border/widget_bottom_left.png"
+		border.image.left         = "border/widget_horiz.png"
+
+
+		border.selimage.top-left     = "border/label_top_left.png"
+		border.selimage.top          = "border/label_vert.png"
+		border.selimage.top-right    = "border/label_top_right.png"
+		border.selimage.right        = "border/label_horiz.png"
+		border.selimage.bottom-right = "border/label_bottom_right.png"
+		border.selimage.bottom       = "border/label_vert.png"
+		border.selimage.bottom-left  = "border/label_bottom_left.png"
+		border.selimage.left         = "border/label_horiz.png"
+		
+        >
+	</class>	
+
+    <!-- button class -->
+    <class
+        name = "menu_button"
+        type = "button"
+		
+		bgimage.name="menuitem.png"
+		selbgimage.name="menuitem.png"
+		bgimage_p.name="menuitem_p.png"		
+		selbgimage_p.name="menuitem_p.png"		
+		
+    />
+
+
+    <!-- button template -->
+    <class
+        name = "myButton"
+        type = "template"
+        >
+    	<button class="default_button">
+    		<hbox>
+    			<label class="default_label" font.size="16" name="caption" />
+    		</hbox>
+    	</button>
+	</class>
+	
+    <!-- button template -->
+    <class
+        name = "myButton2"
+        type = "template"
+        >
+    	<button class="menu_button">
+			<hbox>
+				<gap size="16px"/>
+				<vbox>
+					<label name="caption" class="default_label" font.size="14" alignment="bottom-left"
+									color="#ffffffff" selcolor="#2dacdeff" />
+					<gap size="13px" />
+				</vbox>
+			</hbox>
+    	</button>
+	</class>
+	
+	
+</mmstheme>

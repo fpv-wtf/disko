@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -64,12 +64,12 @@ MMSAudioCtrl::MMSAudioCtrl(string channel) {
     if (!this->handle) {
         /* open the mixer */
         if ((err = snd_mixer_open(&(this->handle), 0)) < 0)
-            throw new MMSAudioCtrlError(err,"snd_mixer_open() failed");
+            throw MMSAudioCtrlError(err,"snd_mixer_open() failed");
 
         /* attach the card */
         if ((err = snd_mixer_attach(this->handle, this->card.c_str())) < 0) {
             snd_mixer_close(this->handle);
-            throw new MMSAudioCtrlError(err,"snd_mixer_attach() with card = '"
+            throw MMSAudioCtrlError(err,"snd_mixer_attach() with card = '"
                                             + this->card + "' failed");
         }
 
@@ -77,14 +77,14 @@ MMSAudioCtrl::MMSAudioCtrl(string channel) {
         if ((err = snd_mixer_selem_register(this->handle, NULL, NULL)) < 0) {
             snd_mixer_close(this->handle);
             string s = snd_strerror(err);
-            throw new MMSAudioCtrlError(err,"snd_mixer_selem_register() failed with '" + s + "'");
+            throw MMSAudioCtrlError(err,"snd_mixer_selem_register() failed with '" + s + "'");
         }
 
         /* load */
         if ((err = snd_mixer_load(this->handle)) < 0) {
             snd_mixer_close(this->handle);
             string s = snd_strerror(err);
-            throw new MMSAudioCtrlError(err,"snd_mixer_load() failed with '" + s + "'");
+            throw MMSAudioCtrlError(err,"snd_mixer_load() failed with '" + s + "'");
         }
     }
 
@@ -122,7 +122,7 @@ MMSAudioCtrl::MMSAudioCtrl(string channel) {
             return;
         }
 
-        throw new MMSAudioCtrlError(0,"no element found");
+        throw MMSAudioCtrlError(0,"no element found");
     }
 }
 

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -215,8 +215,8 @@ int main(int argc, char *argv[]) {
         cmd->handleRequest();
         exit(0);
 
-    } catch(MMSError *err) {
-        printf("\nAn internal error occured: %s\n",err->getMessage().c_str());
+    } catch(MMSError &err) {
+        printf("\nAn internal error occured: %s\n",err.getMessage().c_str());
     }
 
 }

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -456,7 +456,7 @@ MMSInputDFBHandler::MMSInputDFBHandler(MMS_INPUT_DEVICE device) {
 
 	this->quit=false;
 #else
-	throw new MMSError(0,(string)typeid(this).name() + " is empty. compile DirectFB support!");
+	throw MMSError(0,(string)typeid(this).name() + " is empty. compile DirectFB support!");
 #endif
 }
 
@@ -464,7 +464,7 @@ MMSInputDFBHandler::~MMSInputDFBHandler()  {
 #ifdef __HAVE_DIRECTFB__
 	if(this->config) delete this->config;
 #else
-	throw new MMSError(0,(string)typeid(this).name() + " is empty. compile DirectFB support!");
+	throw MMSError(0,(string)typeid(this).name() + " is empty. compile DirectFB support!");
 #endif
 }
 
@@ -564,7 +564,7 @@ void MMSInputDFBHandler::grabEvents(MMSInputEvent *inputevent) {
 		    			if (this->pointer_rect.w) {
 				       	 	if (evt.axis == DIAI_X) {
 				       	 		/* x axis */
-					        	if (evt.axisabs < 0) {
+					        	if (evt.flags & DIEF_AXISREL) {
 					        		/* work with relative value (e.g. normal mouse move) */
 									if ((evt.axisrel>1)||(evt.axisrel<-1))
 										this->pointer_xpos+= evt.axisrel*2;
@@ -584,7 +584,7 @@ void MMSInputDFBHandler::grabEvents(MMSInputEvent *inputevent) {
 				       	 	else
 			        	 	if (evt.axis == DIAI_Y) {
 				       	 		/* y axis */
-					        	if (evt.axisabs < 0) {
+					        	if (evt.flags & DIEF_AXISREL) {
 					        		/* work with relative value (e.g. normal mouse move) */
 									if ((evt.axisrel>1)||(evt.axisrel<-1))
 										this->pointer_ypos+= evt.axisrel*3;
@@ -627,7 +627,7 @@ void MMSInputDFBHandler::grabEvents(MMSInputEvent *inputevent) {
 	    }
 	}
 #else
-	throw new MMSError(0,(string)typeid(this).name() + " is empty. compile DirectFB support!");
+	throw MMSError(0,(string)typeid(this).name() + " is empty. compile DirectFB support!");
 #endif
 }
 

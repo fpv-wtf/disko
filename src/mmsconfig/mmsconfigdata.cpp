@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -140,6 +140,14 @@ const string MMSConfigData::getInputMode() {
 	return this->global.inputmode;
 }
 
+const string MMSConfigData::getActMonAddress() {
+	return this->global.actmonaddress;
+}
+
+const unsigned int MMSConfigData::getActMonPort() {
+	return this->global.actmonport;
+}
+
 /* db section getters */
 const string MMSConfigData::getConfigDBDBMS() {
 	return this->configdb.dbms;
@@ -201,10 +209,6 @@ const MMSFBBackend MMSConfigData::getBackend() {
     return this->graphics.backend;
 }
 
-const MMSFBOutputType MMSConfigData::getOutputType() {
-    return this->graphics.outputtype;
-}
-
 const MMSFBRectangle MMSConfigData::getVRect() {
     return this->graphics.vrect;
 }
@@ -237,8 +241,20 @@ const MMSFBFullScreenMode MMSConfigData::getFullScreen() {
 	return this->graphics.fullscreen;
 }
 
+const int MMSConfigData::getRotateScreen() {
+	return this->graphics.rotatescreen;
+}
+
 const bool   MMSConfigData::getHideApplication() {
 	return this->graphics.hideapplication;
+}
+
+const bool   MMSConfigData::getInitialLoad() {
+	return this->graphics.initialload;
+}
+
+const bool   MMSConfigData::getDebugFrames() {
+	return this->graphics.debugframes;
 }
 
 const bool   MMSConfigData::getTouchSwapX() {
@@ -253,13 +269,6 @@ const bool   MMSConfigData::getTouchSwapXY() {
 	return this->graphics.touchSwapXY;
 }
 
-const unsigned int MMSConfigData::getTouchResX() {
-	return this->graphics.touchResX;
-}
-
-const unsigned int MMSConfigData::getTouchResY() {
-	return this->graphics.touchResY;
-}
 
 // graphics section setters
 void MMSConfigData::setVideoLayer(MMSConfigDataLayer layer) {
@@ -274,16 +283,28 @@ void MMSConfigData::setFullScreen(MMSFBFullScreenMode fsm) {
 	this->graphics.fullscreen = fsm;
 }
 
+void MMSConfigData::setRotateScreen(int rs) {
+	this->graphics.rotatescreen = rs;
+}
+
 void MMSConfigData::setHideApplication(bool hideapplication) {
 	this->graphics.hideapplication = hideapplication;
 }
 
+void MMSConfigData::setInitialLoad(bool initialload) {
+	this->graphics.initialload = initialload;
+}
 
-const string MMSConfigData::getSourceLang() {
+void MMSConfigData::setDebugFrames(bool debugframes) {
+	this->graphics.debugframes = debugframes;
+}
+
+
+const MMSLanguage MMSConfigData::getSourceLang() {
 	return this->language.sourcelang;
 }
 
-const string MMSConfigData::getDefaultTargetLang() {
+const MMSLanguage MMSConfigData::getDefaultTargetLang() {
 	return this->language.defaulttargetlang;
 }
 

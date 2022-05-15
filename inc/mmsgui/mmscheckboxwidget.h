@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -54,10 +54,24 @@ class MMSCheckBoxWidget : public MMSWidget {
         MMSFBSurface	*checked_bgimage_i;
         MMSFBSurface	*checked_selbgimage_i;
 
+        //! current checked background values set?
+        bool			current_checked_bgset;
+
+        //! current checked background color
+        MMSFBColor		current_checked_bgcolor;
+
+        //! current checked background image
+        MMSFBSurface	*current_checked_bgimage;
+
         bool create(MMSWindow *root, string className, MMSTheme *theme);
 
         bool init();
         bool release();
+
+        void getCheckedBackground(MMSFBColor *color, MMSFBSurface **image);
+        bool enableRefresh(bool enable = true);
+        bool checkRefreshStatus();
+
         bool draw(bool *backgroundFilled = NULL);
 
         void handleInput(MMSInputEvent *inputevent);

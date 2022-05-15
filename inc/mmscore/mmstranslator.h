@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -39,38 +39,33 @@
 
 #include "mmsconfig/mmsconfigdata.h"
 
-/**
- * This maps country codes (i.e. de for germany) to
- * an index for vectors in MMSTRANSLATION_FILES and
- * MMSTRANSLATION_MAP.
- */
-typedef std::map<std::string, int> MMSTRANSLATION_INDEX;
-
-/**
- * Vector containing all processed translation files.
- */
-typedef std::vector<std::string> MMSTRANSLATION_FILES;
-
-/**
- * Map that associates a string to translate to a vector
- * containing the translation of all processed languages.
- */
-typedef std::map<std::string, vector<std::string> > MMSTRANSLATION_MAP;
-
 #define TRANSLATION_FILE_NAME "translation"
 
 class MMSTranslator {
-	public:
-		MMSTranslator();
-		~MMSTranslator();
-
-		void translate(const std::string &source, std::string &dest);
-		bool setTargetLang(const std::string &countryCode);
-
-        static sigc::signal<void, unsigned int> onTargetLangChanged;
-
 	private:
-        static std::string 			source, target;
+		/**
+		 * This maps country codes (i.e. de for germany) to
+		 * an index for vectors in MMSTRANSLATION_FILES and
+		 * MMSTRANSLATION_MAP.
+		 */
+		//typedef std::map<std::string, int> MMSTRANSLATION_INDEX;
+		typedef std::map<MMSLanguage, int> MMSTRANSLATION_INDEX;
+
+		/**
+		 * Vector containing all processed translation files.
+		 */
+		typedef std::vector<std::string> MMSTRANSLATION_FILES;
+
+		/**
+		 * Map that associates a string to translate to a vector
+		 * containing the translation of all processed languages.
+		 */
+		typedef std::map<std::string, vector<std::string> > MMSTRANSLATION_MAP;
+
+		//! first time MMSTranslator will be constructed?
+		static bool 				firsttime;
+
+		static MMSLanguage 			sourcelang, targetlang;
     	static int 					sourceIdx, targetIdx;
     	static MMSTRANSLATION_INDEX transIdx;
     	static MMSTRANSLATION_MAP 	transmap;
@@ -80,6 +75,16 @@ class MMSTranslator {
     	void loadTranslations();
     	void processFile(const string &file);
     	void addMissing(const string &phrase, const bool completemiss = false);
+
+	public:
+		MMSTranslator();
+		~MMSTranslator();
+
+		void translate(const std::string &source, std::string &dest);
+		bool setTargetLang(MMSLanguage lang);
+		MMSLanguage getTargetLang();
+
+        static sigc::signal<void, MMSLanguage> onTargetLangChanged;
 };
 
 #endif /* MMSTRANSLATOR_H_ */

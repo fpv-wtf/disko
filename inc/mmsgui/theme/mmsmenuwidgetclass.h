@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -61,12 +61,12 @@ namespace MMSGUI_MENUWIDGET_ATTR {
 		{ "zoomsel_height", TAFF_ATTRTYPE_STRING }, \
 		{ "zoomsel_shiftx", TAFF_ATTRTYPE_STRING }, \
 		{ "zoomsel_shifty", TAFF_ATTRTYPE_STRING }, \
-		{ "smooth_scrolling", TAFF_ATTRTYPE_BOOL }, \
+		{ "smooth_scrolling", TAFF_ATTRTYPE_SEQUENCE_MODE }, \
 		{ "parent_window", TAFF_ATTRTYPE_STRING }, \
 		{ "selimage", TAFF_ATTRTYPE_STRING }, \
 		{ "selimage.path", TAFF_ATTRTYPE_STRING }, \
 		{ "selimage.name", TAFF_ATTRTYPE_STRING }, \
-		{ "smooth_selection", TAFF_ATTRTYPE_BOOL }, \
+		{ "smooth_selection", TAFF_ATTRTYPE_SEQUENCE_MODE }, \
 		{ "smooth_delay", TAFF_ATTRTYPE_INT }
 
 	#define MMSGUI_MENUWIDGET_ATTR_IDS \
@@ -184,7 +184,7 @@ class MMSMenuWidgetClass {
         //! loop horizontal (left/right) without jumping out of the menu
         unsigned int    hloop;
 
-        //! is the vloop flag set?
+        //! is the vloop flag set?smoothscrolling
         bool            isvloop;
 
         //! loop vertical (up/down) without jumping out of the menu
@@ -268,11 +268,11 @@ class MMSMenuWidgetClass {
         //! vertical shift of the selected item (percent or pixel)
         string 			zoomselshifty;
 
-        //! is smooth scrolling enabled?
+        //! is smooth scrolling mode set?
         bool			issmoothscrolling;
 
-        //! do smooth scrolling yes/no if user navigates in the menu
-        bool  			smoothscrolling;
+        //! smooth scrolling mode
+        MMSSEQUENCEMODE	smoothscrolling;
 
         //! is parent window set?
         bool			isparentwindow;
@@ -292,11 +292,11 @@ class MMSMenuWidgetClass {
         //! selimage filename
         string 			selimagename;
 
-        //! is smooth selection enabled?
+        //! is smooth selection mode set?
         bool			issmoothselection;
 
-        //! do smooth selection yes/no if user navigates in the menu
-        bool  			smoothselection;
+        //! smooth selection mode
+        MMSSEQUENCEMODE	smoothselection;
 
         //! is smooth delay set?
         bool			issmoothdelay;
@@ -694,9 +694,9 @@ class MMSMenuWidgetClass {
         string getZoomSelShiftY();
 
         bool isSmoothScrolling();
-        void setSmoothScrolling(bool smoothscrolling);
+        void setSmoothScrolling(MMSSEQUENCEMODE smoothscrolling);
         void unsetSmoothScrolling();
-        bool getSmoothScrolling();
+        MMSSEQUENCEMODE getSmoothScrolling();
 
         bool isParentWindow();
         void setParentWindow(string parentwindow);
@@ -715,16 +715,16 @@ class MMSMenuWidgetClass {
         string getSelImageName();
 
         bool isSmoothSelection();
-        void setSmoothSelection(bool smoothselection);
+        void setSmoothSelection(MMSSEQUENCEMODE smoothselection);
         void unsetSmoothSelection();
-        bool getSmoothSelection();
+        MMSSEQUENCEMODE getSmoothSelection();
 
         bool isSmoothDelay();
         void setSmoothDelay(unsigned int smoothdelay);
         void unsetSmoothDelay();
         unsigned int getSmoothDelay();
 
-    /* friends */
+    // friends
     friend class MMSThemeManager;
     friend class MMSDialogManager;
 };

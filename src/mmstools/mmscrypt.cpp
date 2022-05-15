@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -112,7 +112,7 @@ unsigned char* MMSCrypt::getUserKey(string keyfile) {
             break;
         default :
             delete(file);
-            throw new MMSCryptError(0, "file " + keyfile + " could not be opened (" + strerror(file->getLastError()) + ")");
+            throw MMSCryptError(0, "file " + keyfile + " could not be opened (" + strerror(file->getLastError()) + ")");
     }
 
     return userKey;
@@ -150,22 +150,22 @@ unsigned char* MMSCrypt::encrypt(unsigned char *in, unsigned int size, bool useM
     (useMMSCtx ? ctx = &mmsCtx : ctx = &userCtx);
 
     if(!(out = (unsigned char*)malloc(inl + EVP_CIPHER_CTX_block_size(ctx))))
-        throw new MMSCryptError(0, "not enough memory available");
+        throw MMSCryptError(0, "not enough memory available");
 
     for(int i = 0; i < inl / 128; i++) {
         if(!EVP_EncryptUpdate(ctx, &out[ol], &tmp, &in[ol], 128))
-            throw new MMSCryptError(0, "error while encrypting data");
+            throw MMSCryptError(0, "error while encrypting data");
         ol += tmp;
     }
 
     if(inl % 128) {
         if(!EVP_EncryptUpdate(ctx, &out[ol], &tmp, &in[ol], inl % 128))
-            throw new MMSCryptError(0, "error while encrypting data");
+            throw MMSCryptError(0, "error while encrypting data");
         ol += tmp;
     }
 
     if(!EVP_EncryptFinal_ex(ctx, &out[ol], &tmp))
-        throw new MMSCryptError(0, "error while encrypting data");
+        throw MMSCryptError(0, "error while encrypting data");
 
     return out;
 }
@@ -179,7 +179,7 @@ unsigned char* MMSCrypt::decrypt(unsigned char *in, unsigned int size, bool useM
     (useMMSCtx ? ctx = &mmsCtx : ctx = &userCtx);
 
     if(!(out = (unsigned char*)malloc(inl + EVP_CIPHER_CTX_block_size(ctx) + 1)))
-        throw new MMSCryptError(0, "not enough memory available");
+        throw MMSCryptError(0, "not enough memory available");
 
     EVP_DecryptUpdate(ctx, out, &ol, in, inl);
 

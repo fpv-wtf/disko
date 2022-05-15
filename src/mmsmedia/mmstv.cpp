@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -134,7 +134,7 @@ void MMSTV::startPlaying(const string channel) {
     	if(fp!=NULL){
         	char line[1024];
         	if(!fgets(line,1024,fp))
-                throw new MMSTVError(0, "Error reading from file " + channel);
+                throw MMSTVError(0, "Error reading from file " + channel);
         	this->channel = line;
         	fclose(fp);
         	DEBUGMSG("MMSTV", "trying to play " + this->channel);

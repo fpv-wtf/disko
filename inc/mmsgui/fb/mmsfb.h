@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -43,6 +43,12 @@
 #include "mmsgui/fb/mmsfblayer.h"
 #include "mmsgui/fb/mmsfbwindowmanager.h"
 #include "mmsgui/fb/mmsfbfont.h"
+#include "mmsgui/fb/mmsfbbackendinterface.h"
+
+#ifdef __HAVE_OPENGL__
+#define LOCK_OGL(fbo)	{ mmsfb->lock(); glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo); glDisable(GL_SCISSOR_TEST); }
+#define UNLOCK_OGL		{ glDisable(GL_SCISSOR_TEST); glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); mmsfb->unlock(); }
+#endif
 
 #define MMSFBLAYER_MAXNUM 32
 
@@ -52,11 +58,20 @@
 */
 class MMSFB {
     private:
-        int             argc;       /* commandline arguments */
-        char            **argv;
+        int              argc;       /* commandline arguments */
+        char             **argv;
+        string 			 applname;
+        string			 appliconname;
+        bool			 hidden;
+        MMSFBPointerMode pointer;
+
+        //! name of binary
+        string           bin;
 
     	//! is initialized?
     	bool initialized;
+
+        MMSFBFullScreenMode fullscreen;
 
 #ifdef  __HAVE_DIRECTFB__
         // interface to dfb
@@ -69,34 +84,47 @@ class MMSFB {
 #endif
 
 #ifdef __HAVE_XLIB__
+        //! connection to the x-server
         Display 		*x_display;
         int				x_screen;
         Window 			x_window;
+        Window 			input_window;
         GC 				x_gc;
         Visual			*x_visual;
         int				x_depth;
-        int 			xv_port;
         MMSMutex		xlock;
         int				display_w;
         int				display_h;
         int				target_window_w;
         int				target_window_h;
-        MMSFBFullScreenMode fullscreen;
         bool            resized;
         bool 			resizeWindow();
+        Window			x_windows[MMSFBLAYER_MAXNUM];
+        XImage			*rootimage;
+#endif
+
+#ifdef __HAVE_XV__
+        int 		xv_port;
+#endif
+
+#ifdef __HAVE_OPENGL__
+        // backend interface server needed for OPENGL
+        MMSFBBackEndInterface	*bei;
 #endif
 
         MMSFBLayer 		*layer[MMSFBLAYER_MAXNUM];
 
         MMSFBBackend	backend;
-        MMSFBOutputType	outputtype;
         MMSFBRectangle  x11_win_rect;
+
+        //! to make it thread-safe
+        MMSMutex  		Lock;
 
     public:
         MMSFB();
         virtual ~MMSFB();
 
-        bool init(int argc, char **argv, MMSFBBackend backend, MMSFBOutputType outputtype, MMSFBRectangle x11_win_rect,
+        bool init(int argc, char **argv, MMSFBBackend backend, MMSFBRectangle x11_win_rect,
         		  bool extendedaccel, MMSFBFullScreenMode fullscreen, MMSFBPointerMode pointer,
 				  string appl_name = "Disko Application", string appl_icon_name = "Disko Application", bool hidden=false);
         bool release();
@@ -104,6 +132,10 @@ class MMSFB {
 
         MMSFBBackend getBackend();
 
+        bool lock();
+        bool unlock();
+
+        bool getLayer(int id, MMSFBLayer **layer, MMSFBOutputType outputtype, bool virtual_console);
         bool getLayer(int id, MMSFBLayer **layer);
 
         void *getX11Window();
@@ -116,6 +148,9 @@ class MMSFB {
         bool createImageProvider(IDirectFBImageProvider **provider, string filename);
 #endif
         bool createFont(MMSFBFont **font, string filename, int width = 0, int height = 0);
+
+
+        void realignLayer();
 
     friend class MMSFBLayer;
     friend class MMSFBSurface;

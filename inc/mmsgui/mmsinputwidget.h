@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -47,7 +47,24 @@ class MMSInputWidget : public MMSWidget {
         MMSInputWidgetClass *inputWidgetClass;
         MMSInputWidgetClass myInputWidgetClass;
 
-        MMSFBFont 		*font;
+        //! language in which the text is to be translated
+        MMSLanguage	lang;
+
+        //! loaded font
+        MMSFBFont *font;
+
+        //! path to the loaded font file
+        string fontpath;
+
+        //! name of the loaded font file
+        string fontname;
+
+        //! requested size of the font
+        unsigned int fontsize;
+
+        //! have to (re)load font?
+        bool load_font;
+
         int				cursor_pos;
         bool			cursor_on;
         int 			scroll_x;
@@ -55,12 +72,26 @@ class MMSInputWidget : public MMSWidget {
 
         class MMSInputWidgetThread	*iwt;
 
+        //! current foreground values set?
+        bool			current_fgset;
+
+        //! current foreground color
+        MMSFBColor		current_fgcolor;
+
         bool create(MMSWindow *root, string className, MMSTheme *theme);
+
+        void initLanguage(MMSInputWidget *widget = NULL);
+        void loadFont(MMSInputWidget *widget = NULL);
 
         void handleInput(MMSInputEvent *inputevent);
 
         bool init();
         bool release();
+
+        void getForeground(MMSFBColor *color);
+        bool enableRefresh(bool enable = true);
+        bool checkRefreshStatus();
+
         bool draw(bool *backgroundFilled = NULL);
         void drawCursor(bool cursor_on);
 
@@ -115,24 +146,38 @@ class MMSInputWidget : public MMSWidget {
     public:
     	/* theme access methods */
         string getFontPath();
-        string getFontName();
+        string getFontName(MMSLanguage lang = MMSLANG_NONE);
         unsigned int getFontSize();
         MMSALIGNMENT getAlignment();
         MMSFBColor getColor();
         MMSFBColor getSelColor();
+        MMSFBColor getColor_p();
+        MMSFBColor getSelColor_p();
+        MMSFBColor getColor_i();
+        MMSFBColor getSelColor_i();
         string getText();
         void getText(string &text);
         MMSSTATE getCursorState();
+        MMSFBColor getShadowColor(MMSPOSITION position);
+        MMSFBColor getSelShadowColor(MMSPOSITION position);
 
         void setFontPath(string fontpath, bool load = true, bool refresh = true);
+        void setFontName(MMSLanguage lang, string fontname, bool load = true, bool refresh = true);
         void setFontName(string fontname, bool load = true, bool refresh = true);
         void setFontSize(unsigned int  fontsize, bool load = true, bool refresh = true);
+        void setFont(MMSLanguage lang, string fontpath, string fontname, unsigned int fontsize, bool load = true, bool refresh = true);
         void setFont(string fontpath, string fontname, unsigned int fontsize, bool load = true, bool refresh = true);
         void setAlignment(MMSALIGNMENT alignment, bool refresh = true);
         void setColor(MMSFBColor color, bool refresh = true);
         void setSelColor(MMSFBColor selcolor, bool refresh = true);
+        void setColor_p(MMSFBColor color_p, bool refresh = true);
+        void setSelColor_p(MMSFBColor selcolor_p, bool refresh = true);
+        void setColor_i(MMSFBColor color_i, bool refresh = true);
+        void setSelColor_i(MMSFBColor selcolor_i, bool refresh = true);
         void setText(string text, bool refresh = true, bool reset_cursor = true);
         void setCursorState(MMSSTATE cursor_state, bool refresh = true);
+        void setShadowColor(MMSPOSITION position, MMSFBColor color, bool refresh = true);
+        void setSelShadowColor(MMSPOSITION position, MMSFBColor selcolor, bool refresh = true);
 
         void updateFromThemeClass(MMSInputWidgetClass *themeClass);
 

@@ -43,7 +43,7 @@
  *
  * \htmlonly
  * <div align="center">
- * <a href="start.html"><img src="DISKO_logo_ball.JPG" alt="More..." border="0"></a>
+ * <a href="start.html"><img src="disko_claimed_blkontransp.png" alt="More..." border="0"></a>
  * </div>
  * \endhtmlonly
  */
@@ -57,10 +57,10 @@
  * Media playback (DVD, DVB, IPTV and audio streams) is provided by the well known xine media library
  * or gstreamer.
  * 
- * For further information go to <a href="http://www.diskohq.org">www.diskohq.org</a> or directly
- * to the <a href="../index.html">documentation section</a>.
+ * For further information go to <a href="http://www.diskohq.com">www.diskohq.com</a> or directly
+ * to the <a href="../installation/ubuntu.html">documentation section</a>.
  *
  * A good starting point for the API reference is the <a href="modules.html">overview of our modules</a>.
  *
- * If you have any questions, feel free to ask at our <a href="http://www.diskohq.org/forum">forum</a>.
+ * If you have any questions, feel free to join our <a href="http://ml.diskohq.com/cgi-bin/mailman/listinfo/disko-devel">mailing list</a>.
  */

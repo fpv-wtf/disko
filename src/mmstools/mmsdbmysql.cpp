@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -66,7 +66,7 @@ MMSDBMySQL::MMSDBMySQL(DataSource *_datasource, bool autoreconnect) :
 	IMMSDB(_datasource),
 	autoreconnect(autoreconnect) {
 	if(!this->datasource)
-		throw new MMSError(0, "Cannot instantiate MMSDBMySQL without datasource");
+		throw MMSError(0, "Cannot instantiate MMSDBMySQL without datasource");
 };
 
 /**
@@ -94,7 +94,7 @@ MMSDBMySQL::~MMSDBMySQL() {
  */
 void MMSDBMySQL::startTransaction() {
     if(mysql_query(&this->dbhandle, "START TRANSACTION") != 0)
-        throw new MMSError(0, mysql_error(&this->dbhandle));
+        throw MMSError(0, mysql_error(&this->dbhandle));
 }
 
 /**
@@ -115,7 +115,7 @@ void MMSDBMySQL::commitTransaction() {
 #else
     if(mysql_query(&this->dbhandle, "COMMIT") != 0)
 #endif
-        throw new MMSError(0, mysql_error(&this->dbhandle));
+        throw MMSError(0, mysql_error(&this->dbhandle));
 }
 
 /**
@@ -136,7 +136,7 @@ void MMSDBMySQL::rollbackTransaction() {
 #else
     if(mysql_query(&this->dbhandle, "ROLLBACK") != 0)
 #endif
-        throw new MMSError(0, mysql_error(&this->dbhandle));
+        throw MMSError(0, mysql_error(&this->dbhandle));
 }
 
 /**
@@ -169,7 +169,7 @@ void MMSDBMySQL::connect() {
 			               NULL, 0)) {
 	       string err = mysql_error(&this->dbhandle);
 	       mysql_close(&this->dbhandle);
-	       throw new MMSError(0, err);
+	       throw MMSError(0, err);
 	}
 
    this->connected = true;
@@ -213,12 +213,12 @@ int MMSDBMySQL::query(string statement, MMSRecordSet *rs) {
 
     if(!this->connected) {
     	message = "Query called but no connection established." + string(" [query was: ") + statement + string("]");
-        throw(new MMSError(0, message));
+        throw MMSError(0, message);
     }
 
     if(mysql_query(&this->dbhandle, statement.c_str()) != 0) {
         message = mysql_error(&this->dbhandle) + string(" [query was: ") + statement + string("]");
-        throw new MMSError(0, message);
+        throw MMSError(0, message);
     }
 
     // get results
@@ -264,12 +264,12 @@ int MMSDBMySQL::query(string statement) {
 
     if(!this->connected) {
     	message = "Query called but no connection established." + string(" [query was: ") + statement + string("]");
-        throw(new MMSError(0, message));
+        throw MMSError(0, message);
     }
 
     if(mysql_query(&this->dbhandle, statement.c_str()) != 0) {
         message = mysql_error(&this->dbhandle) + string(" [query was: ") + statement + string("]");
-        throw new MMSError(0, message);
+        throw MMSError(0, message);
     }
 
     // fetch results if there are some
@@ -294,11 +294,11 @@ int MMSDBMySQL::getLastInsertedID() {
 	int ret = 0;
 
     if(!this->connected)
-        throw(new MMSError(0, "No connection established. Cannot fetch last inserted id."));
+        throw MMSError(0, "No connection established. Cannot fetch last inserted id.");
 
     if(mysql_query(&this->dbhandle, "SELECT LAST_INSERT_ID();") != 0) {
         string message = mysql_error(&this->dbhandle) + string(" [query was: SELECT LAST_INSERT_ID();]");
-        throw new MMSError(0, message);
+        throw MMSError(0, message);
     }
 
     // fetch results if there are some

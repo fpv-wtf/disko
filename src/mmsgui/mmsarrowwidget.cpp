@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -51,6 +51,7 @@ bool MMSArrowWidget::create(MMSWindow *root, string className, MMSTheme *theme) 
     if (this->arrowWidgetClass) this->da->widgetClass = &(this->arrowWidgetClass->widgetClass); else this->da->widgetClass = NULL;
 
 	this->last_pressed = false;
+	this->current_fgset = false;
 
     return MMSWidget::create(root, true, false, false, true, true, true, true);
 }
@@ -84,6 +85,46 @@ bool MMSArrowWidget::release() {
     return true;
 }
 
+void MMSArrowWidget::getForeground(MMSFBColor *color) {
+	color->a = 0;
+
+	if (isSelected()) {
+        *color = getSelColor();
+	}
+    else {
+        *color = getColor();
+    }
+}
+
+bool MMSArrowWidget::enableRefresh(bool enable) {
+	if (!MMSWidget::enableRefresh(enable)) return false;
+
+	// mark foreground as not set
+	this->current_fgset = false;
+
+	return true;
+}
+
+bool MMSArrowWidget::checkRefreshStatus() {
+	if (MMSWidget::checkRefreshStatus()) return true;
+
+	if (this->current_fgset) {
+		// current foreground initialized
+		MMSFBColor color;
+		getForeground(&color);
+
+		if (color == this->current_fgcolor) {
+			// foreground color not changed, so we do not enable refreshing
+			return false;
+		}
+	}
+
+	// (re-)enable refreshing
+	enableRefresh();
+
+	return true;
+}
+
 bool MMSArrowWidget::draw(bool *backgroundFilled) {
     bool myBackgroundFilled = false;
 
@@ -94,21 +135,20 @@ bool MMSArrowWidget::draw(bool *backgroundFilled) {
     else
         backgroundFilled = &myBackgroundFilled;
 
-    /* draw widget basics */
+    // draw widget basics
     if (MMSWidget::draw(backgroundFilled)) {
 
-        /* lock */
+        // lock
         this->surface->lock();
 
-        /* draw my things */
+        // draw my things
         MMSFBRectangle surfaceGeom = getSurfaceGeometry();
 
-        /* get color */
+        // get color
         MMSFBColor color;
-        if (isSelected())
-            color = getSelColor();
-        else
-            color = getColor();
+        getForeground(&color);
+        this->current_fgcolor   = color;
+        this->current_fgset     = true;
 
         if (color.a) {
             /* prepare for drawing */
@@ -260,18 +300,30 @@ bool MMSArrowWidget::getCheckSelected() {
 
 void MMSArrowWidget::setColor(MMSFBColor color, bool refresh) {
     myArrowWidgetClass.setColor(color);
-    if (refresh)
+
+	// refresh required?
+	enableRefresh((color != this->current_fgcolor));
+
+	if (refresh)
         this->refresh();
 }
 
 void MMSArrowWidget::setSelColor(MMSFBColor selcolor, bool refresh) {
     myArrowWidgetClass.setSelColor(selcolor);
-    if (refresh)
+
+	// refresh required?
+	enableRefresh((selcolor != this->current_fgcolor));
+
+	if (refresh)
         this->refresh();
 }
 
 void MMSArrowWidget::setDirection(MMSDIRECTION direction, bool refresh) {
     myArrowWidgetClass.setDirection(direction);
+
+    // refresh is required
+    enableRefresh();
+
     if (refresh)
         this->refresh();
 }

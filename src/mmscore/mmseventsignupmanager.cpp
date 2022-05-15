@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -73,7 +73,7 @@ vector<MMSPluginData *> MMSEventSignupManager::getReceiverPlugins(_IMMSEvent *ev
         subscriptions.clear();
     }
     if(mydata.empty())
-        throw new MMSEventSignupManagerError(0,"no subscriptions found");
+        throw MMSEventSignupManagerError(0,"no subscriptions found");
 
     return mydata;
 }
@@ -99,7 +99,7 @@ vector<sigc::signal<void, _IMMSEvent*> *> MMSEventSignupManager::getReceiverSign
         subscriptions.clear();
     }
     if(mysignals.empty())
-        throw new MMSEventSignupManagerError(0,"no subscriptions found");
+        throw MMSEventSignupManagerError(0,"no subscriptions found");
 
     return mysignals;
 

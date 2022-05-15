@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -43,9 +43,12 @@
 #include <xine.h>
 #endif
 #include <map>
-
 #include "mmsgui/mmsgui.h"
 #include "mmstools/mmstools.h"
+#ifdef __HAVE_XV__
+#include <X11/extensions/Xv.h>
+#include <X11/extensions/Xvlib.h>
+#endif
 
 
 #ifdef __HAVE_GSTREAMER__
@@ -134,7 +137,7 @@ typedef struct {
  * @author      Guido Madaus (guido.madaus@diskohq.org)
  * @author      Patrick Helterhoff (patrick.helterhoff@diskohq.org)
  * @author		René Bählkow (rene.baehlkow@diskohq.org)
- * 
+ *
  * It is the base class for all audio and video related
  * classes.
  */

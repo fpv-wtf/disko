@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -37,6 +37,12 @@ extern "C" {
 #include "mmscore/mmsinit.h"
 #include "mms.h"
 
+#ifdef __ENABLE_ACTMON__
+#include "mmscore/mmsperf.h"
+#include "mmscore/mmsperfinterface.h"
+
+static MMSPerf *mmsperf = NULL;
+#endif
 
 static MMSPluginManager             *pluginmanager      = NULL;
 static MMSEventDispatcher           *eventdispatcher    = NULL;
@@ -94,168 +100,209 @@ bool mmsInit(MMSINIT_FLAGS flags, int argc, char *argv[], string configfile,
         MMSConfigDataGraphics   *rcGraphics = NULL;
         MMSConfigDataLanguage	*rcLanguage = NULL;
 
-        if(configfile != "") {
+        bool config_avail = false;
+
+        if(!configfile.empty()) {
         	// config file given
         	DEBUGOUT("set configfile: %s\n", configfile.c_str());
 		    try {
 				rcparser.parseFile(configfile);
 				rcparser.getMMSRc(&rcGlobal, &rcConfigDB, &rcDataDB, &rcGraphics, &rcLanguage);
-		    } catch (MMSRcParserError *ex) {
+				config_avail = true;
+		    } catch (MMSRcParserError &ex) {
 	        	// config file not found
+	        	DEBUGMSG_OUTSTR("Core", "could not read config, try --disko:config=./etc/diskorc.xml");
 		    }
         } else {
         	// searching for diskorc.xml
 		    try {
 		        rcparser.parseFile("./etc/diskorc.xml");
 		        rcparser.getMMSRc(&rcGlobal, &rcConfigDB, &rcDataDB, &rcGraphics, &rcLanguage);
-		    } catch (MMSRcParserError *ex) {
+				config_avail = true;
+		    } catch (MMSRcParserError &ex) {
 		    	// next try
 		        try {
 					rcparser.parseFile("/etc/diskorc.xml");
 					rcparser.getMMSRc(&rcGlobal, &rcConfigDB, &rcDataDB, &rcGraphics, &rcLanguage);
-		        } catch (MMSRcParserError *ex) {
+		        } catch (MMSRcParserError &ex) {
 		        	// config file not found
+		        	DEBUGMSG_OUTSTR("Core", "could not read config, try --disko:config=./etc/diskorc.xml");
 		        }
 		    }
         }
 
-        // is config read?
-        bool config_read = (rcGlobal);
+		if (!config_avail) {
+			// failed to read diskorc
+			return false;
+		}
 
-        if (!config_read) {
+        // create first (static) MMSConfigData
+        if (!rcGlobal) {
         	// config file not set, load defaults
             MMSRcParser rcparser;
 			rcparser.getMMSRc(&rcGlobal, &rcConfigDB, &rcDataDB, &rcGraphics, &rcLanguage);
-        }
-
-        // create first (static) MMSConfigData
-        if (config_read) {
-        	config = new MMSConfigData(*rcGlobal, *rcConfigDB, *rcDataDB, *rcGraphics, *rcLanguage);
-        }
-        else {
         	config = new MMSConfigData((global)?*global:*rcGlobal, (configdb)?*configdb:*rcConfigDB, (datadb)?*datadb:*rcDataDB,
 									   (graphics)?*graphics:*rcGraphics, (language)?*language:*rcLanguage);
+        } else {
+        	config = new MMSConfigData(*rcGlobal, *rcConfigDB, *rcDataDB, *rcGraphics, *rcLanguage);
         }
 
         // overwrite config values from args and/or argv
         rcparser.updateConfig(config, args, argc, argv);
 
-        printf("\n");
-        printf("****   *   ***   *  *   ***\n");
-        printf(" *  *  *  *      * *   *   *\n");
-        printf(" *  *  *   ***   **    *   *\n");
-        printf(" *  *  *      *  * *   *   *\n");
-        printf("****   *   ***   *  *   ***  V%s\n",DISKO_VERSION_STR);
-        printf("----------------------------------------------------------------------\n");
-        printf("The Linux application framework for embedded devices.\n");
-        printf("\n");
-        printf("   Copyright (C) 2005-2007 Stefan Schwarzer, Jens Schneider,\n");
-        printf("                           Matthias Hardt, Guido Madaus\n");
-        printf("   Copyright (C) 2007-2008 BerLinux Solutions GbR\n");
-        printf("                           Stefan Schwarzer & Guido Madaus\n");
-        printf("   Copyright (C) 2009      BerLinux Solutions GmbH\n");
-        printf("----------------------------------------------------------------------\n");
+        if(!(flags & MMSINIT_SILENT)) {
+			printf("\n");
+			printf("****   *   ***   *  *   ***\n");
+			printf(" *  *  *  *      * *   *   *\n");
+			printf(" *  *  *   ***   **    *   *\n");
+			printf(" *  *  *      *  * *   *   *\n");
+			printf("****   *   ***   *  *   ***  V%s\n",DISKO_VERSION_STR);
+			printf("----------------------------------------------------------------------\n");
+			printf("The Linux application framework for embedded devices.\n");
+			printf("\n");
+			printf("   Copyright (C) 2005-2007 Stefan Schwarzer, Jens Schneider,\n");
+			printf("                           Matthias Hardt, Guido Madaus\n");
+			printf("   Copyright (C) 2007-2008 BerLinux Solutions GbR\n");
+			printf("                           Stefan Schwarzer & Guido Madaus\n");
+			printf("   Copyright (C) 2009-2011 BerLinux Solutions GmbH\n");
+			printf("----------------------------------------------------------------------\n");
 
-        int pcv = 1;
-        if (*((char *)&pcv) == 1) {
-            DEBUGMSG_OUTSTR("Core", "Platform type:                little-endian");
-        } else {
-            DEBUGMSG_OUTSTR("Core", "Platform type:                big-endian");
+			int pcv = 1;
+			if (*((char *)&pcv) == 1) {
+				DEBUGMSG_OUTSTR("Core", "Platform type................: little-endian");
+			} else {
+				DEBUGMSG_OUTSTR("Core", "Platform type................: big-endian");
+			}
+
+			MMSConfigDataLayer videolayer = config->getVideoLayer();
+			MMSConfigDataLayer graphicslayer = config->getGraphicsLayer();
+
+			DEBUGMSG_OUTSTR("Core", "ConfigDB.....................: " + config->getConfigDBDatabase() + " (" + config->getConfigDBAddress() + ")");
+			DEBUGMSG_OUTSTR("Core", "DataDB.......................: " + config->getDataDBDatabase() + " (" + config->getDataDBAddress() + ")");
+			DEBUGMSG_OUTSTR("Core", "Logfile......................: " + config->getLogfile());
+			DEBUGMSG_OUTSTR("Core", "First plugin.................: " + config->getFirstPlugin());
+			DEBUGMSG_OUTSTR("Core", "Input map....................: " + config->getInputMap());
+			DEBUGMSG_OUTSTR("Core", "Prefix.......................: " + config->getPrefix());
+			DEBUGMSG_OUTSTR("Core", "Theme........................: " + config->getTheme());
+			DEBUGMSG_OUTSTR("Core", "Backend......................: " + getMMSFBBackendString(config->getBackend()));
+			DEBUGMSG_OUTSTR("Core", "Graphics layer id............: " + iToStr(graphicslayer.id));
+			DEBUGMSG_OUTSTR("Core", "Output type..................: " + getMMSFBOutputTypeString(config->getGraphicsLayer().outputtype));
+			DEBUGMSG_OUTSTR("Core", "Graphics layer resolution....: " + iToStr(graphicslayer.rect.w) + "x" + iToStr(graphicslayer.rect.h));
+			DEBUGMSG_OUTSTR("Core", "Graphics layer position......: " + iToStr(graphicslayer.rect.x) + "," + iToStr(graphicslayer.rect.y));
+			DEBUGMSG_OUTSTR("Core", "Graphics layer pixelformat...: " + getMMSFBPixelFormatString(graphicslayer.pixelformat));
+			DEBUGMSG_OUTSTR("Core", "Graphics layer options.......: " + graphicslayer.options);
+			DEBUGMSG_OUTSTR("Core", "Graphics layer buffermode....: " + graphicslayer.buffermode);
+			DEBUGMSG_OUTSTR("Core", "Video layer id...............: " + iToStr(videolayer.id));
+			DEBUGMSG_OUTSTR("Core", "Output type..................: " + getMMSFBOutputTypeString(config->getVideoLayer().outputtype));
+			DEBUGMSG_OUTSTR("Core", "Video layer resolution.......: " + iToStr(videolayer.rect.w) + "x" + iToStr(videolayer.rect.h));
+			DEBUGMSG_OUTSTR("Core", "Video layer position.........: " + iToStr(videolayer.rect.x) + "," + iToStr(videolayer.rect.y));
+			DEBUGMSG_OUTSTR("Core", "Video layer pixelformat......: " + getMMSFBPixelFormatString(videolayer.pixelformat));
+			DEBUGMSG_OUTSTR("Core", "Video layer options..........: " + videolayer.options);
+			DEBUGMSG_OUTSTR("Core", "Video layer buffermode.......: " + videolayer.buffermode);
+			DEBUGMSG_OUTSTR("Core", "Visible screen area..........: " + iToStr(config->getVRect().x) + "," + iToStr(config->getVRect().y) + "," + iToStr(config->getVRect().w) + "," + iToStr(config->getVRect().h));
+
+			if (config->getStdout()) {
+				DEBUGMSG_OUTSTR("Core", "Log to stdout................: yes");
+			} else {
+				DEBUGMSG_OUTSTR("Core", "Log to stdout................: no");
+			}
+
+			DEBUGMSG_OUTSTR("Core", "Input Interval...............: " + iToStr(config->getInputInterval()) + " ms");
+			DEBUGMSG_OUTSTR("Core", "Input Mode...................: " + config->getInputMode());
+
+			if (config->getShutdown()) {
+				DEBUGMSG_OUTSTR("Core", "Call shutdown command........: yes");
+			} else {
+				DEBUGMSG_OUTSTR("Core", "Call shutdown command........: no");
+			}
+
+			DEBUGMSG_OUTSTR("Core", "Shutdown command.............: " + config->getShutdownCmd());
+
+			DEBUGMSG_OUTSTR("Core", "Touch pad/screen area........: " + iToStr(config->getTouchRect().x) + "," + iToStr(config->getTouchRect().y) + "," + iToStr(config->getTouchRect().w) + "," + iToStr(config->getTouchRect().h));
+
+			DEBUGMSG_OUTSTR("Core", "Show mouse pointer...........: " + getMMSFBPointerModeString(config->getPointer()));
+
+			DEBUGMSG_OUTSTR("Core", "Graphics window pixelformat..: " + getMMSFBPixelFormatString(config->getGraphicsWindowPixelformat()));
+			DEBUGMSG_OUTSTR("Core", "Graphics surface pixelformat.: " + getMMSFBPixelFormatString(config->getGraphicsSurfacePixelformat()));
+
+			if (config->getExtendedAccel()) {
+				DEBUGMSG_OUTSTR("Core", "Extended acceleration........: yes");
+			} else {
+				DEBUGMSG_OUTSTR("Core", "Extended acceleration........: no");
+			}
+
+			DEBUGMSG_OUTSTR("Core", "Alloc Method.................: " + config->getAllocMethod());
+
+			DEBUGMSG_OUTSTR("Core", "Fullscreen...................: " + getMMSFBFullScreenModeString(config->getFullScreen()));
+			DEBUGMSG_OUTSTR("Core", "Rotate screen................: " + iToStr(config->getRotateScreen()) + "°");
+
+			if (config->getHideApplication()) {
+				DEBUGMSG_OUTSTR("Core", "Hide application.............: yes");
+			} else {
+				DEBUGMSG_OUTSTR("Core", "Hide application.............: no");
+			}
+
+			if (config->getInitialLoad()) {
+				DEBUGMSG_OUTSTR("Core", "Initial load.................: yes");
+			} else {
+				DEBUGMSG_OUTSTR("Core", "Initial load.................: no");
+			}
+
+			if (config->getDebugFrames()) {
+				DEBUGMSG_OUTSTR("Core", "Draw debug frames............: yes");
+			} else {
+				DEBUGMSG_OUTSTR("Core", "Draw debug frames............: no");
+			}
+
+			DEBUGMSG_OUTSTR("Core", "Sourcelanguage...............: " + getMMSLanguageString(config->getSourceLang()));
+			DEBUGMSG_OUTSTR("Core", "Targetlanguage...............: " + getMMSLanguageString(config->getDefaultTargetLang()));
+			DEBUGMSG_OUTSTR("Core", "Add missing translations.....: " + (config->getAddTranslations() ? string("yes") : string("no")));
+			DEBUGMSG_OUTSTR("Core", "Language file directory......: " + config->getLanguagefileDir());
+
+			DEBUGMSG_OUTSTR("Core", "Activity monitor address.....: " + config->getActMonAddress());
+			DEBUGMSG_OUTSTR("Core", "Activity monitor port........: " + iToStr(config->getActMonPort()));
+
+			printf("----------------------------------------------------------------------\n");
+
+			if (!appl_name.empty()) {
+				DEBUGMSG_OUTSTR("Core", "Starting " + appl_name + "...");
+			}
         }
-
-        MMSConfigDataLayer videolayer = config->getVideoLayer();
-        MMSConfigDataLayer graphicslayer = config->getGraphicsLayer();
-
-        DEBUGMSG_OUTSTR("Core", "ConfigDB:                     " + config->getConfigDBDatabase() + " (" + config->getConfigDBAddress() + ")");
-        DEBUGMSG_OUTSTR("Core", "DataDB:                       " + config->getDataDBDatabase() + " (" + config->getDataDBAddress() + ")");
-        DEBUGMSG_OUTSTR("Core", "Logfile:                      " + config->getLogfile());
-        DEBUGMSG_OUTSTR("Core", "First plugin:                 " + config->getFirstPlugin());
-        DEBUGMSG_OUTSTR("Core", "Input map:                    " + config->getInputMap());
-        DEBUGMSG_OUTSTR("Core", "Prefix:                       " + config->getPrefix());
-        DEBUGMSG_OUTSTR("Core", "Theme:                        " + config->getTheme());
-        DEBUGMSG_OUTSTR("Core", "Backend:                      " + getMMSFBBackendString(config->getBackend()));
-        DEBUGMSG_OUTSTR("Core", "Output type:                  " + getMMSFBOutputTypeString(config->getOutputType()));
-		DEBUGMSG_OUTSTR("Core", "Video layer id:               " + iToStr(videolayer.id));
-		DEBUGMSG_OUTSTR("Core", "Video layer resolution:       " + iToStr(videolayer.rect.w) + "x" + iToStr(videolayer.rect.h));
-		DEBUGMSG_OUTSTR("Core", "Video layer position:         " + iToStr(videolayer.rect.x) + "," + iToStr(videolayer.rect.y));
-		DEBUGMSG_OUTSTR("Core", "Video layer pixelformat:      " + getMMSFBPixelFormatString(videolayer.pixelformat));
-		DEBUGMSG_OUTSTR("Core", "Video layer options:          " + videolayer.options);
-		DEBUGMSG_OUTSTR("Core", "Video layer buffermode:       " + videolayer.buffermode);
-		DEBUGMSG_OUTSTR("Core", "Graphics layer id:            " + iToStr(graphicslayer.id));
-		DEBUGMSG_OUTSTR("Core", "Graphics layer resolution:    " + iToStr(graphicslayer.rect.w) + "x" + iToStr(graphicslayer.rect.h));
-		DEBUGMSG_OUTSTR("Core", "Graphics layer position:      " + iToStr(graphicslayer.rect.x) + "," + iToStr(graphicslayer.rect.y));
-		DEBUGMSG_OUTSTR("Core", "Graphics layer pixelformat:   " + getMMSFBPixelFormatString(graphicslayer.pixelformat));
-		DEBUGMSG_OUTSTR("Core", "Graphics layer options:       " + graphicslayer.options);
-		DEBUGMSG_OUTSTR("Core", "Graphics layer buffermode:    " + graphicslayer.buffermode);
-        DEBUGMSG_OUTSTR("Core", "Visible screen area:          " + iToStr(config->getVRect().x) + "," + iToStr(config->getVRect().y) + "," + iToStr(config->getVRect().w) + "," + iToStr(config->getVRect().h));
-
-        if (config->getStdout()) {
-            DEBUGMSG_OUTSTR("Core", "Log to stdout:                yes");
-        } else {
-            DEBUGMSG_OUTSTR("Core", "Log to stdout:                no");
-        }
-
-        DEBUGMSG_OUTSTR("Core", "Input Interval:               " + iToStr(config->getInputInterval()) + " ms");
-        DEBUGMSG_OUTSTR("Core", "Input Mode:                   " + config->getInputMode());
-
-        if (config->getShutdown()) {
-            DEBUGMSG_OUTSTR("Core", "Call shutdown command:        yes");
-        } else {
-            DEBUGMSG_OUTSTR("Core", "Call shutdown command:        no");
-        }
-
-        DEBUGMSG_OUTSTR("Core", "Shutdown command:             " + config->getShutdownCmd());
-
-        DEBUGMSG_OUTSTR("Core", "Touch pad/screen area:        " + iToStr(config->getTouchRect().x) + "," + iToStr(config->getTouchRect().y) + "," + iToStr(config->getTouchRect().w) + "," + iToStr(config->getTouchRect().h));
-
-		DEBUGMSG_OUTSTR("Core", "Show mouse pointer:           " + getMMSFBPointerModeString(config->getPointer()));
-
-        DEBUGMSG_OUTSTR("Core", "Graphics window pixelformat:  " + getMMSFBPixelFormatString(config->getGraphicsWindowPixelformat()));
-        DEBUGMSG_OUTSTR("Core", "Graphics surface pixelformat: " + getMMSFBPixelFormatString(config->getGraphicsSurfacePixelformat()));
-
-        if (config->getExtendedAccel()) {
-            DEBUGMSG_OUTSTR("Core", "Extended acceleration:        yes");
-        } else {
-            DEBUGMSG_OUTSTR("Core", "Extended acceleration:        no");
-        }
-
-        DEBUGMSG_OUTSTR("Core", "Alloc Method:                 " + config->getAllocMethod());
-
-        DEBUGMSG_OUTSTR("Core", "Fullscreen:                   " + getMMSFBFullScreenModeString(config->getFullScreen()));
-
-        DEBUGMSG_OUTSTR("Core", "Sourcelanguage:               " + config->getSourceLang());
-        DEBUGMSG_OUTSTR("Core", "Targetlanguage:               " + config->getDefaultTargetLang());
-        DEBUGMSG_OUTSTR("Core", "Add missing translations:     " + (config->getAddTranslations() ? string("yes") : string("no")));
-
-        printf("----------------------------------------------------------------------\n");
-
-        if (appl_name!="")
-        	DEBUGMSG_OUTSTR("Core", "Starting " + appl_name + "...");
-
 
         if((flags & MMSINIT_WINDOWMANAGER)||(flags & MMSINIT_GRAPHICS)) {
             DEBUGMSG("Core", "initialize frame buffer");
 
+#ifdef __ENABLE_ACTMON__
+			// init mmsfb performance data collector
+			mmsperf = new MMSPerf();
+
+			// init mmsfb performance data interface
+			MMSTCPServer *server = new MMSTCPServer(new MMSPerfInterface(mmsperf),
+													config->getActMonAddress(), config->getActMonPort(),
+													"MMSTCPServer4Perfmon");
+			server->start();
+#endif
+
             // set static MMSWidget inputmode
         	MMSWidget_inputmode = config->getInputMode();
 
-            mmsfbmanager.init(argc, argv, appl_name, appl_icon_name);
+        	// initialize the theme object which stores the global theme
+        	globalTheme = new MMSTheme(config->getInitialLoad(), config->getDebugFrames());
+
+			// init the fbmanager, check if virtual console should be opened
+            mmsfbmanager.init(argc, argv, appl_name, appl_icon_name,
+								(!(flags & MMSINIT_NO_CONSOLE)), (flags & MMSINIT_FLIP_FLUSH));
             mmsfbmanager.applySettings();
 
-            if (flags & MMSINIT_THEMEMANAGER) {
+			if (flags & MMSINIT_THEMEMANAGER) {
 				DEBUGMSG("Core", "starting theme manager");
 				themeManager = new MMSThemeManager(config->getData(),config->getTheme());
             }
 
             if(flags & MMSINIT_WINDOWMANAGER) {
                 DEBUGMSG("Core", "starting window manager");
-                MMSFBRectangle vrect;
-                vrect.x = config->getVRect().x;
-                vrect.y = config->getVRect().y;
-                vrect.w = config->getVRect().w;
-                vrect.h = config->getVRect().h;
 
-                windowmanager = new MMSWindowManager(vrect);
+                windowmanager = new MMSWindowManager(config->getVRect());
     	        if(!windowmanager) {
     	        	DEBUGMSG("Core", "couldn't create windowmanager.");
     	        	return false;
@@ -274,10 +321,13 @@ bool mmsInit(MMSINIT_FLAGS flags, int argc, char *argv[], string configfile,
     	        	DEBUGMSG("Core", "couldn't create background window.");
     	        	return false;
     	        }
+
     	        DEBUGMSG("Core", "setting windowmanager for background window");
     	        rootwin->setWindowManager((IMMSWindowManager*)windowmanager);
+
     	        DEBUGMSG("Core", "setting window as background window");
     	        windowmanager->setBackgroundWindow(rootwin);
+
     	        DEBUGMSG("Core", "windowmanager initialization done");
             }
             if(flags  & MMSINIT_INPUTS) {
@@ -349,13 +399,11 @@ bool mmsInit(MMSINIT_FLAGS flags, int argc, char *argv[], string configfile,
 
         }
 
-
     	atexit(on_exit);
 
-    } catch(MMSError *error) {
-        DEBUGMSG("Core", "Abort due to: " + error->getMessage());
-        fprintf(stderr, "Error initializing disko: %s\n", error->getMessage().c_str());
-        delete error;
+    } catch(MMSError &error) {
+        DEBUGMSG("Core", "Abort due to: " + error.getMessage());
+        fprintf(stderr, "Error initializing disko: %s\n", error.getMessage().c_str());
         return false;
     }
 
@@ -384,6 +432,12 @@ bool registerSwitcher(IMMSSwitcher *switcher) {
         DEBUGMSG("Core", "initialize Central Plugins...");
         pluginmanager->initializeCentralPlugins();
     }
+
+    /* send event that everything is initialized */
+    if(masterevent) {
+		MMSEvent *initializedEvent = new MMSEvent("MMSINIT.initialized");
+		initializedEvent->send();
+	}
 
     return true;
 }
@@ -416,3 +470,14 @@ MMSFBLayer *getGraphicsLayer() {
 	return mmsfbmanager.getGraphicsLayer();
 }
 
+void showBackgroundWindow() {
+	// show the background window if it is hidden
+	IMMSWindowManager *wm = getWindowManager();
+	if (wm) {
+		MMSWindow *win = wm->getBackgroundWindow();
+		if (win) {
+			win->show();
+			win->waitUntilShown();
+		}
+	}
+}

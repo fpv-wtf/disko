@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -61,6 +61,12 @@ typedef int MMSINIT_FLAGS;
 #define MMSINIT_WINDOWS			0x00000039
 //! initializing all components
 #define MMSINIT_FULL 			0x0000003f
+//! silent mode (no output)
+#define MMSINIT_SILENT 			0x00000100
+//! no virtual console will be opened and screen will not cleared during startup
+#define MMSINIT_NO_CONSOLE		0x00000200
+//! disko should trigger an pan event to frame buffer driver every time current read buffer has changed (e.g. due to flipping regions)
+#define MMSINIT_FLIP_FLUSH		0x00000400
 
 bool mmsInit(MMSINIT_FLAGS flags, int argc = 0, char *argv[] = NULL, string configfile = "",
 			 string appl_name = "Disko Application", string appl_icon_name = "Disko Application",
@@ -91,5 +97,9 @@ MMSFBLayer *getVideoLayer();
 \note If using only one layer, the graphics and video layer are the same.
 */
 MMSFBLayer *getGraphicsLayer();
+
+//! show the background window
+void showBackgroundWindow();
+
 
 #endif /*MMSINIT_H_*/

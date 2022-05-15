@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -39,26 +39,25 @@
 #include <string.h>
 
 
-MMSFileSearch::MMSFileSearch(string directory, string mask, bool recursive, bool caseinsensitive, bool getdirs) {
-	setDircetory(directory);
-	this->mask = mask;
-	this->recursive = recursive;
-	this->caseinsensitive = caseinsensitive;
-	this->getdirs = getdirs;
-	this->option = MMSFILESEARCH_NONE;
-	seperateMask();
+MMSFileSearch::MMSFileSearch(string directory, string mask, bool recursive, bool caseinsensitive, bool getdirs) :
+	recursive(recursive),
+	caseinsensitive(caseinsensitive),
+	getdirs(getdirs),
+	mask(mask),
+	dirhandle(NULL),
+	option(MMSFILESEARCH_NONE) {
+	setDirectory(directory);
+	separateMask();
 }
 
 bool MMSFileSearch::match(char *entry) {
-	for(unsigned int i=0;i<singlemask.size();i++) {
-		if(this->caseinsensitive == false) {
-			if(fnmatch(singlemask.at(i).c_str(),entry,FNM_PATHNAME)==0) {
-				return true;
-			}
-		} else {
-			if(fnmatch(singlemask.at(i).c_str(),entry,FNM_PATHNAME|FNM_CASEFOLD)==0) {
-				return true;
-			}
+	for(vector<string>::iterator i = this->singlemask.begin(); i != this->singlemask.end(); ++i) {
+		int flags = FNM_PATHNAME;
+		if(this->caseinsensitive) {
+			flags |= FNM_CASEFOLD;
+		}
+		if(fnmatch((*i).c_str(),entry,flags) == 0) {
+			return true;
 		}
 	}
 	return false;
@@ -68,15 +67,18 @@ void MMSFileSearch::setRecursive(bool recursive) {
 	this->recursive = recursive;
 }
 
-void MMSFileSearch::setDircetory(string directory) {
-	if (directory=="")
+void MMSFileSearch::setDirectory(string directory) {
+	if(directory.empty()) {
 		this->directory = "/";
-	else
+	} else {
 		this->directory = directory;
+	}
 }
 
 void MMSFileSearch::setString(string mask) {
 	this->mask = mask;
+	this->singlemask.clear();
+	separateMask();
 }
 
 
@@ -84,7 +86,7 @@ void MMSFileSearch::setCaseInsensitive(bool caseinsensitive) {
 	this->caseinsensitive = caseinsensitive;
 }
 
-void MMSFileSearch::seperateMask() {
+void MMSFileSearch::separateMask() {
 	int pos = 0;
 	int tmppos = 0;
 
@@ -119,8 +121,6 @@ list<MMSFILE_ENTRY *> MMSFileSearch::execute() {
 }
 
 void MMSFileSearch::scanDir(list<MMSFILE_ENTRY *> *result,DIR *dirhandle, string cwd) {
-
-
 	if(!dirhandle)
 		return;
 
@@ -143,7 +143,6 @@ void MMSFileSearch::scanDir(list<MMSFILE_ENTRY *> *result,DIR *dirhandle, string
 			if (this->getdirs) {
 				// put name of directory to the list
 				if((this->option == MMSFILESEARCH_NONE)||(this->option == MMSFILESEARCH_DEEPESTDIR_OF_FILE)) {
-
 					// we have a regular file -> and want to check it
 					if(match(entry->d_name) == true) {
 						filefound = true;

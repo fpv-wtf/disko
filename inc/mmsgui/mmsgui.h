@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -33,8 +33,6 @@
 #ifndef MMSGUI_H_
 #define MMSGUI_H_
 
-#include "mmsgui/3d/mms3dspace.h"
-
 #include "mmsgui/mmsimagemanager.h"
 #include "mmsgui/theme/mmstheme.h"
 #include "mmsgui/theme/mmsthememanager.h"
@@ -44,6 +42,11 @@
 #include "mmsgui/mmswindowmanager.h"
 
 #include "mmsgui/mmswidgets.h"
+
+#include "mmsgui/3d/mms3dcylinder.h"
+#include "mmsgui/3d/mms3drectangle.h"
+#include "mmsgui/3d/mms3dsphere.h"
+#include "mmsgui/3d/mms3dtorus.h"
 
 #include "mmsgui/additional/mmsguicontrols.h"
 

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -96,7 +96,7 @@ void MMSVBoxWidget::recalculateChildren() {
 		    getPixelFromSizeHint(&rect.h, sizehint, this->geom.h, this->geom.w);
 		    safepix -= rect.h;
             if ((safepix < 0)||((int)rect.h < 0))
-                throw new MMSWidgetError(0,"cannot calculate geometry (not enough free pixels), sizehint "+ sizehint);
+                throw MMSWidgetError(0,"cannot calculate geometry (not enough free pixels), sizehint "+ sizehint);
 
 		    rect.w = this->geom.w;
 		    rect.x = this->geom.x;

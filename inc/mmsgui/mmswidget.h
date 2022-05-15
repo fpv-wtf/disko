@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -65,7 +65,7 @@ typedef enum {
     MMSWIDGETTYPE_TEXTBOX,
     //! A MMSArrowWidget cannot get the focus but can be selected.
     MMSWIDGETTYPE_ARROW,
-    //! A MMSSliderWidget cannot get the focus but can be selected.
+    //! A MMSSliderWidget cannot get the focus per default. You can switch the focusable state to true. So the widget can process e.g. the arrow keys.
     MMSWIDGETTYPE_SLIDER,
     //! A MMSInputWidget can get the focus and therefore can process inputs. You can display and edit one line of text.
     MMSWIDGETTYPE_INPUT,
@@ -110,9 +110,6 @@ class MMSWidget {
             MMSWidgetClass      *widgetClass;
             //! settings from widget which overides settings from theme and defaults from code
             MMSWidgetClass      myWidgetClass;
-
-            //! pointer to a widget thread if needed
-            class MMSWidgetThread *widgetthread;
 
             //! background image used for unselected state
             MMSFBSurface        *bgimage;
@@ -240,9 +237,6 @@ class MMSWidget {
         //! selected?
         bool selected;
 
-        //! activated?
-        bool activated;
-
         //! button pressed?
         bool pressed;
 
@@ -256,6 +250,21 @@ class MMSWidget {
         bool has_own_surface;
 
 
+        //! if skip refresh is true, refresh() method will not work
+        bool			skip_refresh;
+
+        //! current background values set?
+        bool			current_bgset;
+
+        //! current background color
+        MMSFBColor		current_bgcolor;
+
+        //! current background image
+        MMSFBSurface	*current_bgimage;
+
+
+
+
         bool loadArrowWidgets();
         virtual void switchArrowWidgets();
 
@@ -264,19 +273,36 @@ class MMSWidget {
 
         virtual bool init();
         virtual bool release();
+
+
+        //! Internal method: get the color or/and image of widget's background dependent on the current state
+        void getBackground(MMSFBColor *color, MMSFBSurface **image);
+
+        //! Internal method: (re-)enable refresh status
+        virtual bool enableRefresh(bool enable = true);
+
+        //! Internal method: check drawn background against new background and (re-)enable refresh status if needed
+        virtual bool checkRefreshStatus();
+
+
         virtual bool draw(bool *backgroundFilled = NULL);
         void drawMyBorder();
         bool drawDebug();
 
-        void startWidgetThread(int delay);
-
         //! Internal method: Inform the widget, that the theme has changed.
 		void themeChanged(string &themeName);
+
+
+        virtual bool setSelected(bool set, bool refresh, bool *changed, bool joined);
+        virtual bool setPressed(bool set, bool refresh, bool joined);
+
+        void resetPressed();
 
     public:
         MMSWidget();
         virtual ~MMSWidget();
         MMSWIDGETTYPE getType();
+        string getTypeString();
 
         void copyWidget(MMSWidget *newWidget);
         virtual MMSWidget *copyWidget() = 0;
@@ -285,6 +311,7 @@ class MMSWidget {
         MMSWidget* disconnectChild(unsigned int atpos = 0);
         MMSWidget* findWidget(string name);
         MMSWidget* findWidgetType(MMSWIDGETTYPE type);
+        MMSWidget* getLastWidget();
         MMSWidget* operator[](string name);
 
         virtual void add(MMSWidget *widget);
@@ -307,11 +334,10 @@ class MMSWidget {
 
         virtual void setFocus(bool set, bool refresh = true, MMSInputEvent *inputevent = NULL);
         bool isFocused();
-        virtual bool setSelected(bool set, bool refresh = true, bool *changed = NULL, bool joined = false);
+        bool setSelected(bool set, bool refresh = true);
         bool isSelected();
         void unsetFocusableForAllChildren(bool refresh);
 
-        void setActivated(bool set, bool refresh = true);
         bool isActivated();
 
         bool setPressed(bool set, bool refresh = true);
@@ -388,12 +414,13 @@ class MMSWidget {
         sigc::signal<void, MMSWidget*, int, int, int, int> *onClick;
 
     protected:
-        virtual void drawchildren(bool toRedrawOnly = false, bool *backgroundFilled = NULL);
+        virtual void drawchildren(bool toRedrawOnly = false, bool *backgroundFilled = NULL, MMSFBRectangle *rect2update = NULL);
         virtual void setRootWindow(MMSWindow *root, MMSWindow *parentroot = NULL);
         virtual void recalculateChildren();
         virtual void handleInput(MMSInputEvent *inputevent);
 
-        virtual bool callOnReturn() { return true; }
+        virtual bool callOnReturn();
+        bool emitOnReturnCallback();
 
         bool geomset;
 
@@ -403,7 +430,7 @@ class MMSWidget {
         void markChildren2Redraw();
         virtual MMSWidget *getDrawableParent(bool mark2Redraw = false, bool markChildren2Redraw = false,
                                              bool checkborder = true, vector<MMSWidget*> *wlist = NULL, bool followpath = false);
-        void refresh();
+//        void refresh();
 
         MMSFBSurface *windowSurface;
 
@@ -425,6 +452,8 @@ class MMSWidget {
         MMSFBRectangle innerGeom;
 
     public:
+    	void refresh();
+
         /* theme access methods */
         bool 	getBgColor(MMSFBColor &bgcolor);
         bool 	getSelBgColor(MMSFBColor &selbgcolor);
@@ -467,6 +496,7 @@ class MMSWidget {
         bool	getInputMode(string &inputmode);
         bool 	getInputModeEx(string &inputmode);
         bool	getJoinedWidget(string &joinedwidget);
+        bool 	getActivated(bool &activated);
 
         bool	getBorderColor(MMSFBColor &color);
         bool 	getBorderSelColor(MMSFBColor &selcolor);
@@ -518,6 +548,7 @@ class MMSWidget {
         bool setReturnOnScroll(bool returnonscroll);
         bool setInputMode(string inputmode);
         bool setJoinedWidget(string joinedwidget);
+        bool setActivated(bool activated, bool refresh = true);
 
         bool setBorderColor(MMSFBColor bordercolor, bool refresh = true);
         bool setBorderSelColor(MMSFBColor borderselcolor, bool refresh = true);

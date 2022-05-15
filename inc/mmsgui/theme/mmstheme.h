@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -91,7 +91,6 @@ typedef enum {
 	MMSGUI_TAGTABLE_TAG_CLASS_SLIDERWIDGET,
 	MMSGUI_TAGTABLE_TAG_TEXTBOXWIDGET,
 	MMSGUI_TAGTABLE_TAG_CLASS_TEXTBOXWIDGET,
-	MMSGUI_TAGTABLE_TAG_SEPARATOR,
 	MMSGUI_TAGTABLE_TAG_INPUTWIDGET,
 	MMSGUI_TAGTABLE_TAG_CLASS_INPUTWIDGET,
 	MMSGUI_TAGTABLE_TAG_CHECKBOXWIDGET,
@@ -187,7 +186,7 @@ class MMSTheme {
         MMSInputWidgetClass*        getInputWidgetClass(string className = "");
         MMSCheckBoxWidgetClass*     getCheckBoxWidgetClass(string className = "");
 
-        MMSTheme();
+        MMSTheme(bool initial_load, bool debug);
         ~MMSTheme();
 
         void setTheme(string path, string themeName);

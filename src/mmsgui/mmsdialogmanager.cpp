@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -35,17 +35,18 @@
 #include "mmsgui/mmswidgets.h"
 #include "mmsgui/theme/mmsthememanager.h"
 #include <string.h>
+#include <algorithm>
 
-MMSDialogManager::MMSDialogManager(bool leave_window) {
-	this->leave_window = leave_window;
-	this->rootWindow = NULL;
-	this->rootWindow_is_mine = true;
+MMSDialogManager::MMSDialogManager(bool leave_window) :
+	leave_window(leave_window),
+	rootWindow(NULL),
+	rootWindow_is_mine(true) {
 }
 
-MMSDialogManager::MMSDialogManager(MMSWindow *rootWindow) {
-	this->leave_window = false;
-	this->rootWindow = rootWindow;
-	this->rootWindow_is_mine = (!this->rootWindow);
+MMSDialogManager::MMSDialogManager(MMSWindow *rootWindow) :
+	leave_window(false),
+	rootWindow(rootWindow),
+	rootWindow_is_mine(!rootWindow) {
 }
 
 MMSDialogManager::~MMSDialogManager() {
@@ -59,14 +60,16 @@ MMSDialogManager::~MMSDialogManager() {
 		else {
 			// i should not delete the rootWindow because it was not initialized by me
 			// so delete only the loaded child windows
-			for (unsigned int i = 0; i < this->childWins.size(); i++)
-				delete this->childWins.at(i);
+			for(vector<MMSChildWindow*>::iterator i = this->childWins.begin(); i != this->childWins.end(); ++i) {
+				delete *i;
+			}
+			this->childWins.clear();
 		}
 	}
 }
 
 bool MMSDialogManager::isLoaded() {
-	return (this->rootWindow)?true:false;
+	return (this->rootWindow != NULL);
 }
 
 void MMSDialogManager::insertNamedWidget(MMSWidget *widget) {
@@ -86,7 +89,7 @@ MMSWidget* MMSDialogManager::operator[](string name) {
 
     if ((widget = findWidget(name)))
         return widget;
-    throw new MMSDialogManagerError(1, "widget " + name + " not found");
+    throw MMSDialogManagerError(1, "widget " + name + " not found");
 }
 
 
@@ -111,25 +114,25 @@ MMSWindow* MMSDialogManager::loadDialog(string filename, MMSTheme *theme) {
     //check for file
     if(!file_exist(filename))
         if(!file_exist(tafffilename))
-        	throw new MMSDialogManagerError(1, "dialog file (" + filename + ") not found");
+        	throw MMSDialogManagerError(1, "dialog file (" + filename + ") not found");
 
     // open the taff file
 	MMSTaffFile *tafff = new MMSTaffFile(tafffilename, &mmsgui_taff_description,
 										 filename, MMSTAFF_EXTERNAL_TYPE_XML);
 
 	if (!tafff)
-        throw new MMSDialogManagerError(1, "could not load dialog file " + filename);
+        throw MMSDialogManagerError(1, "could not load dialog file " + filename);
 
 	if (!tafff->isLoaded()) {
 		delete tafff;
-        throw new MMSDialogManagerError(1, "could not load dialog file " + filename);
+        throw MMSDialogManagerError(1, "could not load dialog file " + filename);
 	}
 
 	// get root tag
 	int tagid = tafff->getFirstTag();
 	if (tagid < 0) {
 		delete tafff;
-        throw new MMSDialogManagerError(1, "invalid taff file " + tafffilename);
+        throw MMSDialogManagerError(1, "invalid taff file " + tafffilename);
 	}
 
 	// check if the correct tag
@@ -160,25 +163,25 @@ MMSChildWindow* MMSDialogManager::loadChildDialog(string filename, MMSTheme *the
     //check for file
     if(!file_exist(filename))
         if(!file_exist(tafffilename))
-        	throw new MMSDialogManagerError(1, "dialog file (" + filename + ") not found");
+        	throw MMSDialogManagerError(1, "dialog file (" + filename + ") not found");
 
     // open the taff file
 	MMSTaffFile *tafff = new MMSTaffFile(tafffilename, &mmsgui_taff_description,
 										 filename, MMSTAFF_EXTERNAL_TYPE_XML);
 
 	if (!tafff)
-        throw new MMSDialogManagerError(1, "could not load dialog file " + filename);
+        throw MMSDialogManagerError(1, "could not load dialog file " + filename);
 
 	if (!tafff->isLoaded()) {
 		delete tafff;
-        throw new MMSDialogManagerError(1, "could not load dialog file " + filename);
+        throw MMSDialogManagerError(1, "could not load dialog file " + filename);
 	}
 
 	// get root tag
 	int tagid = tafff->getFirstTag();
 	if (tagid < 0) {
 		delete tafff;
-        throw new MMSDialogManagerError(1, "invalid taff file " + tafffilename);
+        throw MMSDialogManagerError(1, "invalid taff file " + tafffilename);
 	}
 
 	// check if the correct tag
@@ -285,11 +288,11 @@ void MMSDialogManager::throughDoc(MMSTaffFile *tafff, MMSWidget *currentWidget, 
                     break;
         		}
 
-                if(widgetName != "") {
+                if(!widgetName.empty()) {
                     // search for duplicate names for the same parent
-                    for (unsigned int i = 0; i < widgetNames.size(); i++)
-                        if (widgetNames.at(i) == widgetName)
-                            throw new MMSDialogManagerError(1, "duplicate widget name: " + widgetName);
+                    if(find(widgetNames.begin(), widgetNames.end(), widgetName) != widgetNames.end()) {
+                        throw MMSDialogManagerError(1, "duplicate widget name: " + widgetName);
+                    }
                     widgetNames.push_back(widgetName);
                 }
 
@@ -309,14 +312,10 @@ void MMSDialogManager::getMainWindowValues(MMSTaffFile *tafff, MMSTheme *theme) 
     string             name = "", dx = "", dy = "", width = "", height = "";
 
     if(this->rootWindow)
-        throw new MMSDialogManagerError(1, "found nested windows, new mainwindow rejected");
+        throw MMSDialogManagerError(1, "found nested windows, new mainwindow rejected");
 
     // get themepath
-    string themePath = "";
-    if (theme)
-        themePath = theme->getThemePath();
-    else
-        themePath = globalTheme->getThemePath();
+    string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
 
     themeClass.windowClass.border.setAttributesFromTAFF(tafff, NULL, &themePath);
     themeClass.windowClass.setAttributesFromTAFF(tafff, &themePath);
@@ -324,19 +323,19 @@ void MMSDialogManager::getMainWindowValues(MMSTaffFile *tafff, MMSTheme *theme) 
 
     if (themeClass.windowClass.getDx(dx))
         if (getPixelFromSizeHint(NULL, dx, 10000, 0) == false)
-            throw new MMSDialogManagerError(1, "invalid window dx '" + dx + "'");
+            throw MMSDialogManagerError(1, "invalid window dx '" + dx + "'");
 
     if (themeClass.windowClass.getDy(dy))
         if (getPixelFromSizeHint(NULL, dy, 10000, 0) == false)
-            throw new MMSDialogManagerError(1, "invalid window dy '" + dy + "'");
+            throw MMSDialogManagerError(1, "invalid window dy '" + dy + "'");
 
     if (themeClass.windowClass.getWidth(width))
         if (getPixelFromSizeHint(NULL, width, 10000, 0) == false)
-            throw new MMSDialogManagerError(1, "invalid window width '" + width + "'");
+            throw MMSDialogManagerError(1, "invalid window width '" + width + "'");
 
     if (themeClass.windowClass.getHeight(height))
         if (getPixelFromSizeHint(NULL, height, 10000, 0) == false)
-            throw new MMSDialogManagerError(1, "invalid window height '" + height + "'");
+            throw MMSDialogManagerError(1, "invalid window height '" + height + "'");
 
     bool os;
     bool *osp = NULL;
@@ -394,14 +393,10 @@ void MMSDialogManager::getPopupWindowValues(MMSTaffFile *tafff, MMSTheme *theme)
     string              name = "", dx = "", dy = "", width = "", height = "";
 
     if(this->rootWindow)
-        throw new MMSDialogManagerError(1, "found nested windows, new popupwindow rejected");
+        throw MMSDialogManagerError(1, "found nested windows, new popupwindow rejected");
 
     // get themepath
-    string themePath = "";
-    if (theme)
-        themePath = theme->getThemePath();
-    else
-        themePath = globalTheme->getThemePath();
+    string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
 
     themeClass.windowClass.border.setAttributesFromTAFF(tafff, NULL, &themePath);
     themeClass.windowClass.setAttributesFromTAFF(tafff, &themePath);
@@ -409,19 +404,19 @@ void MMSDialogManager::getPopupWindowValues(MMSTaffFile *tafff, MMSTheme *theme)
 
     if (themeClass.windowClass.getDx(dx))
         if (getPixelFromSizeHint(NULL, dx, 10000, 0) == false)
-            throw new MMSDialogManagerError(1, "invalid window dx '" + dx + "'");
+            throw MMSDialogManagerError(1, "invalid window dx '" + dx + "'");
 
     if (themeClass.windowClass.getDy(dy))
         if (getPixelFromSizeHint(NULL, dy, 10000, 0) == false)
-            throw new MMSDialogManagerError(1, "invalid window dy '" + dy + "'");
+            throw MMSDialogManagerError(1, "invalid window dy '" + dy + "'");
 
     if (themeClass.windowClass.getWidth(width))
         if (getPixelFromSizeHint(NULL, width, 10000, 0) == false)
-            throw new MMSDialogManagerError(1, "invalid window width '" + width + "'");
+            throw MMSDialogManagerError(1, "invalid window width '" + width + "'");
 
     if (themeClass.windowClass.getHeight(height))
         if (getPixelFromSizeHint(NULL, height, 10000, 0) == false)
-            throw new MMSDialogManagerError(1, "invalid window height '" + height + "'");
+            throw MMSDialogManagerError(1, "invalid window height '" + height + "'");
 
     bool os;
     bool *osp = NULL;
@@ -480,14 +475,10 @@ void MMSDialogManager::getRootWindowValues(MMSTaffFile *tafff, MMSTheme *theme) 
     string             name = "", dx = "", dy = "", width = "", height = "";
 
     if(this->rootWindow)
-        throw new MMSDialogManagerError(1, "found nested windows, new rootwindow rejected");
+        throw MMSDialogManagerError(1, "found nested windows, new rootwindow rejected");
 
     // get themepath
-    string themePath = "";
-    if (theme)
-        themePath = theme->getThemePath();
-    else
-        themePath = globalTheme->getThemePath();
+    string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
 
     themeClass.windowClass.border.setAttributesFromTAFF(tafff, NULL, &themePath);
     themeClass.windowClass.setAttributesFromTAFF(tafff, &themePath);
@@ -495,19 +486,19 @@ void MMSDialogManager::getRootWindowValues(MMSTaffFile *tafff, MMSTheme *theme) 
 
     if (themeClass.windowClass.getDx(dx))
         if (getPixelFromSizeHint(NULL, dx, 10000, 0) == false)
-            throw new MMSDialogManagerError(1, "invalid window dx '" + dx + "'");
+            throw MMSDialogManagerError(1, "invalid window dx '" + dx + "'");
 
     if (themeClass.windowClass.getDy(dy))
         if (getPixelFromSizeHint(NULL, dy, 10000, 0) == false)
-            throw new MMSDialogManagerError(1, "invalid window dy '" + dy + "'");
+            throw MMSDialogManagerError(1, "invalid window dy '" + dy + "'");
 
     if (themeClass.windowClass.getWidth(width))
         if (getPixelFromSizeHint(NULL, width, 10000, 0) == false)
-            throw new MMSDialogManagerError(1, "invalid window width '" + width + "'");
+            throw MMSDialogManagerError(1, "invalid window width '" + width + "'");
 
     if (themeClass.windowClass.getHeight(height))
         if (getPixelFromSizeHint(NULL, height, 10000, 0) == false)
-            throw new MMSDialogManagerError(1, "invalid window height '" + height + "'");
+            throw MMSDialogManagerError(1, "invalid window height '" + height + "'");
 
     bool os;
     bool *osp = NULL;
@@ -566,14 +557,10 @@ void MMSDialogManager::getChildWindowValues(MMSTaffFile *tafff, MMSWindow *rootW
     bool                show = false;
 
     if(!rootWindow)
-        throw new MMSDialogManagerError(1, "no parent window found, new childwindow rejected");
+        throw MMSDialogManagerError(1, "no parent window found, new childwindow rejected");
 
     // get themepath
-    string themePath = "";
-    if (theme)
-        themePath = theme->getThemePath();
-    else
-        themePath = globalTheme->getThemePath();
+    string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
 
     themeClass.windowClass.border.setAttributesFromTAFF(tafff, NULL, &themePath);
     themeClass.windowClass.setAttributesFromTAFF(tafff, &themePath);
@@ -581,19 +568,19 @@ void MMSDialogManager::getChildWindowValues(MMSTaffFile *tafff, MMSWindow *rootW
 
     if (themeClass.windowClass.getDx(dx))
         if (getPixelFromSizeHint(NULL, dx, 10000, 0) == false)
-            throw new MMSDialogManagerError(1, "invalid window dx '" + dx + "'");
+            throw MMSDialogManagerError(1, "invalid window dx '" + dx + "'");
 
     if (themeClass.windowClass.getDy(dy))
         if (getPixelFromSizeHint(NULL, dy, 10000, 0) == false)
-            throw new MMSDialogManagerError(1, "invalid window dy '" + dy + "'");
+            throw MMSDialogManagerError(1, "invalid window dy '" + dy + "'");
 
     if (themeClass.windowClass.getWidth(width))
         if (getPixelFromSizeHint(NULL, width, 10000, 0) == false)
-            throw new MMSDialogManagerError(1, "invalid window width '" + width + "'");
+            throw MMSDialogManagerError(1, "invalid window width '" + width + "'");
 
     if (themeClass.windowClass.getHeight(height))
         if (getPixelFromSizeHint(NULL, height, 10000, 0) == false)
-            throw new MMSDialogManagerError(1, "invalid window height '" + height + "'");
+            throw MMSDialogManagerError(1, "invalid window height '" + height + "'");
 
     bool os;
     bool *osp = NULL;
@@ -658,9 +645,9 @@ void MMSDialogManager::getChildWindowValues(MMSTaffFile *tafff, MMSWindow *rootW
 
 string MMSDialogManager::getTemplateValues(MMSTaffFile *tafff, MMSWidget *currentWidget, MMSWindow *rootWindow, MMSTheme *theme) {
     MMSTemplateClass    themeClass, *templateClass = NULL;
-    MMSHBoxWidget       *hbox;
     string              name = "";
     string              size = "";
+    bool				show = false;
     MMSTaffFile        	*tf;
     vector<string>      widgetNames;
 
@@ -668,7 +655,7 @@ string MMSDialogManager::getTemplateValues(MMSTaffFile *tafff, MMSWidget *curren
     themeClass.setAttributesFromTAFF(tafff);
 
     // is a class name given?
-    if (themeClass.getClassName() != "") {
+    if (!themeClass.getClassName().empty()) {
 		// can load templateClass?
 		if (theme) {
 			templateClass = theme->getTemplateClass(themeClass.getClassName());
@@ -685,11 +672,8 @@ string MMSDialogManager::getTemplateValues(MMSTaffFile *tafff, MMSWidget *curren
     }
 
     if (!templateClass) {
-    	// template could not be loaded, create empty hbox container as placeholder
-        hbox = new MMSHBoxWidget(rootWindow);
-
         // parse the children from dialog's template tag
-    	throughDoc(tafff, hbox, rootWindow, theme);
+    	throughDoc(tafff, currentWidget, rootWindow, theme);
 
     	return "";
     }
@@ -704,6 +688,9 @@ string MMSDialogManager::getTemplateValues(MMSTaffFile *tafff, MMSWidget *curren
 		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_size:
 	        size = attrval_str;
 			break;
+		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_show:
+	        show = (attrval_int)?true:false;
+			break;
         }
     }
     endTAFFScan
@@ -717,170 +704,70 @@ string MMSDialogManager::getTemplateValues(MMSTaffFile *tafff, MMSWidget *curren
                 widgetName = widgetName.substr(0, pos);
 
                 // store the requested widget name here
-				bool found = false;
-				for (unsigned int i = 0; i < widgetNames.size(); i++)
-					if (widgetNames.at(i)==widgetName) {
-						found = true;
-						break;
-					}
-				if (!found)
+                if(find(widgetNames.begin(), widgetNames.end(), widgetName) == widgetNames.end()) {
 					widgetNames.push_back(widgetName);
+                }
             }
         }
     }
     endTAFFScan_WITHOUT_ID
 
-    // create new hbox as container for the template
-    hbox = new MMSHBoxWidget(rootWindow);
+	// parse the children from templateClass
+	throughDoc(tf, currentWidget, rootWindow, theme);
 
-    // add to widget vector if named
-    if(name != "") {
-        hbox->setName(name);
-        insertNamedWidget(hbox);
-    }
+	// get the last window of root window
+	MMSWindow *newWindow = (!currentWidget)?rootWindow->getLastWindow():NULL;
 
-	if(size != "")
-	    hbox->setSizeHint(size);
+    if (!newWindow) {
+		// get the last widget of currentWidget
+		MMSWidget *newWidget = (!currentWidget)?((*rootWindow)[""]):currentWidget->getLastWidget();
 
-    if (currentWidget)
-        currentWidget->add(hbox);
-    else
-        rootWindow->add(hbox);
+		if (newWidget) {
+		    if (!name.empty()) {
+		    	// add to widget vector if named
+		    	newWidget->setName(name);
+		        insertNamedWidget(newWidget);
+		    }
 
-    // parse the children from templateClass
-    throughDoc(tf, hbox, rootWindow, theme);
+			if (!size.empty()) {
+			    // set size within parent widget
+				newWidget->setSizeHint(size);
+			}
 
-    // for each child widget which is named by attribute
-    for (unsigned int i = 0; i < widgetNames.size(); i++) {
-        MMSWidget *mywidget = hbox->findWidget(widgetNames.at(i));
-        if (mywidget) {
-            // widget found
-            string prefix = "widget." + widgetNames.at(i) + ".";
-            switch (mywidget->getType()) {
-                case MMSWIDGETTYPE_HBOX:
-                    break;
-                case MMSWIDGETTYPE_VBOX:
-                    break;
-                case MMSWIDGETTYPE_BUTTON:
-                    {
-                        // read attributes from dialog
-                        MMSButtonWidgetClass themeCls;
-                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-                        // apply settings from dialog
-                        ((MMSButtonWidget*)mywidget)->updateFromThemeClass(&themeCls);
-                    }
-                    break;
-                case MMSWIDGETTYPE_IMAGE:
-                    {
-                        // read attributes from dialog
-                        MMSImageWidgetClass themeCls;
-                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-                        // apply settings from dialog
-                        ((MMSImageWidget*)mywidget)->updateFromThemeClass(&themeCls);
-                    }
-                    break;
-                case MMSWIDGETTYPE_LABEL:
-                    {
-                        // read attributes from dialog
-                        MMSLabelWidgetClass themeCls;
-                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-                        // apply settings from dialog
-                        ((MMSLabelWidget*)mywidget)->updateFromThemeClass(&themeCls);
-                    }
-                    break;
-                case MMSWIDGETTYPE_MENU:
-                    {
-                        // read attributes from dialog
-                        MMSMenuWidgetClass themeCls;
-                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-                        // apply settings from dialog
-                        ((MMSMenuWidget*)mywidget)->updateFromThemeClass(&themeCls);
-                    }
-                    break;
-                case MMSWIDGETTYPE_PROGRESSBAR:
-                    {
-                        // read attributes from dialog
-                        MMSProgressBarWidgetClass themeCls;
-                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-                        // apply settings from dialog
-                        ((MMSProgressBarWidget*)mywidget)->updateFromThemeClass(&themeCls);
-                    }
-                    break;
-                case MMSWIDGETTYPE_TEXTBOX:
-                    {
-                        // read attributes from dialog
-                        MMSTextBoxWidgetClass themeCls;
-                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-                        // apply settings from dialog
-                        ((MMSTextBoxWidget*)mywidget)->updateFromThemeClass(&themeCls);
-                    }
-                    break;
-                case MMSWIDGETTYPE_ARROW:
-                    {
-                        // read attributes from dialog
-                        MMSArrowWidgetClass themeCls;
-                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-                        // apply settings from dialog
-                        ((MMSArrowWidget*)mywidget)->updateFromThemeClass(&themeCls);
-                    }
-                    break;
-                case MMSWIDGETTYPE_SLIDER:
-                    {
-                        // read attributes from dialog
-                        MMSSliderWidgetClass themeCls;
-                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-                        // apply settings from dialog
-                        ((MMSSliderWidget*)mywidget)->updateFromThemeClass(&themeCls);
-                    }
-                    break;
-                case MMSWIDGETTYPE_INPUT:
-                    {
-                        // read attributes from dialog
-                        MMSInputWidgetClass themeCls;
-                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-                        // apply settings from dialog
-                        ((MMSInputWidget*)mywidget)->updateFromThemeClass(&themeCls);
-                    }
-                    break;
-                case MMSWIDGETTYPE_CHECKBOX:
-                    {
-                        // read attributes from dialog
-                        MMSCheckBoxWidgetClass themeCls;
-                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-                        // apply settings from dialog
-                        ((MMSCheckBoxWidget*)mywidget)->updateFromThemeClass(&themeCls);
-                    }
-                    break;
-                case MMSWIDGETTYPE_GAP:
-                    break;
-            }
-        }
-    }
+			// for each child widget which is named by attribute
+			vector<string>::iterator i;
+			vector<string>::iterator end = widgetNames.end();
+			for (i = widgetNames.begin(); i != end; ++i) {
+				updateTAFFAttributes(tafff, newWidget->findWidget(*i), *i);
+			}
+		}
+		else {
+			throw MMSDialogManagerError(1, "template error, no widget");
+		}
+	}
+	else {
+	    if (!name.empty()) {
+	    	// set name of window
+	    	newWindow->setName(name);
+	    }
 
-    // parse the children from dialog's template tag
-	throughDoc(tafff, hbox, rootWindow, theme);
+    	if (show) {
+	    	// show window
+    		newWindow->show();
+	    }
 
-    // return the name of the widget
+		// for each child widget which is named by attribute
+		vector<string>::iterator i;
+		vector<string>::iterator end = widgetNames.end();
+		for (i = widgetNames.begin(); i != end; ++i) {
+			updateTAFFAttributes(tafff, newWindow->findWidget(*i), *i);
+		}
+	}
+
+	// parse the children from dialog's template tag
+	throughDoc(tafff, currentWidget, rootWindow, theme);
+
+	// return the name of the widget
     return name;
 }
 
@@ -906,12 +793,12 @@ string MMSDialogManager::getVBoxValues(MMSTaffFile *tafff, MMSWidget *currentWid
 	vbox = new MMSVBoxWidget(rootWindow);
 
     // add to widget vector if named
-    if(name != "") {
+    if(!name.empty()) {
         vbox->setName(name);
         insertNamedWidget(vbox);
     }
 
-	if(size != "")
+	if(!size.empty())
 	    vbox->setSizeHint(size);
 
 	if (currentWidget)
@@ -946,12 +833,12 @@ string MMSDialogManager::getHBoxValues(MMSTaffFile *tafff, MMSWidget *currentWid
 	hbox = new MMSHBoxWidget(rootWindow);
 
     // add to widget vector if named
-    if(name != "") {
+    if(!name.empty()) {
         hbox->setName(name);
         insertNamedWidget(hbox);
     }
 
-	if(size != "")
+	if(!size.empty())
 	    hbox->setSizeHint(size);
 
     if (currentWidget)
@@ -973,11 +860,7 @@ string MMSDialogManager::getLabelValues(MMSTaffFile *tafff, MMSWidget *currentWi
     string          size = "";
 
     // get themepath
-    string themePath = "";
-    if (theme)
-        themePath = theme->getThemePath();
-    else
-        themePath = globalTheme->getThemePath();
+    string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
 
     // read settings from dialog
     themeClass.widgetClass.border.setAttributesFromTAFF(tafff, NULL, &themePath);
@@ -1005,14 +888,14 @@ string MMSDialogManager::getLabelValues(MMSTaffFile *tafff, MMSWidget *currentWi
     endTAFFScan
 
     // add to widget vector if named
-    if(name != "") {
+    if(!name.empty()) {
         label->setName(name);
         insertNamedWidget(label);
     }
 
-    if(size != "") {
+    if(!size.empty()) {
         if (!label->setSizeHint(size))
-            throw new MMSDialogManagerError(1, "invalid widget size '" + size + "'");
+            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
     }
 
     if (currentWidget)
@@ -1035,11 +918,7 @@ string MMSDialogManager::getButtonValues(MMSTaffFile *tafff, MMSWidget *currentW
     string          size = "";
 
     // get themepath
-    string themePath = "";
-    if (theme)
-        themePath = theme->getThemePath();
-    else
-        themePath = globalTheme->getThemePath();
+    string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
 
     // read settings from dialog
     themeClass.widgetClass.border.setAttributesFromTAFF(tafff, NULL, &themePath);
@@ -1067,14 +946,14 @@ string MMSDialogManager::getButtonValues(MMSTaffFile *tafff, MMSWidget *currentW
     endTAFFScan
 
     // add to widget vector if named
-    if(name != "") {
+    if(!name.empty()) {
         button->setName(name);
         insertNamedWidget(button);
     }
 
-    if(size != "") {
+    if(!size.empty()) {
         if (!button->setSizeHint(size))
-            throw new MMSDialogManagerError(1, "invalid widget size '" + size + "'");
+            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
     }
 
     if (currentWidget)
@@ -1095,11 +974,7 @@ string MMSDialogManager::getImageValues(MMSTaffFile *tafff, MMSWidget *currentWi
     string          size = "";
 
     // get themepath
-    string themePath = "";
-    if (theme)
-        themePath = theme->getThemePath();
-    else
-        themePath = globalTheme->getThemePath();
+    string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
 
     // read settings from dialog
     themeClass.widgetClass.border.setAttributesFromTAFF(tafff, NULL, &themePath);
@@ -1127,14 +1002,14 @@ string MMSDialogManager::getImageValues(MMSTaffFile *tafff, MMSWidget *currentWi
     endTAFFScan
 
     // add to widget vector if named
-    if(name != "") {
+    if(!name.empty()) {
         image->setName(name);
         insertNamedWidget(image);
     }
 
-    if(size != "") {
+    if(!size.empty()) {
         if (!image->setSizeHint(size))
-            throw new MMSDialogManagerError(1, "invalid widget size '" + size + "'");
+            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
     }
 
     if (currentWidget)
@@ -1156,11 +1031,7 @@ string MMSDialogManager::getProgressBarValues(MMSTaffFile *tafff, MMSWidget *cur
     string              	size = "";
 
     // get themepath
-    string themePath = "";
-    if (theme)
-        themePath = theme->getThemePath();
-    else
-        themePath = globalTheme->getThemePath();
+    string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
 
     // read settings from dialog
     themeClass.widgetClass.border.setAttributesFromTAFF(tafff, NULL, &themePath);
@@ -1188,14 +1059,14 @@ string MMSDialogManager::getProgressBarValues(MMSTaffFile *tafff, MMSWidget *cur
     endTAFFScan
 
     // add to widget vector if named
-    if(name != "") {
+    if(!name.empty()) {
         pBar->setName(name);
         insertNamedWidget(pBar);
     }
 
-    if(size != "") {
+    if(!size.empty()) {
         if (!pBar->setSizeHint(size))
-            throw new MMSDialogManagerError(1, "invalid widget size '" + size + "'");
+            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
     }
 
     if (currentWidget)
@@ -1218,11 +1089,7 @@ string MMSDialogManager::getMenuValues(MMSTaffFile *tafff, MMSWidget *currentWid
     MMSTaffFile    	*tf;
 
     // get themepath
-    string themePath = "";
-    if (theme)
-        themePath = theme->getThemePath();
-    else
-        themePath = globalTheme->getThemePath();
+    string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
 
     // read settings from dialog
     themeClass.widgetClass.border.setAttributesFromTAFF(tafff, NULL, &themePath);
@@ -1250,14 +1117,14 @@ string MMSDialogManager::getMenuValues(MMSTaffFile *tafff, MMSWidget *currentWid
     endTAFFScan
 
     // add to widget vector if named
-    if(name != "") {
+    if(!name.empty()) {
         menu->setName(name);
         insertNamedWidget(menu);
     }
 
-    if(size != "") {
+    if(!size.empty()) {
         if (!menu->setSizeHint(size))
-            throw new MMSDialogManagerError(1, "invalid widget size '" + size + "'");
+            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
     }
 
     if (currentWidget)
@@ -1316,202 +1183,111 @@ string MMSDialogManager::getMenuValues(MMSTaffFile *tafff, MMSWidget *currentWid
     		else
     			returntag = false;
 
-    		// check if a <menuitem> is given
+    		// check if a <menuitem/> is given
             if (tid == MMSGUI_TAGTABLE_TAG_MENUITEM)
             {
-	            // create new menu item
-	            MMSWidget *topwidget = menu->newItem();
+				// new menu item
+            	MMSWidget *item = NULL;
 	            haveItems = true;
 
-	            // here we must loop for n widgets
-	            vector<string> wgs;
-	            bool wg_break = false;
-	            while (!wg_break) {
-	            	wg_break = true;
-		            startTAFFScan_WITHOUT_ID
-		            {
-		            	if (memcmp(attrname, "widget.", 7)==0) {
-		                    // search for attributes which are to be set for menu items child widgets
-		                    string widgetName = &attrname[7];
-		                    int pos = (int)widgetName.find(".");
-		                    if (pos > 0) {
-		                        // widget name found
-		                        widgetName = widgetName.substr(0, pos);
+				if (tafff->hasAttributes()) {
+					// menu item has attributes, so we assume that the new item should be created with item template style
+					// create new menu item
+					item = menu->newItem();
 
-		                        // check if i have already processed this widget
-		                        for (unsigned int w = 0; w < wgs.size(); w++)
-		                        	if (wgs.at(w)==widgetName) {
-		                        		widgetName = "";
-		                        		break;
-		                        	}
-		                        if (widgetName == "")
-		                        	continue;
-		                        wg_break = false;
-		                        wgs.push_back(widgetName);
+					// here we must loop for n widgets
+					vector<string> wgs;
+					bool wg_break = false;
+					while (!wg_break) {
+						wg_break = true;
+						startTAFFScan_WITHOUT_ID
+						{
+							if (memcmp(attrname, "widget.", 7)==0) {
+								// search for attributes which are to be set for menu items child widgets
+								string widgetName = &attrname[7];
+								int pos = (int)widgetName.find(".");
+								if (pos > 0) {
+									// widget name found
+									widgetName = widgetName.substr(0, pos);
 
-		                        // okay, searching for the widget within the new item
-		                        MMSWidget *widget;
-		                        if (topwidget->getName() == widgetName)
-		                            widget = topwidget;
-		                        else
-		                            widget = topwidget->findWidget(widgetName);
+									// check if i have already processed this widget
+									if(find(wgs.begin(), wgs.end(), widgetName) != wgs.end()) {
+										widgetName = "";
+										continue;
+									}
+									wg_break = false;
+									wgs.push_back(widgetName);
 
-		                        if (widget) {
-		                            // widget found
-		                            // add attribute to widget
-		                            string prefix = "widget." + widgetName + ".";
-		                            switch (widget->getType()) {
-		                                case MMSWIDGETTYPE_HBOX:
-		                                    break;
-		                                case MMSWIDGETTYPE_VBOX:
-		                                    break;
-		                                case MMSWIDGETTYPE_BUTTON:
-		                                    {
-		                                        // read attributes from node
-		                                        MMSButtonWidgetClass themeCls;
-		                                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-		                                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-		                                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-		                                        // apply settings from node
-		                                        ((MMSButtonWidget*)widget)->updateFromThemeClass(&themeCls);
-		                                    }
-		                                    break;
-		                                case MMSWIDGETTYPE_IMAGE:
-		                                    {
-		                                        // read attributes from node
-		                                        MMSImageWidgetClass themeCls;
-		                                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-		                                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-		                                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-		                                        // apply settings from node
-		                                        ((MMSImageWidget*)widget)->updateFromThemeClass(&themeCls);
-		                                    }
-		                                    break;
-		                                case MMSWIDGETTYPE_LABEL:
-		                                    {
-		                                        // read attributes from node
-		                                        MMSLabelWidgetClass themeCls;
-		                                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-		                                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-		                                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-		                                        // apply settings from node
-		                                        ((MMSLabelWidget*)widget)->updateFromThemeClass(&themeCls);
-		                                    }
-		                                    break;
-		                                case MMSWIDGETTYPE_MENU:
-		                                    break;
-		                                case MMSWIDGETTYPE_PROGRESSBAR:
-		                                    {
-		                                        // read attributes from node
-		                                        MMSProgressBarWidgetClass themeCls;
-		                                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-		                                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-		                                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-		                                        // apply settings from node
-		                                        ((MMSProgressBarWidget*)widget)->updateFromThemeClass(&themeCls);
-		                                    }
-		                                    break;
-		                                case MMSWIDGETTYPE_TEXTBOX:
-		                                    {
-		                                        // read attributes from node
-		                                        MMSTextBoxWidgetClass themeCls;
-		                                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-		                                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-		                                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-		                                        // apply settings from node
-		                                        ((MMSTextBoxWidget*)widget)->updateFromThemeClass(&themeCls);
-		                                    }
-		                                    break;
-		                                case MMSWIDGETTYPE_ARROW:
-		                                    {
-		                                        // read attributes from node
-		                                        MMSArrowWidgetClass themeCls;
-		                                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-		                                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-		                                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-		                                        // apply settings from node
-		                                        ((MMSArrowWidget*)widget)->updateFromThemeClass(&themeCls);
-		                                    }
-		                                    break;
-		                                case MMSWIDGETTYPE_SLIDER:
-		                                    {
-		                                        // read attributes from node
-		                                        MMSSliderWidgetClass themeCls;
-		                                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-		                                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-		                                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-		                                        // apply settings from node
-		                                        ((MMSSliderWidget*)widget)->updateFromThemeClass(&themeCls);
-		                                    }
-		                                    break;
-		                                case MMSWIDGETTYPE_INPUT:
-		                                    break;
-		                                case MMSWIDGETTYPE_CHECKBOX:
-		                                    {
-		                                        // read attributes from node
-		                                        MMSCheckBoxWidgetClass themeCls;
-		                                        themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
-		                                        themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
-		                                        themeCls.setAttributesFromTAFF(tafff, &prefix);
-		                                        // apply settings from node
-		                                        ((MMSCheckBoxWidget*)widget)->updateFromThemeClass(&themeCls);
-		                                    }
-		                                    break;
-		                                case MMSWIDGETTYPE_GAP:
-		                                    break;
-		                            }
-		                        }
-		                    }
-		                }
-		            }
-		            endTAFFScan_WITHOUT_ID
-	            }
+									// okay, searching for the widget within the new item
+									MMSWidget *widget;
+									if (item->getName() == widgetName) {
+										widget = item;
+									}else {
+										widget = item->findWidget(widgetName);
+									}
 
-	            startTAFFScan_WITHOUT_ID
-	            {
-	            	if (memcmp(attrname, "childwindow", 11)==0) {
-	            		// there is a child window given which represents a sub menu
-	            		menu->setSubMenuName(menu->getSize()-1, attrval_str);
-	            	}
-	            	else
-	            	if (memcmp(attrname, "goback", 6)==0) {
-	            		// if true, this item should be the go-back-item
-	                    //! if the user enters this item, the parent menu (if does exist) will be shown
-	            		if (memcmp(attrval_str, "true", 4)==0)
-	            			menu->setBackItem(menu->getSize()-1);
-	            	}
-	            }
-	            endTAFFScan_WITHOUT_ID
+									updateTAFFAttributes(tafff, widget, widgetName);
+								}
+							}
+						}
+						endTAFFScan_WITHOUT_ID
+					}
 
-	            startTAFFScan
-	            {
-	                switch (attrid) {
-	        		case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
-	        			if (*attrval_str)
-	        				topwidget->setName(attrval_str);
-	        			break;
-	        	    }
-	            }
-	            endTAFFScan
+					startTAFFScan_WITHOUT_ID
+					{
+						if (memcmp(attrname, "childwindow", 11)==0) {
+							// there is a child window given which represents a sub menu
+							menu->setSubMenuName(menu->getSize()-1, attrval_str);
+						}
+						else
+						if (memcmp(attrname, "goback", 6)==0) {
+							// if true, this item should be the go-back-item
+							//! if the user enters this item, the parent menu (if does exist) will be shown
+							if (memcmp(attrval_str, "true", 4)==0)
+								menu->setBackItem(menu->getSize()-1);
+						}
+					}
+					endTAFFScan_WITHOUT_ID
+
+					startTAFFScan
+					{
+						switch (attrid) {
+						case MMSGUI_BASE_ATTR::MMSGUI_BASE_ATTR_IDS_name:
+							if (*attrval_str)
+								item->setName(attrval_str);
+							break;
+						}
+					}
+					endTAFFScan
+				}
+				else {
+					// menu item has NO attributes, so we try to read a specific item style from the <menuitem/> children
+					// checking for tags within <menuitem/>
+					MMSHBoxWidget *tmpWidget = new MMSHBoxWidget(NULL);
+
+					// parse the childs from dialog file
+					throughDoc(tafff, tmpWidget, NULL, theme);
+					returntag = true;
+
+					// here we create a new menu item based on disconnected child (if != NULL) or item template style
+					item = menu->newItem(-1, tmpWidget->disconnectChild());
+
+					// delete the temporary container
+					delete tmpWidget;
+				}
             }
             else {
-            	// any other widgets given in the menu, we need a temporary widget
+            	// any other widgets given in the menu
+            	printf("Warning: Tag <%s/> is not supported within <menu/>.\n", tafff->getCurrentTagName());
+
+            	// we need a temporary widget
                 MMSHBoxWidget *tmpWidget = new MMSHBoxWidget(NULL);
 
                 // parse the childs from dialog file
             	throughDoc(tafff, tmpWidget, NULL, theme);
+            	returntag = true;
 
-            	if (tid == MMSGUI_TAGTABLE_TAG_SEPARATOR) {
-                    // set the separator
-	            	if (menu->getSize() > 0) {
-		                MMSWidget *separator = tmpWidget->disconnectChild();
-		                if (separator) {
-		                	// separator widget(s) set
-		                	separator->setFocusable(false);
-		                	menu->setSeparator(menu->getSize()-1, separator);
-		                }
-	            	}
-            	}
+            	// delete the widget, we cannot use it
                 delete tmpWidget;
             }
     	}
@@ -1532,11 +1308,7 @@ string MMSDialogManager::getTextBoxValues(MMSTaffFile *tafff, MMSWidget *current
     string          	size = "";
 
     // get themepath
-    string themePath = "";
-    if (theme)
-        themePath = theme->getThemePath();
-    else
-        themePath = globalTheme->getThemePath();
+    string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
 
     // read settings from dialog
     themeClass.widgetClass.border.setAttributesFromTAFF(tafff, NULL, &themePath);
@@ -1564,14 +1336,14 @@ string MMSDialogManager::getTextBoxValues(MMSTaffFile *tafff, MMSWidget *current
     endTAFFScan
 
     // add to widget vector if named
-    if(name != "") {
+    if(!name.empty()) {
         textbox->setName(name);
         insertNamedWidget(textbox);
     }
 
-    if(size != "") {
+    if(!size.empty()) {
         if (!textbox->setSizeHint(size))
-            throw new MMSDialogManagerError(1, "invalid widget size '" + size + "'");
+            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
     }
 
     if (currentWidget)
@@ -1592,11 +1364,7 @@ string MMSDialogManager::getArrowValues(MMSTaffFile *tafff, MMSWidget *currentWi
     string          size = "";
 
     // get themepath
-    string themePath = "";
-    if (theme)
-        themePath = theme->getThemePath();
-    else
-        themePath = globalTheme->getThemePath();
+    string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
 
     // read settings from dialog
     themeClass.widgetClass.border.setAttributesFromTAFF(tafff, NULL, &themePath);
@@ -1624,14 +1392,14 @@ string MMSDialogManager::getArrowValues(MMSTaffFile *tafff, MMSWidget *currentWi
     endTAFFScan
 
     // add to widget vector if named
-    if(name != "") {
+    if(!name.empty()) {
         arrow->setName(name);
         insertNamedWidget(arrow);
     }
 
-    if(size != "") {
+    if(!size.empty()) {
         if (!arrow->setSizeHint(size))
-            throw new MMSDialogManagerError(1, "invalid widget size '" + size + "'");
+            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
     }
 
     if (currentWidget)
@@ -1652,11 +1420,7 @@ string MMSDialogManager::getSliderValues(MMSTaffFile *tafff, MMSWidget *currentW
     string          size = "";
 
     // get themepath
-    string themePath = "";
-    if (theme)
-        themePath = theme->getThemePath();
-    else
-        themePath = globalTheme->getThemePath();
+    string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
 
     // read settings from dialog
     themeClass.widgetClass.border.setAttributesFromTAFF(tafff, NULL, &themePath);
@@ -1684,14 +1448,14 @@ string MMSDialogManager::getSliderValues(MMSTaffFile *tafff, MMSWidget *currentW
     endTAFFScan
 
     // add to widget vector if named
-    if(name != "") {
+    if(!name.empty()) {
         slider->setName(name);
         insertNamedWidget(slider);
     }
 
-    if(size != "") {
+    if(!size.empty()) {
         if (!slider->setSizeHint(size))
-            throw new MMSDialogManagerError(1, "invalid widget size '" + size + "'");
+            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
     }
 
     if (currentWidget)
@@ -1712,11 +1476,7 @@ string MMSDialogManager::getInputValues(MMSTaffFile *tafff, MMSWidget *currentWi
     string          size = "";
 
     // get themepath
-    string themePath = "";
-    if (theme)
-        themePath = theme->getThemePath();
-    else
-        themePath = globalTheme->getThemePath();
+    string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
 
     // read settings from dialog
     themeClass.widgetClass.border.setAttributesFromTAFF(tafff, NULL, &themePath);
@@ -1744,14 +1504,14 @@ string MMSDialogManager::getInputValues(MMSTaffFile *tafff, MMSWidget *currentWi
     endTAFFScan
 
     // add to widget vector if named
-    if(name != "") {
+    if(!name.empty()) {
         input->setName(name);
         insertNamedWidget(input);
     }
 
-    if(size != "") {
+    if(!size.empty()) {
         if (!input->setSizeHint(size))
-            throw new MMSDialogManagerError(1, "invalid widget size '" + size + "'");
+            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
     }
 
     if (currentWidget)
@@ -1773,11 +1533,7 @@ string MMSDialogManager::getCheckBoxValues(MMSTaffFile *tafff, MMSWidget *curren
     string          		size = "";
 
     // get themepath
-    string themePath = "";
-    if (theme)
-        themePath = theme->getThemePath();
-    else
-        themePath = globalTheme->getThemePath();
+    string themePath = (theme ? theme->getThemePath() : globalTheme->getThemePath());
 
     // read settings from dialog
     themeClass.widgetClass.border.setAttributesFromTAFF(tafff, NULL, &themePath);
@@ -1805,14 +1561,14 @@ string MMSDialogManager::getCheckBoxValues(MMSTaffFile *tafff, MMSWidget *curren
     endTAFFScan
 
     // add to widget vector if named
-    if(name != "") {
+    if(!name.empty()) {
         checkbox->setName(name);
         insertNamedWidget(checkbox);
     }
 
-    if(size != "") {
+    if(!size.empty()) {
         if (!checkbox->setSizeHint(size))
-            throw new MMSDialogManagerError(1, "invalid widget size '" + size + "'");
+            throw MMSDialogManagerError(1, "invalid widget size '" + size + "'");
     }
 
     if (currentWidget)
@@ -1847,12 +1603,12 @@ string MMSDialogManager::getGapValues(MMSTaffFile *tafff, MMSWidget *currentWidg
 	gap = new MMSGapWidget(rootWindow);
 
     // add to widget vector if named
-    if(name != "") {
+    if(!name.empty()) {
         gap->setName(name);
         insertNamedWidget(gap);
     }
 
-	if(size != "")
+	if(!size.empty())
 	    gap->setSizeHint(size);
 
 	if (currentWidget)
@@ -1871,3 +1627,111 @@ MMSWindow *MMSDialogManager::getWindow() {
 	return this->rootWindow;
 }
 
+
+void MMSDialogManager::updateTAFFAttributes(MMSTaffFile *tafff, MMSWidget *widget, string &widgetName) {
+	if(!widget) {
+		return;
+	}
+
+    string prefix = "widget." + widgetName + ".";
+
+    switch (widget->getType()) {
+        case MMSWIDGETTYPE_HBOX:
+        case MMSWIDGETTYPE_VBOX:
+            break;
+        case MMSWIDGETTYPE_BUTTON:
+            {
+                // read attributes from node
+                MMSButtonWidgetClass themeCls;
+                themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.setAttributesFromTAFF(tafff, &prefix);
+                // apply settings from node
+                ((MMSButtonWidget*)widget)->updateFromThemeClass(&themeCls);
+            }
+            break;
+        case MMSWIDGETTYPE_IMAGE:
+            {
+                // read attributes from node
+                MMSImageWidgetClass themeCls;
+                themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.setAttributesFromTAFF(tafff, &prefix);
+                // apply settings from node
+                ((MMSImageWidget*)widget)->updateFromThemeClass(&themeCls);
+            }
+            break;
+        case MMSWIDGETTYPE_LABEL:
+            {
+                // read attributes from node
+                MMSLabelWidgetClass themeCls;
+                themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.setAttributesFromTAFF(tafff, &prefix);
+                // apply settings from node
+                ((MMSLabelWidget*)widget)->updateFromThemeClass(&themeCls);
+            }
+            break;
+        case MMSWIDGETTYPE_MENU:
+            break;
+        case MMSWIDGETTYPE_PROGRESSBAR:
+            {
+                // read attributes from node
+                MMSProgressBarWidgetClass themeCls;
+                themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.setAttributesFromTAFF(tafff, &prefix);
+                // apply settings from node
+                ((MMSProgressBarWidget*)widget)->updateFromThemeClass(&themeCls);
+            }
+            break;
+        case MMSWIDGETTYPE_TEXTBOX:
+            {
+                // read attributes from node
+                MMSTextBoxWidgetClass themeCls;
+                themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.setAttributesFromTAFF(tafff, &prefix);
+                // apply settings from node
+                ((MMSTextBoxWidget*)widget)->updateFromThemeClass(&themeCls);
+            }
+            break;
+        case MMSWIDGETTYPE_ARROW:
+            {
+                // read attributes from node
+                MMSArrowWidgetClass themeCls;
+                themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.setAttributesFromTAFF(tafff, &prefix);
+                // apply settings from node
+                ((MMSArrowWidget*)widget)->updateFromThemeClass(&themeCls);
+            }
+            break;
+        case MMSWIDGETTYPE_SLIDER:
+            {
+                // read attributes from node
+                MMSSliderWidgetClass themeCls;
+                themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.setAttributesFromTAFF(tafff, &prefix);
+                // apply settings from node
+                ((MMSSliderWidget*)widget)->updateFromThemeClass(&themeCls);
+            }
+            break;
+        case MMSWIDGETTYPE_INPUT:
+            break;
+        case MMSWIDGETTYPE_CHECKBOX:
+            {
+                // read attributes from node
+                MMSCheckBoxWidgetClass themeCls;
+                themeCls.widgetClass.border.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.widgetClass.setAttributesFromTAFF(tafff, &prefix);
+                themeCls.setAttributesFromTAFF(tafff, &prefix);
+                // apply settings from node
+                ((MMSCheckBoxWidget*)widget)->updateFromThemeClass(&themeCls);
+            }
+            break;
+        case MMSWIDGETTYPE_GAP:
+            break;
+    }
+}

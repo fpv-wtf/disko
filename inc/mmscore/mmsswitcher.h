@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -47,6 +47,9 @@ typedef struct {
 
 
 class MMSSwitcher : public IMMSSwitcher {
+	private:
+		const void addPluginsToMenu(const vector<MMSPluginData *> &plugins);
+
 	protected:
         MMSConfigData                        config;
 
@@ -60,9 +63,6 @@ class MMSSwitcher : public IMMSSwitcher {
 
         static map<int, plugin_data_t *>     plugins;            /**< loaded plugins                                                */
         static int                           curr_plugin;        /**< index to pluginSwitchers which points to the current plugin   */
-        vector<MMSPluginData *> 			 osdplugs;
-        vector<MMSPluginData *> 			 centralplugs;
-
 
         MMSOSDPluginHandler                  *osdhandler;
         MMSCentralPluginHandler              *centralhandler;

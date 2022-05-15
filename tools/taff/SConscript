@@ -29,4 +29,5 @@ else:
 		Depends(taff, [libmmsmedia])
 
 env.Install(idir_bin, taff)
+env.Install(idir_bin, env['TOP_DIR'] + '/scripts/create_taffs.sh')
 Export('taff')

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -39,32 +39,32 @@
 namespace MMSGUI_WIDGET_ATTR {
 
 	#define MMSGUI_WIDGET_ATTR_ATTRDESC \
-	{ "bgcolor", TAFF_ATTRTYPE_STRING }, \
+	{ "bgcolor", TAFF_ATTRTYPE_COLOR }, \
 	{ "bgcolor.a", TAFF_ATTRTYPE_UCHAR }, \
 	{ "bgcolor.r", TAFF_ATTRTYPE_UCHAR }, \
 	{ "bgcolor.g", TAFF_ATTRTYPE_UCHAR }, \
 	{ "bgcolor.b", TAFF_ATTRTYPE_UCHAR }, \
-	{ "selbgcolor", TAFF_ATTRTYPE_STRING }, \
+	{ "selbgcolor", TAFF_ATTRTYPE_COLOR }, \
 	{ "selbgcolor.a", TAFF_ATTRTYPE_UCHAR }, \
 	{ "selbgcolor.r", TAFF_ATTRTYPE_UCHAR }, \
 	{ "selbgcolor.g", TAFF_ATTRTYPE_UCHAR }, \
 	{ "selbgcolor.b", TAFF_ATTRTYPE_UCHAR }, \
-	{ "bgcolor_p", TAFF_ATTRTYPE_STRING }, \
+	{ "bgcolor_p", TAFF_ATTRTYPE_COLOR }, \
 	{ "bgcolor_p.a", TAFF_ATTRTYPE_UCHAR }, \
 	{ "bgcolor_p.r", TAFF_ATTRTYPE_UCHAR }, \
 	{ "bgcolor_p.g", TAFF_ATTRTYPE_UCHAR }, \
 	{ "bgcolor_p.b", TAFF_ATTRTYPE_UCHAR }, \
-	{ "selbgcolor_p", TAFF_ATTRTYPE_STRING }, \
+	{ "selbgcolor_p", TAFF_ATTRTYPE_COLOR }, \
 	{ "selbgcolor_p.a", TAFF_ATTRTYPE_UCHAR }, \
 	{ "selbgcolor_p.r", TAFF_ATTRTYPE_UCHAR }, \
 	{ "selbgcolor_p.g", TAFF_ATTRTYPE_UCHAR }, \
 	{ "selbgcolor_p.b", TAFF_ATTRTYPE_UCHAR }, \
-	{ "bgcolor_i", TAFF_ATTRTYPE_STRING }, \
+	{ "bgcolor_i", TAFF_ATTRTYPE_COLOR }, \
 	{ "bgcolor_i.a", TAFF_ATTRTYPE_UCHAR }, \
 	{ "bgcolor_i.r", TAFF_ATTRTYPE_UCHAR }, \
 	{ "bgcolor_i.g", TAFF_ATTRTYPE_UCHAR }, \
 	{ "bgcolor_i.b", TAFF_ATTRTYPE_UCHAR }, \
-	{ "selbgcolor_i", TAFF_ATTRTYPE_STRING }, \
+	{ "selbgcolor_i", TAFF_ATTRTYPE_COLOR }, \
 	{ "selbgcolor_i.a", TAFF_ATTRTYPE_UCHAR }, \
 	{ "selbgcolor_i.r", TAFF_ATTRTYPE_UCHAR }, \
 	{ "selbgcolor_i.g", TAFF_ATTRTYPE_UCHAR }, \
@@ -108,7 +108,9 @@ namespace MMSGUI_WIDGET_ATTR {
 	{ "clickable", TAFF_ATTRTYPE_BOOL }, \
 	{ "return_onscroll", TAFF_ATTRTYPE_BOOL }, \
 	{ "inputmode", TAFF_ATTRTYPE_STRING }, \
-	{ "joined_widget", TAFF_ATTRTYPE_STRING }
+	{ "joined_widget", TAFF_ATTRTYPE_STRING }, \
+	{ "activated", TAFF_ATTRTYPE_BOOL }
+
 
 	#define MMSGUI_WIDGET_ATTR_IDS \
 		MMSGUI_WIDGET_ATTR_IDS_bgcolor, \
@@ -180,7 +182,8 @@ namespace MMSGUI_WIDGET_ATTR {
 		MMSGUI_WIDGET_ATTR_IDS_clickable, \
 		MMSGUI_WIDGET_ATTR_IDS_return_onscroll, \
 		MMSGUI_WIDGET_ATTR_IDS_inputmode, \
-		MMSGUI_WIDGET_ATTR_IDS_joined_widget
+		MMSGUI_WIDGET_ATTR_IDS_joined_widget, \
+		MMSGUI_WIDGET_ATTR_IDS_activated
 
 	#define MMSGUI_WIDGET_ATTR_INIT { \
 		MMSGUI_BASE_ATTR_ATTRDESC, \
@@ -374,6 +377,13 @@ class MMSWidgetClass {
 	        //! is joined_widget set?
 	        bool            isjoinedwidget;
 
+	        //! is the activated flag set?
+	        bool            isactivated;
+
+	        //! widget is active / inactive
+	        bool            activated;
+
+
     	} id;
 
     	struct {
@@ -505,6 +515,8 @@ class MMSWidgetClass {
         void initInputMode();
         void initJoinedWidget();
 
+        void initActivated();
+
 
         /* free routines */
         void freeBgColor();
@@ -557,6 +569,8 @@ class MMSWidgetClass {
 
         void freeInputMode();
         void freeJoinedWidget();
+
+        void freeActivated();
 
         //! Read and set all attributes from the given TAFF buffer.
         /*!
@@ -1355,6 +1369,27 @@ class MMSWidgetClass {
         \return true if set
         */
         bool getJoinedWidget(string &joinedwidget);
+
+
+        //! Check if the activated flag is set.
+        bool isActivated();
+
+        //! Mark the activated flag as not set.
+        void unsetActivated();
+
+        //! Set the activated flag.
+        /*!
+        \param activated  widget is active / inactive
+        */
+        void setActivated(bool activated);
+
+        //! Get the activated flag.
+        /*!
+        \param activated  activated true or false
+        \return true if set
+        */
+        bool getActivated(bool &activated);
+
 
 
     /* friends */

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -58,7 +58,11 @@ typedef enum {
 	//! any binary data
 	TAFF_ATTRTYPE_BINDATA,
 	//! valid values: "true", "false", "auto"
-	TAFF_ATTRTYPE_STATE
+	TAFF_ATTRTYPE_STATE,
+	//! valid values: "true", "false", "linear", "log", "log_soft_start", "log_soft_end"
+	TAFF_ATTRTYPE_SEQUENCE_MODE,
+	//! argb values in hex format, syntax: "#rrggbbaa"
+	TAFF_ATTRTYPE_COLOR
 } TAFF_ATTRTYPE;
 
 //! Describe a TAFF attribute
@@ -123,7 +127,9 @@ typedef enum {
     //! 16 bit ARGB (2 byte, alpha 4\@12, red 4\@8, green 4\@4, blue 4\@0)
     MMSTAFF_PF_ARGB4444,
     //! 16 bit RGB (2 byte, red 5\@11, green 6\@5, blue 5\@0)
-    MMSTAFF_PF_RGB16
+    MMSTAFF_PF_RGB16,
+	//! 32 bit ABGR (4 byte, alpha 8\@24, blue 8\@16, green 8\@8, red 8\@0)
+	MMSTAFF_PF_ABGR,
 } MMSTAFF_PF;
 
 //! convert 4 bytes from byte stream to an 32 bit integer (needed especially by ARM)
@@ -133,8 +139,8 @@ typedef enum {
 //! A data access class for Tagged Attributes File Format (TAFF).
 /*!
 This class is written to generate an simple to parse binary presentation of
-high level markup languages such as XML. For now only the conversion XML to TAFF
-or vice versa and PNG to TAFF is supported.
+high level markup languages such as XML. For now the conversion XML to TAFF
+or vice versa and PNG/JPEG/TIFF to TAFF is supported.
 The user of this class must specify a description of which tags and attributes
 are allowed. Further he specifies the type of an attribute. With this informations
 this class also checks the types and ranges of attributes during the conversion.
@@ -182,6 +188,9 @@ class MMSTaffFile {
 		//! size of the mirror in pixel
 		int mirror_size;
 
+		//! rotate by 180 degree?
+		bool rotate_180;
+
 		//! is the TAFF buffer loaded?
 		bool	loaded;
 
@@ -197,8 +206,21 @@ class MMSTaffFile {
         //! Internal method: Writes a buffer to a file.
         bool writeBuffer(MMSFile *file, void *ptr, size_t *ritems, size_t size, size_t nitems, bool *write_status = NULL);
 
-		//! Internal method: Read a PNG Image.
-		bool readPNG(const char *filename, void **buf, int *width, int *height, int *pitch, int *size);
+        //! Internal method: Create mirror effect, rotate and convert to target pixelformat.
+        bool postprocessImage(void **buf, int *width, int *height, int *pitch,
+								 int *size, bool *alphachannel);
+
+        //! Internal method: Read a PNG Image.
+		bool readPNG(const char *filename, void **buf, int *width, int *height, int *pitch,
+						int *size, bool *alphachannel);
+
+        //! Internal method: Read a JPEG Image.
+		bool readJPEG(const char *filename, void **buf, int *width, int *height, int *pitch,
+						int *size, bool *alphachannel);
+
+        //! Internal method: Read a TIFF Image.
+		bool readTIFF(const char *filename, void **buf, int *width, int *height, int *pitch,
+						int *size, bool *alphachannel);
 
 		//! Internal method: Recursive called method for XML to TAFF conversion.
         bool convertXML2TAFF_throughDoc(int depth, void *void_node, MMSFile *taff_file);
@@ -285,11 +307,14 @@ class MMSTaffFile {
         */
         void setDestinationPixelFormat(MMSTAFF_PF pixelformat = MMSTAFF_PF_ARGB, bool premultiplied = true);
 
-        //! Set the mirror effect.
+        //! Set the mirror effect (type MMSTAFF_EXTERNAL_TYPE_IMAGE).
         /*!
         \param size	size of the mirror effect in pixel
         */
         void setMirrorEffect(int size);
+
+        //! Rotate the image by 180 degree (type MMSTAFF_EXTERNAL_TYPE_IMAGE).
+        void rotate180(bool rotate_180);
 
         //! Get the first tag id.
         /*!
@@ -304,17 +329,30 @@ class MMSTaffFile {
         */
         int  getNextTag(bool &eof);
 
-        //! Get the current tag id.
+        //! Get the id of the current tag.
         /*!
+        \param name		optional, with this parameter you can get the name of the current tag
         \return id of the current tag
         */
-        int  getCurrentTag();
+        int  getCurrentTag(const char **name = NULL);
+
+        //! Get the name of the current tag.
+        /*!
+        \return name of the current tag
+        */
+        const char *getCurrentTagName();
 
         //! Copy the complete current tag into a new MMSTaffFile.
         /*!
         \return pointer to the new MMSTaffFile or NULL in case of errors
         */
         MMSTaffFile *copyCurrentTag();
+
+        //! Determine if the current tag has attributes.
+        /*!
+        \return true if the current tag has at least one attribute
+        */
+        bool  hasAttributes();
 
         //! Get the first attribute of the current tag.
         /*!
@@ -349,6 +387,26 @@ class MMSTaffFile {
         \return pointer to null terminated value string or NULL
         */
         char *getAttributeString(int id);
+
+        //! Convert a value given as string into binary format and check ranges.
+        /*!
+        \param attrType  			type of the attribute value string
+        \param attrValStr			attribute value string
+        \param attrValStr_valid		returns if attribute value string is valid
+        \param int_val_set			returns true if the value is an integer (int)
+        \param byte_val_set			returns true if the value is an byte (unsigned char)
+        \param int_val				binary presentation of the value if int_val_set or byte_val_set set to true
+        \param attrname				optional attribute name needed for error messages
+        \param attrid				optional attribute id needed for error messages
+        \param nodename				optional tag name needed for error messages
+        \param nodeline				optional line needed for error messages
+        \return true if conversion was successful
+        \note If method returns true the attrValStr can be invalid anyway (see attrValStr_valid)
+        */
+        bool convertString2TaffAttributeType(TAFF_ATTRTYPE attrType, char *attrValStr, bool *attrValStr_valid,
+											 bool *int_val_set, bool *byte_val_set, int *int_val,
+											 const char *attrname = NULL, int attrid = -1, const char *nodename = 0, int nodeline = -1);
+
 };
 
 
@@ -362,7 +420,9 @@ namespace MMSTAFF_IMAGE_RAWIMAGE_ATTR {
 		{ "data", TAFF_ATTRTYPE_BINDATA }, \
 		{ "pixelformat", TAFF_ATTRTYPE_INT }, \
 		{ "premultiplied", TAFF_ATTRTYPE_BOOL }, \
-		{ "mirror_size", TAFF_ATTRTYPE_INT }
+		{ "mirror_size", TAFF_ATTRTYPE_INT }, \
+		{ "alphachannel", TAFF_ATTRTYPE_BOOL }, \
+		{ "rotate_180", TAFF_ATTRTYPE_BOOL }
 
 	#define MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS \
 		MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_width, \
@@ -372,7 +432,9 @@ namespace MMSTAFF_IMAGE_RAWIMAGE_ATTR {
 		MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_data, \
 		MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_pixelformat, \
 		MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_premultiplied, \
-		MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_mirror_size
+		MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_mirror_size, \
+		MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_alphachannel, \
+		MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_rotate_180
 
 	#define MMSTAFF_IMAGE_RAWIMAGE_ATTR_INIT { \
 		MMSTAFF_IMAGE_RAWIMAGE_ATTR_ATTRDESC, \

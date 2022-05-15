@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -31,6 +31,7 @@
  **************************************************************************/
 
 #include "mmsgui/mmslabelwidget.h"
+#include "mmsgui/mmstextbase.h"
 
 
 MMSLabelWidget::MMSLabelWidget(MMSWindow *root, string className, MMSTheme *theme) : MMSWidget() {
@@ -55,33 +56,53 @@ bool MMSLabelWidget::create(MMSWindow *root, string className, MMSTheme *theme) 
     this->da->baseWidgetClass = &(this->da->theme->labelWidgetClass.widgetClass);
     if (this->labelWidgetClass) this->da->widgetClass = &(this->labelWidgetClass->widgetClass); else this->da->widgetClass = NULL;
 
-    /* clear */
+    // clear
+    initLanguage();
+	this->fontpath = "";
+	this->fontname = "";
+	this->fontsize = 0;
     this->font = NULL;
+    this->load_font = true;
     this->slide_width = 0;
     this->slide_offset = 0;
     this->frame_delay = 100;
     this->frame_delay_set = false;
     this->labelThread = NULL;
     this->translated = false;
+    this->swap_left_right = false;
+	this->current_fgset = false;
 
     return MMSWidget::create(root, true, false, false, true, false, false, false);
 }
 
 MMSWidget *MMSLabelWidget::copyWidget() {
-    /* create widget */
+    // create widget
     MMSLabelWidget *newWidget = new MMSLabelWidget(this->rootwindow, className);
 
-    /* copy widget */
+    // copy widget
     *newWidget = *this;
 
-    /* copy base widget */
+    // copy base widget
     MMSWidget::copyWidget((MMSWidget*)newWidget);
 
-    /* reload my font */
+    // reload my font
+    initLanguage(newWidget);
+    newWidget->fontpath = "";
+	newWidget->fontname = "";
+	newWidget->fontsize = 0;
     newWidget->font = NULL;
+    newWidget->load_font = true;
+    newWidget->slide_width = 0;
+    newWidget->slide_offset = 0;
+    newWidget->frame_delay = 100;
+    newWidget->frame_delay_set = false;
     newWidget->labelThread = NULL;
+    newWidget->translated = false;
+    newWidget->swap_left_right = false;
+    newWidget->current_fgset = false;
     if (this->rootwindow) {
-        newWidget->font = this->rootwindow->fm->getFont(newWidget->getFontPath(), newWidget->getFontName(), newWidget->getFontSize());
+    	// load font
+        loadFont(newWidget);
 
         // first time the label thread has to be started
         if (newWidget->getSlidable()) {
@@ -92,13 +113,51 @@ MMSWidget *MMSLabelWidget::copyWidget() {
     return newWidget;
 }
 
+
+void MMSLabelWidget::initLanguage(MMSLabelWidget *widget) {
+	if (!widget) widget = this;
+
+	widget->lang = (!this->rootwindow)?MMSLANG_NONE:this->rootwindow->windowmanager->getTranslator()->getTargetLang();
+}
+
+void MMSLabelWidget::loadFont(MMSLabelWidget *widget) {
+	if (!this->load_font) return;
+	if (!widget) widget = this;
+
+	if (this->rootwindow) {
+		// get font parameter
+		widget->lang = this->rootwindow->windowmanager->getTranslator()->getTargetLang();
+    	string fontpath = widget->getFontPath();
+    	string fontname = widget->getFontName(widget->lang);
+    	unsigned int fontsize = widget->getFontSize();
+
+    	if (fontpath != widget->fontpath || fontname != widget->fontname || fontsize != widget->fontsize || !widget->font) {
+    		// font parameter changed, (re)load it
+			if (widget->font)
+				this->rootwindow->fm->releaseFont(widget->font);
+			widget->fontpath = fontpath;
+			widget->fontname = fontname;
+			widget->fontsize = fontsize;
+			widget->font = this->rootwindow->fm->getFont(widget->fontpath, widget->fontname, widget->fontsize);
+			if (this->font) this->load_font = false;
+    	}
+    	else {
+    		// font parameter not changed, so we do not reload it
+            this->load_font = false;
+    	}
+    }
+}
+
 bool MMSLabelWidget::init() {
     // init widget basics
     if (!MMSWidget::init())
         return false;
 
+	// init language
+    initLanguage();
+
     // load font
-    this->font = this->rootwindow->fm->getFont(getFontPath(), getFontName(), getFontSize());
+	loadFont();
 
     // first time the label thread has to be started
     if (getSlidable()) {
@@ -115,13 +174,78 @@ bool MMSLabelWidget::release() {
 
     // release my font
     this->rootwindow->fm->releaseFont(this->font);
+    this->fontpath = "";
+    this->fontname = "";
+    this->fontsize = 0;
     this->font = NULL;
+    this->load_font = true;
 
     return true;
 }
 
+void MMSLabelWidget::getForeground(MMSFBColor *color) {
+	color->a = 0;
+
+	if (isActivated()) {
+		if (isSelected()) {
+	        *color = getSelColor();
+		}
+		else {
+	        *color = getColor();
+		}
+		if (isPressed()) {
+			MMSFBColor mycol;
+			if (isSelected()) {
+		        mycol = getSelColor_p();
+				if (mycol.a>0) *color=mycol;
+			}
+			else {
+		        mycol = getColor_p();
+				if (mycol.a>0) *color=mycol;
+			}
+		}
+	}
+	else {
+		if (isSelected()) {
+	        *color = getSelColor_i();
+		}
+		else {
+	        *color = getColor_i();
+		}
+	}
+}
+
+bool MMSLabelWidget::enableRefresh(bool enable) {
+	if (!MMSWidget::enableRefresh(enable)) return false;
+
+	// mark foreground as not set
+	this->current_fgset = false;
+
+	return true;
+}
+
+bool MMSLabelWidget::checkRefreshStatus() {
+	if (MMSWidget::checkRefreshStatus()) return true;
+
+	if (this->current_fgset) {
+		// current foreground initialized
+		MMSFBColor color;
+		getForeground(&color);
+
+		if (color == this->current_fgcolor) {
+			// foreground color not changed, so we do not enable refreshing
+			return false;
+		}
+	}
+
+	// (re-)enable refreshing
+	enableRefresh();
+
+	return true;
+}
+
 bool MMSLabelWidget::draw(bool *backgroundFilled) {
-    int width, height, x, y;
+    int width = 0, height = 0, x, y;
     bool myBackgroundFilled = false;
 
     if (backgroundFilled) {
@@ -131,13 +255,15 @@ bool MMSLabelWidget::draw(bool *backgroundFilled) {
     else
         backgroundFilled = &myBackgroundFilled;
 
-    /* lock */
+    // lock
     this->surface->lock();
 
-    /* draw widget basics */
+    // draw widget basics
     if (MMSWidget::draw(backgroundFilled)) {
+   		// check if we have to (re)load the font
+   	    loadFont();
 
-        /* draw my things */
+		// draw my things
         if (this->font) {
             MMSFBRectangle surfaceGeom = getSurfaceGeometry();
 
@@ -155,18 +281,30 @@ bool MMSLabelWidget::draw(bool *backgroundFilled) {
 					getText(this->translated_text);
             	}
 
-            	// mark as translated
+        		// reset swap flag
+        		this->swap_left_right = false;
+
+        		// language specific conversions
+        		MMSLanguage targetlang = this->rootwindow->windowmanager->getTranslator()->getTargetLang();
+        		if (targetlang == MMSLANG_IL) {
+        			if (convBidiString(this->translated_text, this->translated_text)) {
+        				// bidirectional conversion successful, swap alignment horizontal
+        				this->swap_left_right = true;
+        			}
+        		}
+
+        		// mark as translated
             	this->translated = true;
             }
 
-            /* get width and height of the string to be drawn */
+            // get width and height of the string to be drawn
             this->font->getStringWidth(this->translated_text, -1, &width);
             this->font->getHeight(&height);
 
             // save the width of the text
             this->slide_width = width;
 
-            switch (getAlignment()) {
+            switch ((!this->swap_left_right) ? getAlignment() : swapAlignmentHorizontal(getAlignment())) {
                 case MMSALIGNMENT_LEFT:
                     x = surfaceGeom.x;
                     y = ((surfaceGeom.h - height) / 2) + surfaceGeom.y;
@@ -209,35 +347,45 @@ bool MMSLabelWidget::draw(bool *backgroundFilled) {
                     break;
             }
 
+            // get color
             MMSFBColor color;
-
-            if (isSelected())
-                color = getSelColor();
-            else
-                color = getColor();
+            getForeground(&color);
+            this->current_fgcolor   = color;
+            this->current_fgset     = true;
 
             if (color.a) {
-                /* prepare for drawing */
-                this->surface->setDrawingColorAndFlagsByBrightnessAndOpacity(color, getBrightness(), getOpacity());
+                // prepare for drawing
+                this->surface->setDrawingColorAndFlagsByBrightnessAndOpacity(
+									color,
+									(isSelected())?getSelShadowColor(MMSPOSITION_TOP):getShadowColor(MMSPOSITION_TOP),
+									(isSelected())?getSelShadowColor(MMSPOSITION_BOTTOM):getShadowColor(MMSPOSITION_BOTTOM),
+									(isSelected())?getSelShadowColor(MMSPOSITION_LEFT):getShadowColor(MMSPOSITION_LEFT),
+									(isSelected())?getSelShadowColor(MMSPOSITION_RIGHT):getShadowColor(MMSPOSITION_RIGHT),
+									(isSelected())?getSelShadowColor(MMSPOSITION_TOP_LEFT):getShadowColor(MMSPOSITION_TOP_LEFT),
+									(isSelected())?getSelShadowColor(MMSPOSITION_TOP_RIGHT):getShadowColor(MMSPOSITION_TOP_RIGHT),
+									(isSelected())?getSelShadowColor(MMSPOSITION_BOTTOM_LEFT):getShadowColor(MMSPOSITION_BOTTOM_LEFT),
+									(isSelected())?getSelShadowColor(MMSPOSITION_BOTTOM_RIGHT):getShadowColor(MMSPOSITION_BOTTOM_RIGHT),
+									getBrightness(), getOpacity());
 
-                /* draw the text */
+                // draw the text
                 this->surface->drawString(this->translated_text, -1, x - this->slide_offset, y);
             }
         }
 
-        /* update window surface with an area of surface */
+        // update window surface with an area of surface
         updateWindowSurfaceWithSurface(!*backgroundFilled);
     }
 
-    /* unlock */
+    // unlock
     this->surface->unlock();
 
-    /* draw widgets debug frame */
+    // draw widgets debug frame
     return MMSWidget::drawDebug();
 }
 
-void MMSLabelWidget::targetLangChanged(int lang) {
+void MMSLabelWidget::targetLangChanged(MMSLanguage lang) {
     this->translated = false;
+    this->load_font = true;
 }
 
 /***********************************************/
@@ -254,12 +402,30 @@ void MMSLabelWidget::targetLangChanged(int lang) {
     else if ((labelWidgetClass)&&(labelWidgetClass->is##x())) y=labelWidgetClass->get##x(); \
     else y=this->da->theme->labelWidgetClass.get##x();
 
+#define GETLABELFONT(lang) \
+    if (this->myLabelWidgetClass.isFontName(lang)) return myLabelWidgetClass.getFontName(lang); \
+    else if (this->myLabelWidgetClass.isFontName(MMSLANG_NONE)) return myLabelWidgetClass.getFontName(MMSLANG_NONE); \
+    else if ((labelWidgetClass)&&(labelWidgetClass->isFontName(lang))) return labelWidgetClass->getFontName(lang); \
+    else if ((labelWidgetClass)&&(labelWidgetClass->isFontName(MMSLANG_NONE))) return labelWidgetClass->getFontName(MMSLANG_NONE); \
+    else return this->da->theme->labelWidgetClass.getFontName();
+
+#define GETLABELSHADOW(x) \
+    if (this->myLabelWidgetClass.isShadowColor(x)) return myLabelWidgetClass.getShadowColor(x); \
+    else if ((labelWidgetClass)&&(labelWidgetClass->isShadowColor(x))) return labelWidgetClass->getShadowColor(x); \
+    else return this->da->theme->labelWidgetClass.getShadowColor(x);
+
+#define GETLABELSHADOWSEL(x) \
+    if (this->myLabelWidgetClass.isSelShadowColor(x)) return myLabelWidgetClass.getSelShadowColor(x); \
+    else if ((labelWidgetClass)&&(labelWidgetClass->isSelShadowColor(x))) return labelWidgetClass->getSelShadowColor(x); \
+    else return this->da->theme->labelWidgetClass.getSelShadowColor(x);
+
+
 string MMSLabelWidget::getFontPath() {
     GETLABEL(FontPath);
 }
 
-string MMSLabelWidget::getFontName() {
-    GETLABEL(FontName);
+string MMSLabelWidget::getFontName(MMSLanguage lang) {
+    GETLABELFONT(lang);
 }
 
 unsigned int MMSLabelWidget::getFontSize() {
@@ -276,6 +442,22 @@ MMSFBColor MMSLabelWidget::getColor() {
 
 MMSFBColor MMSLabelWidget::getSelColor() {
     GETLABEL(SelColor);
+}
+
+MMSFBColor MMSLabelWidget::getColor_p() {
+    GETLABEL(Color_p);
+}
+
+MMSFBColor MMSLabelWidget::getSelColor_p() {
+    GETLABEL(SelColor_p);
+}
+
+MMSFBColor MMSLabelWidget::getColor_i() {
+    GETLABEL(Color_i);
+}
+
+MMSFBColor MMSLabelWidget::getSelColor_i() {
+    GETLABEL(SelColor_i);
 }
 
 string MMSLabelWidget::getText() {
@@ -298,77 +480,163 @@ bool MMSLabelWidget::getTranslate() {
     GETLABEL(Translate);
 }
 
+
+MMSFBColor MMSLabelWidget::getShadowColor(MMSPOSITION position) {
+	GETLABELSHADOW(position);
+}
+
+MMSFBColor MMSLabelWidget::getSelShadowColor(MMSPOSITION position) {
+	GETLABELSHADOWSEL(position);
+}
+
+
 /***********************************************/
 /* begin of theme access methods (set methods) */
 /***********************************************/
 
 void MMSLabelWidget::setFontPath(string fontpath, bool load, bool refresh) {
     myLabelWidgetClass.setFontPath(fontpath);
-    if (load)
-        if (this->rootwindow) {
-            this->rootwindow->fm->releaseFont(this->font);
-            this->font = this->rootwindow->fm->getFont(getFontPath(), getFontName(), getFontSize());
-        }
+    if (load) {
+        this->load_font = true;
+    	loadFont();
+    }
+
+    // refresh is required
+    enableRefresh();
+
+    if (refresh)
+        this->refresh();
+}
+
+void MMSLabelWidget::setFontName(MMSLanguage lang, string fontname, bool load, bool refresh) {
+    myLabelWidgetClass.setFontName(fontname, lang);
+    if (load) {
+        this->load_font = true;
+    	loadFont();
+    }
+
+    // refresh is required
+    enableRefresh();
+
     if (refresh)
         this->refresh();
 }
 
 void MMSLabelWidget::setFontName(string fontname, bool load, bool refresh) {
-    myLabelWidgetClass.setFontName(fontname);
-    if (load)
-        if (this->rootwindow) {
-            this->rootwindow->fm->releaseFont(this->font);
-            this->font = this->rootwindow->fm->getFont(getFontPath(), getFontName(), getFontSize());
-        }
-    if (refresh)
-        this->refresh();
+	setFontName(MMSLANG_NONE, fontname, load, refresh);
 }
 
 void MMSLabelWidget::setFontSize(unsigned int fontsize, bool load, bool refresh) {
     myLabelWidgetClass.setFontSize(fontsize);
-    if (load)
-        if (this->rootwindow) {
-            this->rootwindow->fm->releaseFont(this->font);
-            this->font = this->rootwindow->fm->getFont(getFontPath(), getFontName(), getFontSize());
-        }
+    if (load) {
+        this->load_font = true;
+    	loadFont();
+    }
+
+    // refresh is required
+    enableRefresh();
+
+    if (refresh)
+        this->refresh();
+}
+
+void MMSLabelWidget::setFont(MMSLanguage lang, string fontpath, string fontname, unsigned int fontsize, bool load, bool refresh) {
+    myLabelWidgetClass.setFontPath(fontpath);
+    myLabelWidgetClass.setFontName(fontname, lang);
+    myLabelWidgetClass.setFontSize(fontsize);
+    if (load) {
+        this->load_font = true;
+    	loadFont();
+    }
+
+    // refresh is required
+    enableRefresh();
+
     if (refresh)
         this->refresh();
 }
 
 void MMSLabelWidget::setFont(string fontpath, string fontname, unsigned int fontsize, bool load, bool refresh) {
-    myLabelWidgetClass.setFontPath(fontpath);
-    myLabelWidgetClass.setFontName(fontname);
-    myLabelWidgetClass.setFontSize(fontsize);
-    if (load)
-        if (this->rootwindow) {
-            this->rootwindow->fm->releaseFont(this->font);
-            this->font = this->rootwindow->fm->getFont(getFontPath(), getFontName(), getFontSize());
-        }
-    if (refresh)
-        this->refresh();
+	setFont(MMSLANG_NONE, fontpath, fontname, fontsize, load, refresh);
 }
 
 void MMSLabelWidget::setAlignment(MMSALIGNMENT alignment, bool refresh) {
     myLabelWidgetClass.setAlignment(alignment);
+
+    // refresh is required
+    enableRefresh();
+
     if (refresh)
         this->refresh();
 }
 
 void MMSLabelWidget::setColor(MMSFBColor color, bool refresh) {
     myLabelWidgetClass.setColor(color);
-    if (refresh)
+
+	// refresh required?
+	enableRefresh((color != this->current_fgcolor));
+
+	if (refresh)
         this->refresh();
 }
 
 void MMSLabelWidget::setSelColor(MMSFBColor selcolor, bool refresh) {
     myLabelWidgetClass.setSelColor(selcolor);
-    if (refresh)
+
+	// refresh required?
+	enableRefresh((selcolor != this->current_fgcolor));
+
+	if (refresh)
+        this->refresh();
+}
+
+void MMSLabelWidget::setColor_p(MMSFBColor color_p, bool refresh) {
+    myLabelWidgetClass.setColor_p(color_p);
+
+	// refresh required?
+	enableRefresh((color_p != this->current_fgcolor));
+
+	if (refresh)
+        this->refresh();
+}
+
+void MMSLabelWidget::setSelColor_p(MMSFBColor selcolor_p, bool refresh) {
+    myLabelWidgetClass.setSelColor_p(selcolor_p);
+
+	// refresh required?
+	enableRefresh((selcolor_p != this->current_fgcolor));
+
+	if (refresh)
+        this->refresh();
+}
+
+void MMSLabelWidget::setColor_i(MMSFBColor color_i, bool refresh) {
+    myLabelWidgetClass.setColor_i(color_i);
+
+	// refresh required?
+	enableRefresh((color_i != this->current_fgcolor));
+
+	if (refresh)
+        this->refresh();
+}
+
+void MMSLabelWidget::setSelColor_i(MMSFBColor selcolor_i, bool refresh) {
+    myLabelWidgetClass.setSelColor_i(selcolor_i);
+
+	// refresh required?
+	enableRefresh((selcolor_i != this->current_fgcolor));
+
+	if (refresh)
         this->refresh();
 }
 
 void MMSLabelWidget::setText(string text, bool refresh) {
     myLabelWidgetClass.setText(text);
     this->translated = false;
+
+    // refresh is required
+    enableRefresh();
+
     if (refresh)
         this->refresh();
 }
@@ -394,7 +662,11 @@ void MMSLabelWidget::setSlidable(bool slidable) {
         if (labelThread)
             labelThread->stop();
     	this->slide_offset = 0;
-    	this->refresh();
+
+        // refresh is required
+        enableRefresh();
+
+        this->refresh();
     }
 }
 
@@ -407,32 +679,52 @@ void MMSLabelWidget::setSlideSpeed(unsigned char slidespeed) {
 void MMSLabelWidget::setTranslate(bool translate, bool refresh) {
     myLabelWidgetClass.setTranslate(translate);
     this->translated = false;
+
+    // refresh is required
+    enableRefresh();
+
     if (refresh)
         this->refresh();
 }
 
+
+
+void MMSLabelWidget::setShadowColor(MMSPOSITION position, MMSFBColor color, bool refresh) {
+    myLabelWidgetClass.setShadowColor(position, color);
+
+    // refresh is required
+    enableRefresh();
+
+    if (refresh)
+        this->refresh();
+}
+
+void MMSLabelWidget::setSelShadowColor(MMSPOSITION position, MMSFBColor selcolor, bool refresh) {
+    myLabelWidgetClass.setSelShadowColor(position, selcolor);
+
+    // refresh is required
+    enableRefresh();
+
+    if (refresh)
+        this->refresh();
+}
+
+
+
 void MMSLabelWidget::updateFromThemeClass(MMSLabelWidgetClass *themeClass) {
-    if (themeClass->isFontPath())
-        setFontPath(themeClass->getFontPath());
-    if (themeClass->isFontName())
-        setFontName(themeClass->getFontName());
-    if (themeClass->isFontSize())
-        setFontSize(themeClass->getFontSize());
-    if (themeClass->isAlignment())
-        setAlignment(themeClass->getAlignment());
-    if (themeClass->isColor())
-        setColor(themeClass->getColor());
-    if (themeClass->isSelColor())
-        setSelColor(themeClass->getSelColor());
-    if (themeClass->isText())
-        setText(themeClass->getText());
-    if (themeClass->isSlidable())
+
+	// update widget-specific settings
+	if (themeClass->isSlidable())
         setSlidable(themeClass->getSlidable());
     if (themeClass->isSlideSpeed())
         setSlideSpeed(themeClass->getSlideSpeed());
     if (themeClass->isTranslate())
         setTranslate(themeClass->getTranslate());
 
+    // update base text-specific settings
+	MMSTEXTBASE_UPDATE_FROM_THEME_CLASS(this, themeClass);
+
+	// update general widget settings
     MMSWidget::updateFromThemeClass(&(themeClass->widgetClass));
 }
 

@@ -1,0 +1,93 @@
+<mmsdialog>
+		<childwindow name = "photos"
+					 w    = "100%" 
+					 h    = "100%-100"
+					 own_surface="true"
+					 class="clipping_childwindow"
+		>
+			<childwindow name = "photos_menuwin"
+						 w    = "100%" 
+						 h    = "100%"
+						 show = "true"
+						 own_surface="true"
+						 class="clipping_childwindow"
+						 
+			>
+				<vbox>
+					<gap/>
+					<hbox size="364px">
+						<gap/>
+						<menu size="708px" name = "photos_menu" class = "photos_menu" inputmode="MOVE">
+							<menuitem widget.photos_image.image.name=	"photos/fuerteventura_1.png"
+									  widget.photos_image.selimage.name="photos/fuerteventura_1.png"
+									  widget.photos_image.data=			"photos/fuerteventura_1_big.png"
+									  widget.photos_image_caption.text=	"#1 Fuerteventura, Aug 09"/>
+							<menuitem widget.photos_image.image.name=	"photos/fuerteventura_2.png"
+									  widget.photos_image.selimage.name="photos/fuerteventura_2.png"
+									  widget.photos_image.data=			"photos/fuerteventura_2_big.png"
+									  widget.photos_image_caption.text=	"#2 Fuerteventura, Aug 09"/>
+							<menuitem widget.photos_image.image.name=	"photos/fuerteventura_3.png"
+									  widget.photos_image.selimage.name="photos/fuerteventura_3.png"
+									  widget.photos_image.data=			"photos/fuerteventura_3_big.png"
+									  widget.photos_image_caption.text=	"#3 Fuerteventura, Aug 09"/>
+							<menuitem widget.photos_image.image.name=	"photos/gran_canaria_1.png"
+									  widget.photos_image.selimage.name="photos/gran_canaria_1.png"
+									  widget.photos_image.data=			"photos/gran_canaria_1_big.png"
+									  widget.photos_image_caption.text=	"#4 Gran Canaria, Oct 09"/>
+							<menuitem widget.photos_image.image.name=	"photos/gran_canaria_2.png"
+									  widget.photos_image.selimage.name="photos/gran_canaria_2.png"
+									  widget.photos_image.data=			"photos/gran_canaria_2_big.png"
+									  widget.photos_image_caption.text=	"#5 Gran Canaria, Oct 09"/>
+							<menuitem widget.photos_image.image.name=	"photos/gran_canaria_3.png"
+									  widget.photos_image.selimage.name="photos/gran_canaria_3.png"
+									  widget.photos_image.data=			"photos/gran_canaria_3_big.png"
+									  widget.photos_image_caption.text=	"#6 Gran Canaria, Oct 09"/>
+						</menu>
+						<gap/>
+					</hbox>
+					<gap/>
+				</vbox>				
+			</childwindow>
+			
+			<childwindow name = "photos_zoomwin"
+						 w    = "224px" 
+						 h    = "168px"
+						 show = "false"
+						 own_surface="true"
+						 class="clipping_childwindow"
+			>
+				<image name="photos_image" useratio="true">
+					<vbox>
+						<gap/>
+						<label size="14px" name="photos_image_caption" class="default_label" font.size="10"/>
+					</vbox>
+				</image>
+			</childwindow>
+			
+			<childwindow name = "photos_finalwin"
+						 w    = "100%" 
+						 h    = "100%"
+						 show = "false"
+						 own_surface="true"
+						 class="clipping_childwindow"
+			>
+				<image name="photos_fimage" useratio="true">
+					<hbox>
+						<gap/>
+						<vbox size="506px">
+							<gap/>
+							<image size="22px" bgcolor="#000000a0" selbgcolor="#000000a0">
+								<hbox>
+									<gap size="4px"/>
+									<label name="photos_fimage_caption" class="default_label" font.size="14" alignment="left"/>
+									<gap size="4px"/>
+								</hbox>
+							</image>
+						</vbox>
+						<gap/>
+					</hbox>
+				</image>
+			</childwindow>
+			
+		</childwindow>
+</mmsdialog>

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -216,6 +216,9 @@ class MMSWindow {
         //!	background image
         MMSFBSurface        *bgimage;
 
+        //! background image set by application
+        bool				bgimage_from_external;
+
         //! border images
         MMSFBSurface        *borderimages[MMSBORDER_IMAGE_NUM_SIZE];
 
@@ -373,6 +376,7 @@ class MMSWindow {
 		int 			anim_move_step;
 
 
+		bool			need_redraw;
 
 
         //! Internal method: Creates the window.
@@ -393,7 +397,7 @@ class MMSWindow {
         bool removeChildWindow(MMSWindow *childwin);
 
         //! Internal method: Set the opacity of a child window.
-        bool setChildWindowOpacity(MMSWindow *childwin, unsigned char opacity);
+        bool setChildWindowOpacity(MMSWindow *childwin, unsigned char opacity, bool refresh = true);
 
         //! Internal method: Set the region of a child window.
         bool setChildWindowRegion(MMSWindow *childwin, bool refresh = true);
@@ -432,7 +436,7 @@ class MMSWindow {
 
         //! Internal method: Draw me.
         virtual void draw(bool toRedrawOnly = false, MMSFBRectangle *rect2update = NULL,
-        				  bool clear = true);
+        				  bool clear = true, unsigned char opacity = 255);
 
 
 		//! tbd
@@ -443,7 +447,7 @@ class MMSWindow {
 
 
         //! Internal method: Draw my border.
-        void drawMyBorder();
+        void drawMyBorder(unsigned char opacity = 255);
 
         //! Internal method: Focus one widget/child window for the first time.
         bool setFirstFocus(bool cw = false);
@@ -501,7 +505,7 @@ class MMSWindow {
         void refreshFromChild(MMSWidget *child, MMSFBRectangle *rect2update = NULL, bool check_shown = true);
 
         //! Internal method: Set the focused widget.
-        void setFocusedWidget(MMSWidget *child, bool set, bool switchfocus = false);
+        void setFocusedWidget(MMSWidget *child, bool set, bool switchfocus = false, bool refresh = true);
 
         //! Internal method: Will be called by MMSInputManager if the window has the input focus.
         bool handleInput(MMSInputEvent *inputevent);
@@ -516,7 +520,7 @@ class MMSWindow {
 		void instantHide();
 
         //! Internal method: Inform the window, that the language has changed.
-        void targetLangChanged(int lang, bool refresh = true);
+        void targetLangChanged(MMSLanguage lang, bool refresh = true);
 
         //! Internal method: Inform the window, that the theme has changed.
         void themeChanged(string &themeName, bool refresh = true);
@@ -560,6 +564,12 @@ class MMSWindow {
         \return pointer to the MMSWindow object or NULL
         */
         MMSWindow* findWindow(string name);
+
+        //! Return last window in the stack.
+        /*!
+        \return pointer to the MMSWindow object or NULL
+        */
+        MMSWindow* getLastWindow();
 
         //! Makes a window visible.
         /*!
@@ -685,9 +695,10 @@ class MMSWindow {
         //! Is the window shown?
         /*!
         \param checkparents		if true the parent(s) will be check too
+        \param checkopacity		if true the opacity of window(s) will be check too
         \return true, if the window is shown
         */
-        bool isShown(bool checkparents = false);
+        bool isShown(bool checkparents = false, bool checkopacity = false);
 
         //! Is the hide action running?
         /*!
@@ -700,9 +711,10 @@ class MMSWindow {
 
         //! Is the window focused?
         /*!
+        \param checkparents		if true the parent(s) will be check too
         \return true, if the window is focused
         */
-        bool getFocus();
+        bool getFocus(bool checkparents = false);
 
         //! Find a widget with a given name.
         /*!
@@ -995,6 +1007,45 @@ class MMSWindow {
         sigc::signal<bool, MMSWindow*, MMSInputEvent*>::accumulated<neg_bool_accumulator> *onBeforeHandleInput;
 
 
+        //! Set one or more callbacks for the onDraw event.
+        /*!
+        The connected callbacks will be called if the window will be drawn.
+
+        A callback method must be defined like this:
+
+        	bool myclass::mycallbackmethod(MMSFBSurface *surface, bool clear);
+
+        	\param surface		is the pointer to window's surface
+        	\param clear		if true, the callback should clear the surface before drawing
+
+        	\return callback should return true if it has drawn to the surface, else false
+
+        To connect your callback to onDraw do this:
+
+            sigc::connection connection;
+            connection = mywindow->onDraw->connect(sigc::mem_fun(myobject,&myclass::mycallbackmethod));
+
+        To disconnect your callback do this:
+
+            connection.disconnect();
+
+        Please note:
+
+            You HAVE TO disconnect myobject from onDraw BEFORE myobject will be deleted!!!
+            Else an abnormal program termination can occur.
+            You HAVE TO call the disconnect() method of sigc::connection explicitly. The destructor will NOT do this!!!
+        */
+        sigc::signal<bool, MMSFBSurface*, bool>::accumulated<neg_bool_accumulator> *onDraw;
+
+
+
+
+
+
+
+
+        unsigned int printStack(char *buffer, int space = 0);
+
     public:
         /* begin of theme access methods *************************************/
 
@@ -1233,6 +1284,15 @@ class MMSWindow {
         */
         bool getBackBuffer(bool &backbuffer);
 
+    	//! Detect if the window is loading images, fonts etc. during initialization.
+        /*!
+        \param initialload	returns the initial load flag
+        \return true, if value is successfully returned
+        \note Per default initial load is false. That means that the window and it's widgets
+              will load images, fonts etc. during the first show().
+        */
+        bool getInitialLoad(bool &initialload);
+
         //! Get the color of the window border.
         /*!
         \param color	returns the border color
@@ -1357,6 +1417,13 @@ class MMSWindow {
         \param refresh		refresh the window after changing the bgimagename?
         */
         void setBgImageName(string bgimagename, bool load = true, bool refresh = true);
+
+        //! Set background image already loaded by the application
+        /*!
+        \param bgimage		pointer to surface or NULL
+        \param refresh		refresh the window after changing?
+        */
+        void setBgImage(MMSFBSurface *bgimage, bool refresh = true);
 
         //! Set the opacity of the window.
         /*!
@@ -1511,6 +1578,12 @@ class MMSWindow {
         \param backbuffer	if true, the window surface has a front and a backbuffer
         */
         void setBackBuffer(bool backbuffer);
+
+        //! Set the initial load flag of the window.
+        /*!
+        \param initialload	if true, the window is loading images, fonts etc. during initialization
+        */
+        void setInitialLoad(bool initialload);
 
         //! Set the color of the window border.
         /*!

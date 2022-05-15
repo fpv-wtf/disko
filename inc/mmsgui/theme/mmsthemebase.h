@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -70,17 +70,40 @@ typedef enum {
 
 
 MMSALIGNMENT getAlignmentFromString(string inputstr);
+MMSALIGNMENT swapAlignmentHorizontal(MMSALIGNMENT alignment);
 
 typedef enum {
     MMSDIRECTION_NOTSET=0,
     MMSDIRECTION_LEFT,
     MMSDIRECTION_RIGHT,
     MMSDIRECTION_UP,
-    MMSDIRECTION_DOWN
+    MMSDIRECTION_DOWN,
+    MMSDIRECTION_UP_LEFT,
+    MMSDIRECTION_UP_RIGHT,
+    MMSDIRECTION_DOWN_LEFT,
+    MMSDIRECTION_DOWN_RIGHT,
+    MMSDIRECTION_SIZE
 } MMSDIRECTION;
 
 
 MMSDIRECTION getDirectionFromString(string inputstr);
+
+
+typedef enum {
+    MMSPOSITION_NOTSET=0,
+    MMSPOSITION_LEFT,
+    MMSPOSITION_RIGHT,
+    MMSPOSITION_TOP,
+    MMSPOSITION_BOTTOM,
+    MMSPOSITION_TOP_LEFT,
+    MMSPOSITION_TOP_RIGHT,
+    MMSPOSITION_BOTTOM_LEFT,
+    MMSPOSITION_BOTTOM_RIGHT,
+    MMSPOSITION_SIZE
+} MMSPOSITION;
+
+
+MMSPOSITION getPositionFromString(string inputstr);
 
 
 #define MMSTHEMECLASS_INIT_STRING(x) \
@@ -180,6 +203,9 @@ MMSDIRECTION getDirectionFromString(string inputstr);
 #define endTAFFScan_WITHOUT_ID } }
 
 
+//! macro for widget specific setAttributesFromTAFF() implementation
+#define ISATTRNAME(aname) ((strcmp(attrname, GETATTRNAME(aname))==0)?(tafff->convertString2TaffAttributeType(GETATTRTYPE(aname), attrval_str, &attrval_str_valid, &int_val_set, &byte_val_set, p_int_val, attrname, attrid, tafff->getCurrentTagName())):(0))
+
 
 
 
@@ -227,6 +253,9 @@ namespace MMSGUI_BASE_ATTR {
 		MMSGUI_BASE_ATTR_IDS
 	} ids;
 }
+
+
+
 
 
 #endif /*MMSTHEMEBASE_H_*/

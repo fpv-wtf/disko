@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -98,7 +98,7 @@ MMSImportPropertyData *MMSImportPropertyDAO::findImportPropertyByPlugin(MMSPlugi
 
     /* check if result is empty */
     if (rs.getCount()==0)
-        throw new MMSImportPropertyDAOError(0,"ImportProperties for PluginID " + iToStr(plugin->getId()) + " not found");
+        throw MMSImportPropertyDAOError(0,"ImportProperties for PluginID " + iToStr(plugin->getId()) + " not found");
 
     /* fill the return data */
     return moveRecordToData(rs);

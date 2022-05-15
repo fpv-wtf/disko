@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -39,12 +39,12 @@
 namespace MMSGUI_PROGRESSBARWIDGET_ATTR {
 
 	#define MMSGUI_PROGRESSBARWIDGET_ATTR_ATTRDESC \
-		{ "color", TAFF_ATTRTYPE_STRING }, \
+		{ "color", TAFF_ATTRTYPE_COLOR }, \
 		{ "color.a", TAFF_ATTRTYPE_UCHAR }, \
 		{ "color.r", TAFF_ATTRTYPE_UCHAR }, \
 		{ "color.g", TAFF_ATTRTYPE_UCHAR }, \
 		{ "color.b", TAFF_ATTRTYPE_UCHAR }, \
-		{ "selcolor", TAFF_ATTRTYPE_STRING }, \
+		{ "selcolor", TAFF_ATTRTYPE_COLOR }, \
 		{ "selcolor.a", TAFF_ATTRTYPE_UCHAR }, \
 		{ "selcolor.r", TAFF_ATTRTYPE_UCHAR }, \
 		{ "selcolor.g", TAFF_ATTRTYPE_UCHAR }, \

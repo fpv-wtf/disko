@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -165,8 +165,9 @@ bool MMSWindowManager::hideAllRootWindows(bool willshown) {
             }
 
     // if at least one root window was hidden and no other will shown, show the default root window
-    if ((ret)&&(!willshown))
+    if ((ret)&&(!willshown)) {
     	showBackgroundWindow();
+    }
 
     // return true if at least one root window was found
     return ret;
@@ -289,8 +290,9 @@ void MMSWindowManager::removeWindowFromToplevel(MMSWindow *window) {
 }
 
 void MMSWindowManager::setBackgroundWindow(MMSWindow *window) {
-    if (window)
+    if (window) {
         this->backgroundwindow = window;
+    }
     showBackgroundWindow();
 }
 
@@ -302,8 +304,10 @@ void MMSWindowManager::showBackgroundWindow() {
 	if (this->backgroundwindow) {
 		unsigned int opacity;
 		if (this->backgroundwindow->getOpacity(opacity))
-			if (opacity)
+			if (opacity) {
 				this->backgroundwindow->show();
+				this->backgroundwindow->waitUntilShown();
+			}
 	}
 }
 
@@ -315,7 +319,7 @@ MMSTranslator *MMSWindowManager::getTranslator() {
 	return &this->translator;
 }
 
-void MMSWindowManager::onTargetLangChanged(int lang) {
+void MMSWindowManager::onTargetLangChanged(MMSLanguage lang) {
 	// the language has changed, inform all windows
     for (unsigned int i = 0; i < this->windows.size(); i++) {
         this->windows.at(i)->targetLangChanged(lang);
@@ -390,5 +394,49 @@ void MMSWindowManager::onThemeChanged(string themeName, bool fade_in) {
     	this->pulser.setStepsPerSecond(255);
     	this->pulser.start(false);
     }
+}
+
+unsigned int MMSWindowManager::printStack(char *buffer) {
+	if (!buffer) {
+		char buffer[50*1024];
+		memset((void*)buffer, ' ', sizeof(buffer));
+		char *ptr = buffer;
+
+		// print header
+		int cnt;
+		cnt = sprintf(ptr, "NAME                             THIS     STATE         OPACITY OWN_SURFACE\n");
+		ptr[cnt] = ' ';
+		ptr+= cnt;
+		cnt = sprintf(ptr, "---------------------------------------------------------------------------\n");
+		ptr[cnt] = ' ';
+		ptr+= cnt;
+
+		for (unsigned int i = 0; i < this->windows.size(); i++) {
+			ptr += this->windows.at(i)->printStack(ptr);
+		}
+
+		*ptr = 0;
+		printf(buffer);
+		return (unsigned int)(ptr - buffer);
+	}
+	else {
+		char *ptr = buffer;
+
+		// print header
+		int cnt;
+		cnt = sprintf(ptr, "NAME                             THIS     STATE         OPACITY OWN_SURFACE\n");
+		ptr[cnt] = ' ';
+		ptr+= cnt;
+		cnt = sprintf(ptr, "---------------------------------------------------------------------------\n");
+		ptr[cnt] = ' ';
+		ptr+= cnt;
+
+		for (unsigned int i = 0; i < this->windows.size(); i++) {
+			ptr += this->windows.at(i)->printStack(ptr);
+		}
+
+		*ptr = 0;
+		return (unsigned int)(ptr - buffer);
+	}
 }
 

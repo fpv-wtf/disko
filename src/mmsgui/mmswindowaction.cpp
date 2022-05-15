@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -67,8 +67,8 @@ void MMSWindowAction::threadMain() {
     	this->stopaction = false;
     	this->action = MMSWACTION_NONE;
 
-    } catch(MMSError *error) {
-    	DEBUGMSG("MMSGUI", "Error: %s", error->getMessage().c_str());
+    } catch(MMSError &error) {
+    	DEBUGMSG("MMSGUI", "Error: " + error.getMessage());
     }
 }
 

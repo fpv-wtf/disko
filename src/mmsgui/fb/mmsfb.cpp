@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -45,37 +45,43 @@ MMSFB *mmsfb = new MMSFB();
 
 void MMSFB_AtExit() {
 	if (mmsfb)
-		mmsfb->release(); 
+		mmsfb->release();
 }
 
-MMSFB::MMSFB() :
-	argc(0),
-	argv(NULL),
-	initialized(false),
+MMSFB::MMSFB() {
+	this->argc = 0;
+	this->argv = NULL;
+	this->initialized = false;
 #ifdef  __HAVE_DIRECTFB__
-    dfb(NULL),
+	this->dfb = NULL;
 #endif
 #ifdef  __HAVE_FBDEV__
-    mmsfbdev(NULL),
+	this->mmsfbdev = NULL;
 #endif
 #ifdef __HAVE_XLIB__
-    x_display(NULL),
-	xv_port(0),
+	this->x_display = NULL;
 #endif
-	outputtype(MMSFB_OT_NONE) {
+#ifdef __HAVE_XV__
+	this->xv_port = 0;
+#endif
+#ifdef __HAVE_OPENGL__
+	this->bei = NULL;
+#endif
+
 	// set the atexit routine
 	atexit(MMSFB_AtExit);
 }
 
 MMSFB::~MMSFB() {
-#ifdef __HAVE_XLIB__
+#ifdef __HAVE_XV__
 	if(this->x_display && this->xv_port) {
 		XvUngrabPort(this->x_display, this->xv_port, CurrentTime);
 	}
 #endif
 }
 
-bool MMSFB::init(int argc, char **argv, MMSFBBackend backend, MMSFBOutputType outputtype, MMSFBRectangle x11_win_rect,
+
+bool MMSFB::init(int argc, char **argv, MMSFBBackend backend, MMSFBRectangle x11_win_rect,
 				 bool extendedaccel, MMSFBFullScreenMode fullscreen, MMSFBPointerMode pointer,
 				 string appl_name, string appl_icon_name, bool hidden) {
 
@@ -88,13 +94,19 @@ bool MMSFB::init(int argc, char **argv, MMSFBBackend backend, MMSFBOutputType ou
     // save arguments
     this->argc = argc;
     this->argv = argv;
+    this->bin = argv[0];
+    this->appliconname = appl_icon_name;
+    this->applname = appl_name;
+    this->fullscreen = fullscreen;
 
     // init layer pointers
     memset(this->layer, 0, sizeof(MMSFBLayer *) * MMSFBLAYER_MAXNUM);
 
+#ifdef __HAVE_XLIB__
+    memset(this->x_windows, 0, sizeof(Window) * MMSFBLAYER_MAXNUM);
     // basic information mainly needed by X11 initialization
-    this->outputtype = outputtype;
     this->x11_win_rect = x11_win_rect;
+#endif
 
     // which backend should i use?
 	this->backend = backend;
@@ -123,31 +135,20 @@ bool MMSFB::init(int argc, char **argv, MMSFBBackend backend, MMSFBOutputType ou
 		return false;
 #endif
 	}
-	else
-	if (this->backend == MMSFB_BE_NONE) {
-		// fall back, auto detection
-		this->backend = MMSFB_BE_DFB;
-#ifdef __HAVE_XLIB__
-		if ((this->outputtype == MMSFB_OT_X11)&&(extendedaccel)) {
-			this->backend = MMSFB_BE_X11;
-			XInitThreads();
-			this->resized=false;
-		}
-#endif
-	}
 	else {
 		MMSFB_SetError(0, "wrong backend " + getMMSFBBackendString(backend));
 		return false;
 	}
 
+
     if (this->backend == MMSFB_BE_DFB) {
 #ifdef __HAVE_DIRECTFB__
         DFBResult dfbres;
 
-        /* init dfb */
+        // init dfb
 		DirectFBInit(&this->argc,&this->argv);
 
-		/* get interface to dfb */
+		// get interface to dfb
 		if ((dfbres = DirectFBCreate(&this->dfb)) != DFB_OK) {
 			MMSFB_SetError(dfbres, "DirectFBCreate() failed");
 			return false;
@@ -155,44 +156,13 @@ bool MMSFB::init(int argc, char **argv, MMSFBBackend backend, MMSFBOutputType ou
 #endif
     }
     else
-    if (this->backend == MMSFB_BE_FBDEV) {
-#ifdef __HAVE_FBDEV__
-		if (this->outputtype == MMSFB_OT_MATROXFB) {
-			// matroxfb
-    		this->mmsfbdev = new MMSFBDevMatrox();
-		}
-		else
-		if (this->outputtype == MMSFB_OT_DAVINCIFB) {
-			// davincifb
-    		this->mmsfbdev = new MMSFBDevDavinci();
-		}
-		else
-		if (this->outputtype == MMSFB_OT_OMAPFB) {
-			// omapfb
-		    DEBUGMSG("MMSGUI", "create new MMSFBDevOmap()");
-    		this->mmsfbdev = new MMSFBDevOmap();
-		    DEBUGMSG("MMSGUI", "created new MMSFBDevOmap()");
-		}
-		else {
-			// default fbdev
-		    DEBUGMSG("MMSGUI", "create generic fbdev");
-    		this->mmsfbdev = new MMSFBDev();
-		}
-
-    	if (this->mmsfbdev)
-			if (!this->mmsfbdev->openDevice()) {
-				MMSFB_SetError(0, "MMSFBDEV device cannot be opened");
-				return false;
-			}
-#endif
-    }
-    else {
+    if (this->backend == MMSFB_BE_X11) {
 #ifdef __HAVE_XLIB__
-		// initialize the X11 window
         if (!(this->x_display = XOpenDisplay((char*)0))) {
 			MMSFB_SetError(0, "XOpenDisplay() failed");
         	return false;
         }
+
         this->x_screen = DefaultScreen(this->x_display);
 
         Window myroot=RootWindow(this->x_display, this->x_screen);
@@ -201,134 +171,15 @@ bool MMSFB::init(int argc, char **argv, MMSFBBackend backend, MMSFBOutputType ou
         unsigned int borderw, depthret;
         XGetGeometry(this->x_display, myroot, &root_ret, &myx, &myy, (unsigned int *)&(this->display_w), (unsigned int *)&(this->display_h), &borderw, &depthret);
 
-		//XF86VidModeGetModeLine(this->x_display, 0, &dot, &line);
-		/*this->display_w=line.hdisplay;
-		this->display_h=line.vdisplay;*/
         printf("w: %d, h: %d\n", this->display_w, this->display_h);
 
-		XSetWindowAttributes x_window_attr;
-		x_window_attr.event_mask        = StructureNotifyMask | ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |PointerMotionMask|EnterWindowMask|ResizeRedirectMask;
-		x_window_attr.background_pixel  = 0;
-		x_window_attr.border_pixel      = 0;
+		x_depth=DefaultDepth(this->x_display, this->x_screen);
+		rootimage =  XGetImage(mmsfb->x_display, myroot, 0, 0,
+				      mmsfb->display_w,mmsfb->display_h, -1, ZPixmap);
+		x_depth=DefaultDepth(this->x_display, this->x_screen);
 
-
-		unsigned long x_window_mask;
-		//this->window_w
-		this->fullscreen = fullscreen;
-		if (fullscreen == MMSFB_FSM_TRUE || fullscreen == MMSFB_FSM_ASPECT_RATIO) {
-			x_window_mask = CWBackPixel | CWBorderPixel |  CWEventMask |CWOverrideRedirect;
-			x_window_attr.override_redirect = True;
-	/*		int cnt;
-			XF86VidModeModeInfo **info;
-			XF86VidModeGetAllModeLines(this->x_display, 0, &cnt, &info);
-			int best=-1;
-			for(int i=0;i<cnt;i++) {
-				if((info[i]->hdisplay==w)&&(info[i]->vdisplay==h)) {
-					best=i;
-					break;
-				}
-				//printf("w,h: %d %d\n", info[i]->hdisplay,info[i]->vdisplay);
-			}
-*/
-			int x_depth = DefaultDepth(this->x_display, this->x_screen);
-			this->x_window = XCreateWindow(this->x_display, DefaultRootWindow(this->x_display), 0, 0, this->display_w, this->display_h, 0, x_depth,
-										   InputOutput, CopyFromParent, x_window_mask, &x_window_attr);
-		} else {
-			this->fullscreen = MMSFB_FSM_FALSE;
-			x_window_mask = CWBackPixel | CWBorderPixel |  CWEventMask ;
-			x_window_attr.override_redirect = 0;
-			int x_depth = DefaultDepth(this->x_display, this->x_screen);
-			this->x_window = XCreateWindow(this->x_display, DefaultRootWindow(this->x_display),
-										   this->x11_win_rect.x, this->x11_win_rect.y, this->x11_win_rect.w, this->x11_win_rect.h,
-										   0, x_depth, InputOutput, CopyFromParent, x_window_mask, &x_window_attr);
-		}
-
-		XStoreName(this->x_display, this->x_window, appl_name.c_str());
-		XSetIconName(this->x_display, this->x_window, appl_icon_name.c_str());
-		XClassHint clhi;
-		clhi.res_name=(argc ? basename(argv[0]) : (char*)"disko");
-		clhi.res_class=(char*)"disko";
-		XSetClassHint(this->x_display, this->x_window,&clhi);
-		this->x_gc = XCreateGC(this->x_display, this->x_window, 0, 0);
-		if(!hidden) {
-			XMapWindow(this->x_display, this->x_window);
-			XEvent x_event;
-			do {
-				XNextEvent(this->x_display, &x_event);
-			}
-			while (x_event.type != MapNotify || x_event.xmap.event != this->x_window);
-
-			XRaiseWindow(this->x_display, this->x_window);
-		}
-		// hide X cursor
-//		if(this->outputtype != MMS_OT_XSHM) {
-		if (pointer != MMSFB_PM_EXTERNAL) {
-			Pixmap bm_no;
-			Colormap cmap;
-			Cursor no_ptr;
-			XColor black, dummy;
-			static char bm_no_data[] = {0, 0, 0, 0, 0, 0, 0, 0};
-
-			cmap = DefaultColormap(this->x_display, DefaultScreen(this->x_display));
-			XAllocNamedColor(this->x_display, cmap, "black", &black, &dummy);
-			bm_no = XCreateBitmapFromData(this->x_display, this->x_window, bm_no_data, 8, 8);
-			no_ptr = XCreatePixmapCursor(this->x_display, bm_no, bm_no, &black, &black, 0, 0);
-
-			XDefineCursor(this->x_display, this->x_window, no_ptr);
-			XFreeCursor(this->x_display, no_ptr);
-			if (bm_no != None)
-					XFreePixmap(this->x_display, bm_no);
-			XFreeColors(this->x_display, cmap, &black.pixel, 1, 0);
-		}
-		if(!hidden)
-			XSetInputFocus(this->x_display, this->x_window,RevertToPointerRoot,CurrentTime);
-
-
-		if (mmsfb->outputtype == MMSFB_OT_XSHM) {
-			// XSHM
-	        if (!XShmQueryExtension(this->x_display)) {
-				MMSFB_SetError(0, "XShmQueryExtension() failed");
-	        	return false;
-	        }
-
-	        this->x_visual = DefaultVisual(this->x_display, 0);
-	        this->x_depth = DefaultDepth(this->x_display, 0);
-
-//printf("depth=%d\n", this->x_depth);
-//exit(0);
-		}
-		else {
-			// XVSHM
-			unsigned int 	p_version,
-							p_release,
-							p_request_base,
-							p_event_base,
-							p_error_base;
-	        if (XvQueryExtension(this->x_display, &p_version, &p_release, &p_request_base, &p_event_base, &p_error_base) != Success) {
-				MMSFB_SetError(0, "XvQueryExtension() failed");
-	        	return false;
-	        }
-
-	        unsigned int num_adaptors;
-			XvAdaptorInfo *ai;
-			if (XvQueryAdaptors(this->x_display, DefaultRootWindow(this->x_display), &num_adaptors, &ai)) {
-				MMSFB_SetError(0, "XvQueryAdaptors() failed");
-				return false;
-			}
-			printf("DISKO: Available xv adaptors:\n");
-			for(unsigned int cnt=0;cnt<num_adaptors;cnt++) {
-				/* grab the first port with XvImageMask bit */
-				if((this->xv_port == 0) &&
-				   (ai[cnt].type & XvImageMask) &&
-				   (XvGrabPort(this->x_display, ai[cnt].base_id, 0) == Success)) {
-					this->xv_port = ai[cnt].base_id;
-					printf("  %s (used)\n", ai[cnt].name);
-				}
-				else
-					printf("  %s\n", ai[cnt].name);
-			}
-			XvFreeAdaptorInfo(ai);
-		}
+		this->hidden = hidden;
+		this->pointer = pointer;
 #endif
     }
 
@@ -337,6 +188,11 @@ bool MMSFB::init(int argc, char **argv, MMSFBBackend backend, MMSFBOutputType ou
 }
 
 bool MMSFB::release() {
+#ifdef __HAVE_OPENGL__
+	// stop backend interface server
+	if (this->bei) delete this->bei;
+#endif
+
     if (this->backend == MMSFB_BE_DFB) {
 #ifdef  __HAVE_DIRECTFB__
 		if (this->dfb)
@@ -352,7 +208,7 @@ bool MMSFB::release() {
     	}
 #endif
     }
-	else {
+    else {
 #ifdef __HAVE_XLIB__
 #endif
     }
@@ -369,7 +225,17 @@ MMSFBBackend MMSFB::getBackend() {
 	return this->backend;
 }
 
-bool MMSFB::getLayer(int id, MMSFBLayer **layer) {
+bool MMSFB::lock() {
+	this->Lock.lock();
+	return true;
+}
+
+bool MMSFB::unlock() {
+	this->Lock.unlock();
+	return true;
+}
+
+bool MMSFB::getLayer(int id, MMSFBLayer **layer, MMSFBOutputType outputtype, bool virtual_console) {
 
 	// check if initialized
     INITCHECK;
@@ -380,8 +246,101 @@ bool MMSFB::getLayer(int id, MMSFBLayer **layer) {
         return true;
     }
 
+
+    // check the backend / outputtype combination
+    if (this->backend == MMSFB_BE_X11) {
+		if (outputtype == MMSFB_OT_XVSHM) {
+#ifdef __HAVE_XV__
+#else
+			MMSFB_SetError(0, "compile X11/XV support!");
+			return false;
+#endif
+		}
+		else
+		if (outputtype == MMSFB_OT_OGL) {
+#ifdef __HAVE_OPENGL__
+#else
+			MMSFB_SetError(0, "compile OPENGL support!");
+			return false;
+#endif
+#ifdef __HAVE_GLX__
+#else
+			MMSFB_SetError(0, "compile GLX support!");
+			return false;
+#endif
+		}
+    }
+    else
+	if (this->backend == MMSFB_BE_FBDEV) {
+		if (outputtype == MMSFB_OT_OGL) {
+#ifdef __HAVE_OPENGL__
+#else
+			MMSFB_SetError(0, "compile OPENGL support!");
+			return false;
+#endif
+#ifdef __HAVE_EGL__
+#else
+			MMSFB_SetError(0, "compile EGL support!");
+			return false;
+#endif
+		}
+	}
+
+
+
+
+    if (this->backend == MMSFB_BE_FBDEV) {
+#ifdef __HAVE_FBDEV__
+    	if (!this->mmsfbdev) {
+			if (outputtype == MMSFB_OT_MATROXFB) {
+				// matroxfb
+				this->mmsfbdev = new MMSFBDevMatrox();
+			}
+			else
+			if (outputtype == MMSFB_OT_DAVINCIFB) {
+				// davincifb
+				this->mmsfbdev = new MMSFBDevDavinci();
+			}
+			else
+			if (outputtype == MMSFB_OT_OMAPFB) {
+				// omapfb
+				DEBUGMSG("MMSGUI", "create new MMSFBDevOmap()");
+				this->mmsfbdev = new MMSFBDevOmap();
+				DEBUGMSG("MMSGUI", "created new MMSFBDevOmap()");
+			}
+			else {
+				// default fbdev
+				DEBUGMSG("MMSGUI", "create generic fbdev");
+				this->mmsfbdev = new MMSFBDev();
+			}
+
+			if (this->mmsfbdev) {
+				if (!this->mmsfbdev->openDevice(NULL, (virtual_console) ? MMSFBDEV_QUERY_CONSOLE : MMSFBDEV_NO_CONSOLE)) {
+					MMSFB_SetError(0, "MMSFBDEV device cannot be opened");
+					return false;
+				}
+			}
+    	}
+#endif
+    }
+
+
+
+
+	if (outputtype == MMSFB_OT_OGL) {
+#ifdef __HAVE_OPENGL__
+		if (!this->bei) {
+			// start backend interface server
+			this->bei = new MMSFBBackEndInterface();
+		}
+#endif
+	}
+
+
+
+
     // create a new layer instance
-    *layer = new MMSFBLayer(id);
+    *layer = new MMSFBLayer(id, this->backend, outputtype);
     if (!*layer) {
         MMSFB_SetError(0, "cannot create new instance of MMSFBLayer");
         return false;
@@ -399,6 +358,23 @@ bool MMSFB::getLayer(int id, MMSFBLayer **layer) {
     return true;
 }
 
+
+bool MMSFB::getLayer(int id, MMSFBLayer **layer) {
+
+	// check if initialized
+    INITCHECK;
+
+    if (this->layer[id]) {
+        // i have already the layer
+        *layer = this->layer[id];
+        return true;
+    }
+
+    // layer is not initialized!!!
+    return false;
+}
+
+
 void *MMSFB::getX11Window() {
     if (this->backend == MMSFB_BE_DFB) {
 #ifdef  __HAVE_DIRECTFB__
@@ -411,7 +387,9 @@ void *MMSFB::getX11Window() {
 	}
     else {
 #ifdef __HAVE_XLIB__
-    	return &this->x_window;
+
+    	return &this->input_window;
+    	//return &this->x_window;
 #endif
     }
     return NULL;
@@ -532,3 +510,40 @@ bool MMSFB::resizeWindow() {
 	return true;
 }
 #endif
+
+void MMSFB::realignLayer() {
+#ifdef __HAVE_XLIB__
+	static bool first = true;
+
+	if(first==false)
+		return;
+
+	first=false;
+	for(int i=0; ;i++) {
+		if(mmsfb->x_windows[i]==0)
+			break;
+		else if(mmsfb->x_windows[i]!=mmsfb->input_window) {
+			XLockDisplay(mmsfb->x_display);
+			XLowerWindow(mmsfb->x_display, mmsfb->x_windows[i]);
+			XFlush(mmsfb->x_display);
+			XSync(mmsfb->x_display,False);
+			X11_IMPL *impl = (X11_IMPL *)mmsfb->layer[i]->getImplementation();
+
+			XPutImage(mmsfb->x_display, mmsfb->x_windows[i], impl->x_gc, mmsfb->rootimage, 0,0, 0, 0, mmsfb->display_w,
+					  mmsfb->display_h);
+
+			//XUnmapWindow(mmsfb->x_display, mmsfb->x_windows[i]);
+			//printf("unmapping layer %d\n", i);
+			XSync(mmsfb->x_display,False);
+
+			XMapWindow(mmsfb->x_display, mmsfb->x_windows[i]);
+			XRaiseWindow(mmsfb->x_display, mmsfb->input_window);
+
+			//printf("mapping layer %d\n", i);
+			XFlush(mmsfb->x_display);
+			XSync(mmsfb->x_display,False);
+			XUnlockDisplay(mmsfb->x_display);
+		}
+	}
+#endif
+}

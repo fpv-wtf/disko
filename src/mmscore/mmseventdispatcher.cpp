@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -55,7 +55,7 @@ void MMSEventDispatcher::raise(_IMMSEvent *event, int id) {
     	DEBUGMSG("MMSEventdispatcher", "have a direct receiver");
     	try {
     		thread = new MMSEventThread(this->getManager()->getOSDPluginHandler(id), e);
-	    } catch(MMSError *error) {
+	    } catch(MMSError &error) {
     		thread = new MMSEventThread(this->getManager()->getCentralPluginHandler(id), e);
 	    }
         thread->start();
@@ -95,8 +95,8 @@ void MMSEventDispatcher::raise(_IMMSEvent *event, int id) {
 	            thread->start();
 	        }
 
-        } catch (MMSEventSignupManagerError *err) {
-        	DEBUGMSG("MMSEventdispatcher", "Error: %s", err->getMessage().c_str());
+        } catch (MMSEventSignupManagerError &err) {
+        	DEBUGMSG("MMSEventdispatcher", "Error: %s", err.getMessage().c_str());
         	DEBUGMSG("MMSEventdispatcher", "try signal receivers");
         }
 
@@ -106,8 +106,8 @@ void MMSEventDispatcher::raise(_IMMSEvent *event, int id) {
 			for(vector <sigc::signal<void, _IMMSEvent*> *>::iterator it = mysignals.begin(); it != mysignals.end();it++) {
 				(*it)->emit(event);
 			}
-        } catch (MMSEventSignupManagerError *err) {
-        	DEBUGMSG("MMSEventdispatcher", "Error: %s", err->getMessage().c_str());
+        } catch (MMSEventSignupManagerError &err) {
+        	DEBUGMSG("MMSEventdispatcher", "Error: %s", err.getMessage().c_str());
         	return;
         }
 

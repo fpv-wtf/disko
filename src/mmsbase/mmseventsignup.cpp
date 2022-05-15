@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -60,7 +60,7 @@ void MMSEventSignup::add(string subscription) {
         for(unsigned int i=0; i<this->subscriptions.size();i++) {
             //subscriptions.at(i)->
             if(subscription.compare(*(subscriptions.at(i)))==0)
-                throw new MMSEventSignupError(0,"subscription already made");
+                throw MMSEventSignupError(0,"subscription already made");
         }
    }
    this->subscriptions.push_back(new string(subscription));

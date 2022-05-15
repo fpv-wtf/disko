@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -150,7 +150,7 @@ class MMSFBDevMatrox : public MMSFBDev {
         MMSFBDevMatrox();
         virtual ~MMSFBDevMatrox();
 
-        bool openDevice(char *device_file = NULL, int console = -1);
+        bool openDevice(char *device_file = NULL, int console = MMSFBDEV_QUERY_CONSOLE);
         void closeDevice();
 
         bool waitForVSync();

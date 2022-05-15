@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -46,7 +46,9 @@ MMSPluginData::MMSPluginData() :
     smallicon(""),
     smallselectedicon(""),
     importProperties(NULL),
-    category(NULL) {
+    category(NULL),
+    orderpos(-1),
+    version("") {
 }
 
 MMSPluginData::MMSPluginData(const MMSPluginData &pd) :
@@ -64,7 +66,9 @@ MMSPluginData::MMSPluginData(const MMSPluginData &pd) :
     smallselectedicon(pd.smallselectedicon),
     properties(pd.properties),
     importProperties(pd.importProperties),
-    category(pd.category) {
+    category(pd.category),
+    orderpos(pd.orderpos),
+    version(pd.version) {
 }
 
 MMSPluginData& MMSPluginData::operator=(const MMSPluginData &pd) {
@@ -83,6 +87,8 @@ MMSPluginData& MMSPluginData::operator=(const MMSPluginData &pd) {
 	this->properties        = pd.properties;
 	this->importProperties  = pd.importProperties;
 	this->category          = pd.category;
+	this->orderpos			= pd.orderpos;
+	this->version			= pd.version;
 
 	return *this;
 }
@@ -224,4 +230,12 @@ int MMSPluginData::getOrderpos() {
 
 void MMSPluginData::setOrderpos(int orderpos) {
 	this->orderpos = orderpos;
+}
+
+string MMSPluginData::getVersion() {
+	return this->version;
+}
+
+void MMSPluginData::setVersion(string version) {
+	this->version = version;
 }

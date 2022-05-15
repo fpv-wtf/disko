@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -478,7 +478,7 @@ void Cmd::prepareDb() {
     	rcparser.parseFile(cmdline["config"]);
 	    rcparser.getMMSRc(&rcGlobal, &rcConfigDB, &rcDataDB, &rcGraphics,&rcLanguage);
 
-    } catch (MMSRcParserError *ex) {
+    } catch (MMSRcParserError &ex) {
     	char error[1024];
     	sprintf(error,"cannot read configuration file @[1m%s@[0m.",configfile.c_str());
         cons.printError(error);
@@ -498,9 +498,8 @@ void Cmd::prepareDb() {
                                            config.getConfigDBPort(),
                                            config.getConfigDBUser(),
                                            config.getConfigDBPassword());
-    } catch(MMSError *ex) {
+    } catch(MMSError &ex) {
     	cons.printText("cannot get data source.");
-    	delete ex;
     }
 
 }
@@ -511,7 +510,7 @@ void Cmd::executeVersion() {
 	bool havedb = false;
 	printf("Disko the embedded GUI framework\n");
 	printf(" version:       %s\n", DISKO_VERSION_STR);
-	printf(" prefix:        %s\n", DISKO_PREFIX);
+	printf(" prefix:        %s\n", getPrefix());
 	printf(" media support: ");
 #ifdef __HAVE_XINE__
 	printf("xine");

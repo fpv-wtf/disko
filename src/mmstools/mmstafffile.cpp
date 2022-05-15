@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -37,9 +37,24 @@
 #include <unistd.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
+#include <cstring>
+
+#ifdef __HAVE_PNG__
 #include <png.h>
+#endif
 
+#ifdef __HAVE_JPEG__
+#include <csetjmp>
+extern "C" {
+#include <jpeglib.h>
+}
+#endif
 
+#ifdef __HAVE_TIFF__
+extern "C" {
+#include <tiffio.h>
+}
+#endif
 
 MMSTaffFile::MMSTaffFile(string taff_filename, TAFF_DESCRIPTION *taff_desc,
 			             string external_filename, MMSTAFF_EXTERNAL_TYPE external_type,
@@ -60,6 +75,7 @@ MMSTaffFile::MMSTaffFile(string taff_filename, TAFF_DESCRIPTION *taff_desc,
 	this->destination_pixelformat = MMSTAFF_PF_ARGB;
 	this->destination_premultiplied = true;
 	this->mirror_size = 0;
+	this->rotate_180 = false;
 	this->correct_version = false;
 	this->current_tag = -1;
 	this->current_tag_pos = 0;
@@ -77,10 +93,14 @@ MMSTaffFile::MMSTaffFile(string taff_filename, TAFF_DESCRIPTION *taff_desc,
 		ret = readFile();
 	if (!ret)
 		// failed or rewrite, try to convert from external_filename
-		if ((force_rewrite_taff)||(auto_rewrite_taff))
-			if (convertExternal2TAFF())
-				// auto read in
-				readFile();
+		if ((force_rewrite_taff)||(auto_rewrite_taff)) {
+			if (convertExternal2TAFF()) {
+				if (this->taff_filename != "") {
+					// auto read in
+					readFile();
+				}
+			}
+		}
 }
 
 MMSTaffFile::~MMSTaffFile() {
@@ -89,146 +109,32 @@ MMSTaffFile::~MMSTaffFile() {
 }
 
 bool MMSTaffFile::writeBuffer(MMSFile *mmsfile, void *ptr, size_t *ritems, size_t size, size_t nitems, bool *write_status) {
-	if (!mmsfile) {
-		if (write_status) *write_status = false;
-		return false;
-	}
 
-	if (!mmsfile->writeBuffer(ptr, ritems, size, nitems)) {
-		// error while writing file
-		printf("TAFF: Error while writing to file %s\n", mmsfile->getName().c_str());
-		if (write_status) *write_status = false;
-		return false;
+	if (mmsfile) {
+		// writing to file
+		if (!mmsfile->writeBuffer(ptr, ritems, size, nitems)) {
+			// error while writing file
+			printf("TAFF: Error while writing to file %s\n", mmsfile->getName().c_str());
+			if (write_status) *write_status = false;
+			return false;
+		}
+	}
+	else {
+		// writing to taff_buf
+		memcpy(&this->taff_buf[taff_buf_pos], ptr, size * nitems);
+		this->taff_buf_pos+= size * nitems;
+
+		//TODO: check the taff_buf_size and realloc the buffer if taff_buf_size is to small
 	}
 
 	return true;
 }
 
-bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *height, int *pitch, int *size) {
-	FILE 			*fp;
-	char			png_sig[8];
-    png_structp     png_ptr = NULL;
-    png_infop       info_ptr = NULL;
-    png_infop       end_info_ptr = NULL;
-    png_bytep       *row_pointers = NULL;
-
-    // check if file does exist and if it is an png format
-    *buf = NULL;
-    fp = fopen(filename, "rb");
-    if (!fp)
-    	return false;
-    if (fread(png_sig, 1, sizeof(png_sig), fp)!=sizeof(png_sig)) {
-        fclose(fp);
-    	return false;
-    }
-#if PNG_LIBPNG_VER_MINOR == 2
-    if (!png_check_sig((png_byte*)png_sig, sizeof(png_sig))) {
-#else
-   	if (png_sig_cmp((png_byte*)png_sig, 0, sizeof(png_sig)) != 0) {
-#endif
-        fclose(fp);
-    	return false;
-    }
-
-    // init png structs and abend handler
-	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    if (!png_ptr) {
-        fclose(fp);
-    	return false;
-    }
-    png_set_sig_bytes(png_ptr, sizeof(png_sig));
-
-    if(setjmp(png_jmpbuf(png_ptr))) {
-    	// abend from libpng
-        printf("png read error\n");
-    	png_destroy_read_struct(&png_ptr, (info_ptr)?&info_ptr:NULL, (end_info_ptr)?&end_info_ptr:NULL);
-        if (row_pointers) free(row_pointers);
-    	if (*buf) free(*buf);
-        *buf = NULL;
-        fclose(fp);
-        return false;
-    }
-
-    info_ptr = png_create_info_struct(png_ptr);
-    if (!info_ptr) {
-    	png_destroy_read_struct(&png_ptr, NULL, NULL);
-        fclose(fp);
-    	return false;
-    }
-
-    end_info_ptr = png_create_info_struct(png_ptr);
-    if (!end_info_ptr) {
-    	png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-        fclose(fp);
-    	return false;
-    }
-
-    // read png infos
-    png_init_io(png_ptr, fp);
-    png_read_info(png_ptr, info_ptr);
-    png_uint_32 w;
-    png_uint_32 h;
-    int bit_depth;
-    int color_type;
-    png_get_IHDR(png_ptr, info_ptr, &w, &h, &bit_depth, &color_type, NULL, NULL, NULL);
-
-    // check the png format
-    if (((bit_depth != 8)&&(bit_depth != 16)) || (color_type != PNG_COLOR_TYPE_RGB_ALPHA)) {
-    	// we only support ARGB png images
-    	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info_ptr);
-        fclose(fp);
-    	return false;
-    }
-    *width = w;
-    *height = h;
-    *pitch = 4 * w;
-    *size = *pitch * h;
-
-    // set input transformations
-    if (bit_depth == 16)
-    	png_set_strip_16(png_ptr);
-    png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
-    png_set_bgr(png_ptr);
-    png_set_interlace_handling(png_ptr);
-    png_read_update_info(png_ptr, info_ptr);
-
-    // allocate memory for row pointers
-    row_pointers = (png_bytep*)malloc(*height * sizeof(png_bytep));
-    if (!row_pointers) {
-    	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info_ptr);
-        fclose(fp);
-    	return false;
-    }
-
-    // allocate memory for image data
-    if (this->mirror_size > *height) this->mirror_size = *height;
-    *buf = malloc((*size) + (*pitch) * this->mirror_size);
-    if (!*buf) {
-    	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info_ptr);
-        free(row_pointers);
-        fclose(fp);
-    	return false;
-    }
-    char *b = (char*)*buf;
-    for (int i = 0; i < *height; i++) {
-    	row_pointers[i]=(png_byte*)b;
-    	b+=*pitch;
-    }
-
-    // read the image data
-    png_read_image(png_ptr, row_pointers);
-    png_read_end(png_ptr, end_info_ptr);
-
-    // all right, freeing helpers
-	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info_ptr);
-    free(row_pointers);
-    fclose(fp);
-
-    // at this point we have ARGB (MMSTAFF_PF_ARGB) pixels ********
-    // so check now if i have to convert it
+bool MMSTaffFile::postprocessImage(void **buf, int *width, int *height, int *pitch,
+										int *size, bool *alphachannel) {
 
     // should i pre-multiply with alpha channel?
-    if (this->destination_premultiplied) {
+    if (this->destination_premultiplied && (*alphachannel == true)) {
 		unsigned int *src = (unsigned int*)*buf;
 	    for (int i = *width * *height; i > 0; i--) {
 	    	register unsigned int s = *src;
@@ -242,7 +148,7 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
 	    }
     }
 
-    // should create a mirror effect?
+	// should create a mirror effect?
     if (this->mirror_size > 0) {
     	// yes
 		unsigned int *dst = (unsigned int*)*buf;
@@ -270,8 +176,27 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
     	*size = (*pitch) * (*height);
     }
 
+    if (this->rotate_180) {
+    	// rotate the image by 180 degree
+    	rotateUIntBuffer180((unsigned int*)*buf, *pitch, *width, *height);
+    }
+
     // have to convert the pixelformat?
+    bool has_alpha = false;
     switch (this->destination_pixelformat) {
+    case MMSTAFF_PF_ARGB:
+		if (*alphachannel) {
+			// no convertion, only have to check if we have really an alpha channel
+			unsigned int *src = (unsigned int*)*buf;
+		    for (int i = *width * *height; i > 0; i--) {
+		    	register unsigned int s = *src;
+				s = s >> 24;
+				if (s != 0xff) has_alpha = true;
+		    	if (has_alpha) break;
+		    	src++;
+		    }
+		}
+		break;
     case MMSTAFF_PF_AiRGB: {
     		// invert the alpha channel
 			unsigned int *src = (unsigned int*)*buf;
@@ -280,6 +205,7 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
 		    	register unsigned int a = s;
 		    	a = ~a;
 		    	a = a & 0xff000000;
+		    	if (a && !has_alpha) has_alpha = true;
 		    	s = s & 0x00ffffff;
 		    	s = s | a;
 		    	*src = s;
@@ -295,7 +221,9 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
 		    	register int r = (s >> 16) & 0xff;
 		    	register int g = (s >> 8) & 0xff;
 		    	register int b = s  & 0xff;
-		    	s = s & 0xff000000;											//A
+		    	if (!has_alpha)
+		    		if ((s >> 24) != 0xff) has_alpha = true;
+		    	s = s & 0xff000000;										//A
 		    	if (s) {
 			    	s = s | (((((66*r+129*g+25*b+128)>>8)+16) & 0xff) << 16);	//Y
 			    	s = s | (((((-38*r-74*g+112*b+128)>>8)+128) & 0xff) << 8);	//U (Cb)
@@ -323,7 +251,9 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
 		    for (int i = *width * *height; i > 0; i--) {
 		    	register unsigned int s = *src;
 		    	register unsigned short int d;
-		    	d =   ((s & 0xf0000000) >> 16)
+		    	if (!has_alpha)
+		    		if ((s >> 28) != 0x0f) has_alpha = true;
+				d =   ((s & 0xf0000000) >> 16)
 					| ((s & 0x00f00000) >> 12)
 					| ((s & 0x0000f000) >> 8)
 					| ((s & 0x000000f0) >> 4);
@@ -385,11 +315,555 @@ bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *hei
 			*buf = newbuf;
 		}
 		break;
+    case MMSTAFF_PF_ABGR: {
+    		// change the positions of red and blue
+			// for example disko's ABGR is equal to GL_RGBA in OpenGL
+			unsigned int *src = (unsigned int*)*buf;
+		    for (int i = *width * *height; i > 0; i--) {
+		    	register unsigned int s = *src;
+		    	register unsigned int rb = s & 0x00ff00ff;
+		    	if (!has_alpha)
+		    		if ((s >> 24) != 0xff) has_alpha = true;
+		    	s = s & 0xff00ff00;
+		    	s = s | (rb << 16);
+		    	s = s | (rb >> 16);
+		    	*src = s;
+		    	src++;
+		    }
+    	}
+   		break;
 	default: break;
     }
 
+    if (*alphachannel) {
+    	// per input parameter we assumed, that we have an alpha channel
+    	// here we overwrite it with the result from the previous check
+    	// so it can be, that we have an image with alpha channel but all alpha values are 0xff
+    	// in this case we mark the image with "no alpha channel"
+    	*alphachannel = has_alpha;
+    }
+
+    return true;
+}
+
+
+
+#ifdef __HAVE_PNG__
+// PNG callback function (read)
+// so we are able to read data with MMSFile class instead of standard FILE*
+void MMSTaff_read_png_data_callback(png_structp png_ptr, png_bytep data, png_size_t length) {
+	MMSFile	*file = (MMSFile *)png_get_io_ptr(png_ptr);
+	size_t ritems;
+	file->readBuffer((void *)data, &ritems, 1, length);
+}
+#endif
+
+
+
+bool MMSTaffFile::readPNG(const char *filename, void **buf, int *width, int *height, int *pitch,
+							  int *size, bool *alphachannel) {
+#ifdef __HAVE_PNG__
+	MMSFile			*file;
+	char			png_sig[8];
+    png_structp     png_ptr = NULL;
+    png_infop       info_ptr = NULL;
+    png_infop       end_info_ptr = NULL;
+    png_bytep       *row_pointers = NULL;
+
+    // check if file does exist and if it is an png format
+    *buf = NULL;
+    file = new MMSFile(filename);
+    if (!file) {
+    	return false;
+    }
+    if (file->getLastError()) {
+    	return false;
+    }
+
+    size_t ritems = 0;
+    if (file->readBuffer(png_sig, &ritems, 1, sizeof(png_sig))) {
+    	if (ritems != sizeof(png_sig)) {
+			delete file;
+			return false;
+    	}
+    }
+    else {
+		delete file;
+		return false;
+    }
+
+#if PNG_LIBPNG_VER_MINOR == 2
+    if (!png_check_sig((png_byte*)png_sig, sizeof(png_sig))) {
+#else
+   	if (png_sig_cmp((png_byte*)png_sig, 0, sizeof(png_sig)) != 0) {
+#endif
+   		delete file;
+    	return false;
+    }
+
+
+    // init png structs and abend handler
+	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    if (!png_ptr) {
+    	delete file;
+    	return false;
+    }
+    png_set_sig_bytes(png_ptr, sizeof(png_sig));
+
+    // set read callback function
+    png_set_read_fn(png_ptr, file, MMSTaff_read_png_data_callback);
+
+    if(setjmp(png_jmpbuf(png_ptr))) {
+    	// abend from libpng
+        printf("png read error\n");
+    	png_destroy_read_struct(&png_ptr, (info_ptr)?&info_ptr:NULL, (end_info_ptr)?&end_info_ptr:NULL);
+        if (row_pointers) free(row_pointers);
+    	if (*buf) free(*buf);
+        *buf = NULL;
+        delete file;
+        return false;
+    }
+
+    info_ptr = png_create_info_struct(png_ptr);
+    if (!info_ptr) {
+    	png_destroy_read_struct(&png_ptr, NULL, NULL);
+        delete file;
+    	return false;
+    }
+
+    end_info_ptr = png_create_info_struct(png_ptr);
+    if (!end_info_ptr) {
+    	png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+        delete file;
+    	return false;
+    }
+
+    // read png infos
+    png_read_info(png_ptr, info_ptr);
+    png_uint_32 w;
+    png_uint_32 h;
+    int bit_depth;
+    int color_type;
+    png_get_IHDR(png_ptr, info_ptr, &w, &h, &bit_depth, &color_type, NULL, NULL, NULL);
+
+    // check the png format
+    if ((bit_depth != 8 && bit_depth != 16)
+    	|| (color_type != PNG_COLOR_TYPE_PALETTE && color_type != PNG_COLOR_TYPE_GRAY
+			&& color_type != PNG_COLOR_TYPE_RGB && color_type != PNG_COLOR_TYPE_RGB_ALPHA)) {
+    	// format not supported
+    	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info_ptr);
+        delete file;
+    	return false;
+    }
+
+    // set input transformations
+    if (bit_depth == 16) {
+    	// strip to 8 bit channels
+    	png_set_strip_16(png_ptr);
+    }
+    png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
+
+#if __BYTE_ORDER == __BIG_ENDIAN
+    png_set_swap_alpha(png_ptr);
+#else
+    png_set_bgr(png_ptr);
+#endif
+
+    png_set_interlace_handling(png_ptr);
+    if (color_type == PNG_COLOR_TYPE_PALETTE) {
+    	// convert palette to rgb data
+        png_set_palette_to_rgb(png_ptr);
+    }
+    if (color_type == PNG_COLOR_TYPE_GRAY) {
+    	// convert grayscale to rgb data
+    	png_set_gray_to_rgb(png_ptr);
+    }
+
+    *alphachannel = true;
+    if (color_type != PNG_COLOR_TYPE_RGB_ALPHA && color_type != PNG_COLOR_TYPE_GRAY_ALPHA) {
+        // image has no alpha channel, add alpha channel 0xff
+    	*alphachannel = false;
+    	png_set_add_alpha(png_ptr, 0xff, PNG_FILLER_AFTER);
+    }
+
+    png_read_update_info(png_ptr, info_ptr);
+
+    // allocate memory for row pointers
+    *width = w;
+    *height = h;
+    *pitch = 4 * w;
+    *size = *pitch * h;
+    row_pointers = (png_bytep*)malloc(*height * sizeof(png_bytep));
+    if (!row_pointers) {
+    	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info_ptr);
+        delete file;
+    	return false;
+    }
+
+    // allocate memory for image data
+    if (this->mirror_size > *height) this->mirror_size = *height;
+    *buf = malloc((*size) + (*pitch) * this->mirror_size);
+    if (!*buf) {
+    	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info_ptr);
+        free(row_pointers);
+        delete file;
+    	return false;
+    }
+    char *b = (char*)*buf;
+    for (int i = 0; i < *height; i++) {
+    	row_pointers[i]=(png_byte*)b;
+    	b+=*pitch;
+    }
+
+    // read the image data
+    png_read_image(png_ptr, row_pointers);
+    png_read_end(png_ptr, end_info_ptr);
+
+    // all right, freeing helpers
+	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info_ptr);
+    free(row_pointers);
+    delete file;
+
+    // at this point we have ARGB (MMSTAFF_PF_ARGB) pixels ********
+    // so check now if i have to convert it
+
+    // create mirror, rotate and convert to target pixelformat
+    return postprocessImage(buf, width, height, pitch, size, alphachannel);
+#else
+    return false;
+#endif
+}
+
+
+
+#ifdef __HAVE_JPEG__
+struct JPEGErrorManager {
+  struct jpeg_error_mgr pub;			/**< "public" fields 		*/
+  jmp_buf 				setjmpBuffer;	/**< for return to caller 	*/
+};
+
+METHODDEF(void) JPEGErrorExit(j_common_ptr cinfo) {
+	/* cinfo->err really points to a my_error_mgr struct, so coerce pointer */
+	struct JPEGErrorManager *myerr = (struct JPEGErrorManager*)cinfo->err;
+
+	/* Always display the message. */
+	/* We could postpone this until after returning, if we chose. */
+	(*cinfo->err->output_message)(cinfo);
+
+	/* Return control to the setjmp point */
+	longjmp(myerr->setjmpBuffer, 1);
+}
+#endif
+
+bool MMSTaffFile::readJPEG(const char *filename, void **buf, int *width, int *height, int *pitch,
+								int *size, bool *alphachannel) {
+#ifdef __HAVE_JPEG__
+	struct jpeg_decompress_struct	cinfo;
+	struct JPEGErrorManager 		jerr;
+	FILE 							*fp;
+	JSAMPARRAY 						rowBuf;		/**< Output row buffer */
+	int 							rowStride;	/**< physical row width in output buffer */
+
+	if((fp = fopen(filename, "rb")) == NULL) {
+		return false;
+	}
+
+	cinfo.err = jpeg_std_error(&jerr.pub);
+	jerr.pub.error_exit = JPEGErrorExit;
+	if(setjmp(jerr.setjmpBuffer)) {
+		jpeg_destroy_decompress(&cinfo);
+		fclose(fp);
+		return false;
+	}
+	jpeg_create_decompress(&cinfo);
+	jpeg_stdio_src(&cinfo, fp);
+
+	if(jpeg_read_header(&cinfo, TRUE) != JPEG_HEADER_OK) {
+		fclose(fp);
+		return false;
+	}
+
+	/* dimension filled by jpeg_read_header() */
+	*width  = (int)cinfo.image_width;
+	*height = (int)cinfo.image_height;
+	*pitch  = *width * 4;
+    *size   = *pitch * *height;
+
+    // jpeg generally has no alpha channel
+    *alphachannel = false;
+
+	/* setting decompression parameters */
+	cinfo.out_color_space = JCS_RGB;	/**< setting output colorspace to RGB */
+
+	/* start decompression */
+	jpeg_start_decompress(&cinfo);
+
+	rowStride = cinfo.output_width * cinfo.output_components;
+	rowBuf = (*cinfo.mem->alloc_sarray)((j_common_ptr)&cinfo, JPOOL_IMAGE, rowStride, 1);
+
+	/* allocate memory for ARGB output */
+    if(this->mirror_size > *height) this->mirror_size = *height;
+    *buf = malloc((*size) + (*pitch) * this->mirror_size);
+    if(!*buf) {
+    	jpeg_finish_decompress(&cinfo);
+    	jpeg_destroy_decompress(&cinfo);
+    	fclose(fp);
+    	return false;
+    }
+
+	unsigned int *src = (unsigned int*)*buf;
+	while(cinfo.output_scanline < cinfo.output_height) {
+	    jpeg_read_scanlines(&cinfo, rowBuf, 1);
+	    unsigned char *b = *rowBuf;
+	    for(unsigned int i = 0; i < cinfo.output_width; ++i) {
+	    	*src = 0xff000000 + (b[0] << 16) + (b[1] << 8) + b[2];
+	    	b += 3;
+	    	src++;
+	    }
+	}
+
+	jpeg_finish_decompress(&cinfo);
+	jpeg_destroy_decompress(&cinfo);
+	fclose(fp);
+
+    /* create mirror, rotate and convert to target pixelformat */
+    return postprocessImage(buf, width, height, pitch, size, alphachannel);
+#else
+    return false;
+#endif
+}
+
+bool MMSTaffFile::readTIFF(const char *filename, void **buf, int *width, int *height, int *pitch,
+								int *size, bool *alphachannel) {
+#ifdef __HAVE_TIFF__
+	TIFF* tiff;
+
+	if((tiff = TIFFOpen(filename, "rb")) == NULL) {
+		return false;
+	}
+
+	TIFFGetField(tiff, TIFFTAG_IMAGEWIDTH, width);
+	TIFFGetField(tiff, TIFFTAG_IMAGELENGTH, height);
+	*pitch  = *width * 4;
+    *size   = *pitch * *height;
+
+    // we assume that we have an alpha channel
+    *alphachannel = true;
+
+	/* allocate memory for ARGB output */
+    if(this->mirror_size > *height) this->mirror_size = *height;
+    //*buf = (unsigned int*)_TIFFmalloc((*size) + (*pitch) * this->mirror_size);
+    *buf = malloc((*size) + (*pitch) * this->mirror_size);
+    if(!*buf) {
+    	TIFFClose(tiff);
+    	return false;
+    }
+
+	if(TIFFReadRGBAImageOriented(tiff, *width, *height, (uint32*)*buf, ORIENTATION_TOPLEFT, 0) == 0) {
+    	TIFFClose(tiff);
+    	return false;
+	}
+
+	/* convert from BGRA to ARGB */
+	unsigned int *src = (unsigned int*)*buf;
+	unsigned int nPixels = *width * *height;
+	for(unsigned int i = 0; i < nPixels; ++i) {
+		register unsigned int s = (*src ^ (*src >> 16)) & 0xff;
+		*src = *src ^ (s | (s << 16));
+		src++;
+	}
+
+	//_TIFFfree(*buf);
+	TIFFClose(tiff);
+
+    /* create mirror, rotate and convert to target pixelformat */
+    return postprocessImage(buf, width, height, pitch, size, alphachannel);
+#else
+    return false;
+#endif
+}
+
+
+bool MMSTaffFile::convertString2TaffAttributeType(TAFF_ATTRTYPE attrType, char *attrValStr, bool *attrValStr_valid,
+								bool *int_val_set, bool *byte_val_set, int *int_val,
+								const char *attrname, int attrid, const char *nodename, int nodeline) {
+	xmlChar *attrVal = (xmlChar *)attrValStr;
+	if (!attrValStr) return false;
+	if (!attrValStr_valid) return false;
+	*attrValStr_valid = true;
+	if (int_val_set)  *int_val_set = false;
+	if (byte_val_set) *byte_val_set = false;
+
+	bool check_ok = true;
+
+
+	string validvals = "";
+	bool badval = false;
+	switch (attrType) {
+	case TAFF_ATTRTYPE_NONE:
+	case TAFF_ATTRTYPE_STRING:
+	case TAFF_ATTRTYPE_BINDATA:
+		break;
+
+	case TAFF_ATTRTYPE_NE_STRING:
+		badval = (!*attrVal);
+		if (badval) {
+			validvals = "any characters, but not empty";
+			check_ok = false;
+		}
+		break;
+
+	case TAFF_ATTRTYPE_BOOL:
+		if (!byte_val_set || !int_val) return false;
+		badval = ((xmlStrcmp(attrVal, (xmlChar *)"true"))&&(xmlStrcmp(attrVal, (xmlChar *)"false")));
+		if (badval) {
+			validvals = "\"true\", \"false\"";
+			check_ok = false;
+		}
+		else {
+			*byte_val_set = true;
+			if (xmlStrcmp(attrVal, (xmlChar *)"true")==0)
+				*int_val = 0xff;
+			else
+				*int_val = 0;
+		}
+		break;
+
+	case TAFF_ATTRTYPE_UCHAR:
+	case TAFF_ATTRTYPE_UCHAR100:
+		if (!byte_val_set || !int_val) return false;
+		badval = ((xmlStrlen(attrVal) < 1)||(xmlStrlen(attrVal) > 3));
+		if (!badval) {
+			char iv[3+1];
+			*int_val = atoi((char*)attrVal);
+			sprintf(iv, "%d", *int_val);
+			badval = (xmlStrcmp(attrVal, (xmlChar *)iv));
+			if (!badval) {
+				if (attrType == TAFF_ATTRTYPE_UCHAR100)
+					badval = (*int_val<0||*int_val>100);
+				else
+					badval = (*int_val<0||*int_val>255);
+			}
+			*byte_val_set = !badval;
+		}
+		if (badval) {
+			if (attrType == TAFF_ATTRTYPE_UCHAR100)
+				validvals = "\"0\"..\"100\"";
+			else
+				validvals = "\"0\"..\"255\"";
+			check_ok = false;
+		}
+		break;
+
+	case TAFF_ATTRTYPE_INT:
+		if (!int_val_set || !int_val) return false;
+		char iv[11+1];
+		*int_val = atoi((char*)attrVal);
+		sprintf(iv, "%d", *int_val);
+		badval = (xmlStrcmp(attrVal, (xmlChar *)iv));
+		*int_val_set = !badval;
+		if (badval) {
+			validvals = "\"-2147483648\"..\"2147483647\"";
+			check_ok = false;
+		}
+		break;
+
+	case TAFF_ATTRTYPE_STATE:
+		if (!byte_val_set || !int_val) return false;
+		badval = ((xmlStrcmp(attrVal, (xmlChar *)"true"))&&(xmlStrcmp(attrVal, (xmlChar *)"false"))
+				&&(xmlStrcmp(attrVal, (xmlChar *)"auto")));
+		if (badval) {
+			validvals = "\"true\", \"false\", \"auto\"";
+			check_ok = false;
+		}
+		else {
+			*byte_val_set = true;
+			if (xmlStrcmp(attrVal, (xmlChar *)"true")==0)
+				*int_val = 0xff;
+			else
+			if (xmlStrcmp(attrVal, (xmlChar *)"auto")==0)
+				*int_val = 0x01;
+			else
+				*int_val = 0;
+		}
+		break;
+
+	case TAFF_ATTRTYPE_SEQUENCE_MODE: {
+		if (!byte_val_set || !int_val) return false;
+		bool sm_true			= !xmlStrcmp(attrVal, (xmlChar *)"true");
+		bool sm_false			= !xmlStrcmp(attrVal, (xmlChar *)"false");
+		bool sm_linear			= !xmlStrcmp(attrVal, (xmlChar *)"linear");
+		bool sm_log				= !xmlStrcmp(attrVal, (xmlChar *)"log");
+		bool sm_log_soft_start	= !xmlStrcmp(attrVal, (xmlChar *)"log_soft_start");
+		bool sm_log_soft_end	= !xmlStrcmp(attrVal, (xmlChar *)"log_soft_end");
+		badval = (!sm_true && !sm_false && !sm_linear && !sm_log && !sm_log_soft_start && !sm_log_soft_end);
+		if (badval) {
+			validvals = "\"true\", \"false\", \"linear\", \"log\", \"log_soft_start\", \"log_soft_end\"";
+			check_ok = false;
+		}
+		else {
+			*byte_val_set = true;
+			if (sm_true)
+				*int_val = 0xff;
+			else
+			if (sm_linear)
+				*int_val = 0x01;
+			else
+			if (sm_log)
+				*int_val = 0x02;
+			else
+			if (sm_log_soft_start)
+				*int_val = 0x03;
+			else
+			if (sm_log_soft_end)
+				*int_val = 0x04;
+			else
+				*int_val = 0;
+		}
+		}
+		break;
+
+	case TAFF_ATTRTYPE_COLOR:
+		if (!int_val_set || !int_val) return false;
+		MMSFBColor color;
+		badval = (!getMMSFBColorFromString((const char*)attrVal, &color));
+		if (badval) {
+			validvals = "argb values in hex format, syntax: \"#rrggbbaa\"";
+			check_ok = false;
+		}
+		else {
+			*int_val_set = true;
+			*int_val = (int)color.getARGB();
+		}
+		break;
+	}
+
+	// check if the value is blank and i have to ignore it
+	if (this->ignore_blank_values) {
+		if (!*attrVal) {
+			*attrValStr_valid = false;
+			if (int_val_set)  *int_val_set = false;
+			if (byte_val_set) *byte_val_set = false;
+			return true;
+		}
+	}
+
+	if (!check_ok) {
+		printf("Error: Value \"%s\" is invalid for the attribute \"%s\" of tag \"%s\", line %d of file %s\n       valid values: %s\n",
+						attrVal, (attrname)?attrname:"?", (nodename)?nodename:"?", nodeline, external_filename.c_str(), validvals.c_str());
+		*attrValStr_valid = false;
+		if (int_val_set)  *int_val_set = false;
+		if (byte_val_set) *byte_val_set = false;
+		return false;
+	}
+
+	// all right
+	if (this->trace)
+		printf(" Attribute \"%s\" found, ID=%d, value=\"%s\"\n", (attrname)?attrname:"?", attrid, attrVal);
+
 	return true;
 }
+
 
 bool MMSTaffFile::convertXML2TAFF_throughDoc(int depth, void *void_node, MMSFile *taff_file) {
 
@@ -473,111 +947,29 @@ bool MMSTaffFile::convertXML2TAFF_throughDoc(int depth, void *void_node, MMSFile
 
 				if (attr_found) {
 
-					/* now check the type of the variable */
-					string validvals = "";
-					bool badval = false;
-					bool int_val_set = false;
+					// now check the type of the variable
+					bool attrValStr_valid;
+					bool int_val_set;
+					bool byte_val_set;
 					int	 int_val;
-					switch (attr[attrid].type) {
-					case TAFF_ATTRTYPE_NONE:
-					case TAFF_ATTRTYPE_STRING:
-					case TAFF_ATTRTYPE_BINDATA:
-						break;
-					case TAFF_ATTRTYPE_NE_STRING:
-						badval = (!*attrVal);
-						if (badval) {
-							validvals = "any characters, but not empty";
-							attr_found = false;
-						}
-						break;
-					case TAFF_ATTRTYPE_BOOL:
-						badval = ((xmlStrcmp(attrVal, (xmlChar *)"true"))&&(xmlStrcmp(attrVal, (xmlChar *)"false")));
-						if (badval) {
-							validvals = "\"true\", \"false\"";
-							attr_found = false;
-						}
-						else {
-							int_val_set = true;
-							if (xmlStrcmp(attrVal, (xmlChar *)"true")==0)
-								int_val = -1;
-							else
-								int_val = 0;
-						}
-						break;
-					case TAFF_ATTRTYPE_UCHAR:
-					case TAFF_ATTRTYPE_UCHAR100:
-						badval = ((xmlStrlen(attrVal) < 1)||(xmlStrlen(attrVal) > 3));
-						if (!badval) {
-							char iv[3+1];
-							int_val = atoi((char*)attrVal);
-							sprintf(iv, "%d", int_val);
-							badval = (xmlStrcmp(attrVal, (xmlChar *)iv));
-							if (!badval) {
-								if (attr[attrid].type == TAFF_ATTRTYPE_UCHAR100)
-									badval = (int_val<0||int_val>100);
-								else
-									badval = (int_val<0||int_val>255);
-							}
-							int_val_set = !badval;
-						}
-						if (badval) {
-							if (attr[attrid].type == TAFF_ATTRTYPE_UCHAR100)
-								validvals = "\"0\"..\"100\"";
-							else
-								validvals = "\"0\"..\"255\"";
-							attr_found = false;
-						}
-						break;
-					case TAFF_ATTRTYPE_INT:
-						char iv[11+1];
-						int_val = atoi((char*)attrVal);
-						sprintf(iv, "%d", int_val);
-						badval = (xmlStrcmp(attrVal, (xmlChar *)iv));
-						int_val_set = !badval;
-						if (badval) {
-							validvals = "\"-2147483648\"..\"2147483647\"";
-							attr_found = false;
-						}
-						break;
-					case TAFF_ATTRTYPE_STATE:
-						badval = ((xmlStrcmp(attrVal, (xmlChar *)"true"))&&(xmlStrcmp(attrVal, (xmlChar *)"false"))
-								&&(xmlStrcmp(attrVal, (xmlChar *)"auto")));
-						if (badval) {
-							validvals = "\"true\", \"false\", \"auto\"";
-							attr_found = false;
-						}
-						else {
-							int_val_set = true;
-							if (xmlStrcmp(attrVal, (xmlChar *)"true")==0)
-								int_val = -1;
-							else
-							if (xmlStrcmp(attrVal, (xmlChar *)"auto")==0)
-								int_val = 0x01010101;
-							else
-								int_val = 0;
-						}
-						break;
-					}
 
-					/* check if the value is blank and i have to ignore it */
-					if (this->ignore_blank_values)
-						if (!*attrVal)
-							continue;
-
-					if (!attr_found) {
-						printf("Error: Value \"%s\" is invalid for the attribute \"%s\" of tag \"%s\", line %d of file %s\n       valid values: %s\n",
-										attrVal, cur_attr->name, cur_node->name, cur_node->line, external_filename.c_str(), validvals.c_str());
+					if (!convertString2TaffAttributeType(attr[attrid].type, (char *)attrVal, &attrValStr_valid,
+													&int_val_set, &byte_val_set, &int_val,
+													(const char *)cur_attr->name, attrid,
+													(const char *)cur_node->name, cur_node->line)) {
+						// check failed
 						return false;
 					}
 
+					if (!attrValStr_valid && !int_val_set && !byte_val_set) {
+						// no values to process
+						continue;
+					}
 
-					/* all right */
-					if (this->trace)
-						printf(" Attribute \"%s\" found, ID=%d, value=\"%s\"\n", cur_attr->name, attrid, attrVal);
 
-					/* write attribute value */
+					// attribute value is determined, write it now
 					if (taff_file) {
-						if (!int_val_set) {
+						if (!int_val_set && !byte_val_set) {
 							/* get the length of the value INCLUDING the 0x00 because of fast read & parse of the TAFF */
 							int attrvallen = xmlStrlen(attrVal) + 1;
 
@@ -598,8 +990,9 @@ bool MMSTaffFile::convertXML2TAFF_throughDoc(int depth, void *void_node, MMSFile
 							}
 							writeBuffer(taff_file, attrVal, &ritems, 1, attrvallen, &wok);
 						}
-						else {
-							/* writing the value as INT and not as STRING */
+						else
+						if (int_val_set) {
+							// writing value as INTEGER
 							size_t ritems;
 							unsigned char wb[3];
 							wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
@@ -607,6 +1000,17 @@ bool MMSTaffFile::convertXML2TAFF_throughDoc(int depth, void *void_node, MMSFile
 							wb[2]=sizeof(int);
 							writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
 							writeBuffer(taff_file, &int_val, &ritems, 1, sizeof(int), &wok);
+						}
+						else {
+							// writing value as single BYTE
+							size_t ritems;
+							unsigned char wb[3];
+							wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
+							wb[1]=(unsigned char)attrid;
+							wb[2]=sizeof(char);
+							writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+							unsigned char byte_val = int_val;
+							writeBuffer(taff_file, &byte_val, &ritems, 1, sizeof(char), &wok);
 						}
 					}
 				}
@@ -689,9 +1093,9 @@ bool MMSTaffFile::convertXML2TAFF() {
 	LIBXML_TEST_VERSION
 
 	/* check input parameters */
-	if (!this->taff_desc) return false;
-	if (this->external_filename=="") return false;
-
+	if (!this->taff_desc || this->external_filename.empty()) {
+		return false;
+	}
 
 	/* read the XML file */
 	parser = xmlReadFile(this->external_filename.c_str(),
@@ -753,113 +1157,189 @@ bool MMSTaffFile::convertXML2TAFF() {
 }
 
 bool MMSTaffFile::convertIMAGE2TAFF() {
-	bool   	rc = false;
-	void	*png_buf;
-	int 	png_width;
-	int 	png_height;
-	int     png_pitch;
-	int     png_size;
+	bool	rc = false;
+	void	*imgBuf;
+	int		imgWidth;
+	int		imgHeight;
+	int		imgPitch;
+	int		imgSize;
+	bool	imgAlphaChannel;
 
 	/* check input parameters */
-	if (!this->taff_desc) return false;
-	if (this->external_filename=="") return false;
+	if (!this->taff_desc || this->external_filename.empty()) {
+		return false;
+	}
 
-	/* read the whole PNG image */
-	if (readPNG(this->external_filename.c_str(), &png_buf, &png_width, &png_height, &png_pitch, &png_size)) {
-		/* open binary destination file */
+	/* check file extension (if this fails try readPNG() and/or readJPEG() and/or readTIFF()) */
+	if(strToUpr(this->external_filename).rfind(".PNG") == this->external_filename.size() - 4) {
+#ifdef __HAVE_PNG__
+		rc = readPNG(this->external_filename.c_str(), &imgBuf, &imgWidth, &imgHeight, &imgPitch, &imgSize, &imgAlphaChannel);
+#else
+		cout << "Disko was built without PNG support: skipping " << this->external_filename << endl;
+		return false;
+#endif
+	} else if((strToUpr(this->external_filename).rfind(".JPG") == this->external_filename.size() - 4) ||
+			  (strToUpr(this->external_filename).rfind(".JPEG") == this->external_filename.size() - 5)) {
+#ifdef __HAVE_JPEG__
+		rc = readJPEG(this->external_filename.c_str(), &imgBuf, &imgWidth, &imgHeight, &imgPitch, &imgSize, &imgAlphaChannel);
+#else
+		cout << "Disko was built without JPEG support: skipping " << this->external_filename << endl;
+		return false;
+#endif
+	} else if((strToUpr(this->external_filename).rfind(".TIF") == this->external_filename.size() - 4) ||
+			  (strToUpr(this->external_filename).rfind(".TIFF") == this->external_filename.size() - 5)) {
+#ifdef __HAVE_TIFF__
+		rc = readTIFF(this->external_filename.c_str(), &imgBuf, &imgWidth, &imgHeight, &imgPitch, &imgSize, &imgAlphaChannel);
+#else
+		cout << "Disko was built without TIFF support: skipping " << this->external_filename << endl;
+		return false;
+#endif
+	} else {
+#ifdef __HAVE_PNG__
+		rc = readPNG(this->external_filename.c_str(), &imgBuf, &imgWidth, &imgHeight, &imgPitch, &imgSize, &imgAlphaChannel);
+#endif
+#ifdef __HAVE_JPEG__
+		if(!rc) {
+			rc = readJPEG(this->external_filename.c_str(), &imgBuf, &imgWidth, &imgHeight, &imgPitch, &imgSize, &imgAlphaChannel);
+		}
+#endif
+#ifdef __HAVE_TIFF__
+		if(!rc) {
+			rc = readTIFF(this->external_filename.c_str(), &imgBuf, &imgWidth, &imgHeight, &imgPitch, &imgSize, &imgAlphaChannel);
+		}
+#endif
+	}
+
+	if(rc) {
+		// open binary destination file
 		MMSFile *taff_file = NULL;
 		bool wok = true;
-		if (this->taff_filename!="") {
+		size_t ritems;
+		if (!this->taff_filename.empty()) {
 			taff_file = new MMSFile(this->taff_filename.c_str(), MMSFM_WRITE);
-			size_t ritems;
 			writeBuffer(taff_file, (void*)TAFF_IDENT, &ritems, 1, strlen(TAFF_IDENT), &wok);
-			writeBuffer(taff_file, &(this->taff_desc->type), &ritems, 1, sizeof(this->taff_desc->type), &wok);
-			writeBuffer(taff_file, &(this->taff_desc->version), &ritems, 1, sizeof(this->taff_desc->version), &wok);
-
-			/* write the tag */
-			unsigned char wb[3];
-			wb[0]=MMSTAFF_TAGTABLE_TYPE_TAG;
-			wb[1]=MMSTAFF_IMAGE_TAGTABLE_TAG_RAWIMAGE;
-			writeBuffer(taff_file, wb, &ritems, 1, 2, &wok);
-
-			/* write attributes: width */
-			wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
-			wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_width;
-			wb[2]=sizeof(int);
-			writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
-			writeBuffer(taff_file, &png_width, &ritems, 1, sizeof(int), &wok);
-
-			/* write attributes: height */
-			wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
-			wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_height;
-			wb[2]=sizeof(int);
-			writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
-			writeBuffer(taff_file, &png_height, &ritems, 1, sizeof(int), &wok);
-
-			/* write attributes: pitch */
-			wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
-			wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_pitch;
-			wb[2]=sizeof(int);
-			writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
-			writeBuffer(taff_file, &png_pitch, &ritems, 1, sizeof(int), &wok);
-
-			/* write attributes: size */
-			wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
-			wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_size;
-			wb[2]=sizeof(int);
-			writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
-			writeBuffer(taff_file, &png_size, &ritems, 1, sizeof(int), &wok);
-
-			/* write attributes: pixelformat */
-			wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
-			wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_pixelformat;
-			wb[2]=sizeof(int);
-			writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
-			int pf = (int)this->destination_pixelformat;
-			writeBuffer(taff_file, &pf, &ritems, 1, sizeof(int), &wok);
-
-			/* write attributes: premultiplied */
-			wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
-			wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_premultiplied;
-			wb[2]=sizeof(bool);
-			writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
-			bool pm = (this->destination_premultiplied);
-			writeBuffer(taff_file, &pm, &ritems, 1, sizeof(bool), &wok);
-
-			/* write attributes: mirror_size */
-			wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
-			wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_mirror_size;
-			wb[2]=sizeof(int);
-			writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
-			int ms = (int)this->mirror_size;
-			writeBuffer(taff_file, &ms, &ritems, 1, sizeof(int), &wok);
-
-			/* write attributes: data */
-			wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
-			wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_data;
-			wb[2]=0xff;
-			writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
-			writeBuffer(taff_file, &png_size, &ritems, 1, sizeof(int), &wok);
-			writeBuffer(taff_file, png_buf, &ritems, 1, png_size, &wok);
-
-			/* write the close tag */
-			wb[0]=MMSTAFF_TAGTABLE_TYPE_CLOSETAG;
-			wb[1]=MMSTAFF_IMAGE_TAGTABLE_TAG_RAWIMAGE;
-			writeBuffer(taff_file, wb, &ritems, 1, 2, &wok);
 		}
+
+		if (!taff_file) {
+			// no regular file, so setup the buffer so that we have not to resize it
+			this->taff_buf_size = imgSize + 256;
+			this->taff_buf_pos = 0;
+			if (this->taff_buf) free(this->taff_buf);
+			this->taff_buf = (unsigned char *)malloc(this->taff_buf_size);
+		}
+
+		// write type and version
+		writeBuffer(taff_file, &(this->taff_desc->type), &ritems, 1, sizeof(this->taff_desc->type), &wok);
+		writeBuffer(taff_file, &(this->taff_desc->version), &ritems, 1, sizeof(this->taff_desc->version), &wok);
+
+		// write the tag
+		unsigned char wb[3];
+		wb[0]=MMSTAFF_TAGTABLE_TYPE_TAG;
+		wb[1]=MMSTAFF_IMAGE_TAGTABLE_TAG_RAWIMAGE;
+		writeBuffer(taff_file, wb, &ritems, 1, 2, &wok);
+
+		// write attributes: width
+		wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
+		wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_width;
+		wb[2]=sizeof(int);
+		writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+		writeBuffer(taff_file, &imgWidth, &ritems, 1, sizeof(int), &wok);
+
+		// write attributes: height
+		wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
+		wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_height;
+		wb[2]=sizeof(int);
+		writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+		writeBuffer(taff_file, &imgHeight, &ritems, 1, sizeof(int), &wok);
+
+		// write attributes: pitch
+		wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
+		wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_pitch;
+		wb[2]=sizeof(int);
+		writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+		writeBuffer(taff_file, &imgPitch, &ritems, 1, sizeof(int), &wok);
+
+		// write attributes: size
+		wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
+		wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_size;
+		wb[2]=sizeof(int);
+		writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+		writeBuffer(taff_file, &imgSize, &ritems, 1, sizeof(int), &wok);
+
+		// write attributes: pixelformat
+		wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
+		wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_pixelformat;
+		wb[2]=sizeof(int);
+		writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+		int pf = (int)this->destination_pixelformat;
+		writeBuffer(taff_file, &pf, &ritems, 1, sizeof(int), &wok);
+
+		// write attributes: premultiplied
+		wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
+		wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_premultiplied;
+		wb[2]=sizeof(bool);
+		writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+		bool pm = (this->destination_premultiplied);
+		writeBuffer(taff_file, &pm, &ritems, 1, sizeof(bool), &wok);
+
+		// write attributes: mirror_size
+		wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
+		wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_mirror_size;
+		wb[2]=sizeof(int);
+		writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+		int ms = (int)this->mirror_size;
+		writeBuffer(taff_file, &ms, &ritems, 1, sizeof(int), &wok);
+
+		// write attributes: alphachannel
+		wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
+		wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_alphachannel;
+		wb[2]=sizeof(bool);
+		writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+		writeBuffer(taff_file, &imgAlphaChannel, &ritems, 1, sizeof(bool), &wok);
+
+		// write attributes: rotate_180
+		wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
+		wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_rotate_180;
+		wb[2]=sizeof(bool);
+		writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+		bool rot = (this->rotate_180);
+		writeBuffer(taff_file, &rot, &ritems, 1, sizeof(bool), &wok);
+
+		// write attributes: data
+		wb[0]=MMSTAFF_TAGTABLE_TYPE_ATTR;
+		wb[1]=MMSTAFF_IMAGE_RAWIMAGE_ATTR::MMSTAFF_IMAGE_RAWIMAGE_ATTR_IDS_data;
+		wb[2]=0xff;
+		writeBuffer(taff_file, wb, &ritems, 1, 3, &wok);
+		writeBuffer(taff_file, &imgSize, &ritems, 1, sizeof(int), &wok);
+		writeBuffer(taff_file, imgBuf, &ritems, 1, imgSize, &wok);
+
+		// write the close tag
+		wb[0]=MMSTAFF_TAGTABLE_TYPE_CLOSETAG;
+		wb[1]=MMSTAFF_IMAGE_TAGTABLE_TAG_RAWIMAGE;
+		writeBuffer(taff_file, wb, &ritems, 1, 2, &wok);
 
 		// set rc
 		rc = wok;
 
 		// close file and free
-		if (taff_file)
+		if (taff_file) {
 			delete taff_file;
-		free(png_buf);
+		}
+		else {
+			// no regular file, set buffer values
+			this->taff_buf_size = this->taff_buf_pos;
+			this->taff_buf_pos = 0;
+			getFirstTag();
+			this->loaded = true;
+		}
+		free(imgBuf);
 
 	    if (!rc) {
 	    	// failed, reset the file
-			taff_file = new MMSFile(this->taff_filename.c_str(), MMSFM_WRITE);
-			if (taff_file) delete taff_file;
+			if (!this->taff_filename.empty()) {
+				taff_file = new MMSFile(this->taff_filename.c_str(), MMSFM_WRITE);
+				if (taff_file) delete taff_file;
+			}
 	    }
 	}
 	else {
@@ -925,6 +1405,27 @@ bool MMSTaffFile::convertTAFF2XML_throughDoc(int depth, int tagid, MMSFile *exte
 					attrval = "true";
 				else
 					attrval = "false";
+				break;
+			case TAFF_ATTRTYPE_SEQUENCE_MODE:
+				if ((attrval_int & 0xff) == 0x01)
+					attrval = "linear";
+				else
+				if ((attrval_int & 0xff) == 0x02)
+					attrval = "log";
+				else
+				if ((attrval_int & 0xff) == 0x03)
+					attrval = "log_soft_start";
+				else
+				if ((attrval_int & 0xff) == 0x04)
+					attrval = "log_soft_end";
+				else
+				if (attrval_int)
+					attrval = "true";
+				else
+					attrval = "false";
+				break;
+			case TAFF_ATTRTYPE_COLOR:
+				attrval = getMMSFBColorString(MMSFBColor((unsigned int)attrval_int));
 				break;
 			default:
 				attrval = attrval_str;
@@ -1136,6 +1637,10 @@ void MMSTaffFile::setMirrorEffect(int size) {
 	this->mirror_size = size;
 }
 
+void MMSTaffFile::rotate180(bool rotate_180) {
+	this->rotate_180 = rotate_180;
+}
+
 int MMSTaffFile::getFirstTag() {
 	this->taff_buf_pos = sizeof(this->taff_desc->type) + sizeof(this->taff_desc->version);
 	this->current_tag = -1;
@@ -1198,8 +1703,13 @@ int MMSTaffFile::getNextTag(bool &eof) {
 	return this->current_tag;
 }
 
-int MMSTaffFile::getCurrentTag() {
+int MMSTaffFile::getCurrentTag(const char **name) {
+	if (name) *name = this->taff_desc->tagtable[this->current_tag].name;
 	return this->current_tag;
+}
+
+const char *MMSTaffFile::getCurrentTagName() {
+	return this->taff_desc->tagtable[this->current_tag].name;
 }
 
 MMSTaffFile *MMSTaffFile::copyCurrentTag() {
@@ -1265,6 +1775,14 @@ MMSTaffFile *MMSTaffFile::copyCurrentTag() {
 }
 
 
+bool MMSTaffFile::hasAttributes() {
+	char *value_str;
+	int value_int;
+	char *name;
+	return (getFirstAttribute(&value_str, &value_int, &name) >= 0);
+}
+
+
 int MMSTaffFile::getFirstAttribute(char **value_str, int *value_int, char **name) {
 	if (!this->current_tag_pos)
 		return -1;
@@ -1315,8 +1833,14 @@ int MMSTaffFile::getNextAttribute(char **value_str, int *value_int, char **name)
 					case TAFF_ATTRTYPE_BOOL:
 					case TAFF_ATTRTYPE_UCHAR:
 					case TAFF_ATTRTYPE_UCHAR100:
-					case TAFF_ATTRTYPE_INT:
 					case TAFF_ATTRTYPE_STATE:
+					case TAFF_ATTRTYPE_SEQUENCE_MODE:
+						*value_str = NULL;
+						{	unsigned char v = this->taff_buf[this->taff_buf_pos];
+							*value_int = (int)v; }
+						break;
+					case TAFF_ATTRTYPE_INT:
+					case TAFF_ATTRTYPE_COLOR:
 						*value_str = NULL;
 						*value_int = MMSTAFF_INT32_FROM_UCHAR_STREAM(&this->taff_buf[this->taff_buf_pos]);
 						break;
@@ -1374,6 +1898,6 @@ TAFF_TAGTABLE mmstaff_image_taff_tagtable[] = {
 	{	NULL, 			NULL, 	NULL,			NULL							}
 };
 
-TAFF_DESCRIPTION mmstaff_image_taff_description = { "mmstaff_image", 1, mmstaff_image_taff_tagtable };
+TAFF_DESCRIPTION mmstaff_image_taff_description = { "mmstaff_image", 4, mmstaff_image_taff_tagtable };
 
 

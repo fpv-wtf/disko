@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -57,6 +57,8 @@ bool MMSCheckBoxWidget::create(MMSWindow *root, string className, MMSTheme *them
     this->checked_selbgimage_p = NULL;
     this->checked_bgimage_i = NULL;
     this->checked_selbgimage_i = NULL;
+
+	this->current_checked_bgset = false;
 
     return MMSWidget::create(root, true, false, true, true, true, true, true);
 }
@@ -193,6 +195,88 @@ bool MMSCheckBoxWidget::release() {
     return true;
 }
 
+void MMSCheckBoxWidget::getCheckedBackground(MMSFBColor *color, MMSFBSurface **image) {
+	color->a = 0;
+	*image = NULL;
+
+	if (isActivated()) {
+		if (isSelected()) {
+			getCheckedSelBgColor(*color);
+			*image = this->checked_selbgimage;
+		}
+		else {
+			getCheckedBgColor(*color);
+			*image = this->checked_bgimage;
+		}
+		if (isPressed()) {
+			MMSFBColor mycol;
+			if (isSelected()) {
+				getCheckedSelBgColor_p(mycol);
+				if (mycol.a>0) *color=mycol;
+				if (this->checked_selbgimage_p)
+					*image = this->checked_selbgimage_p;
+			}
+			else {
+				getCheckedBgColor_p(mycol);
+				if (mycol.a>0) *color=mycol;
+				if (this->checked_bgimage_p)
+					*image = this->checked_bgimage_p;
+			}
+		}
+	}
+	else {
+		if (isSelected()) {
+			getCheckedSelBgColor_i(*color);
+			*image = this->checked_selbgimage_i;
+		}
+		else {
+			getCheckedBgColor_i(*color);
+			*image = this->checked_bgimage_i;
+		}
+	}
+}
+
+bool MMSCheckBoxWidget::enableRefresh(bool enable) {
+	if (!MMSWidget::enableRefresh(enable)) return false;
+
+	// mark checked background as not set
+	this->current_checked_bgset = false;
+
+	return true;
+}
+
+bool MMSCheckBoxWidget::checkRefreshStatus() {
+    // is checked?
+    bool c = false;
+    getChecked(c);
+    if (!c) {
+    	// not checked, use widget status
+    	return MMSWidget::checkRefreshStatus();
+    }
+
+	if (!this->skip_refresh) {
+		// there is no need to check, because refreshing is enabled
+		return true;
+	}
+
+	if (this->current_checked_bgset) {
+		// current checked background initialized
+		MMSFBColor color;
+		MMSFBSurface *image;
+		getCheckedBackground(&color, &image);
+
+		if (color == this->current_checked_bgcolor && image == this->current_checked_bgimage) {
+			// checked background color and image not changed, so we do not enable refreshing
+			return false;
+		}
+	}
+
+	// (re-)enable refreshing
+	enableRefresh();
+
+	return true;
+}
+
 
 bool MMSCheckBoxWidget::draw(bool *backgroundFilled) {
     bool myBackgroundFilled = false;
@@ -222,6 +306,10 @@ bool MMSCheckBoxWidget::draw(bool *backgroundFilled) {
     if (!c) {
     	// not checked, let base widget draw
         MMSWidget::draw(backgroundFilled);
+
+        this->current_checked_bgcolor   = NULL;
+        this->current_checked_bgimage   = NULL;
+        this->current_checked_bgset     = true;
     }
     else {
     	// checked, have to draw checked state
@@ -229,48 +317,18 @@ bool MMSCheckBoxWidget::draw(bool *backgroundFilled) {
     	// lock
 		if (this->surface) this->surface->lock();
 
+	    // mark refresh as skipped for the next time
+	    this->skip_refresh = true;
+
 		// draw background
 		do {
-			/* searching for the background color or image */
+			// searching for the background color or image
 			MMSFBColor col;
 			MMSFBSurface *suf = NULL;
-			col.a = 0;
-
-			if (isActivated()) {
-				if (isSelected()) {
-					getCheckedSelBgColor(col);
-					suf = this->checked_selbgimage;
-				}
-				else {
-					getCheckedBgColor(col);
-					suf = this->checked_bgimage;
-				}
-				if (isPressed()) {
-					MMSFBColor mycol;
-					if (isSelected()) {
-						getCheckedSelBgColor_p(mycol);
-						if (mycol.a>0) col=mycol;
-						if (this->checked_selbgimage_p)
-							suf = this->checked_selbgimage_p;
-					}
-					else {
-						getCheckedBgColor_p(mycol);
-						if (mycol.a>0) col=mycol;
-						if (this->checked_bgimage_p)
-							suf = this->checked_bgimage_p;
-					}
-				}
-			}
-			else {
-				if (isSelected()) {
-					getCheckedSelBgColor_i(col);
-					suf = this->checked_selbgimage_i;
-				}
-				else {
-					getCheckedBgColor_i(col);
-					suf = this->checked_bgimage_i;
-				}
-			}
+	        getCheckedBackground(&col, &suf);
+	        this->current_checked_bgcolor   = col;
+	        this->current_checked_bgimage   = suf;
+	        this->current_checked_bgset     = true;
 
 			if (suf) {
 				if ((*backgroundFilled)||(retry)||(!this->has_own_surface)) {
@@ -507,36 +565,60 @@ bool MMSCheckBoxWidget::getChecked(bool &checked) {
 
 void MMSCheckBoxWidget::setCheckedBgColor(MMSFBColor checked_bgcolor, bool refresh) {
     myCheckBoxWidgetClass.setCheckedBgColor(checked_bgcolor);
+
+	// refresh required?
+	enableRefresh((checked_bgcolor != this->current_checked_bgcolor));
+
     if (refresh)
         this->refresh();
 }
 
 void MMSCheckBoxWidget::setCheckedSelBgColor(MMSFBColor checked_selbgcolor, bool refresh) {
     myCheckBoxWidgetClass.setCheckedSelBgColor(checked_selbgcolor);
+
+	// refresh required?
+	enableRefresh((checked_selbgcolor != this->current_checked_bgcolor));
+
     if (refresh)
         this->refresh();
 }
 
 void MMSCheckBoxWidget::setCheckedBgColor_p(MMSFBColor checked_bgcolor_p, bool refresh) {
     myCheckBoxWidgetClass.setCheckedBgColor_p(checked_bgcolor_p);
+
+	// refresh required?
+	enableRefresh((checked_bgcolor_p != this->current_checked_bgcolor));
+
     if (refresh)
         this->refresh();
 }
 
 void MMSCheckBoxWidget::setCheckedSelBgColor_p(MMSFBColor checked_selbgcolor_p, bool refresh) {
     myCheckBoxWidgetClass.setCheckedSelBgColor(checked_selbgcolor_p);
+
+	// refresh required?
+	enableRefresh((checked_selbgcolor_p != this->current_checked_bgcolor));
+
     if (refresh)
         this->refresh();
 }
 
 void MMSCheckBoxWidget::setCheckedBgColor_i(MMSFBColor checked_bgcolor_i, bool refresh) {
     myCheckBoxWidgetClass.setCheckedBgColor_i(checked_bgcolor_i);
+
+	// refresh required?
+	enableRefresh((checked_bgcolor_i != this->current_checked_bgcolor));
+
     if (refresh)
         this->refresh();
 }
 
 void MMSCheckBoxWidget::setCheckedSelBgColor_i(MMSFBColor checked_selbgcolor_i, bool refresh) {
     myCheckBoxWidgetClass.setCheckedSelBgColor(checked_selbgcolor_i);
+
+	// refresh required?
+	enableRefresh((checked_selbgcolor_i != this->current_checked_bgcolor));
+
     if (refresh)
         this->refresh();
 }
@@ -545,6 +627,9 @@ void MMSCheckBoxWidget::setCheckedBgImagePath(string checked_bgimagepath, bool l
     myCheckBoxWidgetClass.setCheckedBgImagePath(checked_bgimagepath);
     if (load)
         if (this->rootwindow) {
+			// refresh required?
+			enableRefresh((this->checked_bgimage == this->current_checked_bgimage));
+
             this->rootwindow->im->releaseImage(this->checked_bgimage);
             string path, name;
             if (!getCheckedBgImagePath(path)) path = "";
@@ -559,6 +644,9 @@ void MMSCheckBoxWidget::setCheckedBgImageName(string checked_bgimagename, bool l
     myCheckBoxWidgetClass.setCheckedBgImageName(checked_bgimagename);
     if (load)
         if (this->rootwindow) {
+			// refresh required?
+			enableRefresh((this->checked_bgimage == this->current_checked_bgimage));
+
             this->rootwindow->im->releaseImage(this->checked_bgimage);
             string path, name;
             if (!getCheckedBgImagePath(path)) path = "";
@@ -573,6 +661,9 @@ void MMSCheckBoxWidget::setCheckedSelBgImagePath(string checked_selbgimagepath, 
     myCheckBoxWidgetClass.setCheckedSelBgImagePath(checked_selbgimagepath);
     if (load)
         if (this->rootwindow) {
+			// refresh required?
+			enableRefresh((this->checked_selbgimage == this->current_checked_bgimage));
+
             this->rootwindow->im->releaseImage(this->checked_selbgimage);
             string path, name;
             if (!getCheckedSelBgImagePath(path)) path = "";
@@ -587,6 +678,9 @@ void MMSCheckBoxWidget::setCheckedSelBgImageName(string checked_selbgimagename, 
     myCheckBoxWidgetClass.setCheckedSelBgImageName(checked_selbgimagename);
     if (load)
         if (this->rootwindow) {
+			// refresh required?
+			enableRefresh((this->checked_selbgimage == this->current_checked_bgimage));
+
             this->rootwindow->im->releaseImage(this->checked_selbgimage);
             string path, name;
             if (!getCheckedSelBgImagePath(path)) path = "";
@@ -601,6 +695,9 @@ void MMSCheckBoxWidget::setCheckedBgImagePath_p(string checked_bgimagepath_p, bo
     myCheckBoxWidgetClass.setCheckedBgImagePath_p(checked_bgimagepath_p);
     if (load)
         if (this->rootwindow) {
+			// refresh required?
+			enableRefresh((this->checked_bgimage_p == this->current_checked_bgimage));
+
             this->rootwindow->im->releaseImage(this->checked_bgimage_p);
             string path, name;
             if (!getCheckedBgImagePath_p(path)) path = "";
@@ -615,6 +712,9 @@ void MMSCheckBoxWidget::setCheckedBgImageName_p(string checked_bgimagename_p, bo
     myCheckBoxWidgetClass.setCheckedBgImageName_p(checked_bgimagename_p);
     if (load)
         if (this->rootwindow) {
+			// refresh required?
+			enableRefresh((this->checked_bgimage_p == this->current_checked_bgimage));
+
             this->rootwindow->im->releaseImage(this->checked_bgimage_p);
             string path, name;
             if (!getCheckedBgImagePath_p(path)) path = "";
@@ -629,6 +729,9 @@ void MMSCheckBoxWidget::setCheckedSelBgImagePath_p(string checked_selbgimagepath
     myCheckBoxWidgetClass.setCheckedSelBgImagePath_p(checked_selbgimagepath_p);
     if (load)
         if (this->rootwindow) {
+			// refresh required?
+			enableRefresh((this->checked_selbgimage_p == this->current_checked_bgimage));
+
             this->rootwindow->im->releaseImage(this->checked_selbgimage_p);
             string path, name;
             if (!getCheckedSelBgImagePath_p(path)) path = "";
@@ -643,6 +746,9 @@ void MMSCheckBoxWidget::setCheckedSelBgImageName_p(string checked_selbgimagename
     myCheckBoxWidgetClass.setCheckedSelBgImageName_p(checked_selbgimagename_p);
     if (load)
         if (this->rootwindow) {
+			// refresh required?
+			enableRefresh((this->checked_selbgimage_p == this->current_checked_bgimage));
+
             this->rootwindow->im->releaseImage(this->checked_selbgimage_p);
             string path, name;
             if (!getCheckedSelBgImagePath_p(path)) path = "";
@@ -657,6 +763,9 @@ void MMSCheckBoxWidget::setCheckedBgImagePath_i(string checked_bgimagepath_i, bo
     myCheckBoxWidgetClass.setCheckedBgImagePath_i(checked_bgimagepath_i);
     if (load)
         if (this->rootwindow) {
+			// refresh required?
+			enableRefresh((this->checked_bgimage_i == this->current_checked_bgimage));
+
             this->rootwindow->im->releaseImage(this->checked_bgimage_i);
             string path, name;
             if (!getCheckedBgImagePath_i(path)) path = "";
@@ -671,6 +780,9 @@ void MMSCheckBoxWidget::setCheckedBgImageName_i(string checked_bgimagename_i, bo
     myCheckBoxWidgetClass.setCheckedBgImageName_i(checked_bgimagename_i);
     if (load)
         if (this->rootwindow) {
+			// refresh required?
+			enableRefresh((this->checked_bgimage_i == this->current_checked_bgimage));
+
             this->rootwindow->im->releaseImage(this->checked_bgimage_i);
             string path, name;
             if (!getCheckedBgImagePath_i(path)) path = "";
@@ -685,6 +797,9 @@ void MMSCheckBoxWidget::setCheckedSelBgImagePath_i(string checked_selbgimagepath
     myCheckBoxWidgetClass.setCheckedSelBgImagePath_i(checked_selbgimagepath_i);
     if (load)
         if (this->rootwindow) {
+			// refresh required?
+			enableRefresh((this->checked_selbgimage_i == this->current_checked_bgimage));
+
             this->rootwindow->im->releaseImage(this->checked_selbgimage_i);
             string path, name;
             if (!getCheckedSelBgImagePath_i(path)) path = "";
@@ -699,6 +814,9 @@ void MMSCheckBoxWidget::setCheckedSelBgImageName_i(string checked_selbgimagename
     myCheckBoxWidgetClass.setCheckedSelBgImageName_i(checked_selbgimagename_i);
     if (load)
         if (this->rootwindow) {
+			// refresh required?
+			enableRefresh((this->checked_selbgimage_i == this->current_checked_bgimage));
+
             this->rootwindow->im->releaseImage(this->checked_selbgimage_i);
             string path, name;
             if (!getCheckedSelBgImagePath_i(path)) path = "";
@@ -711,7 +829,11 @@ void MMSCheckBoxWidget::setCheckedSelBgImageName_i(string checked_selbgimagename
 
 void MMSCheckBoxWidget::setChecked(bool checked, bool refresh) {
 	myCheckBoxWidgetClass.setChecked(checked);
-	if (refresh)
+
+    // refresh is required
+    enableRefresh();
+
+    if (refresh)
         this->refresh();
 }
 

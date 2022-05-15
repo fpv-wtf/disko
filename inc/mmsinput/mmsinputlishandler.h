@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -50,22 +50,21 @@ typedef int MMSINPUTLISHANDLER_DEVTYPE;
 #define MMSINPUTLISHANDLER_DEVTYPE_TOUCHSCREEN	"TOUCHSCREEN"
 
 typedef struct {
-	unsigned int xRes;
-	unsigned int yRes;
-	float 	xFactor;		/**< multiplicate the x value to get the real value (touchscreen only) */
-	float 	yFactor;		/**< multiplicate the y value to get the real value (touchscreen only) */
-	bool  	swapX;			/**< swap x axis */
-	bool  	swapY;			/**< swap y axis */
-	bool	swapXY;			/**< swap x and y axis */
+	float 			xFactor;		/**< multiplicate the x value to get the real value (touchscreen only) */
+	float 			yFactor;		/**< multiplicate the y value to get the real value (touchscreen only) */
+	bool  			swapX;			/**< swap x axis */
+	bool  			swapY;			/**< swap y axis */
+	bool			swapXY;			/**< swap x and y axis */
+	MMSFBRectangle	rect;			/**< specifies resolution of touch controller */
+	bool			haveBtnEvents;	/**< touch driver sends BTN_xxx events */
 } MMSINPUTLISHANDLER_DEV_TOUCH;
 
 typedef struct {
 	string 	name;
 	string	desc;
 	string	type;
-	union {
-		MMSINPUTLISHANDLER_DEV_TOUCH touch;
-	};
+
+	MMSINPUTLISHANDLER_DEV_TOUCH touch;
 } MMSINPUTLISHANDLER_DEV;
 
 
@@ -90,17 +89,10 @@ class MMSInputLISHandler : public MMSInputHandler {
 		//! event ring buffer, write pos
 		unsigned char	ie_write_pos;
 
-		//! filedescriptor from which we read keyboard inputs (this should be the fd to the framebuffer console)
-		int	kb_fd;
-
-
 		class MMSInputLISThread	*listhread;
-
 
         //! lock
         MMSMutex lock;
-
-
 
         bool checkDevice();
         void getDevices();

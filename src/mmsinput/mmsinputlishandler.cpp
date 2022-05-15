@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -33,13 +33,9 @@
 #include "mmsinput/mmsinputlishandler.h"
 #include "mmsinput/mmsinputlisthread.h"
 #include "mmsgui/fb/mmsfb.h"
-#include <string.h>
+#include <cstring>
 #include <typeinfo>
-#include <linux/keyboard.h>
-#include <fcntl.h>
 #include <sys/ioctl.h>
-#include <sys/kd.h>
-#include <linux/vt.h>
 
 #include <linux/input.h>
 
@@ -49,33 +45,21 @@ MMSInputLISHandler::MMSInputLISHandler(MMS_INPUT_DEVICE device) :
 	devcnt(0),
 	ie_count(0),
 	ie_read_pos(0),
-	ie_write_pos(0),
-	kb_fd(-1) {
-	// get access to the framebuffer console
-	if (mmsfb->mmsfbdev) {
-		if(mmsfb->mmsfbdev->vtGetFd(&this->kb_fd)) {
-			// start the keyboard thread
-			this->listhread = new MMSInputLISThread(this, this->kb_fd);
-			if (this->listhread)
-				this->listhread->start();
-		}
-	}
+	ie_write_pos(0) {
 
-	// get other linux input devices and start separate threads
 	getDevices();
 	for (int i = 0; i < this->devcnt; i++) {
-		if((this->devices[i].type == MMSINPUTLISHANDLER_DEVTYPE_REMOTE) ||
-		   (this->devices[i].type == MMSINPUTLISHANDLER_DEVTYPE_TOUCHSCREEN)) {
-			// we start input thread only for remote controls and touchscreens
+		if(this->devices[i].type != MMSINPUTLISHANDLER_DEVTYPE_UNKNOWN) {
 			MMSInputLISThread *lt = new MMSInputLISThread(this, &this->devices[i]);
-			if (lt)
+			if (lt) {
 				lt->start();
+			}
 		}
 	}
 }
 #else
 MMSInputLISHandler::MMSInputLISHandler(MMS_INPUT_DEVICE device) {
-	throw new MMSError(0,(string)typeid(this).name() + " is empty. compile FBDEV support!");
+	throw MMSError(0,(string)typeid(this).name() + " is empty. compile FBDEV support!");
 }
 #endif
 
@@ -118,60 +102,75 @@ bool MMSInputLISHandler::checkDevice() {
     ioctl(fd, EVIOCGBIT(0, sizeof(ev_bit)), ev_bit);
     if(TSTBIT(EV_KEY, ev_bit)) {
 		ioctl(fd, EVIOCGBIT(EV_KEY, sizeof(key_bit)), key_bit);
-		for (int i = KEY_Q; i < KEY_M; i++)
+		for(int i = KEY_Q; i < KEY_M; i++)
 			if (TSTBIT(i, key_bit))
 				keys++;
-		if(keys > 20)
+		if(keys > 20 || TSTBIT(KEY_ENTER, key_bit)) {
 			dev->type = MMSINPUTLISHANDLER_DEVTYPE_KEYBOARD;
-		else {
-			for (int i = KEY_OK; i < KEY_MAX; i++) {
-				if (TSTBIT(i, key_bit)) {
-						dev->type = MMSINPUTLISHANDLER_DEVTYPE_REMOTE;
+		} else {
+			for(int i = KEY_OK; i < KEY_MAX; i++) {
+				if(TSTBIT(i, key_bit)) {
+					dev->type = MMSINPUTLISHANDLER_DEVTYPE_REMOTE;
 					break;
 				}
 			}
 		}
     }
 
-	/* check for touchscreen (only ABS events are supported) */
-    /* TODO: add button events */
+	/* check for touchscreen */
 	if(dev->type == MMSINPUTLISHANDLER_DEVTYPE_UNKNOWN) {
 		if(ioctl(fd, EVIOCGBIT(EV_ABS, sizeof (abs_bit)), abs_bit) != -1) {
-			if(TSTBIT(ABS_X, abs_bit) && TSTBIT(ABS_Y, abs_bit) && TSTBIT(ABS_PRESSURE, abs_bit)) {
-				struct input_absinfo abs;
-				MMSConfigData config;
-				MMSFBRectangle rect = config.getGraphicsLayer().rect;
-				dev->type = MMSINPUTLISHANDLER_DEVTYPE_TOUCHSCREEN;
-				dev->touch.xRes = rect.w;
-				dev->touch.yRes = rect.h;
-				dev->touch.swapX = config.getTouchSwapX();
-				dev->touch.swapY = config.getTouchSwapY();
-				dev->touch.swapXY = config.getTouchSwapXY();
-				if(config.getTouchResX()) {
-					dev->touch.xFactor = (float)rect.w / config.getTouchResX();
-				} else if(ioctl(fd, EVIOCGABS(ABS_X), &abs) != -1) {
-					if(dev->touch.swapXY) {
-						dev->touch.yFactor =  (float)rect.h / abs.maximum;
-					} else {
-						dev->touch.xFactor =  (float)rect.w / abs.maximum;
-					}
-				} else {
-					dev->touch.xFactor = 1.0;
-				}
-				if(config.getTouchResY()) {
-					dev->touch.yFactor = (float)rect.h / config.getTouchResY();
-				} else if(ioctl(fd, EVIOCGABS(ABS_Y), &abs) != -1) {
-					if(dev->touch.swapXY) {
-						dev->touch.xFactor = (float)rect.w / abs.maximum;
-					} else {
-						dev->touch.yFactor = (float)rect.h / abs.maximum;
-					}
-				} else {
-					dev->touch.yFactor = 1.0;
+			if(TSTBIT(ABS_X, abs_bit) && TSTBIT(ABS_Y, abs_bit)) {
+				if(TSTBIT(EV_KEY, ev_bit) && (TSTBIT(BTN_LEFT, key_bit) || TSTBIT(BTN_TOUCH, key_bit))) {
+					dev->touch.haveBtnEvents = true;
+					dev->type = MMSINPUTLISHANDLER_DEVTYPE_TOUCHSCREEN;
+				} else if(TSTBIT(ABS_PRESSURE, abs_bit)) {
+					dev->touch.haveBtnEvents = false;
+					dev->type = MMSINPUTLISHANDLER_DEVTYPE_TOUCHSCREEN;
 				}
 			}
 		}
+
+		if(dev->type == MMSINPUTLISHANDLER_DEVTYPE_TOUCHSCREEN) {
+			struct input_absinfo abs;
+			MMSConfigData config;
+			MMSFBRectangle vRect = config.getVRect();
+
+			/* use the graphicslayer resolution if vrect isn't set */
+			if(vRect.w <= 0) {
+				vRect = config.getGraphicsLayer().rect;
+			}
+
+			dev->touch.rect 	= config.getTouchRect();
+			dev->touch.swapX 	= config.getTouchSwapX();
+			dev->touch.swapY 	= config.getTouchSwapY();
+			dev->touch.swapXY 	= config.getTouchSwapXY();
+
+			if(dev->touch.rect.w) {
+				dev->touch.xFactor = (float)vRect.w / (float)dev->touch.rect.w;
+			} else if(ioctl(fd, EVIOCGABS(ABS_X), &abs) != -1) {
+				if(dev->touch.swapXY) {
+					dev->touch.yFactor =  (float)vRect.h / (abs.maximum - abs.minimum);
+				} else {
+					dev->touch.xFactor =  (float)vRect.w / (abs.maximum - abs.minimum);
+				}
+			} else {
+				dev->touch.xFactor = 1.0;
+			}
+			if(dev->touch.rect.h) {
+				dev->touch.yFactor = (float)vRect.h / (float)dev->touch.rect.h;
+			} else if(ioctl(fd, EVIOCGABS(ABS_Y), &abs) != -1) {
+				if(dev->touch.swapXY) {
+					dev->touch.xFactor = (float)vRect.w / (abs.maximum - abs.minimum);
+				} else {
+					dev->touch.yFactor = (float)vRect.h / (abs.maximum - abs.minimum);
+				}
+			} else {
+				dev->touch.yFactor = 1.0;
+			}
+		}
 	}
+
 	printf("Found %s, type=%s (%s)\n",
 						dev->name.c_str(),
 						dev->type.c_str(),
@@ -232,7 +231,7 @@ void MMSInputLISHandler::grabEvents(MMSInputEvent *inputevent) {
 	if (this->ie_read_pos >= MMSINPUTLISHANDLER_EVENT_BUFFER_SIZE)
 		this->ie_read_pos = 0;
 #else
-	throw new MMSError(0,(string)typeid(this).name() + " is empty. compile FBDEV support!");
+	throw MMSError(0,(string)typeid(this).name() + " is empty. compile FBDEV support!");
 #endif
 }
 

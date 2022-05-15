@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -34,12 +34,14 @@
 #include <string.h>
 #include <stdlib.h>
 
-//store attribute descriptions here
+// store attribute descriptions here
 TAFF_ATTRDESC MMSGUI_WIDGET_ATTR_I[] = MMSGUI_WIDGET_ATTR_INIT;
 
-//address attribute names
+// address attribute names
 #define GETATTRNAME(aname) MMSGUI_WIDGET_ATTR_I[MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_##aname].name
-#define ISATTRNAME(aname) (strcmp(attrname, GETATTRNAME(aname))==0)
+
+// address attribute types
+#define GETATTRTYPE(aname) MMSGUI_WIDGET_ATTR_I[MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_##aname].type
 
 
 MMSWidgetClass::MMSWidgetClass() {
@@ -93,6 +95,8 @@ MMSWidgetClass::MMSWidgetClass() {
 
     initInputMode();
     initJoinedWidget();
+
+    initActivated();
 }
 
 MMSWidgetClass::~MMSWidgetClass() {
@@ -146,6 +150,8 @@ MMSWidgetClass::~MMSWidgetClass() {
 
     freeInputMode();
     freeJoinedWidget();
+
+    freeActivated();
 }
 
 MMSWidgetClass &MMSWidgetClass::operator=(const MMSWidgetClass &c) {
@@ -261,6 +267,8 @@ void MMSWidgetClass::unsetAll() {
 
     unsetInputMode();
     unsetJoinedWidget();
+
+    unsetActivated();
 }
 
 void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path, bool reset_paths) {
@@ -281,10 +289,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
 		{
 	        switch (attrid) {
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_bgcolor:
-				color.a = color.r = color.g = color.b = 0;
-	            if (isBgColor()) getBgColor(color);
-	            if (getMMSFBColorFromString(attrval_str, &color))
-	                setBgColor(color);
+	            setBgColor(MMSFBColor((unsigned int)attrval_int));
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_bgcolor_a:
 				color.a = color.r = color.g = color.b = 0;
@@ -311,10 +316,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
 	            setBgColor(color);
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_selbgcolor:
-				color.a = color.r = color.g = color.b = 0;
-	            if (isSelBgColor()) getSelBgColor(color);
-	            if (getMMSFBColorFromString(attrval_str, &color))
-	                setSelBgColor(color);
+	            setSelBgColor(MMSFBColor((unsigned int)attrval_int));
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_selbgcolor_a:
 				color.a = color.r = color.g = color.b = 0;
@@ -341,10 +343,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
 	            setSelBgColor(color);
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_bgcolor_p:
-				color.a = color.r = color.g = color.b = 0;
-	            if (isBgColor_p()) getBgColor_p(color);
-	            if (getMMSFBColorFromString(attrval_str, &color))
-	                setBgColor_p(color);
+	            setBgColor_p(MMSFBColor((unsigned int)attrval_int));
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_bgcolor_p_a:
 				color.a = color.r = color.g = color.b = 0;
@@ -371,10 +370,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
 	            setBgColor_p(color);
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_selbgcolor_p:
-				color.a = color.r = color.g = color.b = 0;
-	            if (isSelBgColor_p()) getSelBgColor_p(color);
-	            if (getMMSFBColorFromString(attrval_str, &color))
-	                setSelBgColor_p(color);
+	            setSelBgColor_p(MMSFBColor((unsigned int)attrval_int));
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_selbgcolor_p_a:
 				color.a = color.r = color.g = color.b = 0;
@@ -401,10 +397,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
 	            setSelBgColor_p(color);
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_bgcolor_i:
-				color.a = color.r = color.g = color.b = 0;
-	            if (isBgColor_i()) getBgColor_i(color);
-	            if (getMMSFBColorFromString(attrval_str, &color))
-	                setBgColor_i(color);
+	            setBgColor_i(MMSFBColor((unsigned int)attrval_int));
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_bgcolor_i_a:
 				color.a = color.r = color.g = color.b = 0;
@@ -431,10 +424,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
 	            setBgColor_i(color);
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_selbgcolor_i:
-				color.a = color.r = color.g = color.b = 0;
-	            if (isSelBgColor_i()) getSelBgColor_i(color);
-	            if (getMMSFBColorFromString(attrval_str, &color))
-	                setSelBgColor_i(color);
+	            setSelBgColor_i(MMSFBColor((unsigned int)attrval_int));
 	            break;
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_selbgcolor_i_a:
 				color.a = color.r = color.g = color.b = 0;
@@ -622,6 +612,9 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
 			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_joined_widget:
 	            setJoinedWidget(attrval_str);
 	            break;
+			case MMSGUI_WIDGET_ATTR::MMSGUI_WIDGET_ATTR_IDS_activated:
+	            setActivated((attrval_int) ? true : false);
+	            break;
 			}
 		}
 		endTAFFScan
@@ -631,19 +624,22 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
 
     	startTAFFScan_WITHOUT_ID
     	{
-    		/* check if attrname has correct prefix */
+    		// check if attrname has correct prefix
     		if (pl >= strlen(attrname))
         		continue;
             if (memcmp(attrname, prefix->c_str(), pl)!=0)
             	continue;
             attrname = &attrname[pl];
 
-    		/* okay, correct prefix, check attributes now */
+            // special storage for macros
+			bool attrval_str_valid;
+			bool int_val_set;
+			bool byte_val_set;
+			int  *p_int_val = &attrval_int;
+
+    		// okay, correct prefix, check attributes now
             if (ISATTRNAME(bgcolor)) {
-				color.a = color.r = color.g = color.b = 0;
-	            if (isBgColor()) getBgColor(color);
-	            if (getMMSFBColorFromString(attrval_str, &color))
-	                setBgColor(color);
+	            setBgColor(MMSFBColor((unsigned int)attrval_int));
             }
             else
             if (ISATTRNAME(bgcolor_a)) {
@@ -675,10 +671,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
             }
             else
             if (ISATTRNAME(selbgcolor)) {
-				color.a = color.r = color.g = color.b = 0;
-	            if (isSelBgColor()) getSelBgColor(color);
-	            if (getMMSFBColorFromString(attrval_str, &color))
-	                setSelBgColor(color);
+	            setSelBgColor(MMSFBColor((unsigned int)attrval_int));
             }
             else
             if (ISATTRNAME(selbgcolor_a)) {
@@ -710,10 +703,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
             }
             else
             if (ISATTRNAME(bgcolor_p)) {
-				color.a = color.r = color.g = color.b = 0;
-	            if (isBgColor_p()) getBgColor_p(color);
-	            if (getMMSFBColorFromString(attrval_str, &color))
-	                setBgColor_p(color);
+	            setBgColor_p(MMSFBColor((unsigned int)attrval_int));
             }
             else
             if (ISATTRNAME(bgcolor_p_a)) {
@@ -745,10 +735,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
             }
             else
             if (ISATTRNAME(selbgcolor_p)) {
-				color.a = color.r = color.g = color.b = 0;
-	            if (isSelBgColor_p()) getSelBgColor_p(color);
-	            if (getMMSFBColorFromString(attrval_str, &color))
-	                setSelBgColor_p(color);
+	            setSelBgColor_p(MMSFBColor((unsigned int)attrval_int));
             }
             else
             if (ISATTRNAME(selbgcolor_p_a)) {
@@ -780,10 +767,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
             }
             else
             if (ISATTRNAME(bgcolor_i)) {
-				color.a = color.r = color.g = color.b = 0;
-	            if (isBgColor_i()) getBgColor_i(color);
-	            if (getMMSFBColorFromString(attrval_str, &color))
-	                setBgColor_i(color);
+	            setBgColor_i(MMSFBColor((unsigned int)attrval_int));
             }
             else
             if (ISATTRNAME(bgcolor_i_a)) {
@@ -815,10 +799,7 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
             }
             else
             if (ISATTRNAME(selbgcolor_i)) {
-				color.a = color.r = color.g = color.b = 0;
-	            if (isSelBgColor_i()) getSelBgColor_i(color);
-	            if (getMMSFBColorFromString(attrval_str, &color))
-	                setSelBgColor_i(color);
+	            setSelBgColor_i(MMSFBColor((unsigned int)attrval_int));
             }
             else
             if (ISATTRNAME(selbgcolor_i_a)) {
@@ -1049,6 +1030,10 @@ void MMSWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, s
             else
             if (ISATTRNAME(joined_widget)) {
 	            setJoinedWidget(attrval_str);
+            }
+            else
+            if (ISATTRNAME(activated)) {
+				setActivated((attrval_int) ? true : false);
             }
     	}
     	endTAFFScan_WITHOUT_ID
@@ -2049,5 +2034,30 @@ void MMSWidgetClass::setJoinedWidget(const string &joinedwidget) {
 
 bool MMSWidgetClass::getJoinedWidget(string &joinedwidget) {
 	MMSTHEMECLASS_GET_STRING(joinedwidget);
+}
+
+
+void MMSWidgetClass::initActivated() {
+    MMSTHEMECLASS_INIT_BASIC(activated);
+}
+
+void MMSWidgetClass::freeActivated() {
+    MMSTHEMECLASS_FREE_BASIC(activated);
+}
+
+bool MMSWidgetClass::isActivated() {
+	MMSTHEMECLASS_ISSET(activated);
+}
+
+void MMSWidgetClass::unsetActivated() {
+    MMSTHEMECLASS_UNSET(activated);
+}
+
+void MMSWidgetClass::setActivated(bool activated) {
+	MMSTHEMECLASS_SET_BASIC(activated);
+}
+
+bool MMSWidgetClass::getActivated(bool &activated) {
+	MMSTHEMECLASS_GET_BASIC(activated);
 }
 

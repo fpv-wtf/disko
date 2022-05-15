@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -36,9 +36,11 @@
 //store attribute descriptions here
 TAFF_ATTRDESC MMSGUI_SLIDERWIDGET_ATTR_I[] = MMSGUI_SLIDERWIDGET_ATTR_INIT;
 
-//address attribute names
+// address attribute names
 #define GETATTRNAME(aname) MMSGUI_SLIDERWIDGET_ATTR_I[MMSGUI_SLIDERWIDGET_ATTR::MMSGUI_SLIDERWIDGET_ATTR_IDS_##aname].name
-#define ISATTRNAME(aname) (strcmp(attrname, GETATTRNAME(aname))==0)
+
+// address attribute types
+#define GETATTRTYPE(aname) MMSGUI_SLIDERWIDGET_ATTR_I[MMSGUI_SLIDERWIDGET_ATTR::MMSGUI_SLIDERWIDGET_ATTR_IDS_##aname].type
 
 
 MMSSliderWidgetClass::MMSSliderWidgetClass() {
@@ -60,6 +62,10 @@ void MMSSliderWidgetClass::unsetAll() {
     unsetSelImagePath_i();
     unsetSelImageName_i();
     unsetPosition();
+    unsetBarImagePath();
+    unsetBarImageName();
+    unsetSelBarImagePath();
+    unsetSelBarImageName();
 }
 
 void MMSSliderWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefix, string *path, bool reset_paths) {
@@ -72,6 +78,8 @@ void MMSSliderWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pre
         unsetSelImagePath_p();
         unsetImagePath_i();
         unsetSelImagePath_i();
+        unsetBarImagePath();
+        unsetSelBarImagePath();
     }
 
     if (!prefix) {
@@ -180,6 +188,41 @@ void MMSSliderWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pre
 			case MMSGUI_SLIDERWIDGET_ATTR::MMSGUI_SLIDERWIDGET_ATTR_IDS_position:
 	            setPosition(attrval_int);
 				break;
+
+
+			case MMSGUI_SLIDERWIDGET_ATTR::MMSGUI_SLIDERWIDGET_ATTR_IDS_barimage:
+	            if (*attrval_str)
+	                setBarImagePath("");
+	            else
+	                setBarImagePath((path)?*path:"");
+	            setBarImageName(attrval_str);
+				break;
+			case MMSGUI_SLIDERWIDGET_ATTR::MMSGUI_SLIDERWIDGET_ATTR_IDS_barimage_path:
+	            if (*attrval_str)
+	                setBarImagePath(attrval_str);
+	            else
+	                setBarImagePath((path)?*path:"");
+				break;
+			case MMSGUI_SLIDERWIDGET_ATTR::MMSGUI_SLIDERWIDGET_ATTR_IDS_barimage_name:
+	            setBarImageName(attrval_str);
+				break;
+			case MMSGUI_SLIDERWIDGET_ATTR::MMSGUI_SLIDERWIDGET_ATTR_IDS_selbarimage:
+	            if (*attrval_str)
+	                setSelBarImagePath("");
+	            else
+	                setSelBarImagePath((path)?*path:"");
+	            setSelBarImageName(attrval_str);
+				break;
+			case MMSGUI_SLIDERWIDGET_ATTR::MMSGUI_SLIDERWIDGET_ATTR_IDS_selbarimage_path:
+	            if (*attrval_str)
+	                setSelBarImagePath(attrval_str);
+	            else
+	                setSelBarImagePath((path)?*path:"");
+				break;
+			case MMSGUI_SLIDERWIDGET_ATTR::MMSGUI_SLIDERWIDGET_ATTR_IDS_selbarimage_name:
+	            setSelBarImageName(attrval_str);
+				break;
+
 			}
 		}
 		endTAFFScan
@@ -189,14 +232,20 @@ void MMSSliderWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pre
 
     	startTAFFScan_WITHOUT_ID
     	{
-    		/* check if attrname has correct prefix */
+    		// check if attrname has correct prefix
     		if (pl >= strlen(attrname))
         		continue;
             if (memcmp(attrname, prefix->c_str(), pl)!=0)
             	continue;
             attrname = &attrname[pl];
 
-    		/* okay, correct prefix, check attributes now */
+            // special storage for macros
+			bool attrval_str_valid;
+			bool int_val_set;
+			bool byte_val_set;
+			int  *p_int_val = &attrval_int;
+
+    		// okay, correct prefix, check attributes now
             if (ISATTRNAME(image)) {
 	            if (*attrval_str)
 	                setImagePath("");
@@ -314,6 +363,44 @@ void MMSSliderWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pre
             if (ISATTRNAME(position)) {
 	            setPosition(attrval_int);
 			}
+            else
+			if (ISATTRNAME(barimage)) {
+				if (*attrval_str)
+					setBarImagePath("");
+				else
+					setBarImagePath((path)?*path:"");
+				setBarImageName(attrval_str);
+			}
+			else
+			if (ISATTRNAME(barimage_path)) {
+				if (*attrval_str)
+					setBarImagePath(attrval_str);
+				else
+					setBarImagePath((path)?*path:"");
+			}
+			else
+			if (ISATTRNAME(barimage_name)) {
+				setBarImageName(attrval_str);
+			}
+			else
+			if (ISATTRNAME(selbarimage)) {
+				if (*attrval_str)
+					setSelBarImagePath("");
+				else
+					setSelBarImagePath((path)?*path:"");
+				setSelBarImageName(attrval_str);
+			}
+			else
+			if (ISATTRNAME(selbarimage_path)) {
+				if (*attrval_str)
+					setSelBarImagePath(attrval_str);
+				else
+					setSelBarImagePath((path)?*path:"");
+			}
+			else
+			if (ISATTRNAME(selbarimage_name)) {
+				setSelBarImageName(attrval_str);
+			}
     	}
     	endTAFFScan_WITHOUT_ID
     }
@@ -332,6 +419,10 @@ void MMSSliderWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *pre
 	        setImagePath_i(*path);
 	    if (!isSelImagePath_i())
 	        setSelImagePath_i(*path);
+	    if (!isBarImagePath())
+	        setBarImagePath(*path);
+	    if (!isSelBarImagePath())
+	        setSelBarImagePath(*path);
     }
 }
 
@@ -563,4 +654,77 @@ void MMSSliderWidgetClass::unsetPosition() {
 unsigned int MMSSliderWidgetClass::getPosition() {
     return this->position;
 }
+
+
+
+
+
+bool MMSSliderWidgetClass::isBarImagePath() {
+    return this->isbarimagepath;
+}
+
+void MMSSliderWidgetClass::setBarImagePath(string barimagepath) {
+    this->barimagepath = barimagepath;
+    this->isbarimagepath = true;
+}
+
+void MMSSliderWidgetClass::unsetBarImagePath() {
+    this->isbarimagepath = false;
+}
+
+string MMSSliderWidgetClass::getBarImagePath() {
+    return this->barimagepath;
+}
+
+bool MMSSliderWidgetClass::isBarImageName() {
+    return this->isbarimagename;
+}
+
+void MMSSliderWidgetClass::setBarImageName(string barimagename) {
+    this->barimagename = barimagename;
+    this->isbarimagename = true;
+}
+
+void MMSSliderWidgetClass::unsetBarImageName() {
+    this->isbarimagename = false;
+}
+
+string MMSSliderWidgetClass::getBarImageName() {
+    return this->barimagename;
+}
+
+bool MMSSliderWidgetClass::isSelBarImagePath() {
+    return this->isselbarimagepath;
+}
+
+void MMSSliderWidgetClass::setSelBarImagePath(string selbarimagepath) {
+    this->selbarimagepath = selbarimagepath;
+    this->isselbarimagepath = true;
+}
+
+void MMSSliderWidgetClass::unsetSelBarImagePath() {
+    this->isselbarimagepath = false;
+}
+
+string MMSSliderWidgetClass::getSelBarImagePath() {
+    return this->selbarimagepath;
+}
+
+bool MMSSliderWidgetClass::isSelBarImageName() {
+    return this->isselbarimagename;
+}
+
+void MMSSliderWidgetClass::setSelBarImageName(string selbarimagename) {
+    this->selbarimagename = selbarimagename;
+    this->isselbarimagename = true;
+}
+
+void MMSSliderWidgetClass::unsetSelBarImageName() {
+    this->isselbarimagename = false;
+}
+
+string MMSSliderWidgetClass::getSelBarImageName() {
+    return this->selbarimagename;
+}
+
 

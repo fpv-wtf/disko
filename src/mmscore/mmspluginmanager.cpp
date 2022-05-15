@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -50,14 +50,18 @@ MMSPluginManager::MMSPluginManager() {
 MMSPluginManager::~MMSPluginManager() {
     if(this->source)  delete this->source;
     if(this->service) delete this->service;
-    for(vector<MMSOSDPluginHandler*>::iterator it = this->osdPluginHandlers.begin(); it != this->osdPluginHandlers.end(); ++it)
-       delete *it;
-    for(vector<MMSCentralPluginHandler*>::iterator it = this->centralPluginHandlers.begin(); it != this->centralPluginHandlers.end(); ++it)
-       delete *it;
-    for(vector<MMSImportPluginHandler*>::iterator it = this->importPluginHandlers.begin(); it != this->importPluginHandlers.end(); ++it)
-       delete *it;
-    for(vector<MMSBackendPluginHandler*>::iterator it = this->backendPluginHandlers.begin(); it != this->backendPluginHandlers.end(); ++it)
-       delete *it;
+	for(vector<MMSOSDPluginHandler*>::iterator it = this->osdPluginHandlers.begin(); it != this->osdPluginHandlers.end(); ++it)
+		delete *it;
+	for(vector<MMSCentralPluginHandler*>::iterator it = this->centralPluginHandlers.begin(); it != this->centralPluginHandlers.end(); ++it)
+		delete *it;
+	for(vector<MMSImportPluginHandler*>::iterator it = this->importPluginHandlers.begin(); it != this->importPluginHandlers.end(); ++it)
+		delete *it;
+	for(vector<MMSBackendPluginHandler*>::iterator it = this->backendPluginHandlers.begin(); it != this->backendPluginHandlers.end(); ++it)
+		delete *it;
+    this->osdPluginHandlers.clear();
+    this->centralPluginHandlers.clear();
+    this->importPluginHandlers.clear();
+    this->backendPluginHandlers.clear();
 }
 
 void MMSPluginManager::registerStaticOSDPlugin(string name, IMMSOSDPlugin *plugin) {
@@ -79,232 +83,268 @@ void MMSPluginManager::registerStaticBackendPlugin(string name, IMMSBackendPlugi
 void MMSPluginManager::loadOSDPlugins() {
     vector<MMSPluginData *> data;
 
-    if (this->osdPluginHandlers.size() > 0) {
-        throw new MMSPluginManagerError(0,"OSD Plugins already loaded");
+    if(!this->osdPluginHandlers.empty()) {
+        throw MMSPluginManagerError(0,"OSD Plugins already loaded");
     }
 
     DEBUGMSG("MMSCore", "getOSDPlugins from service");
     data = this->service->getOSDPlugins();
 
-    for(unsigned int i=0;i<data.size();i++) {
+    for(vector<MMSPluginData*>::iterator i = data.begin(); i !=  data.end(); ++i) {
         MMSOSDPluginHandler *myhandler;
-        map<string, IMMSOSDPlugin*>::iterator iter = this->staticOSDPlugins.find(data.at(i)->getName());
+        map<string, IMMSOSDPlugin*>::iterator iter = this->staticOSDPlugins.find((*i)->getName());
         if(iter != this->staticOSDPlugins.end())
-        	myhandler = new MMSOSDPluginHandler(*(data.at(i)), true, iter->second);
+        	myhandler = new MMSOSDPluginHandler(*(*i), true, iter->second);
         else
-        	myhandler = new MMSOSDPluginHandler(*(data.at(i)), true);
+        	myhandler = new MMSOSDPluginHandler(*(*i), true);
         this->osdPluginHandlers.push_back(myhandler);
-        DEBUGMSG("MMSCore", " %s", data.at(i)->getName().c_str());
+        DEBUGMSG("MMSCore", " %s", (*i)->getName().c_str());
     }
 }
 
 void MMSPluginManager::loadCentralPlugins() {
     vector<MMSPluginData *> data;
 
-    if (this->centralPluginHandlers.size() > 0) {
-        throw new MMSPluginManagerError(0,"Central Plugins already loaded");
+    if (!this->centralPluginHandlers.empty()) {
+        throw MMSPluginManagerError(0,"Central Plugins already loaded");
     }
 
     data = this->service->getCentralPlugins();
 
-    for(unsigned int i=0;i<data.size();i++) {
+    for(vector<MMSPluginData*>::iterator i = data.begin(); i !=  data.end(); ++i) {
         MMSCentralPluginHandler *myhandler;
-        map<string, IMMSCentralPlugin*>::iterator iter = this->staticCentralPlugins.find(data.at(i)->getName());
+        map<string, IMMSCentralPlugin*>::iterator iter = this->staticCentralPlugins.find((*i)->getName());
         if(iter != this->staticCentralPlugins.end())
-        	myhandler = new MMSCentralPluginHandler(*(data.at(i)), true, iter->second);
+        	myhandler = new MMSCentralPluginHandler(*(*i), true, iter->second);
         else
-        	myhandler = new MMSCentralPluginHandler(*(data.at(i)), true);
+        	myhandler = new MMSCentralPluginHandler(*(*i), true);
         this->centralPluginHandlers.push_back(myhandler);
-        DEBUGMSG("MMSCore", " %s", data.at(i)->getName().c_str());
+        DEBUGMSG("MMSCore", " %s", (*i)->getName().c_str());
     }
 }
 
 void MMSPluginManager::loadImportPlugins() {
     vector<MMSPluginData *> data;
 
-    if (this->importPluginHandlers.size() > 0) {
-        throw new MMSPluginManagerError(0,"Import Plugins already loaded");
+    if (!this->importPluginHandlers.empty()) {
+        throw MMSPluginManagerError(0,"Import Plugins already loaded");
     }
 
     data = this->service->getImportPlugins();
 
-    for(unsigned int i=0;i<data.size();i++) {
+    for(vector<MMSPluginData*>::iterator i = data.begin(); i !=  data.end(); ++i) {
         MMSImportPluginHandler *myhandler;
-        map<string, IMMSImportPlugin*>::iterator iter = this->staticImportPlugins.find(data.at(i)->getName());
+        map<string, IMMSImportPlugin*>::iterator iter = this->staticImportPlugins.find((*i)->getName());
         if(iter != this->staticImportPlugins.end())
-        	myhandler = new MMSImportPluginHandler(*(data.at(i)), true, iter->second);
+        	myhandler = new MMSImportPluginHandler(*(*i), true, iter->second);
         else
-        	myhandler = new MMSImportPluginHandler(*(data.at(i)), true);
+        	myhandler = new MMSImportPluginHandler(*(*i), true);
         this->importPluginHandlers.push_back(myhandler);
-        DEBUGMSG("MMSCore", " %s", data.at(i)->getName().c_str());
+        DEBUGMSG("MMSCore", " %s", (*i)->getName().c_str());
     }
 }
 
 void MMSPluginManager::loadBackendPlugins() {
     vector<MMSPluginData *> data;
 
-    if (this->backendPluginHandlers.size() > 0) {
-        throw new MMSPluginManagerError(0,"Backend Plugins already loaded");
+    if (!this->backendPluginHandlers.empty()) {
+        throw MMSPluginManagerError(0,"Backend Plugins already loaded");
     }
 
     data = this->service->getBackendPlugins();
 
-    for(unsigned int i=0;i<data.size();i++) {
+    for(vector<MMSPluginData*>::iterator i = data.begin(); i !=  data.end(); ++i) {
         MMSBackendPluginHandler *myhandler;
-        map<string, IMMSBackendPlugin*>::iterator iter = this->staticBackendPlugins.find(data.at(i)->getName());
+        map<string, IMMSBackendPlugin*>::iterator iter = this->staticBackendPlugins.find((*i)->getName());
         if(iter != this->staticBackendPlugins.end())
-        	myhandler = new MMSBackendPluginHandler(*(data.at(i)), true, iter->second);
+        	myhandler = new MMSBackendPluginHandler(*(*i), true, iter->second);
         else
-        	myhandler = new MMSBackendPluginHandler(*(data.at(i)), true);
+        	myhandler = new MMSBackendPluginHandler(*(*i), true);
         this->backendPluginHandlers.push_back(myhandler);
-        DEBUGMSG("MMSCore", " %s", data.at(i)->getName().c_str());
+        DEBUGMSG("MMSCore", " %s", (*i)->getName().c_str());
     }
 }
 
 void MMSPluginManager::initializeOSDPlugins() {
-    for(unsigned int i=0;i<this->osdPluginHandlers.size();i++) {
-        MMSPluginData pd = this->osdPluginHandlers.at(i)->getPluginData();
-        this->osdPluginHandlers.at(i)->setSwitcherInterface(switcher->newSwitcher(&pd));
-        this->osdPluginHandlers.at(i)->invokeInitialize();
+	for(vector<MMSOSDPluginHandler*>::iterator i = this->osdPluginHandlers.begin(); i != this->osdPluginHandlers.end(); ++i) {
+        MMSPluginData pd = (*i)->getPluginData();
+        (*i)->setSwitcherInterface(switcher->newSwitcher(&pd));
+        (*i)->invokeInitialize();
     }
 }
 
 void MMSPluginManager::initializeCentralPlugins() {
-    for(unsigned int i=0;i<this->centralPluginHandlers.size();i++) {
-        MMSPluginData pd = this->centralPluginHandlers.at(i)->getPluginData();
-        this->centralPluginHandlers.at(i)->setSwitcherInterface(switcher->newSwitcher(&pd));
-        this->centralPluginHandlers.at(i)->invokeInitialize();
+	for(vector<MMSCentralPluginHandler*>::iterator i = this->centralPluginHandlers.begin(); i != this->centralPluginHandlers.end(); ++i) {
+        MMSPluginData pd = (*i)->getPluginData();
+        (*i)->setSwitcherInterface(switcher->newSwitcher(&pd));
+        (*i)->invokeInitialize();
     }
 }
 
 void MMSPluginManager::initializeImportPlugins() {
-    for(unsigned int i=0;i<this->importPluginHandlers.size();i++) {
-        this->importPluginHandlers.at(i)->invokeInitialize();
+	for(vector<MMSImportPluginHandler*>::iterator i = this->importPluginHandlers.begin(); i != this->importPluginHandlers.end(); ++i) {
+        (*i)->invokeInitialize();
     }
 }
 
 void MMSPluginManager::initializeBackendPlugins() {
-    for(unsigned int i=0;i<this->backendPluginHandlers.size();i++) {
-        MMSPluginData pd = this->backendPluginHandlers.at(i)->getPluginData();
-        this->backendPluginHandlers.at(i)->setSwitcherInterface(switcher->newSwitcher(&pd));
-        this->backendPluginHandlers.at(i)->invokeInitialize();
+	for(vector<MMSBackendPluginHandler*>::iterator i = this->backendPluginHandlers.begin(); i != this->backendPluginHandlers.end(); ++i) {
+        MMSPluginData pd = (*i)->getPluginData();
+        (*i)->setSwitcherInterface(switcher->newSwitcher(&pd));
+        (*i)->invokeInitialize();
     }
 }
 
 vector<MMSOSDPluginHandler *> MMSPluginManager::getOSDPluginHandlers(vector <MMSPluginData *> data) {
     vector<MMSOSDPluginHandler *> myhandlers;
 
-    for(unsigned int y=0; y<data.size();y++) {
-        for(unsigned int i = 0; i<osdPluginHandlers.size();i++) {
-            if(this->osdPluginHandlers.at(i)->getPluginData().getId() == data.at(y)->getId()) {
-                if (this->osdPluginHandlers.at(i)->getPluginData().getType()->getName() == PT_OSD_PLUGIN)
-                    myhandlers.push_back(this->osdPluginHandlers.at(i));
-                else
-                    throw new MMSPluginManagerError(0,"handler for id " + iToStr(data.at(y)->getId()) + " is not a osd plugin");
+    vector<MMSPluginData*>::iterator pdi;
+    vector<MMSPluginData*>::iterator end = data.end();
+    for(pdi = data.begin(); pdi != end; ++pdi) {
+    	vector<MMSOSDPluginHandler*>::iterator oi;
+    	vector<MMSOSDPluginHandler*>::iterator oi_end = this->osdPluginHandlers.end();
+    	for(oi = this->osdPluginHandlers.begin(); oi != oi_end; ++oi) {
+            if((*oi)->getPluginData().getId() == (*pdi)->getId()) {
+                if((*oi)->getPluginData().getType()->getName() == PT_OSD_PLUGIN) {
+                	myhandlers.push_back(*oi);
+                } else {
+                    throw MMSPluginManagerError(0,"handler for id " + iToStr((*pdi)->getId()) + " is not a osd plugin");
+                }
             }
-        }
+    	}
     }
+
     return myhandlers;
 }
 
 MMSOSDPluginHandler *MMSPluginManager::getOSDPluginHandler(int pluginid) {
-    for(unsigned int i=0;i<osdPluginHandlers.size();i++) {
-        if(this->osdPluginHandlers.at(i)->getPluginData().getId() == pluginid) {
-            if (this->osdPluginHandlers.at(i)->getPluginData().getType()->getName() == PT_OSD_PLUGIN)
-                return this->osdPluginHandlers.at(i);
-            else
-                throw new MMSPluginManagerError(0,"handler for id " + iToStr(pluginid) + " is not a osd plugin");
-        }
-    }
+	vector<MMSOSDPluginHandler*>::iterator i;
+	vector<MMSOSDPluginHandler*>::iterator end = this->osdPluginHandlers.end();
+	for(i = this->osdPluginHandlers.begin(); i != end; ++i) {
+		if((*i)->getPluginData().getId() == pluginid) {
+			if((*i)->getPluginData().getType()->getName() == PT_OSD_PLUGIN) {
+				return (*i);
+			} else {
+                throw MMSPluginManagerError(0,"handler for id " + iToStr(pluginid) + " is not a osd plugin");
+			}
+		}
+	}
 
-    throw new MMSPluginManagerError(0,"osd plugin handler for id " + iToStr(pluginid) + " was not found");
+    throw MMSPluginManagerError(0,"osd plugin handler for id " + iToStr(pluginid) + " was not found");
 }
 
 vector<MMSCentralPluginHandler *> MMSPluginManager::getCentralPluginHandlers(vector <MMSPluginData *> data) {
     vector<MMSCentralPluginHandler *> myhandlers;
 
-    for(unsigned int y=0; y<data.size();y++) {
-        for(unsigned int i = 0; i<centralPluginHandlers.size();i++) {
-            if(this->centralPluginHandlers.at(i)->getPluginData().getId() == data.at(y)->getId()) {
-                if (this->centralPluginHandlers.at(i)->getPluginData().getType()->getName() == PT_CENTRAL_PLUGIN)
-                    myhandlers.push_back(this->centralPluginHandlers.at(i));
-                else
-                    throw new MMSPluginManagerError(0,"handler for id " + iToStr(data.at(y)->getId()) + " is not a central plugin");
+    vector<MMSPluginData*>::iterator pdi;
+    vector<MMSPluginData*>::iterator end = data.end();
+    for(pdi = data.begin(); pdi != end; ++pdi) {
+    	vector<MMSCentralPluginHandler*>::iterator ci;
+    	vector<MMSCentralPluginHandler*>::iterator ci_end = this->centralPluginHandlers.end();
+    	for(ci = this->centralPluginHandlers.begin(); ci != ci_end; ++ci) {
+            if((*ci)->getPluginData().getId() == (*pdi)->getId()) {
+                if((*ci)->getPluginData().getType()->getName() == PT_CENTRAL_PLUGIN) {
+                	myhandlers.push_back(*ci);
+                } else {
+                    throw MMSPluginManagerError(0,"handler for id " + iToStr((*pdi)->getId()) + " is not a central plugin");
+                }
             }
-        }
+    	}
     }
+
     return myhandlers;
 }
 
 MMSCentralPluginHandler *MMSPluginManager::getCentralPluginHandler(int pluginid) {
-    for(unsigned int i=0;i<centralPluginHandlers.size();i++) {
-        if(this->centralPluginHandlers.at(i)->getPluginData().getId() == pluginid) {
-            if (this->centralPluginHandlers.at(i)->getPluginData().getType()->getName() == PT_CENTRAL_PLUGIN)
-                return this->centralPluginHandlers.at(i);
-            else
-                throw new MMSPluginManagerError(0,"handler for id " + iToStr(pluginid) + " is not a central plugin");
-        }
-    }
+	vector<MMSCentralPluginHandler*>::iterator i;
+	vector<MMSCentralPluginHandler*>::iterator end = this->centralPluginHandlers.end();
+	for(i = this->centralPluginHandlers.begin(); i != end; ++i) {
+		if((*i)->getPluginData().getId() == pluginid) {
+			if((*i)->getPluginData().getType()->getName() == PT_CENTRAL_PLUGIN) {
+				return (*i);
+			} else {
+                throw MMSPluginManagerError(0,"handler for id " + iToStr(pluginid) + " is not a central plugin");
+			}
+		}
+	}
 
-    throw new MMSPluginManagerError(0,"central plugin handler for id " + iToStr(pluginid) + " was not found");
+    throw MMSPluginManagerError(0,"central plugin handler for id " + iToStr(pluginid) + " was not found");
 }
 
 vector<MMSImportPluginHandler *> MMSPluginManager::getImportPluginHandlers(vector <MMSPluginData *> data) {
     vector<MMSImportPluginHandler *> myhandlers;
 
-    for(unsigned int y=0; y<data.size();y++) {
-        for(unsigned int i = 0; i<this->importPluginHandlers.size();i++) {
-            if(this->importPluginHandlers.at(i)->getPluginData().getId() == data.at(y)->getId()) {
-                if (this->importPluginHandlers.at(i)->getPluginData().getType()->getName() == PT_IMPORT_PLUGIN)
-                    myhandlers.push_back(this->importPluginHandlers.at(i));
-                else
-                    throw new MMSPluginManagerError(0,"handler for id " + iToStr(data.at(y)->getId()) + " is not a import plugin");
+    vector<MMSPluginData*>::iterator pdi;
+    vector<MMSPluginData*>::iterator end = data.end();
+    for(pdi = data.begin(); pdi != end; ++pdi) {
+    	vector<MMSImportPluginHandler*>::iterator ii;
+    	vector<MMSImportPluginHandler*>::iterator ii_end = this->importPluginHandlers.end();
+    	for(ii = this->importPluginHandlers.begin(); ii != ii_end; ++ii) {
+            if((*ii)->getPluginData().getId() == (*pdi)->getId()) {
+                if((*ii)->getPluginData().getType()->getName() == PT_IMPORT_PLUGIN) {
+                	myhandlers.push_back(*ii);
+                } else {
+                    throw MMSPluginManagerError(0,"handler for id " + iToStr((*pdi)->getId()) + " is not an import plugin");
+                }
             }
-        }
+    	}
     }
+
     return myhandlers;
 }
 
 MMSImportPluginHandler *MMSPluginManager::getImportPluginHandler(int pluginid) {
-    for(unsigned int i=0;i<this->importPluginHandlers.size();i++) {
-        if(this->importPluginHandlers.at(i)->getPluginData().getId() == pluginid) {
-            if (this->importPluginHandlers.at(i)->getPluginData().getType()->getName() == PT_IMPORT_PLUGIN)
-                return this->importPluginHandlers.at(i);
-            else
-                throw new MMSPluginManagerError(0,"handler for id " + iToStr(pluginid) + " is not a import plugin");
-        }
-    }
+	vector<MMSImportPluginHandler*>::iterator i;
+	vector<MMSImportPluginHandler*>::iterator end = this->importPluginHandlers.end();
+	for(i = this->importPluginHandlers.begin(); i != end; ++i) {
+		if((*i)->getPluginData().getId() == pluginid) {
+			if((*i)->getPluginData().getType()->getName() == PT_IMPORT_PLUGIN) {
+				return (*i);
+			} else {
+                throw MMSPluginManagerError(0,"handler for id " + iToStr(pluginid) + " is not an import plugin");
+			}
+		}
+	}
 
-    throw new MMSPluginManagerError(0,"import plugin handler for id " + iToStr(pluginid) + " was not found");
+    throw MMSPluginManagerError(0,"import plugin handler for id " + iToStr(pluginid) + " was not found");
 }
 
 vector<MMSBackendPluginHandler *> MMSPluginManager::getBackendPluginHandlers(vector <MMSPluginData *> data) {
     vector<MMSBackendPluginHandler *> myhandlers;
 
-    for(unsigned int y=0; y<data.size();y++) {
-        for(unsigned int i = 0; i<this->backendPluginHandlers.size();i++) {
-            if(this->backendPluginHandlers.at(i)->getPluginData().getId() == data.at(y)->getId()) {
-                if (this->backendPluginHandlers.at(i)->getPluginData().getType()->getName() == PT_BACKEND_PLUGIN)
-                    myhandlers.push_back(this->backendPluginHandlers.at(i));
-                else
-                    throw new MMSPluginManagerError(0,"handler for id " + iToStr(data.at(y)->getId()) + " is not a backend plugin");
+    vector<MMSPluginData*>::iterator pdi;
+    vector<MMSPluginData*>::iterator end = data.end();
+    for(pdi = data.begin(); pdi != end; ++pdi) {
+    	vector<MMSBackendPluginHandler*>::iterator bi;
+    	vector<MMSBackendPluginHandler*>::iterator bi_end = this->backendPluginHandlers.end();
+    	for(bi = this->backendPluginHandlers.begin(); bi != bi_end; ++bi) {
+            if((*bi)->getPluginData().getId() == (*pdi)->getId()) {
+                if((*bi)->getPluginData().getType()->getName() == PT_BACKEND_PLUGIN) {
+                	myhandlers.push_back(*bi);
+                } else {
+                    throw MMSPluginManagerError(0,"handler for id " + iToStr((*pdi)->getId()) + " is not a backend plugin");
+                }
             }
-        }
+    	}
     }
+
     return myhandlers;
 }
 
 MMSBackendPluginHandler *MMSPluginManager::getBackendPluginHandler(int pluginid) {
-    for(unsigned int i=0;i<this->backendPluginHandlers.size();i++) {
-        if(this->backendPluginHandlers.at(i)->getPluginData().getId() == pluginid) {
-            if (this->backendPluginHandlers.at(i)->getPluginData().getType()->getName() == PT_BACKEND_PLUGIN)
-                return this->backendPluginHandlers.at(i);
-            else
-                throw new MMSPluginManagerError(0,"handler for id " + iToStr(pluginid) + " is not a backend plugin");
-        }
-    }
+	vector<MMSBackendPluginHandler*>::iterator i;
+	vector<MMSBackendPluginHandler*>::iterator end = this->backendPluginHandlers.end();
+	for(i = this->backendPluginHandlers.begin(); i != end; ++i) {
+		if((*i)->getPluginData().getId() == pluginid) {
+			if((*i)->getPluginData().getType()->getName() == PT_BACKEND_PLUGIN) {
+				return (*i);
+			} else {
+                throw MMSPluginManagerError(0,"handler for id " + iToStr(pluginid) + " is not a backend plugin");
+			}
+		}
+	}
 
-    throw new MMSPluginManagerError(0,"backend plugin handler for id " + iToStr(pluginid) + " was not found");
+    throw MMSPluginManagerError(0,"backend plugin handler for id " + iToStr(pluginid) + " was not found");
 }
 
 

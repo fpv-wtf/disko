@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009-2010 BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -43,8 +43,11 @@ MMSTimer::MMSTimer(bool singleShot) :
 	MMSThread("MMSTimer"),
 	singleShot(singleShot),
 	action(START),
+	firsttime(true),
 	secs(0),
-	nSecs(0) {
+	nSecs(0),
+	ft_secs(0),
+	ft_nSecs(0) {
 	MMSThread::setStacksize(131072-4096);
 
 	pthread_mutex_init(&this->mutex, NULL);
@@ -57,22 +60,31 @@ MMSTimer::~MMSTimer() {
 		this->action = QUIT;
 		pthread_cond_signal(&cond);
 		pthread_mutex_unlock(&mutex);
+		join();
 	}
-	join();
 
 	pthread_cond_destroy(&this->cond);
 	pthread_mutex_destroy(&this->mutex);
 }
 
-bool MMSTimer::start(unsigned int milliSeconds) {
-	if(isRunning()) {
-		return false;
-	}
+bool MMSTimer::start(unsigned int milliSeconds, unsigned int firsttime_ms) {
 
+	// init timings...
 	this->nSecs = (milliSeconds % 1000) * 1000000;
 	this->secs = milliSeconds / 1000;
+	this->ft_nSecs = (firsttime_ms % 1000) * 1000000;
+	this->ft_secs = firsttime_ms / 1000;
 
-	return MMSThread::start();
+	this->firsttime = true;
+
+	if (!isRunning()) {
+		// start the thread
+		return MMSThread::start();
+	}
+	else {
+		// wakeup the thread
+		return restart();
+	}
 }
 
 bool MMSTimer::restart() {
@@ -102,6 +114,7 @@ bool MMSTimer::stop() {
 }
 
 void MMSTimer::threadMain() {
+
 	if(this->secs == 0 && this->nSecs == 0) {
 		return;
 	}
@@ -111,8 +124,17 @@ void MMSTimer::threadMain() {
 	pthread_mutex_lock(&this->mutex);
 	while(this->action != QUIT) {
 		clock_gettime(CLOCK_REALTIME, &absTime);
-		absTime.tv_sec  += this->secs;
-		absTime.tv_nsec += this->nSecs;
+
+		if (this->firsttime && (this->ft_secs != 0 || this->ft_nSecs != 0)) {
+			// firsttime, use ft_secs and ft_nSecs
+			absTime.tv_sec  += this->ft_secs;
+			absTime.tv_nsec += this->ft_nSecs;
+		}
+		else {
+			absTime.tv_sec  += this->secs;
+			absTime.tv_nsec += this->nSecs;
+		}
+		this->firsttime = false;
 
 		if(absTime.tv_nsec > 999999999) {
 			absTime.tv_sec += 1;

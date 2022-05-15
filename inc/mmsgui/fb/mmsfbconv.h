@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -35,6 +35,96 @@
 
 #include "mmsgui/fb/mmsfbbase.h"
 #include "mmsgui/fb/mmsfbfont.h"
+
+// check which pixelformats we should support
+#ifndef __HAVE_PF_ALL__
+#ifndef __HAVE_PF_ARGB__
+#ifndef __HAVE_PF_AiRGB__
+#ifndef __HAVE_PF_ARGB4444__
+#ifndef __HAVE_PF_ARGB3565__
+#ifndef __HAVE_PF_RGB16__
+#ifndef __HAVE_PF_RGB24__
+#ifndef __HAVE_PF_RGB32__
+#ifndef __HAVE_PF_BGR24__
+#ifndef __HAVE_PF_BGR555__
+#ifndef __HAVE_PF_AYUV__
+#ifndef __HAVE_PF_YV12__
+#ifndef __HAVE_PF_I420__
+#ifndef __HAVE_PF_YUY2__
+// no pixelformats defined
+#ifndef __HAVE_PF_NONE__
+#define __HAVE_PF_NONE__
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+
+#ifdef __HAVE_PF_ALL__
+// all pixelformats requested, enable all
+#ifndef __HAVE_PF_ARGB__
+#define __HAVE_PF_ARGB__
+#endif
+#ifndef __HAVE_PF_AiRGB__
+#define __HAVE_PF_AiRGB__
+#endif
+#ifndef __HAVE_PF_ARGB4444__
+#define __HAVE_PF_ARGB4444__
+#endif
+#ifndef __HAVE_PF_ARGB3565__
+#define __HAVE_PF_ARGB3565__
+#endif
+#ifndef __HAVE_PF_RGB16__
+#define __HAVE_PF_RGB16__
+#endif
+#ifndef __HAVE_PF_RGB24__
+#define __HAVE_PF_RGB24__
+#endif
+#ifndef __HAVE_PF_RGB32__
+#define __HAVE_PF_RGB32__
+#endif
+#ifndef __HAVE_PF_BGR24__
+#define __HAVE_PF_BGR24__
+#endif
+#ifndef __HAVE_PF_BGR555__
+#define __HAVE_PF_BGR555__
+#endif
+#ifndef __HAVE_PF_AYUV__
+#define __HAVE_PF_AYUV__
+#endif
+#ifndef __HAVE_PF_YV12__
+#define __HAVE_PF_YV12__
+#endif
+#ifndef __HAVE_PF_I420__
+#define __HAVE_PF_I420__
+#endif
+#ifndef __HAVE_PF_YUY2__
+#define __HAVE_PF_YUY2__
+#endif
+#endif
+
+// always enable ARGB format which is basically needed
+#ifndef __HAVE_PF_ARGB__
+#define __HAVE_PF_ARGB__
+#endif
+
+// enable also YV12 if I420 format is requested
+#ifdef __HAVE_PF_I420__
+#ifndef __HAVE_PF_YV12__
+#define __HAVE_PF_YV12__
+#endif
+#endif
+
 
 //#define MMSFB_CONV_RGB2Y(r,g,b) ((((66*r+129*g+25*b+128)>>8)+16) & 0xff)
 //#define MMSFB_CONV_RGB2U(r,g,b) ((((-38*r-74*g+112*b+128)>>8)+128) & 0xff)
@@ -886,30 +976,37 @@ if (!AA) { \
 
 //! used for text output
 #define MMSFBSURFACE_BLIT_TEXT_INIT(pw) \
-	int DY = 0;   font->getHeight(&DY); \
+	int FH = 0;   font->getHeight(&FH); \
 	int desc = 0; font->getDescender(&desc); \
-	DY -= desc + 1; \
+	int DY = FH - (desc + 1); \
 	int dst_pitch_pix = dst_pitch >> pw;
 
 //! used for text output
-#define MMSFBSURFACE_BLIT_TEXT_LOAD_GLYPH(character) \
+#define MMSFBSURFACE_BLIT_TEXT_LOAD_GLYPH(font, character) \
 	int			  src_pitch_pix; \
 	int 		  src_w; \
 	int 		  src_h; \
 	unsigned char *src; \
-	MMSFBFont_Glyph *glyph = font->getGlyph(character); \
-	if (glyph) { \
-		src_pitch_pix = glyph->pitch; \
-		src_w         = glyph->width; \
-		src_h         = glyph->height; \
-		src           = glyph->buffer; \
+	MMSFBFont_Glyph glyph; \
+	bool glyph_loaded = font->getGlyph(character, &glyph); \
+	if (glyph_loaded) { \
+		src_pitch_pix = glyph.pitch; \
+		src_w         = glyph.width; \
+		src_h         = glyph.height; \
+		src           = glyph.buffer; \
 	}
 
 //! used for text output
 #define MMSFBSURFACE_BLIT_TEXT_START_RENDER(pt) \
-	if (glyph) { \
-		int dx = x + glyph->left; \
-		int dy = y + DY - glyph->top; \
+	if (glyph_loaded) { \
+		int dx, dy; \
+		if (!MMSFBBase_rotate180) { \
+			dx = x + glyph.left; \
+			dy = y + DY - glyph.top; \
+		} else { \
+			dx = x - glyph.left - glyph.width + 1; \
+			dy = y - (DY - glyph.top) - glyph.height + 1; \
+		} \
 		if (dx < clipreg.x1) { \
 			src_w -= clipreg.x1 - dx; \
 			src   += clipreg.x1 - dx; \
@@ -927,7 +1024,38 @@ if (!AA) { \
 		pt *dst = ((pt *)dst_ptr) + dx + dy * dst_pitch_pix;
 
 //! used for text output
-#define MMSFBSURFACE_BLIT_TEXT_END_RENDER x+=glyph->advanceX >> 6; }
+#define MMSFBSURFACE_BLIT_TEXT_END_RENDER \
+	if (!MMSFBBase_rotate180) \
+		x+=glyph.advanceX >> 6; \
+	else \
+		x-=glyph.advanceX >> 6;	}
+
+
+//! calculate region if screen is rotated by 180°
+#define MMSFB_ROTATE_180_REGION(SURFACE, X1, Y1, X2, Y2) \
+	if (MMSFBBase_rotate180) { \
+		int tmp; \
+		tmp = X2; \
+		X2 = ((!(SURFACE)->root_parent)?(SURFACE)->config.w:(SURFACE)->root_parent->config.w) - X1 - 1; \
+		X1 = ((!(SURFACE)->root_parent)?(SURFACE)->config.w:(SURFACE)->root_parent->config.w) - tmp - 1; \
+		tmp = Y2; \
+		Y2 = ((!(SURFACE)->root_parent)?(SURFACE)->config.h:(SURFACE)->root_parent->config.h) - Y1 - 1; \
+		Y1 = ((!(SURFACE)->root_parent)?(SURFACE)->config.h:(SURFACE)->root_parent->config.h) - tmp - 1; \
+	}
+
+//! calculate rectangle if screen is rotated by 180°
+#define MMSFB_ROTATE_180_RECT(SURFACE, X, Y, W, H) \
+	if (MMSFBBase_rotate180) { \
+		X = ((!(SURFACE)->root_parent)?(SURFACE)->config.w:(SURFACE)->root_parent->config.w) - X - (W); \
+		Y = ((!(SURFACE)->root_parent)?(SURFACE)->config.h:(SURFACE)->root_parent->config.h) - Y - (H); \
+	}
+
+//! calculate rectangle if screen is rotated by 180°
+#define MMSFB_ROTATE_180_RECT_WH(WIDTH, HEIGHT, X, Y, W, H) \
+	if (MMSFBBase_rotate180) { \
+		X = WIDTH - X - (W); \
+		Y = HEIGHT - Y - (H); \
+	}
 
 
 
@@ -1053,6 +1181,14 @@ void mmsfb_blit_rgb32_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_height, i
 							   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
 
 
+//! Blit ARGB to RGB32.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_argb_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+							 MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
+
 //! Blit with alpha blending ARGB to RGB32.
 /*!
 \author Jens Schneider
@@ -1066,6 +1202,15 @@ void mmsfb_blit_blend_argb_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_heig
 \author Jens Schneider
 */
 void mmsfb_blit_blend_coloralpha_argb_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+											   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy,
+											   unsigned char alpha);
+
+
+//! Blit with alpha blending with alpha from color ARGB to RGB32, ignoring alpha channel from source.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_blit_coloralpha_argb_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
 											   MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy,
 											   unsigned char alpha);
 
@@ -1178,6 +1323,14 @@ void mmsfb_blit_rgb24_to_rgb24(MMSFBSurfacePlanes *src_planes, int src_height, i
 \author Jens Schneider
 */
 void mmsfb_blit_blend_argb_to_rgb24(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+									MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
+
+//! Blit with alpha blending ARGB to RGB24.
+/*!
+\note RGB24 byte order: blue@0, green@1, red@2
+\author Jens Schneider
+*/
+void mmsfb_blit_argb_to_rgb24(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
 									MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy);
 
 // ----------------------------------------------------------------------------
@@ -1554,6 +1707,13 @@ void mmsfb_stretchblit_rgb24_to_argb(MMSFBExternalSurfaceBuffer *extbuf, int src
 
 // --- STRETCH TO RGB32 -------------------------------------------------------
 // ----------------------------------------------------------------------------
+
+//! Stretch blit with alpha blending ARGB to RGB32.
+/*!
+\author Jens Schneider
+*/
+void mmsfb_stretchblit_blend_argb_to_rgb32(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
+										  MMSFBSurfacePlanes *dst_planes, int dst_height, int dx, int dy, int dw, int dh);
 
 //! Stretch blit RGB32 to RGB32.
 /*!

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -51,6 +51,10 @@ typedef struct {
 	int 			height;
 	//! width in pixel of the whole character
 	int				advanceX;
+#ifdef  __HAVE_OPENGL__
+	//! OpenGL texture for this glyph
+	unsigned int	texture;
+#endif
 } MMSFBFont_Glyph;
 
 //! Font rendering class.
@@ -104,9 +108,6 @@ class MMSFBFont {
     	//! pointer to next free memory
     	unsigned char *glyphpool_ptr;
 
-    	//! stores the glyph infos for method getGlyph()
-    	MMSFBFont_Glyph glyph;
-
         void lock();
         void unlock();
 
@@ -122,7 +123,7 @@ class MMSFBFont {
         bool getAscender(int *ascender);
         bool getDescender(int *descender);
 
-    	MMSFBFont_Glyph *getGlyph(unsigned int character);
+        bool getGlyph(unsigned int character, MMSFBFont_Glyph *glyph);
 
 	friend class MMSFBSurface;
 };

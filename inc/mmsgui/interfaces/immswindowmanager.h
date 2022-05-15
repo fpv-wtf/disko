@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -68,6 +68,8 @@ class IMMSWindowManager {
         virtual MMSTranslator *getTranslator() = 0;
 
         virtual MMSThemeManager *getThemeManager() = 0;
+
+        virtual unsigned int printStack(char *buffer = NULL) = 0;
 };
 
 #endif /*IMMSWINDOWMANAGER_H_*/

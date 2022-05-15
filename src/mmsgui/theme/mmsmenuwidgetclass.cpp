@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -36,9 +36,11 @@
 //store attribute descriptions here
 TAFF_ATTRDESC MMSGUI_MENUWIDGET_ATTR_I[] = MMSGUI_MENUWIDGET_ATTR_INIT;
 
-//address attribute names
+// address attribute names
 #define GETATTRNAME(aname) MMSGUI_MENUWIDGET_ATTR_I[MMSGUI_MENUWIDGET_ATTR::MMSGUI_MENUWIDGET_ATTR_IDS_##aname].name
-#define ISATTRNAME(aname) (strcmp(attrname, GETATTRNAME(aname))==0)
+
+// address attribute types
+#define GETATTRTYPE(aname) MMSGUI_MENUWIDGET_ATTR_I[MMSGUI_MENUWIDGET_ATTR::MMSGUI_MENUWIDGET_ATTR_IDS_##aname].type
 
 
 MMSMenuWidgetClass::MMSMenuWidgetClass() {
@@ -168,7 +170,22 @@ void MMSMenuWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefi
 	            setZoomSelShiftY(attrval_str);
 	            break;
 			case MMSGUI_MENUWIDGET_ATTR::MMSGUI_MENUWIDGET_ATTR_IDS_smooth_scrolling:
-	            setSmoothScrolling((attrval_int) ? true : false);
+				if ((attrval_int & 0xff) == 0x01)
+					setSmoothScrolling(MMSSEQUENCEMODE_LINEAR);
+				else
+				if ((attrval_int & 0xff) == 0x02)
+					setSmoothScrolling(MMSSEQUENCEMODE_LOG);
+				else
+				if ((attrval_int & 0xff) == 0x03)
+					setSmoothScrolling(MMSSEQUENCEMODE_LOG_SOFT_START);
+				else
+				if ((attrval_int & 0xff) == 0x04)
+					setSmoothScrolling(MMSSEQUENCEMODE_LOG_SOFT_END);
+				else
+				if (attrval_int)
+					setSmoothScrolling(MMSSEQUENCEMODE_LINEAR);
+				else
+					setSmoothScrolling(MMSSEQUENCEMODE_NONE);
 	            break;
 			case MMSGUI_MENUWIDGET_ATTR::MMSGUI_MENUWIDGET_ATTR_IDS_parent_window:
 	            setParentWindow(attrval_str);
@@ -190,7 +207,22 @@ void MMSMenuWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefi
 	            setSelImageName(attrval_str);
 	            break;
 			case MMSGUI_MENUWIDGET_ATTR::MMSGUI_MENUWIDGET_ATTR_IDS_smooth_selection:
-	            setSmoothSelection((attrval_int) ? true : false);
+				if ((attrval_int & 0xff) == 0x01)
+					setSmoothSelection(MMSSEQUENCEMODE_LINEAR);
+				else
+				if ((attrval_int & 0xff) == 0x02)
+					setSmoothSelection(MMSSEQUENCEMODE_LOG);
+				else
+				if ((attrval_int & 0xff) == 0x03)
+					setSmoothSelection(MMSSEQUENCEMODE_LOG_SOFT_START);
+				else
+				if ((attrval_int & 0xff) == 0x04)
+					setSmoothSelection(MMSSEQUENCEMODE_LOG_SOFT_END);
+				else
+				if (attrval_int)
+					setSmoothSelection(MMSSEQUENCEMODE_LINEAR);
+				else
+					setSmoothSelection(MMSSEQUENCEMODE_NONE);
 	            break;
 			case MMSGUI_MENUWIDGET_ATTR::MMSGUI_MENUWIDGET_ATTR_IDS_smooth_delay:
 	            setSmoothDelay(attrval_int);
@@ -204,14 +236,20 @@ void MMSMenuWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefi
 
     	startTAFFScan_WITHOUT_ID
     	{
-    		/* check if attrname has correct prefix */
+    		// check if attrname has correct prefix
     		if (pl >= strlen(attrname))
         		continue;
             if (memcmp(attrname, prefix->c_str(), pl)!=0)
             	continue;
             attrname = &attrname[pl];
 
-    		/* okay, correct prefix, check attributes now */
+            // special storage for macros
+			bool attrval_str_valid;
+			bool int_val_set;
+			bool byte_val_set;
+			int  *p_int_val = &attrval_int;
+
+    		// okay, correct prefix, check attributes now
             if (ISATTRNAME(item_width)) {
 	            setItemWidth(attrval_str);
             }
@@ -301,7 +339,22 @@ void MMSMenuWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefi
             }
             else
             if (ISATTRNAME(smooth_scrolling)) {
-	            setSmoothScrolling((attrval_int) ? true : false);
+				if ((attrval_int & 0xff) == 0x01)
+					setSmoothScrolling(MMSSEQUENCEMODE_LINEAR);
+				else
+				if ((attrval_int & 0xff) == 0x02)
+					setSmoothScrolling(MMSSEQUENCEMODE_LOG);
+				else
+				if ((attrval_int & 0xff) == 0x03)
+					setSmoothScrolling(MMSSEQUENCEMODE_LOG_SOFT_START);
+				else
+				if ((attrval_int & 0xff) == 0x04)
+					setSmoothScrolling(MMSSEQUENCEMODE_LOG_SOFT_END);
+				else
+				if (attrval_int)
+					setSmoothScrolling(MMSSEQUENCEMODE_LINEAR);
+				else
+					setSmoothScrolling(MMSSEQUENCEMODE_NONE);
 			}
             else
             if (ISATTRNAME(parent_window)) {
@@ -328,7 +381,22 @@ void MMSMenuWidgetClass::setAttributesFromTAFF(MMSTaffFile *tafff, string *prefi
             }
             else
             if (ISATTRNAME(smooth_selection)) {
-	            setSmoothSelection((attrval_int) ? true : false);
+				if ((attrval_int & 0xff) == 0x01)
+					setSmoothSelection(MMSSEQUENCEMODE_LINEAR);
+				else
+				if ((attrval_int & 0xff) == 0x02)
+					setSmoothSelection(MMSSEQUENCEMODE_LOG);
+				else
+				if ((attrval_int & 0xff) == 0x03)
+					setSmoothSelection(MMSSEQUENCEMODE_LOG_SOFT_START);
+				else
+				if ((attrval_int & 0xff) == 0x04)
+					setSmoothSelection(MMSSEQUENCEMODE_LOG_SOFT_END);
+				else
+				if (attrval_int)
+					setSmoothSelection(MMSSEQUENCEMODE_LINEAR);
+				else
+					setSmoothSelection(MMSSEQUENCEMODE_NONE);
 			}
             else
             if (ISATTRNAME(smooth_delay)) {
@@ -745,7 +813,7 @@ bool MMSMenuWidgetClass::isSmoothScrolling() {
     return this->issmoothscrolling;
 }
 
-void MMSMenuWidgetClass::setSmoothScrolling(bool smoothscrolling) {
+void MMSMenuWidgetClass::setSmoothScrolling(MMSSEQUENCEMODE smoothscrolling) {
     this->smoothscrolling = smoothscrolling;
     this->issmoothscrolling = true;
 }
@@ -754,7 +822,7 @@ void MMSMenuWidgetClass::unsetSmoothScrolling() {
     this->issmoothscrolling = false;
 }
 
-bool MMSMenuWidgetClass::getSmoothScrolling() {
+MMSSEQUENCEMODE MMSMenuWidgetClass::getSmoothScrolling() {
     return this->smoothscrolling;
 }
 
@@ -815,7 +883,7 @@ bool MMSMenuWidgetClass::isSmoothSelection() {
     return this->issmoothselection;
 }
 
-void MMSMenuWidgetClass::setSmoothSelection(bool smoothselection) {
+void MMSMenuWidgetClass::setSmoothSelection(MMSSEQUENCEMODE smoothselection) {
     this->smoothselection = smoothselection;
     this->issmoothselection = true;
 }
@@ -824,7 +892,7 @@ void MMSMenuWidgetClass::unsetSmoothSelection() {
     this->issmoothselection = false;
 }
 
-bool MMSMenuWidgetClass::getSmoothSelection() {
+MMSSEQUENCEMODE MMSMenuWidgetClass::getSmoothSelection() {
     return this->smoothselection;
 }
 

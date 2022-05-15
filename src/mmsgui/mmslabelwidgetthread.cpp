@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -114,7 +114,7 @@ void MMSLabelWidgetThread::doIt() {
             }
         }
 
-        /* refresh the widget */
+        // refresh the widget
         if (changed) {
             unsigned int start_ts;
             unsigned int end_ts;
@@ -122,6 +122,9 @@ void MMSLabelWidgetThread::doIt() {
             // get start timestamp if needed
             if (!this->label->frame_delay_set)
             	start_ts = getMTimeStamp();
+
+            // refresh is required
+            this->label->enableRefresh();
 
             // update screen
             this->label->refresh();

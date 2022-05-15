@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -66,7 +66,7 @@ static void* gstPlayRoutine(GST_DISKOVIDEOSINK_DATA	*gst_diskovideosink_data) {
 
 #ifdef __HAVE_DIRECTFB__
 DFBResult dfbres;
-#define THROW_DFB_ERROR(dfbres,msg) {if (dfbres) { string s1 = msg; string s2 = DirectFBErrorString((DFBResult)dfbres); throw new MMSAVError(dfbres,s1 + " [" + s2 + "]"); }else{ throw new MMSAVError(0,msg); }}
+#define THROW_DFB_ERROR(dfbres,msg) {if (dfbres) { string s1 = msg; string s2 = DirectFBErrorString((DFBResult)dfbres); throw MMSAVError(dfbres,s1 + " [" + s2 + "]"); }else{ throw MMSAVError(0,msg); }}
 #endif
 
 /**
@@ -526,7 +526,7 @@ static void* stopRoutine(void *data) {
 void MMSAV::xineInit() {
 	/* get a new xine object */
     if (!(this->xine = xine_new()))
-        throw new MMSAVError(0, "Cannot get a new xine object");
+        throw MMSAVError(0, "Cannot get a new xine object");
 
     /* load xine config */
     string cfg;
@@ -662,7 +662,7 @@ void MMSAV::initialize(const bool verbose, MMSWindow *window) {
 		/* open the video output driver */
 		if (!(this->vo = xine_open_video_driver(this->xine, "raw",
 									XINE_VISUAL_TYPE_RAW, (void*) &this->rawvisual)))
-			throw new MMSAVError(0, "Cannot open the XINE RAW video driver");
+			throw MMSAVError(0, "Cannot open the XINE RAW video driver");
 	}
 	else {
 #ifdef __HAVE_DIRECTFB__
@@ -683,7 +683,7 @@ void MMSAV::initialize(const bool verbose, MMSWindow *window) {
             DEBUGMSG("MMSMedia", "opening video driver...");
             if (!(this->vo = xine_open_video_driver(this->xine, "DFB",
                                         XINE_VISUAL_TYPE_DFB, (void*) &this->visual)))
-                        throw new MMSAVError(0, "Cannot open the DFB video driver, please install directfb extras!");
+                        throw MMSAVError(0, "Cannot open the DFB video driver, please install directfb extras!");
 #endif
 	}
 	DEBUGMSG("MMSMedia", "opening video driver done.");
@@ -866,9 +866,14 @@ MMSAV::~MMSAV() {
  * @exception   MMSAVError  Cannot get a new stream
  */
 void MMSAV::xineOpen(xine_event_listener_cb_t queue_cb, void *userData) {
+	if(this->stream) {
+		DEBUGMSG("MMSAV", "xine stream already present, skipping xineOpen");
+		return;
+	}
+
     /* open stream */
     if (!(this->stream = xine_stream_new(this->xine, this->ao, this->vo)))
-        throw new MMSAVError(0, "Cannot get a new stream");
+        throw MMSAVError(0, "Cannot get a new stream");
 
     /* wire all post plugins */
     for(map<string, xine_post_t*>::const_iterator i = videoPostPlugins.begin(); i != videoPostPlugins.end(); ++i)

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -34,6 +34,7 @@
 
 MMSImportPluginHandler::MMSImportPluginHandler(MMSPluginData plugindata, bool autoload, IMMSImportPlugin *_plugin) :
 	loaded(false),
+	initialized(false),
 	plugindata(plugindata),
 	plugin(_plugin),
 	handler(NULL) {
@@ -51,62 +52,86 @@ MMSImportPluginHandler::~MMSImportPluginHandler() {
 }
 
 void MMSImportPluginHandler::invokeInitialize(void *data) {
-    if (this->loaded == false)
-        throw new MMSImportPluginError(0,"Import Plugin " + this->plugindata.getName() + " is not loaded");
+    if (!this->loaded)
+        throw MMSImportPluginError(0,"Import Plugin " + this->plugindata.getName() + " is not loaded");
+    if (this->initialized)
+        throw MMSImportPluginError(0,"Import Plugin " + this->plugindata.getName() + " is already initialized");
+
     this->calllock.lock();
-    this->plugin->initialize(this->plugindata);
+    this->initialized = this->plugin->initialize(this->plugindata);
     this->calllock.unlock();
 }
 
 void MMSImportPluginHandler::invokeExecute(void *data) {
-    if (this->loaded == false)
-        throw new MMSImportPluginError(0,"Import Plugin " + this->plugindata.getName() + " is not loaded");
+    if (!this->loaded)
+        throw MMSImportPluginError(0,"Import Plugin " + this->plugindata.getName() + " is not loaded");
+    if (!this->initialized)
+        throw MMSImportPluginError(0,"Import Plugin " + this->plugindata.getName() + " is not initialized");
+
     this->calllock.lock();
     this->plugin->execute();
     this->calllock.unlock();
 }
 
 void MMSImportPluginHandler::invokeShutdown(void *data) {
-    if (this->loaded == false)
-        throw new MMSImportPluginError(0,"Import Plugin " + this->plugindata.getName() + " is not loaded");
+    if (!this->loaded)
+        throw MMSImportPluginError(0,"Import Plugin " + this->plugindata.getName() + " is not loaded");
+    if (!this->initialized)
+        throw MMSImportPluginError(0,"Import Plugin " + this->plugindata.getName() + " is not initialized");
+
     this->calllock.lock();
     this->plugin->shutdown();
     this->calllock.unlock();
 }
 
 void MMSImportPluginHandler::invokeCleanUp(void *data) {
-    if (this->loaded == false)
-        throw new MMSImportPluginError(0,"Import Plugin " + this->plugindata.getName() + " is not loaded");
+    if (!this->loaded)
+        throw MMSImportPluginError(0,"Import Plugin " + this->plugindata.getName() + " is not loaded");
+    if (!this->initialized)
+        throw MMSImportPluginError(0,"Import Plugin " + this->plugindata.getName() + " is not initialized");
+
     this->calllock.lock();
     this->plugin->cleanUp();
     this->calllock.unlock();
 }
 
-void MMSImportPluginHandler::load() {
-    NEWIMPORTPLUGIN_PROC newproc;
+bool MMSImportPluginHandler::isLoaded() {
+	return this->loaded;
+}
 
-    if (this->loaded == true)
-        throw new MMSImportPluginError(0,"Import Plugin " + this->plugindata.getName() + " is already loaded");
+bool MMSImportPluginHandler::isInitialized() {
+	return this->initialized;
+}
+
+void MMSImportPluginHandler::load() {
+    if (this->loaded)
+        throw MMSImportPluginError(0,"Import Plugin " + this->plugindata.getName() + " is already loaded");
+
     this->handler = new MMSShlHandler(this->plugindata.getFilename());
     this->handler->open();
-    newproc = (NEWIMPORTPLUGIN_PROC)this->handler->getFunction("newImportPlugin");
+    NEWIMPORTPLUGIN_PROC newproc = (NEWIMPORTPLUGIN_PROC)this->handler->getFunction("newImportPlugin");
     this->plugin = newproc();
-    if(this->plugin)
+
+    if (this->plugin)
     	this->loaded = true;
 }
 
 void MMSImportPluginHandler::unload() {
-    if (this->loaded == false)
-        throw new MMSImportPluginError(0,"Import Plugin " + this->plugindata.getName() + " is not loaded");
+    if (!this->loaded)
+        throw MMSImportPluginError(0,"Import Plugin " + this->plugindata.getName() + " is not loaded");
+
     if(this->plugin) {
  	   delete this->plugin;
  	   this->plugin = NULL;
     }
+
     if(this->handler) {
  	   delete this->handler;
  	   this->handler = NULL;
     }
-   this->loaded = false;
+
+	this->loaded = false;
+	this->initialized = false;
 }
 
 void MMSImportPluginHandler::setPluginData(MMSPluginData plugindata) {

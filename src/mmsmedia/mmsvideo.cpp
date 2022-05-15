@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -68,9 +68,9 @@ static void queue_cb(void *userData, const xine_event_t *event) {
         case XINE_EVENT_UI_PLAYBACK_FINISHED:
         	try {
         		mmsvideo->playNext();
-        	} catch(MMSError *e) {
-        		DEBUGMSG("MMSVideo", "Error playing stream: " + e->getMessage());
-			    mmsvideo->onError->emit(e->getMessage());
+        	} catch(MMSError &e) {
+        		DEBUGMSG("MMSVideo", "Error playing stream: " + e.getMessage());
+			    mmsvideo->onError->emit(e.getMessage());
         	}
         	break;
         default:

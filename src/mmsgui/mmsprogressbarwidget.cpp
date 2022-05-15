@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -50,17 +50,19 @@ bool MMSProgressBarWidget::create(MMSWindow *root, string className, MMSTheme *t
     this->da->baseWidgetClass = &(this->da->theme->progressBarWidgetClass.widgetClass);
     if (this->progressBarWidgetClass) this->da->widgetClass = &(this->progressBarWidgetClass->widgetClass); else this->da->widgetClass = NULL;
 
+	this->current_fgset = false;
+
     return MMSWidget::create(root, true, false, false, true, true, true, false);
 }
 
 MMSWidget *MMSProgressBarWidget::copyWidget() {
-    /* create widget */
+    // create widget
     MMSProgressBarWidget *newWidget = new MMSProgressBarWidget(this->rootwindow, className);
 
-    /* copy widget */
+    // copy widget
     *newWidget = *this;
 
-    /* copy base widget */
+    // copy base widget
     MMSWidget::copyWidget((MMSWidget*)newWidget);
 
     return newWidget;
@@ -83,6 +85,46 @@ bool MMSProgressBarWidget::release() {
     return true;
 }
 
+void MMSProgressBarWidget::getForeground(MMSFBColor *color) {
+	color->a = 0;
+
+	if (isSelected()) {
+        *color = getSelColor();
+	}
+    else {
+        *color = getColor();
+    }
+}
+
+bool MMSProgressBarWidget::enableRefresh(bool enable) {
+	if (!MMSWidget::enableRefresh(enable)) return false;
+
+	// mark foreground as not set
+	this->current_fgset = false;
+
+	return true;
+}
+
+bool MMSProgressBarWidget::checkRefreshStatus() {
+	if (MMSWidget::checkRefreshStatus()) return true;
+
+	if (this->current_fgset) {
+		// current foreground initialized
+		MMSFBColor color;
+		getForeground(&color);
+
+		if (color == this->current_fgcolor) {
+			// foreground color not changed, so we do not enable refreshing
+			return false;
+		}
+	}
+
+	// (re-)enable refreshing
+	enableRefresh();
+
+	return true;
+}
+
 bool MMSProgressBarWidget::draw(bool *backgroundFilled) {
     bool myBackgroundFilled = false;
 
@@ -93,39 +135,38 @@ bool MMSProgressBarWidget::draw(bool *backgroundFilled) {
     else
         backgroundFilled = &myBackgroundFilled;
 
-    /* draw widget basics */
+    // draw widget basics
     if (MMSWidget::draw(backgroundFilled)) {
 
-        /* lock */
+        // lock
         this->surface->lock();
 
-        /* draw my things */
+        // draw my things
         MMSFBRectangle surfaceGeom = getSurfaceGeometry();
 
+        // get color
         MMSFBColor color;
-
-        if (isSelected())
-            color = getSelColor();
-        else
-            color = getColor();
+        getForeground(&color);
+        this->current_fgcolor   = color;
+        this->current_fgset     = true;
 
         if (color.a) {
-            /* prepare for drawing */
+            // prepare for drawing
             this->surface->setDrawingColorAndFlagsByBrightnessAndOpacity(color, getBrightness(), getOpacity());
 
-            /* fill the rectangle */
+            // fill the rectangle
             this->surface->fillRectangle(surfaceGeom.x, surfaceGeom.y,
                                         (int)((double)getProgress() / (double)100 * (double)surfaceGeom.w), surfaceGeom.h);
         }
 
-        /* unlock */
+        // unlock
         this->surface->unlock();
 
-        /* update window surface with an area of surface */
+        // update window surface with an area of surface
         updateWindowSurfaceWithSurface(!*backgroundFilled);
     }
 
-    /* draw widgets debug frame */
+    // draw widgets debug frame
     return MMSWidget::drawDebug();
 }
 
@@ -155,13 +196,21 @@ unsigned int MMSProgressBarWidget::getProgress() {
 /***********************************************/
 void MMSProgressBarWidget::setColor(MMSFBColor color, bool refresh) {
     myProgressBarWidgetClass.setColor(color);
-    if (refresh)
+
+	// refresh required?
+	enableRefresh((color != this->current_fgcolor));
+
+	if (refresh)
         this->refresh();
 }
 
 void MMSProgressBarWidget::setSelColor(MMSFBColor selcolor, bool refresh) {
     myProgressBarWidgetClass.setSelColor(selcolor);
-    if (refresh)
+
+	// refresh required?
+	enableRefresh((selcolor != this->current_fgcolor));
+
+	if (refresh)
         this->refresh();
 }
 
@@ -169,6 +218,10 @@ void MMSProgressBarWidget::setProgress(unsigned int progress, bool refresh) {
     if(progress>100)
         progress = 100;
     myProgressBarWidgetClass.setProgress(progress);
+
+    // refresh is required
+    enableRefresh();
+
     if (refresh)
         this->refresh();
 }

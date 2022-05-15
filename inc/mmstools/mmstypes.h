@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -164,7 +164,7 @@ typedef class MMSFBSurfacePlanes MMSFBSurfacePlanesBuffer[MMSFB_MAX_SURFACE_PLAN
 typedef enum {
 	//! none
 	MMSFB_BE_NONE = 0,
-	//! directfb
+	//! directfb backend
 	MMSFB_BE_DFB,
 	//! X11 backend from disko framework
 	MMSFB_BE_X11,
@@ -185,12 +185,12 @@ typedef enum {
 #define MMSFB_BE_VALID_VALUES	"DFB, X11, FBDEV"
 
 //! list of valid backend types for output types MMSFB_OT_xxxFB
-#define MMSFB_BE_VALID_VALUES_OT_FB		"DFB, FBDEV"
+#define MMSFB_BE_VALID_VALUES_OT_FB	"DFB, FBDEV"
 
-//! list of valid backend types for output types MMSFB_OT_X11
+//! list of valid backend types for output type MMSFB_OT_X11
 #define MMSFB_BE_VALID_VALUES_OT_X11	"DFB, X11"
 
-//! list of valid backend types for output types MMSFB_OT_X
+//! list of valid backend types for output type MMSFB_OT_X
 #define MMSFB_BE_VALID_VALUES_OT_X		"X11"
 
 // conversion routines for backend types
@@ -210,7 +210,7 @@ typedef enum {
 	MMSFB_OT_MATROXFB,
 	//! VIAFB (backend: DFB)
 	MMSFB_OT_VIAFB,
-	//! X11 (backend: DFB)
+	//! X11 (backend: DFB and X11)
 	MMSFB_OT_X11,
 	//! XSHM (backend: X11)
 	MMSFB_OT_XSHM,
@@ -219,7 +219,9 @@ typedef enum {
 	//! DAVINCIFB (backend: DFB and FBDEV)
 	MMSFB_OT_DAVINCIFB,
 	//! OMAPFB (backend: DFB and FBDEV)
-	MMSFB_OT_OMAPFB
+	MMSFB_OT_OMAPFB,
+	//! OGL (backend: X11 and FBDEV)
+	MMSFB_OT_OGL
 } MMSFBOutputType;
 
 //! output type: none
@@ -230,7 +232,7 @@ typedef enum {
 #define MMSFB_OT_MATROXFB_STR	"MATROXFB"
 //! output type: VIAFB (backend: DFB)
 #define MMSFB_OT_VIAFB_STR		"VIAFB"
-//! output type: X11 (backend: DFB)
+//! output type: X11 (backend: DFB and X11)
 #define MMSFB_OT_X11_STR		"X11"
 //! output type: XSHM (backend: X11)
 #define MMSFB_OT_XSHM_STR		"XSHM"
@@ -240,18 +242,20 @@ typedef enum {
 #define MMSFB_OT_DAVINCIFB_STR	"DAVINCIFB"
 //! output type: OMAPFB (backend: DFB and FBDEV)
 #define MMSFB_OT_OMAPFB_STR	"OMAPFB"
+//! output type: OGL (backend: X11 and FBDEV)
+#define MMSFB_OT_OGL_STR		"OGL"
 
 //! list of valid output types
-#define MMSFB_OT_VALID_VALUES			"STDFB, MATROXFB, VIAFB, X11, XSHM, XVSHM, DAVINCIFB, OMAPFB"
+#define MMSFB_OT_VALID_VALUES			"STDFB, MATROXFB, VIAFB, X11, XSHM, XVSHM, DAVINCIFB, OMAPFB, OGL"
 
 //! list of valid output types for backend MMSFB_BE_DFB
 #define MMSFB_OT_VALID_VALUES_BE_DFB	"STDFB, MATROXFB, VIAFB, X11, DAVINCIFB, OMAPFB"
 
 //! list of valid output types for backend MMSFB_BE_X11
-#define MMSFB_OT_VALID_VALUES_BE_X11	"X11, XSHM, XVSHM"
+#define MMSFB_OT_VALID_VALUES_BE_X11	"X11, XSHM, XVSHM, OGL"
 
 //! list of valid output types for backend MMSFB_BE_FBDEV
-#define MMSFB_OT_VALID_VALUES_BE_FBDEV	"STDFB, MATROXFB, DAVINCIFB, OMAPFB"
+#define MMSFB_OT_VALID_VALUES_BE_FBDEV	"STDFB, MATROXFB, DAVINCIFB, OMAPFB, OGL"
 
 // conversion routines for output types
 string getMMSFBOutputTypeString(MMSFBOutputType ot);
@@ -356,7 +360,11 @@ typedef enum {
     //! 24 bit BGR (3 byte, blue 8\@16, green 8\@8, red 8\@0)
     MMSFB_PF_BGR24,
     //! 15 bit BGR (2 byte, nothing 1\@15, blue 5\@10, green 5\@5, red 5\@0)
-    MMSFB_PF_BGR555
+    MMSFB_PF_BGR555,
+    //! 32 bit ABGR (4 byte, alpha 8\@24, blue 8\@16, green 8\@8, red 8\@0)
+    MMSFB_PF_ABGR,
+    //! number of supported pixelformats
+    MMSFB_PF_CNT
 } MMSFBSurfacePixelFormat;
 
 //! pixel format: none
@@ -423,24 +431,29 @@ typedef enum {
 #define MMSFB_PF_BGR24_STR      "BGR24"
 //! pixel format: 15 bit BGR (2 byte, nothing 1\@15, blue 5\@10, green 5\@5, red 5\@0)
 #define MMSFB_PF_BGR555_STR     "BGR555"
+//! pixel format: 32 bit ABGR (4 byte, alpha 8\@24, blue 8\@16, green 8\@8, red 8\@0)
+#define MMSFB_PF_ABGR_STR       "ABGR"
 
 //! list of valid pixelformats
-#define MMSFB_PF_VALID_VALUES	"RGB16, RGB24, RGB32, ARGB, A8, YUY2, UYVY, I420, YV12, AiRGB, A1, NV12, NV16, NV21, AYUV, A4, ARGB1666, ARGB6666, RGB18, LUT2, RGB444, RGB555, ARGB1555, RGB332, ALUT44, LUT8, ARGB2554, ARGB4444, ARGB3565, BGR24, BGR555"
+#define MMSFB_PF_VALID_VALUES	"RGB16, RGB24, RGB32, ARGB, A8, YUY2, UYVY, I420, YV12, AiRGB, A1, NV12, NV16, NV21, AYUV, A4, ARGB1666, ARGB6666, RGB18, LUT2, RGB444, RGB555, ARGB1555, RGB332, ALUT44, LUT8, ARGB2554, ARGB4444, ARGB3565, BGR24, BGR555, ABGR"
 
 //! list of valid pixelformats used for layer surfaces
-#define MMSFB_PF_VALID_VALUES_LAYER	"RGB16, RGB24, RGB32, ARGB, YUY2, UYVY, I420, YV12, AiRGB, NV12, NV16, NV21, AYUV, ARGB1666, ARGB6666, RGB18, LUT2, RGB444, RGB555, ARGB1555, RGB332, LUT8, ARGB2554, ARGB4444, ARGB3565, BGR24, BGR555"
+#define MMSFB_PF_VALID_VALUES_LAYER	"RGB16, RGB24, RGB32, ARGB, YUY2, UYVY, I420, YV12, AiRGB, NV12, NV16, NV21, AYUV, ARGB1666, ARGB6666, RGB18, LUT2, RGB444, RGB555, ARGB1555, RGB332, LUT8, ARGB2554, ARGB4444, ARGB3565, BGR24, BGR555, ABGR"
 
 //! list of valid pixelformats used for windows surfaces
-#define MMSFB_PF_VALID_VALUES_WINDOWS	"ARGB, AiRGB, AYUV, ARGB4444, RGB16, empty string for auto detection"
+#define MMSFB_PF_VALID_VALUES_WINDOWS	"ARGB, AiRGB, AYUV, ARGB4444, RGB16, ABGR, empty string for auto detection"
 
 //! list of valid pixelformats used for worker surfaces
-#define MMSFB_PF_VALID_VALUES_SURFACES	"ARGB, AiRGB, AYUV, ARGB4444, RGB16, empty string for auto detection"
+#define MMSFB_PF_VALID_VALUES_SURFACES	"ARGB, AiRGB, AYUV, ARGB4444, RGB16, ABGR, empty string for auto detection"
 
-//! list of valid pixelformats for XVSHM
+//! list of valid pixelformats for X11.XVSHM
 #define MMSFB_PF_VALID_VALUES_BE_X11_OT_XVSHM	"YV12"
 
-//! list of valid pixelformats for XSHM
-#define MMSFB_PF_VALID_VALUES_BE_X11_OT_XSHM	"RGB32"
+//! list of valid pixelformats for X11.XSHM
+#define MMSFB_PF_VALID_VALUES_BE_X11_OT_XSHM	"RGB32, ARGB, YV12"
+
+//! list of valid pixelformats for X11.OGL
+#define MMSFB_PF_VALID_VALUES_BE_X11_OT_OGL	"RGB32, ARGB, ABGR"
 
 //! list of valid pixelformats for DAVINCIFB, OSD Layer
 #define MMSFB_PF_VALID_VALUES_BE_FBDEV_OT_DAVINCIFB_LAYER_0	"ARGB3565, RGB16"
@@ -453,6 +466,9 @@ typedef enum {
 
 //! list of valid pixelformats for OMAPFB, Video Layer
 #define MMSFB_PF_VALID_VALUES_BE_FBDEV_OT_OMAPFB_LAYER_1	"YUY2, RGB32"
+
+//! list of valid pixelformats for FBDEV.OGL
+#define MMSFB_PF_VALID_VALUES_BE_FBDEV_OT_OGL	"RGB32, ARGB, ABGR"
 
 //! list of valid pixelformats used for layer surfaces
 #define MMSFB_PF_VALID_BUFFERMODES "BACKVIDEO BACKSYSTEM FRONTONLY TRIPLE WINDOWS"
@@ -477,12 +493,44 @@ class MMSFBColor {
 		//! alphachannel
 		unsigned char a;
 
-		MMSFBColor(unsigned char r = 0, unsigned char g = 0, unsigned char b = 0, unsigned char a = 0) {
+		MMSFBColor() {
+			this->r = 0x00;
+			this->g = 0x00;
+			this->b = 0x00;
+			this->a = 0x00;
+		}
+
+		MMSFBColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
 			this->r = r;
 			this->g = g;
 			this->b = b;
 			this->a = a;
 		}
+
+		MMSFBColor(unsigned int argb) {
+			this->b = argb & 0xff;
+			this->g = (argb << 16) >> 24;
+			this->r = (argb << 8)  >> 24;
+			this->a = argb >> 24;
+		}
+
+		unsigned int getARGB() {
+			unsigned int argb;
+			argb = (unsigned int)this->b;
+			argb|= ((unsigned int)this->g) << 8;
+			argb|= ((unsigned int)this->r) << 16;
+			argb|= ((unsigned int)this->a) << 24;
+			return argb;
+		}
+
+		bool operator==(const MMSFBColor &c) {
+			return (this->r == c.r && this->g == c.g && this->b == c.b && this->a == c.a);
+		}
+
+		bool operator!=(const MMSFBColor &c) {
+			return (this->r != c.r || this->g != c.g || this->b != c.b || this->a != c.a);
+		}
+
 };
 
 //! Convert a color string into MMSFBColor.
@@ -500,6 +548,21 @@ The input string has the syntax "#rrggbbaa".
 \note If the function fails, the color is set to "#00000000".
 */
 bool getMMSFBColorFromString(string input, MMSFBColor *color);
+
+
+//! Convert MMSFBColor to a color string.
+/*!
+The output string has the syntax "#rrggbbaa".
+
+    rr - hex value for red
+    gg - hex value for green
+    bb - hex value for blue
+    aa - hex value for alpha channel (value ff means full opaque)
+
+\param color  color to be converted
+\return color string
+*/
+string getMMSFBColorString(MMSFBColor color);
 
 
 // rectangles, regions, etc..................................................
@@ -540,116 +603,37 @@ class MMSFBRegion {
 			this->x1 = x1;
 			this->y1 = y1;
 			this->x2 = x2;
-			this->y2 = x2;
+			this->y2 = y2;
 		}
 };
 
-//! describes a 3D point
-class MMS3DPoint {
-	private:
-		//! x
-		double x;
-		//! y
-		double y;
-		//! z
-		double z;
-
+//! describes a triangle
+class MMSFBTriangle {
 	public:
-		MMS3DPoint(double x = 0, double y = 0, double z = 0) {
-			set(x, y, z);
-		}
-
-		bool operator==(MMS3DPoint &p) {
-			return ((this->x == p.x) && (this->y == p.y) && (this->z == p.z));
-		}
-
-		bool operator!=(MMS3DPoint &p) {
-			return ((this->x != p.x) || (this->y != p.y) || (this->z != p.z));
-		}
-
-		void set(double x = 0, double y = 0, double z = 0) {
-			this->x = x;
-			this->y = y;
-			this->z = z;
-		}
-
-		void get(double &x, double &y, double &z) {
-			x = this->x;
-			y = this->y;
-			z = this->z;
-		}
-
-	friend class MMS3DObject;
-	friend class MMS3DSpace;
-};
-
-// describes a 3D region
-class MMS3DRegion {
-	private:
 		//! x1
-		double x1;
+		int x1;
 		//! y1
-		double y1;
-		//! z1
-		double z1;
-
+		int y1;
 		//! x2
-		double x2;
+		int x2;
 		//! y2
-		double y2;
-		//! z2
-		double z2;
+		int y2;
+		//! x3
+		int x3;
+		//! y3
+		int y3;
 
-		//! x center
-		double x_center;
-		//! y center
-		double y_center;
-		//! z center
-		double z_center;
-
-	public:
-		MMS3DRegion(double x1 = 0, double y1 = 0, double z1 = 0,
-						 double x2 = 0, double y2 = 0, double z2 = 0) {
-			set(x1, y1, z1, x2, y2, z2);
-		}
-
-		bool operator==(MMS3DRegion &r) {
-			return ((this->x1 == r.x1) && (this->y1 == r.y1) && (this->z1 == r.z1)
-				 && (this->x2 == r.x2) && (this->y2 == r.y2) && (this->z2 == r.z2));
-		}
-
-		bool operator!=(MMS3DRegion &r) {
-			return ((this->x1 != r.x1) || (this->y1 != r.y1) || (this->z1 != r.z1)
-				 || (this->x2 != r.x2) || (this->y2 != r.y2) || (this->z2 != r.z2));
-		}
-
-		void set(double x1 = 0, double y1 = 0, double z1 = 0,
-				 double x2 = 0, double y2 = 0, double z2 = 0) {
+		MMSFBTriangle(int x1 = 0, int y1 = 0, int x2 = 0, int y2 = 0, int x3 = 0, int y3 = 0) {
 			this->x1 = x1;
 			this->y1 = y1;
-			this->z1 = z1;
 			this->x2 = x2;
 			this->y2 = y2;
-			this->z2 = z2;
-
-			this->x_center = (this->x1 + this->x2) / 2;
-			this->y_center = (this->y1 + this->y2) / 2;
-			this->z_center = (this->z1 + this->z2) / 2;
+			this->x3 = x3;
+			this->y3 = y3;
 		}
-
-		void get(double &x1, double &y1, double &z1,
-				 double &x2, double &y2, double &z2) {
-			x1 = this->x1;
-			y1 = this->y1;
-			z1 = this->z1;
-			x2 = this->x2;
-			y2 = this->y2;
-			z2 = this->z2;
-		}
-
-	friend class MMS3DObject;
-	friend class MMS3DSpace;
 };
+
+
 
 
 // pointer mode..............................................................
@@ -1064,6 +1048,208 @@ typedef enum {
 	//! auto
 	MMSSTATE_AUTO
 } MMSSTATE;
+
+
+
+// Sequence mode ............................................................
+
+//! sequence mode
+typedef enum {
+	//! no sequence
+	MMSSEQUENCEMODE_NONE = 0,
+	//! linear sequence
+	MMSSEQUENCEMODE_LINEAR,
+	//! logarithmical sequence, soft start and stop of the sequence
+	MMSSEQUENCEMODE_LOG,
+	//! logarithmical sequence, soft start
+	MMSSEQUENCEMODE_LOG_SOFT_START,
+	//! logarithmical sequence, soft end
+	MMSSEQUENCEMODE_LOG_SOFT_END
+} MMSSEQUENCEMODE;
+
+
+
+// known languages...........................................................
+
+//! known languages
+typedef enum {
+	//! none
+	MMSLANG_NONE = 0,
+	//! german
+	MMSLANG_DE,
+	//! english
+	MMSLANG_EN,
+	//! denmark
+	MMSLANG_DK,
+	//! spanish
+	MMSLANG_ES,
+	//! finnish
+	MMSLANG_FI,
+	//! french
+	MMSLANG_FR,
+	//! italian
+	MMSLANG_IT,
+	//! dutch
+	MMSLANG_NL,
+	//! norwegian
+	MMSLANG_NO,
+	//! swedish
+	MMSLANG_SE,
+	//! turkish
+	MMSLANG_TR,
+	//! chinese
+	MMSLANG_CN,
+	//! israeli
+	MMSLANG_IL,
+	//! number of languages
+	MMSLANG_SIZE
+} MMSLanguage;
+
+//! language: none
+#define MMSLANG_NONE_STR		""
+//! language: german
+#define MMSLANG_DE_STR			"DE"
+//! language: english
+#define MMSLANG_EN_STR			"EN"
+//! language: denmark
+#define MMSLANG_DK_STR			"DK"
+//! language: spanish
+#define MMSLANG_ES_STR			"ES"
+//! language: finnish
+#define MMSLANG_FI_STR			"FI"
+//! language: french
+#define MMSLANG_FR_STR			"FR"
+//! language: italian
+#define MMSLANG_IT_STR			"IT"
+//! language: dutch
+#define MMSLANG_NL_STR			"NL"
+//! language: norwegian
+#define MMSLANG_NO_STR			"NO"
+//! language: swedish
+#define MMSLANG_SE_STR			"SE"
+//! language: turkish
+#define MMSLANG_TR_STR			"TR"
+//! language: chinese
+#define MMSLANG_CN_STR			"CN"
+//! language: israeli
+#define MMSLANG_IL_STR			"IL"
+
+// conversion routines for languages
+string getMMSLanguageString(MMSLanguage lang);
+MMSLanguage getMMSLanguageFromString(string lang);
+
+
+
+
+
+
+
+
+
+
+typedef struct {
+	float	*buf;
+	int		eSize;
+	int		eNum;
+} MMS3D_VERTEX_ARRAY;
+
+typedef enum {
+	MMS3D_INDEX_ARRAY_TYPE_TRIANGLES = 0,
+	MMS3D_INDEX_ARRAY_TYPE_TRIANGLES_STRIP,
+	MMS3D_INDEX_ARRAY_TYPE_TRIANGLES_FAN
+} MMS3D_INDEX_ARRAY_TYPE;
+
+typedef struct {
+	MMS3D_INDEX_ARRAY_TYPE	type;
+	unsigned int			*buf;
+	int						eNum;
+} MMS3D_INDEX_ARRAY;
+
+
+typedef struct {
+	float r;
+	float g;
+	float b;
+	float a;
+} MMS3D_RGBA;
+
+typedef struct {
+	MMS3D_RGBA	emission;
+	MMS3D_RGBA	ambient;
+	MMS3D_RGBA	diffuse;
+	MMS3D_RGBA	specular;
+	float		shininess;
+} MMS3D_MATERIAL_S;
+
+typedef float MMS3D_MATERIAL_A[17];
+
+typedef union {
+	//! structure access
+	MMS3D_MATERIAL_S	s;
+	//! array access
+	MMS3D_MATERIAL_A	a;
+} MMS3D_MATERIAL;
+
+
+
+
+
+
+#define MMS3D_PI 3.1415926535897932384626433832795f
+
+typedef float MMS3DMatrix[4][4];
+
+void multiplyMatrix(MMS3DMatrix result, MMS3DMatrix srcA, MMS3DMatrix srcB);
+void copyMatrix(MMS3DMatrix result, MMS3DMatrix src);
+bool equalMatrix(MMS3DMatrix result, MMS3DMatrix src);
+void loadIdentityMatrix(MMS3DMatrix result);
+void scaleMatrix(MMS3DMatrix result, float sx, float sy, float sz);
+void translateMatrix(MMS3DMatrix result, float tx, float ty, float tz);
+void rotateMatrix(MMS3DMatrix result, float angle, float x, float y, float z);
+void frustumMatrix(MMS3DMatrix result, float left, float right, float bottom, float top, float nearZ, float farZ);
+void perspectiveMatrix(MMS3DMatrix result, float fovy, float aspect, float nearZ, float farZ);
+void orthoMatrix(MMS3DMatrix result, float left, float right, float bottom, float top, float nearZ, float farZ);
+
+
+//! decribes a 3D object which can be rendered
+typedef struct _bei_object {
+	//! parent of object or NULL
+	_bei_object *parent;
+
+	//! index to available vertices, else negative
+	int		vertices;
+
+	//! index to available normals, else negative
+	int		normals;
+
+	//! index to available texture coordinates, else negative
+	int		texcoords;
+
+	//! index to available indices, else negative
+	int		indices;
+
+	//! index to available material, else negative
+	int		material;
+
+	//! index to available texture, else negative
+	int		texture;
+
+	//! object is shown?
+	bool	shown;
+
+	//! cull face?
+	bool	cullface;
+
+	//! matrix of the object
+	MMS3DMatrix 	matrix;
+} MMS3D_OBJECT;
+
+
+bool isMMS3DObjectShown(MMS3D_OBJECT *object);
+
+
+
+
 
 
 #endif /* MMSTYPES_H_ */

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -35,9 +35,11 @@
 //store attribute descriptions here
 TAFF_ATTRDESC MMSGUI_BUTTONWIDGET_ATTR_I[] = MMSGUI_BUTTONWIDGET_ATTR_INIT;
 
-//address attribute names
+// address attribute names
 #define GETATTRNAME(aname) MMSGUI_BUTTONWIDGET_ATTR_I[MMSGUI_BUTTONWIDGET_ATTR::MMSGUI_BUTTONWIDGET_ATTR_IDS_##aname].name
-#define ISATTRNAME(aname) (strcmp(attrname, GETATTRNAME(aname))==0)
+
+// address attribute types
+#define GETATTRTYPE(aname) MMSGUI_BUTTONWIDGET_ATTR_I[MMSGUI_BUTTONWIDGET_ATTR::MMSGUI_BUTTONWIDGET_ATTR_IDS_##aname].type
 
 
 MMSButtonWidgetClass::MMSButtonWidgetClass() {

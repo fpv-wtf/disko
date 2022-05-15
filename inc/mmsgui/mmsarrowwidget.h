@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -52,10 +52,21 @@ class MMSArrowWidget : public MMSWidget {
 
         bool last_pressed;
 
+        //! current foreground values set?
+        bool			current_fgset;
+
+        //! current foreground color
+        MMSFBColor		current_fgcolor;
+
         bool create(MMSWindow *root, string className, MMSTheme *theme);
 
         bool init();
         bool release();
+
+        void getForeground(MMSFBColor *color);
+        bool enableRefresh(bool enable = true);
+        bool checkRefreshStatus();
+
         bool draw(bool *backgroundFilled = NULL);
 
         void handleInput(MMSInputEvent *inputevent);

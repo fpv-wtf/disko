@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -31,215 +31,146 @@
  **************************************************************************/
 
 #include "mmsgui/3d/mms3dobject.h"
+#include "mmsgui/3d/mms3dscene.h"
 
-#include <math.h>
+MMS3DObject::MMS3DObject(MMS3DScene *scene) {
+	this->scene = scene;
 
-MMS3DObject::MMS3DObject(MMS3DRegion &region) {
-	this->region = region;
-	this->finalized = false;
-	this->rotate_object = false;
+	// put new object into scene
+	// note: this object will not be drawn but can have children
+	this->obj_id = this->scene->newObject(this);
+
+	this->parent = NULL;
+
+	// set the base matrix of the object
+	MMS3DMatrix base_matrix;
+	if (this->scene->getResultMatrix(base_matrix))
+		this->matrixStack.setBaseMatrix(base_matrix);
 }
 
-void MMS3DObject::setPoint(MMS3DPoint &p) {
-	this->org_points.push_back(p);
+MMS3DObject::MMS3DObject(MMS3DScene *scene, int material, int texture) {
+	this->scene = scene;
+
+	// put new object into scene
+	this->obj_id = this->scene->newObject(this);
+	if (this->obj_id >= 0) {
+		// get access to it
+		MMS3D_OBJECT *obj = this->scene->getObject(this->obj_id);
+
+		// set material and texture indices to object structure
+		obj->material = material;
+		obj->texture = texture;
+	}
+
+	this->parent = NULL;
+
+	// set the base matrix of the object
+	MMS3DMatrix base_matrix;
+	if (this->scene->getResultMatrix(base_matrix))
+		this->matrixStack.setBaseMatrix(base_matrix);
 }
 
-void MMS3DObject::setPoint(double x, double y, double z) {
-	this->org_points.push_back(MMS3DPoint(x, y, z));
+bool MMS3DObject::addObject(MMS3DObject *object) {
+	if (!object) return false;
+	if (object->obj_id >= 0) {
+		MMS3D_OBJECT *obj = object->scene->getObject(object->obj_id);
+		if (this->obj_id >= 0) {
+			MMS3D_OBJECT *tobj = this->scene->getObject(this->obj_id);
+			obj->parent = tobj;
+		}
+	}
+
+	object->parent = this;
+
+	// set the base matrix of the object
+	MMS3DMatrix base_matrix;
+	if (object->parent->getResultMatrix(base_matrix))
+		object->matrixStack.setBaseMatrix(base_matrix);
+
+
+	this->children.push_back(object);
+	return true;
 }
+
+bool MMS3DObject::show() {
+	if (this->obj_id >= 0) {
+		MMS3D_OBJECT *obj = this->scene->getObject(this->obj_id);
+		obj->shown = true;
+		return true;
+	}
+
+	return false;
+}
+
+bool MMS3DObject::hide() {
+	if (this->obj_id >= 0) {
+		MMS3D_OBJECT *obj = this->scene->getObject(this->obj_id);
+		obj->shown = false;
+		return true;
+	}
+
+	return false;
+}
+
+bool MMS3DObject::cullFace(bool cullface) {
+	if (this->obj_id >= 0) {
+		MMS3D_OBJECT *obj = this->scene->getObject(this->obj_id);
+		obj->cullface = cullface;
+		return true;
+	}
+
+	return false;
+}
+
+
+void MMS3DObject::setBaseMatrix(MMS3DMatrix matrix) {
+	this->matrixStack.setBaseMatrix(matrix);
+}
+
+bool MMS3DObject::getResultMatrix(MMS3DMatrix result) {
+	if (!this->matrixStack.getResultMatrix(result))
+		return false;
+
+	// store the result matrix into object's attribute
+	if (this->obj_id >= 0) {
+		MMS3D_OBJECT *obj = this->scene->getObject(this->obj_id);
+		copyMatrix(obj->matrix, result);
+	}
+
+	return true;
+}
+
+bool MMS3DObject::genMatrices() {
+	// get result matrix of object used as base matrix for children
+	MMS3DMatrix base_matrix;
+	if (!getResultMatrix(base_matrix)) return false;
+
+	// through children
+	for (int i = 0; i < this->children.size(); i++) {
+		// set the base matrix of the object
+		this->children.at(i)->setBaseMatrix(base_matrix);
+
+		// generate the matrices for the object and it's children
+		this->children.at(i)->genMatrices();
+	}
+
+	return true;
+}
+
 
 void MMS3DObject::reset() {
-	// reset the tmp_points
-	this->tmp_points.clear();
-
-	// reset finalize state
-	this->finalized = false;
+	this->matrixStack.clear();
 }
 
-void MMS3DObject::rotate_point_x(MMS3DPoint *src, MMS3DPoint *dst) {
-	// rotate single point around the x-axis
-	double radius, angle;
-	if (src->z == 0) {
-		// optimized rotation used if z is zero, so radius is equal to y
-		radius = src->y;
-		angle = this->rotate_xa;
-	}
-	else {
-		// get radius and angle
-		radius = sqrt(src->y * src->y + src->z * src->z);
-		angle = asin(src->z / radius) * 180 / M_PI;
-
-		// change angle
-		if (src->y >= 0)
-			angle = angle + this->rotate_xa;
-		else
-			angle = 180 - angle + this->rotate_xa;
-	}
-
-	// calc the dst point
-	dst->x = src->x;
-	dst->y = radius * cos(angle * M_PI / 180);
-	dst->z = radius * sin(angle * M_PI / 180);
+bool MMS3DObject::scale(float sx, float sy, float sz) {
+	return this->matrixStack.scale(sx, sy, sz);
 }
 
-void MMS3DObject::rotate_point_y(MMS3DPoint *src, MMS3DPoint *dst) {
-	// rotation around the y-axis
-	double radius, angle;
-	if (src->x == 0) {
-		// optimized rotation used if x is zero, so radius is equal to z
-		radius = src->z;
-		angle = this->rotate_ya;
-	}
-	else {
-		// get radius and angle
-		radius = sqrt(src->z * src->z + src->x * src->x);
-		angle = asin(src->x / radius) * 180 / M_PI;
-
-		// change angle
-		if (src->z >= 0)
-			angle = angle + this->rotate_ya;
-		else
-			angle = 180 - angle + this->rotate_ya;
-	}
-
-	// calc the dst point
-	dst->x = radius * sin(angle * M_PI / 180);
-	dst->y = src->y;
-	dst->z = radius * cos(angle * M_PI / 180);
+bool MMS3DObject::translate(float tx, float ty, float tz) {
+	return this->matrixStack.translate(tx, ty, tz);
 }
 
-void MMS3DObject::rotate_point_z(MMS3DPoint *src, MMS3DPoint *dst) {
-	// rotation around the z-axis
-	double radius, angle;
-	if (src->y == 0) {
-		// optimized rotation used if y is zero, so radius is equal to x
-		radius = src->x;
-		angle = this->rotate_za;
-	}
-	else {
-		// get radius and angle
-		radius = sqrt(src->x * src->x + src->y * src->y);
-		angle = asin(src->y / radius) * 180 / M_PI;
-
-		// change angle
-		if (src->x >= 0)
-			angle = angle + this->rotate_za;
-		else
-			angle = 180 - angle + this->rotate_za;
-	}
-
-	// calc point and add it to the array
-	dst->x = radius * cos(angle * M_PI / 180);
-	dst->y = radius * sin(angle * M_PI / 180);
-	dst->z = src->z;
+bool MMS3DObject::rotate(float angle, float x, float y, float z) {
+	return this->matrixStack.rotate(angle, x, y, z);
 }
-
-void MMS3DObject::rotate_x(double angle) {
-	// save angle
-	this->rotate_xa = angle;
-
-	if (this->tmp_points.size() == 0) {
-		// tmp points not set, use org_points as source
-		for (int i = 0; i < this->org_points.size(); i++) {
-			MMS3DPoint dst;
-			rotate_point_x(&this->org_points.at(i), &dst);
-			this->tmp_points.push_back(dst);
-		}
-	}
-	else {
-		// work with tmp_points as source
-		for (int i = 0; i < this->tmp_points.size(); i++) {
-			rotate_point_x(&this->tmp_points.at(i), &this->tmp_points.at(i));
-		}
-	}
-
-	// reset finalize state
-	this->finalized = false;
-}
-
-void MMS3DObject::rotate_y(double angle) {
-	// save angle
-	this->rotate_ya = angle;
-
-	if (this->tmp_points.size() == 0) {
-		// tmp points not set, use org_points as source
-		for (int i = 0; i < this->org_points.size(); i++) {
-			MMS3DPoint dst;
-			rotate_point_y(&this->org_points.at(i), &dst);
-			this->tmp_points.push_back(dst);
-		}
-	}
-	else {
-		// work with tmp_points as source
-		for (int i = 0; i < this->tmp_points.size(); i++) {
-			rotate_point_y(&this->tmp_points.at(i), &this->tmp_points.at(i));
-		}
-	}
-
-	// reset finalize state
-	this->finalized = false;
-}
-
-void MMS3DObject::rotate_z(double angle) {
-	// save angle
-	this->rotate_za = angle;
-
-	if (this->tmp_points.size() == 0) {
-		// tmp points not set, use org_points as source
-		for (int i = 0; i < this->org_points.size(); i++) {
-			MMS3DPoint dst;
-			rotate_point_z(&this->org_points.at(i), &dst);
-			this->tmp_points.push_back(dst);
-		}
-	}
-	else {
-		// work with tmp_points as source
-		for (int i = 0; i < this->tmp_points.size(); i++) {
-			rotate_point_z(&this->tmp_points.at(i), &this->tmp_points.at(i));
-		}
-	}
-
-	// reset finalize state
-	this->finalized = false;
-}
-
-void MMS3DObject::finalize() {
-	// check if already finalized?
-	if (this->finalized)
-		return;
-
-	// clear the final points
-	this->fin_points.clear();
-
-	// move object using the region settings
-	if (this->tmp_points.size() == 0) {
-		// tmp points not set, use org_points as source
-		for (int i = 0; i < this->org_points.size(); i++) {
-			MMS3DPoint *src = &this->org_points.at(i);
-			MMS3DPoint dst;
-
-			dst.x = region.x_center + src->x;
-			dst.y = region.y_center + src->y;
-			dst.z = region.z_center + src->z;
-
-			this->fin_points.push_back(dst);
-		}
-	}
-	else {
-		// work with tmp_points as source
-		for (int i = 0; i < this->tmp_points.size(); i++) {
-			MMS3DPoint *src = &this->tmp_points.at(i);
-			MMS3DPoint dst;
-
-			dst.x = region.x_center + src->x;
-			dst.y = region.y_center + src->y;
-			dst.z = region.z_center + src->z;
-
-			this->fin_points.push_back(dst);
-		}
-	}
-
-	this->finalized = true;
-}
-
 

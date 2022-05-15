@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -61,7 +61,8 @@ namespace MMSGUI_IMAGEWIDGET_ATTR {
 		{ "fit_width", TAFF_ATTRTYPE_BOOL }, \
 		{ "fit_height", TAFF_ATTRTYPE_BOOL }, \
 		{ "alignment", TAFF_ATTRTYPE_STRING }, \
-		{ "mirror_size", TAFF_ATTRTYPE_INT }
+		{ "mirror_size", TAFF_ATTRTYPE_INT }, \
+		{ "gen_taff", TAFF_ATTRTYPE_BOOL }
 
 	#define MMSGUI_IMAGEWIDGET_ATTR_IDS \
 		MMSGUI_IMAGEWIDGET_ATTR_IDS_image, \
@@ -86,7 +87,8 @@ namespace MMSGUI_IMAGEWIDGET_ATTR {
 		MMSGUI_IMAGEWIDGET_ATTR_IDS_fit_width, \
 		MMSGUI_IMAGEWIDGET_ATTR_IDS_fit_height, \
 		MMSGUI_IMAGEWIDGET_ATTR_IDS_alignment, \
-		MMSGUI_IMAGEWIDGET_ATTR_IDS_mirror_size
+		MMSGUI_IMAGEWIDGET_ATTR_IDS_mirror_size, \
+		MMSGUI_IMAGEWIDGET_ATTR_IDS_gen_taff
 
 	#define MMSGUI_IMAGEWIDGET_ATTR_INIT { \
 		MMSGUI_BASE_ATTR_ATTRDESC, \
@@ -222,6 +224,13 @@ class MMSImageWidgetClass {
 
         //! the size of the mirror effect
         unsigned int mirrorsize;
+
+        //! is gen taff flag set?
+        bool         isgentaff;
+
+        //! generate taff files while reading images true/false
+        bool         gentaff;
+
 
         //! Read and set all attributes from the given TAFF buffer.
         /*!
@@ -560,6 +569,26 @@ class MMSImageWidgetClass {
         \return size of the mirror in pixel
         */
         unsigned int getMirrorSize();
+
+        //! Check if the gen taff flag is set.
+        bool isGenTaff();
+
+        //! Set the gen taff flag.
+        /*!
+        \param gentaff  generate taff files while reading images if set to true
+        \note Taff files will never generated, if you load images e.g. from http:// or ftp://.
+        */
+        void setGenTaff(bool gentaff);
+
+        //! Mark the gen taff flag as not set.
+        void unsetGenTaff();
+
+        //! Get the gen taff flag.
+        /*!
+        \return gen taff flag
+        */
+        bool getGenTaff();
+
 
     /* friends */
     friend class MMSThemeManager;

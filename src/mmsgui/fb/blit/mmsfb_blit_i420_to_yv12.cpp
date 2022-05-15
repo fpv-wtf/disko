@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -31,6 +31,10 @@
  **************************************************************************/
 
 #include "mmsgui/fb/mmsfbconv.h"
+
+#ifdef __HAVE_PF_I420__
+#ifdef __HAVE_PF_YV12__
+
 #include "mmstools/mmstools.h"
 
 void mmsfb_blit_i420_to_yv12(MMSFBSurfacePlanes *src_planes, int src_height, int sx, int sy, int sw, int sh,
@@ -61,3 +65,5 @@ void mmsfb_blit_i420_to_yv12(MMSFBSurfacePlanes *src_planes, int src_height, int
 							dst_planes, dst_height, dx, dy);
 }
 
+#endif
+#endif

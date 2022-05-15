@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -32,11 +32,17 @@
 
 #include "mmsinput/mmsinputmanager.h"
 
+#ifndef __LIS_DEBUG__
+#undef MSG2OUT
+#define MSG2OUT(ident, msg...)
+#endif
+
 MMSInputManager::MMSInputManager(string file, string name) {
 	this->mapper = new MMSInputMapper(file, name);
 	this->config = new MMSConfigData();
 	this->buttonpress_window = NULL;
 	this->button_pressed = false;
+	clock_gettime(CLOCK_REALTIME,&this->lastinput);
 }
 
 MMSInputManager::~MMSInputManager() {
@@ -54,9 +60,32 @@ void MMSInputManager::handleInput(MMSInputEvent *inputevent) {
 	if (inputevent->type == MMSINPUTEVENTTYPE_KEYPRESS) {
 		/* keyboard inputs */
 
+#ifdef __ENABLE_DEBUG__
 		/* check crtl+c and exit */
 		if((inputevent->key==MMSKEY_SMALL_C)&&(this->lastkey==MMSKEY_CONTROL))
 			exit(1);
+#endif
+
+/*
+#ifdef ROTATE_180
+		switch (inputevent->key) {
+		case MMSKEY_CURSOR_LEFT:
+			inputevent->key = MMSKEY_CURSOR_RIGHT;
+			break;
+		case MMSKEY_CURSOR_RIGHT:
+			inputevent->key = MMSKEY_CURSOR_LEFT;
+			break;
+		case MMSKEY_CURSOR_UP:
+			inputevent->key = MMSKEY_CURSOR_DOWN;
+			break;
+		case MMSKEY_CURSOR_DOWN:
+			inputevent->key = MMSKEY_CURSOR_UP;
+			break;
+		default:
+			break;
+		}
+#endif
+*/
 
 		this->lastkey = inputevent->key;
 
@@ -88,6 +117,7 @@ void MMSInputManager::handleInput(MMSInputEvent *inputevent) {
 				||(inputevent->key==MMSKEY_CURSOR_LEFT)||(inputevent->key==MMSKEY_CURSOR_RIGHT)) {
 				/* ok execute input on window */
 				window->handleInput(inputevent);
+				memset(inputevent, 0, sizeof(MMSInputEvent));
 				this->mutex.unlock();
 				return;
 			}
@@ -122,6 +152,7 @@ void MMSInputManager::handleInput(MMSInputEvent *inputevent) {
 
 		if(window != NULL)
 			window->handleInput(inputevent);
+			memset(inputevent, 0, sizeof(MMSInputEvent));
 	}
 	else
 	if (inputevent->type == MMSINPUTEVENTTYPE_KEYRELEASE) {
@@ -143,14 +174,27 @@ void MMSInputManager::handleInput(MMSInputEvent *inputevent) {
 
 		if(window != NULL)
 			window->handleInput(inputevent);
+			memset(inputevent, 0, sizeof(MMSInputEvent));
 	}
 	else
 	if (inputevent->type == MMSINPUTEVENTTYPE_BUTTONPRESS) {
 		DEBUGMSG("MMSINPUTMANAGER", "MMSInputManager:handleInput: BUTTON PRESSED AT: %d,%d", inputevent->posx, inputevent->posy);
+		MSG2OUT("MMSINPUTMANAGER", "MMSInputManager:handleInput: BUTTON PRESSED AT: %d,%d", inputevent->posx, inputevent->posy);
+		struct timespec ts;
+		clock_gettime(CLOCK_REALTIME,&ts);
+		int64_t diff = timespecDiff(&ts, &this->lastinput);
+		//printf("diff %ld\n",diff);
+		/*if(diff < 130000000) {
+			memset(inputevent, 0, sizeof(MMSInputEvent));
+			return;
+		}*/
+		clock_gettime(CLOCK_REALTIME,&this->lastinput);
 
 		this->button_pressed = true;
 		this->windowmanager->setPointerPosition(inputevent->posx, inputevent->posy, true);
 
+		this->oldx = inputevent->posx;
+		this->oldy = inputevent->posy;
 		window = this->windowmanager->getToplevelWindow();
 		if (window) {
 			/* get the window rect and check if the pointer is in there */
@@ -160,9 +204,20 @@ void MMSInputManager::handleInput(MMSInputEvent *inputevent) {
 					||(inputevent->posx - rect.x - rect.w >= 0)||(inputevent->posy - rect.y - rect.h >= 0)) {
 				/* pointer is not over the window */
 				DEBUGMSG("MMSINPUTMANAGER", "MMSInputManager:handleInput: BUTTON PRESSED, NOT OVER THE WINDOW");
+				MSG2OUT("MMSINPUTMANAGER", "MMSInputManager:handleInput: BUTTON PRESSED, NOT OVER THE WINDOW");
+
 				this->mutex.unlock();
+				memset(inputevent, 0, sizeof(MMSInputEvent));
 				return;
 			}
+			if(inputevent->posx < 0 || inputevent->posy<0) {
+				inputevent->absx = this->oldx;
+				inputevent->absy = this->oldy;
+			} else {
+				this->oldx = inputevent->posx;
+				this->oldy = inputevent->posy;
+			}
+
 
 			// save the pointer for release event
 			this->buttonpress_window = window;
@@ -174,14 +229,14 @@ void MMSInputManager::handleInput(MMSInputEvent *inputevent) {
 			inputevent->dx = 0;
 			inputevent->dy = 0;
 
-			this->oldx = inputevent->absx;
-			this->oldy = inputevent->absy;
 			window->handleInput(inputevent);
+			memset(inputevent, 0, sizeof(MMSInputEvent));
 		}
 	}
 	else
 	if (inputevent->type == MMSINPUTEVENTTYPE_BUTTONRELEASE) {
 		DEBUGMSG("MMSINPUTMANAGER", "MMSInputManager:handleInput: BUTTON RELEASED AT: %d,%d", inputevent->posx, inputevent->posy);
+//		MSG2OUT("MMSINPUTMANAGER", "MMSInputManager:handleInput: BUTTON RELEASED AT: %d,%d", inputevent->posx, inputevent->posy);
 		this->button_pressed = false;
 
 		this->windowmanager->setPointerPosition(inputevent->posx, inputevent->posy, false);
@@ -199,6 +254,10 @@ void MMSInputManager::handleInput(MMSInputEvent *inputevent) {
 					&& (inputevent->posx - rect.x - rect.w < 0)&&(inputevent->posy - rect.y - rect.h < 0))) {
 				/* call windows handleInput with normalized coordinates */
 
+				if(inputevent->posx < 0 || inputevent->posy<0) {
+					inputevent->absx = this->oldx;
+					inputevent->absy = this->oldy;
+				}
 				inputevent->absx = inputevent->posx;
 				inputevent->absy = inputevent->posy;
 				inputevent->posx-= rect.x;
@@ -211,6 +270,7 @@ void MMSInputManager::handleInput(MMSInputEvent *inputevent) {
 
 				if (window->handleInput(inputevent)) {
 					this->buttonpress_window = NULL;
+					memset(inputevent, 0, sizeof(MMSInputEvent));
 					this->mutex.unlock();
 					return;
 				}
@@ -240,6 +300,7 @@ void MMSInputManager::handleInput(MMSInputEvent *inputevent) {
 						subscriptions.at(i)->callback.emit(subscriptions.at(i));
 						// stop it only one key per subscription
 						DEBUGMSG("MMSINPUTMANAGER", "returning from handle input");
+						memset(inputevent, 0, sizeof(MMSInputEvent));
 						this->mutex.unlock();
 						return;
 					}
@@ -250,6 +311,12 @@ void MMSInputManager::handleInput(MMSInputEvent *inputevent) {
 	}
 	else
 	if (inputevent->type == MMSINPUTEVENTTYPE_AXISMOTION) {
+
+		/*this->oldx = inputevent->absx;
+		this->oldy = inputevent->absy;
+		memset(inputevent, 0, sizeof(MMSInputEvent));
+		return;
+		*/
 
 		/* */
 		this->windowmanager->setPointerPosition(inputevent->posx, inputevent->posy, this->button_pressed);
@@ -279,8 +346,16 @@ void MMSInputManager::handleInput(MMSInputEvent *inputevent) {
 				inputevent->dy = 0;
 			}
 
+			if(this->oldx == inputevent->absx && this->oldy == inputevent->absy) {
+
+				memset(inputevent, 0, sizeof(MMSInputEvent));
+				return;
+			}
+			//printf("oldx = %d\n", this->oldx);
+			fflush(stdout);
 			this->oldx = inputevent->absx;
 			this->oldy = inputevent->absy;
+
 
 			window->handleInput(inputevent);
 			memset(inputevent, 0, sizeof(MMSInputEvent));

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -180,7 +180,7 @@ MMSInputX11Handler::MMSInputX11Handler(MMS_INPUT_DEVICE device) {
 	lastmotion = 0;
 
 #else
-	throw new MMSError(0,(string)typeid(this).name() + " is empty. compile X11 support!");
+	throw MMSError(0,(string)typeid(this).name() + " is empty. compile X11 support!");
 #endif
 }
 
@@ -196,7 +196,7 @@ void MMSInputX11Handler::grabEvents(MMSInputEvent *inputevent) {
     while(1) {
     	//
     	XLockDisplay(mmsfb->x_display);
-    	ret=XCheckWindowEvent(this->display,  this->window, KeyPressMask|KeyReleaseMask|ExposureMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask|EnterWindowMask|ResizeRedirectMask, &event);
+    	ret=XCheckWindowEvent(this->display,  this->window, KeyPressMask|KeyReleaseMask|ExposureMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask|EnterWindowMask|ResizeRedirectMask|StructureNotifyMask, &event);
 		XUnlockDisplay(mmsfb->x_display);
 		if(ret==False) {
 			usleep(10000);
@@ -293,13 +293,45 @@ void MMSInputX11Handler::grabEvents(MMSInputEvent *inputevent) {
     	if(event.type==Expose) {
     		mmsfb->refresh();
     	}
+    	if(event.type == MapNotify) {
+    		/*
+    		for(int i=0; ;i++) {
+    			if(mmsfb->x_windows[i]==0)
+    				break;
+    			else if(mmsfb->x_windows[i]!=mmsfb->input_window) {
+    				XLowerWindow(mmsfb->x_display, mmsfb->x_windows[i]);
+    				XMapWindow(mmsfb->x_display, mmsfb->x_windows[i]);
+    				XRaiseWindow(mmsfb->x_display, mmsfb->input_window);
+    				printf("mapping layer %d\n", i);
+    				XSync(mmsfb->x_display,False);
+    			}
+    		}*/
+    	}
+    	if(event.type == UnmapNotify) {
+    		for(int i=0; ;i++) {
+    			if(mmsfb->x_windows[i]==0)
+    				break;
+    			else if(mmsfb->x_windows[i]!=mmsfb->input_window) {
+    				//fill layer window with default root
+    				MMSFBLayer *layer ;
+    				mmsfb->getLayer(i, &layer);
+    				X11_IMPL *impl = (X11_IMPL *)layer->getImplementation();
+					XLockDisplay(mmsfb->x_display);
+					XPutImage(mmsfb->x_display, mmsfb->x_windows[i], impl->x_gc, mmsfb->rootimage, 0,0, 0, 0, mmsfb->display_w,
+							  mmsfb->display_h);
+
+    				//XUnmapWindow(mmsfb->x_display, mmsfb->x_windows[i]);
+    				printf("unmapping layer %d\n", i);
+    				XSync(mmsfb->x_display,False);
+					XUnlockDisplay(mmsfb->x_display);
+    			}
+    		}
+    	}
 
     }
 
 #else
-	throw new MMSError(0,(string)typeid(this).name() + " is empty. compile X11 support!");
+	throw MMSError(0,(string)typeid(this).name() + " is empty. compile X11 support!");
 #endif
 
 }
-
-

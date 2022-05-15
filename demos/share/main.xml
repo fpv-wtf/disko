@@ -1,0 +1,65 @@
+<mmsdialog>
+	<mainwindow h="100%" w="100%">
+		<!-- create child window for the switcher menu -->
+		<childwindow class			  = "mainmenubar"
+				     name             = "mainmenubar" 
+					 alignment        = "top-left"
+					 dx               = "-7px"
+					 dy               = "-12px"
+					 w                = "660px"
+					 h                = "74px"
+					 show			  = "true"
+		>
+			<!-- user can choose a plugin through this switcher menu -->
+			<menu name = "mainmenu" class = "mainmenu" >
+				<menuitem widget.item_name.text="WELCOME" widget.mainmenu_image.data="0" />
+				<menuitem widget.item_name.text="KEYBOARD" widget.mainmenu_image.data="1" />
+				<menuitem widget.item_name.text="CARROUSEL" widget.mainmenu_image.data="2" />
+				<menuitem widget.item_name.text="ELEMENTS" widget.mainmenu_image.data="3" />
+				<menuitem widget.item_name.text="PHOTOS" widget.mainmenu_image.data="4" />
+			</menu>
+		</childwindow>
+		<childwindow name="greetings_clipping" class="clipping_childwindow" w="100%" h="100%-100" dy="50px" show="true" >
+			<childwindow name = "greetings" class="label_childwindow"
+						 dx   = "0px" 
+						 dy   = "-50px" 					 
+						 w    = "60%" 
+						 h    = "70%"
+						 debug = "false"
+						 show = "true"
+						 
+			>
+				<vbox>
+					<image size="69px" image.name="pictogram/car_tv_big.png"  useratio="true" />
+					<gap size="5px" />
+					<textbox size="130px" class="default_textbox" text="THIS IS A DEMO APPLICATION SHOWING SOME OF THE GUI ELEMENTS AND CAPABILITIES OF DISKO. TO MOVE AROUND JUST PUSH THE WINDOWS RIGHT OR LEFT, OR SELECT AN ITEM IN THE MENU ON TOP." />
+					<textbox class="default_textbox" text="WWW.DISKOHQ.COM" font.size="15" />
+				</vbox>
+			</childwindow>
+		</childwindow>
+		
+		<childwindow  name="exit_window" show="false" modal="true" w="50%" h="50%" 
+						alignment="center" >
+    		<hbox>
+    			<hbox size="8px"/>
+				<vbox>
+					<image class="label_widgetbg">
+						<textbox class="default_textbox" text="EXIT DEMO?" alignment="center"  />
+					</image>
+		    		<gap size="8px"/>
+			    	<hbox size="70px">
+				    	<template size="130px" class="myButton" name="EXIT" widget.caption.text="EXIT"/>
+				    	<gap/>
+				    	<template size="130px" class="myButton" name="CONTINUE" widget.caption.text="CONTINUE"/>
+					</hbox>
+				</vbox>
+			</hbox>
+		</childwindow>
+		
+		<childwindow class="top_right_childwindow" name="EX" own_surface="true" show="true" w="130px" h="74px" dy="-12px"
+						alignment="top-right" always_on_top="true" >
+	    	<template class="myButton2" name="QUIT" widget.caption.text="EXIT"/>
+		</childwindow>
+
+	</mainwindow>
+</mmsdialog>

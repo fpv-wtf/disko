@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -185,17 +185,16 @@ void MMSImportScheduler::threadMain() {
                     /* TODO: open a thread */
                     try {
     	                importPlugins.at(i)->pluginHandler->invokeExecute(NULL);
-                    } catch(MMSError *error) {
-                    	DEBUGMSG("IMPORTSCHEDULER", "Abort import due to: %s", error->getMessage().c_str());
+                    } catch(MMSError &error) {
+                    	DEBUGMSG("IMPORTSCHEDULER", "Abort import due to: %s", error.getMessage().c_str());
                     }
 
     	        }
 
     	        sleep(SCHEDULER_SLEEP_TIME);
 	    }
-    } catch(MMSError *error) {
-    	DEBUGMSG("IMPORTSCHEDULER", "Abort import due to: %s", error->getMessage().c_str());
-        delete error;
+    } catch(MMSError &error) {
+    	DEBUGMSG("IMPORTSCHEDULER", "Abort import due to: %s", error.getMessage().c_str());
     }
 
     /* self destruct */

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -44,7 +44,7 @@ namespace MMSGUI_WINDOW_ATTR {
 		{ "dy", TAFF_ATTRTYPE_STRING }, \
 		{ "w", TAFF_ATTRTYPE_STRING }, \
 		{ "h", TAFF_ATTRTYPE_STRING }, \
-		{ "bgcolor", TAFF_ATTRTYPE_STRING }, \
+		{ "bgcolor", TAFF_ATTRTYPE_COLOR }, \
 		{ "bgcolor.a", TAFF_ATTRTYPE_UCHAR }, \
 		{ "bgcolor.r", TAFF_ATTRTYPE_UCHAR }, \
 		{ "bgcolor.g", TAFF_ATTRTYPE_UCHAR }, \
@@ -72,7 +72,8 @@ namespace MMSGUI_WINDOW_ATTR {
 		{ "static_zorder", TAFF_ATTRTYPE_BOOL }, \
 		{ "always_on_top", TAFF_ATTRTYPE_BOOL }, \
 		{ "focusable", TAFF_ATTRTYPE_BOOL }, \
-		{ "backbuffer", TAFF_ATTRTYPE_BOOL }
+		{ "backbuffer", TAFF_ATTRTYPE_BOOL }, \
+		{ "initial_load", TAFF_ATTRTYPE_BOOL }
 
 	#define MMSGUI_WINDOW_ATTR_IDS \
 		MMSGUI_WINDOW_ATTR_IDS_alignment, \
@@ -108,7 +109,8 @@ namespace MMSGUI_WINDOW_ATTR {
 		MMSGUI_WINDOW_ATTR_IDS_static_zorder, \
 		MMSGUI_WINDOW_ATTR_IDS_always_on_top, \
 		MMSGUI_WINDOW_ATTR_IDS_focusable, \
-		MMSGUI_WINDOW_ATTR_IDS_backbuffer
+		MMSGUI_WINDOW_ATTR_IDS_backbuffer, \
+		MMSGUI_WINDOW_ATTR_IDS_initial_load
 
 	typedef enum {
 		MMSGUI_BASE_ATTR_IDS,
@@ -185,6 +187,12 @@ class MMSWindowClass {
 
 	        //! window surface has an backbuffer true/false
 	        bool		backbuffer;
+
+	        //! is initial load flag set?
+	        bool		isinitialload;
+
+	        //! window should load images, fonts etc. during initialization true/false
+	        bool		initialload;
     	} id;
 
         struct {
@@ -234,6 +242,7 @@ class MMSWindowClass {
         void initAlwaysOnTop();
         void initFocusable();
         void initBackBuffer();
+        void initInitialLoad();
 
     	/* free routines */
         void freeAlignment();
@@ -265,6 +274,7 @@ class MMSWindowClass {
         void freeAlwaysOnTop();
         void freeFocusable();
         void freeBackBuffer();
+        void freeInitialLoad();
 
         //! Read and set all attributes from the given TAFF buffer.
         /*!
@@ -558,6 +568,11 @@ class MMSWindowClass {
         void unsetBackBuffer();
         void setBackBuffer(bool backbuffer);
         bool getBackBuffer(bool &backbuffer);
+
+        bool isInitialLoad();
+        void unsetInitialLoad();
+        void setInitialLoad(bool initialload);
+        bool getInitialLoad(bool &initialload);
 
     // friends
     friend class MMSThemeManager;

@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -34,8 +34,12 @@
 #include "mmstools/tools.h"
 #include <string.h>
 
-/* stores the last error text */
+// stores the last error text
 string MMSFB_LastErrorString;
+
+// screen should be rotated by 180°?
+bool MMSFBBase_rotate180 = false;
+
 
 string MMSFB_ErrorString(const int rc, const string msg) {
     if (rc)
@@ -100,199 +104,242 @@ bool isRGBPixelFormat(MMSFBSurfacePixelFormat pf) {
     return true;
 }
 
-int getBitsPerPixel(MMSFBSurfacePixelFormat pf,
-					int *red_length, int *red_offset,
-					int *green_length, int *green_offset,
-					int *blue_length, int *blue_offset,
-					int *transp_length, int *transp_offset) {
+void getBitsPerPixel(MMSFBSurfacePixelFormat pf, MMSFBPixelDef *pixeldef) {
 
-	if (transp_length)	*transp_length	= 0;
-	if (red_length)		*red_length		= 0;
-	if (green_length)	*green_length	= 0;
-	if (blue_length)	*blue_length	= 0;
-	if (transp_offset)	*transp_offset	= 0;
-	if (red_offset)		*red_offset		= 0;
-	if (green_offset)	*green_offset	= 0;
-	if (blue_offset)	*blue_offset	= 0;
+	if (!pixeldef)
+		return;
+
+	pixeldef->bits = 0;
+	pixeldef->red_length = 0;
+	pixeldef->red_offset = 0;
+	pixeldef->green_length = 0;
+	pixeldef->green_offset = 0;
+	pixeldef->blue_length = 0;
+	pixeldef->blue_offset = 0;
+	pixeldef->transp_length = 0;
+	pixeldef->transp_offset = 0;
 
 	if(pf == MMSFB_PF_RGB16) {
-    	if (red_length)		*red_length		= 5;
-    	if (green_length)	*green_length	= 6;
-    	if (blue_length)	*blue_length	= 5;
-		if (red_offset)		*red_offset		= 11;
-		if (green_offset)	*green_offset	= 5;
-		if (blue_offset)	*blue_offset	= 0;
-		return 2*8;
+		pixeldef->bits			= 2*8;
+		pixeldef->red_length	= 5;
+		pixeldef->green_length	= 6;
+		pixeldef->blue_length	= 5;
+		pixeldef->red_offset	= 11;
+		pixeldef->green_offset	= 5;
+		pixeldef->blue_offset	= 0;
+		return;
     }
 	else
     if(pf == MMSFB_PF_RGB24) {
-    	if (red_length)		*red_length		= 8;
-    	if (green_length)	*green_length	= 8;
-    	if (blue_length)	*blue_length	= 8;
-		if (red_offset)		*red_offset		= 16;
-		if (green_offset)	*green_offset	= 8;
-		if (blue_offset)	*blue_offset	= 0;
-        return 3*8;
+		pixeldef->bits			= 3*8;
+		pixeldef->red_length	= 8;
+		pixeldef->green_length	= 8;
+		pixeldef->blue_length	= 8;
+		pixeldef->red_offset	= 16;
+		pixeldef->green_offset	= 8;
+		pixeldef->blue_offset	= 0;
+        return;
     }
 	else
     if(pf == MMSFB_PF_RGB32) {
-    	if (red_length)		*red_length		= 8;
-    	if (green_length)	*green_length	= 8;
-    	if (blue_length)	*blue_length	= 8;
-		if (red_offset)		*red_offset		= 16;
-		if (green_offset)	*green_offset	= 8;
-		if (blue_offset)	*blue_offset	= 0;
-        return 4*8;
+		pixeldef->bits			= 4*8;
+		pixeldef->red_length	= 8;
+		pixeldef->green_length	= 8;
+		pixeldef->blue_length	= 8;
+		pixeldef->red_offset	= 16;
+		pixeldef->green_offset	= 8;
+		pixeldef->blue_offset	= 0;
+        return;
     }
 	else
     if(pf == MMSFB_PF_ARGB) {
-    	if (transp_length)	*transp_length	= 8;
-    	if (red_length)		*red_length		= 8;
-    	if (green_length)	*green_length	= 8;
-    	if (blue_length)	*blue_length	= 8;
-    	if (transp_offset)	*transp_offset	= 24;
-		if (red_offset)		*red_offset		= 16;
-		if (green_offset)	*green_offset	= 8;
-		if (blue_offset)	*blue_offset	= 0;
-        return 4*8;
+		pixeldef->bits			= 4*8;
+		pixeldef->transp_length	= 8;
+		pixeldef->red_length	= 8;
+		pixeldef->green_length	= 8;
+		pixeldef->blue_length	= 8;
+		pixeldef->transp_offset	= 24;
+		pixeldef->red_offset	= 16;
+		pixeldef->green_offset	= 8;
+		pixeldef->blue_offset	= 0;
+        return;
     }
 	else
     if(pf == MMSFB_PF_A8) {
-        return 1*8;
+		pixeldef->bits = 1*8;
+        return;
     }
 	else
     if(pf == MMSFB_PF_YUY2) {
-        return 2*8;
+		pixeldef->bits = 2*8;
+        return;
     }
 	else
     if(pf == MMSFB_PF_UYVY) {
-        return 2*8;
+		pixeldef->bits = 2*8;
+        return;
     }
 	else
     if(pf == MMSFB_PF_I420) {
-        return 12;
+		pixeldef->bits = 12;
+        return;
     }
 	else
     if(pf == MMSFB_PF_YV12) {
-        return 12;
+		pixeldef->bits = 12;
+		return;
     }
 	else
     if(pf == MMSFB_PF_AiRGB) {
-    	if (transp_length)	*transp_length	= 8;
-    	if (red_length)		*red_length		= 8;
-    	if (green_length)	*green_length	= 8;
-    	if (blue_length)	*blue_length	= 8;
-    	if (transp_offset)	*transp_offset	= 24;
-		if (red_offset)		*red_offset		= 16;
-		if (green_offset)	*green_offset	= 8;
-		if (blue_offset)	*blue_offset	= 0;
-        return 4*8;
+		pixeldef->bits			= 4*8;
+    	pixeldef->transp_length	= 8;
+    	pixeldef->red_length	= 8;
+    	pixeldef->green_length	= 8;
+    	pixeldef->blue_length	= 8;
+    	pixeldef->transp_offset	= 24;
+    	pixeldef->red_offset	= 16;
+    	pixeldef->green_offset	= 8;
+    	pixeldef->blue_offset	= 0;
+        return;
     }
 	else
     if(pf == MMSFB_PF_A1) {
-        return 1;
+		pixeldef->bits = 1;
+        return;
     }
 	else
     if(pf == MMSFB_PF_NV12) {
-        return 1*8;
+		pixeldef->bits = 1*8;
+        return;
     }
 	else
     if(pf == MMSFB_PF_NV16) {
-        return 1*8;
+		pixeldef->bits = 1*8;
+        return;
     }
 	else
     if (pf == MMSFB_PF_NV21) {
-        return 1*8;
+		pixeldef->bits = 1*8;
+        return;
     }
 	else
     if (pf == MMSFB_PF_AYUV) {
-        return 4*8;
+		pixeldef->bits = 4*8;
+        return;
     }
 	else
     if (pf == MMSFB_PF_A4) {
-        return 4;
+		pixeldef->bits = 4;
+        return;
     }
 	else
     if (pf == MMSFB_PF_ARGB1666) {
-        return 3*8;
+		pixeldef->bits = 3*8;
+        return;
     }
 	else
     if (pf == MMSFB_PF_ARGB6666) {
-        return 3*8;
+		pixeldef->bits = 3*8;
+        return;
     }
 	else
     if (pf == MMSFB_PF_RGB18) {
-        return 3*8;
+		pixeldef->bits = 3*8;
+        return;
     }
 	else
     if (pf == MMSFB_PF_LUT2) {
-        return 2;
+		pixeldef->bits = 2;
+        return;
     }
 	else
     if (pf == MMSFB_PF_RGB444) {
-        return 2*8;
+		pixeldef->bits = 2*8;
+        return;
     }
 	else
     if (pf == MMSFB_PF_RGB555) {
-        return 2*8;
+		pixeldef->bits = 2*8;
+        return;
     }
 	else
     if(pf == MMSFB_PF_ARGB1555) {
-        return 2*8;
+		pixeldef->bits = 2*8;
+        return;
     }
 	else
     if(pf == MMSFB_PF_RGB332) {
-        return 1*8;
+		pixeldef->bits = 1*8;
+        return;
     }
 	else
     if(pf == MMSFB_PF_ALUT44) {
-        return 1*8;
+		pixeldef->bits = 1*8;
+        return;
     }
 	else
     if(pf == MMSFB_PF_LUT8) {
-        return 1*8;
+		pixeldef->bits = 1*8;
+        return;
     }
 	else
     if(pf == MMSFB_PF_ARGB2554) {
-        return 2*8;
+		pixeldef->bits = 2*8;
+        return;
     }
 	else
     if(pf == MMSFB_PF_ARGB4444) {
-        return 2*8;
+		pixeldef->bits = 2*8;
+        return;
     }
 	else
     if(pf == MMSFB_PF_ARGB3565) {
-    	if (transp_length)	*transp_length	= 3;
-    	if (red_length)		*red_length		= 5;
-    	if (green_length)	*green_length	= 6;
-    	if (blue_length)	*blue_length	= 5;
-    	if (transp_offset)	*transp_offset	= 16;
-		if (red_offset)		*red_offset		= 11;
-		if (green_offset)	*green_offset	= 5;
-		if (blue_offset)	*blue_offset	= 0;
-        return 20;
+		pixeldef->bits			= 20;
+    	pixeldef->transp_length	= 3;
+    	pixeldef->red_length	= 5;
+    	pixeldef->green_length	= 6;
+    	pixeldef->blue_length	= 5;
+    	pixeldef->transp_offset	= 16;
+    	pixeldef->red_offset	= 11;
+    	pixeldef->green_offset	= 5;
+    	pixeldef->blue_offset	= 0;
+        return;
     }
 	else
     if(pf == MMSFB_PF_BGR24) {
-    	if (red_length)		*red_length		= 8;
-    	if (green_length)	*green_length	= 8;
-    	if (blue_length)	*blue_length	= 8;
-		if (red_offset)		*red_offset		= 0;
-		if (green_offset)	*green_offset	= 8;
-		if (blue_offset)	*blue_offset	= 16;
-        return 3*8;
+		pixeldef->bits			= 3*8;
+    	pixeldef->red_length	= 8;
+    	pixeldef->green_length	= 8;
+    	pixeldef->blue_length	= 8;
+    	pixeldef->red_offset	= 0;
+    	pixeldef->green_offset	= 8;
+    	pixeldef->blue_offset	= 16;
+        return;
     }
 	else
     if(pf == MMSFB_PF_BGR555) {
-    	if (red_length)		*red_length		= 5;
-    	if (green_length)	*green_length	= 5;
-    	if (blue_length)	*blue_length	= 5;
-		if (red_offset)		*red_offset		= 0;
-		if (green_offset)	*green_offset	= 5;
-		if (blue_offset)	*blue_offset	= 10;
-        return 2*8;
+		pixeldef->bits			= 2*8;
+    	pixeldef->red_length	= 5;
+    	pixeldef->green_length	= 5;
+    	pixeldef->blue_length	= 5;
+    	pixeldef->red_offset	= 0;
+    	pixeldef->green_offset	= 5;
+    	pixeldef->blue_offset	= 10;
+        return;
     }
-    return 0;
+	else
+    if(pf == MMSFB_PF_ABGR) {
+		pixeldef->bits			= 4*8;
+    	pixeldef->transp_length	= 8;
+    	pixeldef->red_length	= 8;
+    	pixeldef->green_length	= 8;
+    	pixeldef->blue_length	= 8;
+    	pixeldef->transp_offset	= 24;
+    	pixeldef->red_offset	= 0;
+    	pixeldef->green_offset	= 8;
+    	pixeldef->blue_offset	= 16;
+        return;
+    }
 }
 
 #ifdef  __HAVE_DIRECTFB__

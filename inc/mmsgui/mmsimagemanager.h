@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -36,6 +36,7 @@
 #include "mmsgui/mmsguitools.h"
 #include "mmstools/mmstafffile.h"
 #include "mmstools/mmslogger.h"
+#include "mmsconfig/mmsconfigdata.h"
 
 #define MMSIM_MAX_DESC_SUF      64
 #define MMSIM_DESC_SUF_LOADING  0xfffffffe
@@ -67,15 +68,17 @@ class MMSImageManager {
 
         MMSMutex  			lock;
 
+        MMSConfigData       config;
+
         bool surface2TAFF(string &imagefile, MMSFBSurface *surface);
 
         bool loadGIF(string file, MMSIM_DESC *desc);
 
     public:
-        MMSImageManager(MMSFBLayer *layer);
+        MMSImageManager(MMSFBLayer *layer = NULL);
         ~MMSImageManager();
         MMSFBSurface *getImage(const string &path, const string &filename, MMSIM_DESC_SUF **surfdesc = NULL,
-        					   int mirror_size = 0);
+        					   int mirror_size = 0, bool gen_taff = true);
         MMSFBSurface *newImage(const string &name, unsigned int width, unsigned int height, MMSFBSurfacePixelFormat pixelformat = MMSFB_PF_NONE);
         void releaseImage(const string &path, const string &filename);
         void releaseImage(MMSFBSurface *surface);

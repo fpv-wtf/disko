@@ -5,7 +5,7 @@
  *   Copyright (C) 2007-2008 BerLinux Solutions GbR                        *
  *                           Stefan Schwarzer & Guido Madaus               *
  *                                                                         *
- *   Copyright (C) 2009      BerLinux Solutions GmbH                       *
+ *   Copyright (C) 2009-2011 BerLinux Solutions GmbH                       *
  *                                                                         *
  *   Authors:                                                              *
  *      Stefan Schwarzer   <stefan.schwarzer@diskohq.org>,                 *
@@ -115,6 +115,19 @@ unsigned int MMSPopupWindow::getDuration() {
 
 void MMSPopupWindow::setDuration(unsigned int duration) {
     myPopupWindowClass.setDuration(duration);
+
+    /* restart timer if already running */
+	if(duration == 0) {
+		this->timer->stop();
+	} else {
+		if(this->isShown()) {
+			if(!this->timer->isRunning()) {
+				this->timer->start(duration * 1000);
+			} else {
+				this->timer->restart();
+			} 
+		}
+	}
 }
 
 void MMSPopupWindow::updateFromThemeClass(MMSPopupWindowClass *themeClass) {
