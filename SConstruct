@@ -44,7 +44,7 @@ def GetSconsVersion():
 	   revision parts.
 	   This is complicated by the fact that a version string can be
 	   something like 3.2b1."""
-	
+
 	version = string.split(string.split(SCons.__version__, ' ')[0], '.')
 	v_major = int(version[0])
 	v_minor = int(re.match('\d+', version[1]).group())
@@ -52,7 +52,7 @@ def GetSconsVersion():
 		v_revision = int(re.match('\d+', version[2]).group())
 	else:
 		v_revision = 0
-		
+
 	return v_major, v_minor, v_revision
 
 sconsVersion = GetSconsVersion()
@@ -131,7 +131,7 @@ else:
 	BoolVariable('use_dl',              'Use dynamic linking support', True),
 	ListVariable('graphics_backend',    'Set graphics backend', 'none', be),
 	ListVariable('graphics_outputtype', 'Set graphics outputtype', 'all', ot),
-	ListVariable('pixelformats',        'Supported pixelformats', 'all', pf),   		 
+	ListVariable('pixelformats',        'Supported pixelformats', 'all', pf),
 	ListVariable('database',            'Set database backend', 'sqlite3', ['sqlite3', 'mysql', 'odbc']),
 	ListVariable('media',               'Set media backend', 'all', ['xine', 'gstreamer']),
 	ListVariable('images',              'Set image backends', 'all', ['png', 'jpeg', 'tiff']),
@@ -212,7 +212,7 @@ if env['use_sse']:
 
 # use environment variables to override defaults
 if os.environ.has_key('CXX'):
-	env['CXX'] = [os.environ['CXX'].split()] 
+	env['CXX'] = [os.environ['CXX'].split()]
 if os.environ.has_key('CXXFLAGS'):
 	env['CCFLAGS'].extend(os.environ['CXXFLAGS'].split())
 if os.environ.has_key('LD'):
@@ -247,13 +247,13 @@ if env['enable_flash']:
 	diskoLibs.extend(["mmsflash"])
 if env['enable_sip']:
 	diskoLibs.extend(["mmssip"])
-	
+
 diskoTools = []
 
-if env['enable_tools']:	
+if env['enable_tools']:
 	diskoTools = ["taff","diskoappctrl"]
 
-if env['enable_actmon']:	
+if env['enable_actmon']:
 	diskoTools.extend(["actmon"])
 
 #######################################################################
@@ -263,7 +263,7 @@ def checkOutputtypes(backends, outputtypes):
 	for b in backends:
 		if b in env['graphics_backend']:
 			return
-			
+
 	for o in outputtypes:
 		if o in env['graphics_outputtype']:
 			print '\n*** \'' + o + '\' outputtype disabled (depends on %s)!' % ' or '.join(backends)
@@ -284,17 +284,17 @@ def checkOptions(context):
 	checkOutputtypes(['fbdev'], ['gles2'])
 	checkOutputtypes(['dfb'],   ['viafb'])
 	checkOutputtypes(['fbdev', 'dfb'], ['stdfb', 'matroxfb', 'davincifb', 'omapfb'])
-	
+
 	if not env['database']:
 		print '\nPlease choose a database by using:'
 		print '  \'scons database=sqlite3\' or'
 		print '  \'scons database=mysql\' or'
 		print '  \'scons database=odbc\'\n'
 		Exit(1)
-		
+
 	# to avoid 'error: no result' msg
 	context.Result(True)
-	
+
 	return True
 
 def tryConfigCommand(context, cmd):
@@ -321,7 +321,7 @@ def checkXineBlDvb(context):
 		ret = True
 	else:
 		ret = False
-		
+
 	context.Result(ret)
 	return ret
 
@@ -340,7 +340,7 @@ def checkPKG(context, name):
 def checkConf(context, name):
 	if name.find(' '):
 		return False
-		
+
 	seperators = ['-', '_']
 	for sep in seperators:
 		configcall = '%s%sconfig --libs --cflags' % (name.lower(), sep)
@@ -389,14 +389,14 @@ def checkBacktrace(context):
 			backtrace(array, 1);
 			backtrace_symbols(array, 1);
 			return 0;
-	}	
+	}
 	"""
 
 	context.Message('Checking for backtrace_symbols()... ')
 	result = context.TryLink(backtrace_test, '.c')
 	context.Result(result)
 	return result
-		
+
 def printSummary():
 	print '\n********************* Summary *********************\n'
 	print 'Prefix:             : %s'   % conf.env['prefix']
@@ -509,7 +509,7 @@ if not ('-c' in sys.argv or '-h' in sys.argv):
 	conf.checkSimpleLib(['libxml-2.0 >= 2.6'], 'libxml2/libxml/parser.h')
 	if (env['enable_curl']):
 		conf.checkSimpleLib(['libcurl'],           'curl/curl.h')
-		conf.env['CCFLAGS'].extend(['-D__HAVE_CURL__'])	
+		conf.env['CCFLAGS'].extend(['-D__HAVE_CURL__'])
 	conf.checkSimpleLib(['freetype2'],         'freetype/freetype.h')
 
 	if conf.CheckLibWithHeader(['libiconv'], ['iconv.h'], 'c++'):
@@ -552,7 +552,7 @@ if not ('-c' in sys.argv or '-h' in sys.argv):
 	if('dfb' in env['graphics_backend']):
 		conf.checkSimpleLib(['directfb'],   'directfb/directfb.h')
 		conf.env['CCFLAGS'].extend(['-D__HAVE_DIRECTFB__'])
-		
+
 	# checks required if building fbdev backend
 	if('fbdev' in env['graphics_backend']):
 		conf.env['CCFLAGS'].extend(['-D__HAVE_FBDEV__'])
@@ -581,27 +581,28 @@ if not ('-c' in sys.argv or '-h' in sys.argv):
 
 		# checks for OpenGL and X11 backend
 		if 'gl2' in conf.env['graphics_outputtype']:
-			if conf.CheckLib('GLEW', 'glGenFramebuffersEXT'):
-				conf.env['LIBS'].append('GLEW')
-				if conf.checkSimpleLib(['gl'],   'GL/gl.h'):
-					conf.env['CCFLAGS'].extend(['-D__HAVE_OPENGL__'])
-					if conf.CheckLib('GL', 'glBlendEquation'):
-						conf.env['CCFLAGS'].extend(['-D__HAVE_GL2__'])	
-					conf.checkSimpleLib(['glu'],  'GL/glu.h')
-					if conf.CheckCXXHeader('GL/glx.h') and conf.CheckLib('GL', 'glXCreateContext'):
-						conf.env['CCFLAGS'].extend(['-D__HAVE_GLX__'])
+			#if conf.CheckLib('GLEW', 'glGenFramebuffersEXT'):
+			conf.env['LIBS'].append('GLEW')
+			if conf.checkSimpleLib(['gl'],   'GL/gl.h'):
+				conf.env['CCFLAGS'].extend(['-D__HAVE_OPENGL__'])
+				if conf.CheckLib('GL', 'glBlendEquation'):
+					conf.env['CCFLAGS'].extend(['-D__HAVE_GL2__'])
+				conf.checkSimpleLib(['glu'],  'GL/glu.h')
+				if conf.CheckCXXHeader('GL/glx.h') and conf.CheckLib('GL', 'glXCreateContext'):
+					conf.env['CCFLAGS'].extend(['-D__HAVE_GLX__'])
 			else:
+				print('Blub')
 				conf.env['graphics_outputtype'].remove('gl2')
-	
+
 	# check if OpenGL 2.0 and OpenGL ES are both activated
 	if 'gl2' in conf.env['graphics_outputtype'] and 'gles2' in conf.env['graphics_outputtype']:
-		print '\nOpenGL 2.0 and OpenGL ES 2.0 support is mutually exclusive.' 
+		print '\nOpenGL 2.0 and OpenGL ES 2.0 support is mutually exclusive.'
 		print 'You have to choose between one of them by using:'
 		print '  \'scons graphics_outputtype=gl2\' or'
 		print '  \'scons graphics_outputtype=gles2\''
 		Exit(1)
-	
-	
+
+
 	# pixelformats (no effect when using OpenGL or OpenGL ES
 	if len(conf.env['graphics_outputtype']) == 1 and ('gl2' in conf.env['graphics_outputtype'] or 'gles2' in conf.env['graphics_outputtype']):
 		conf.env['pixelformats'][:] = [];
@@ -641,7 +642,7 @@ if not ('-c' in sys.argv or '-h' in sys.argv):
 		xine_str = 'libxine'
 		if('x11' in env['graphics_backend']):
 			xine_str += ' >= 1.1.15'
-			
+
 		if not conf.checkSimpleLib([xine_str], 'xine.h', required = 0):
 			print '***************************************************\n'
 			print 'Xine not found!'
@@ -678,7 +679,7 @@ if not ('-c' in sys.argv or '-h' in sys.argv):
 			conf.env['alsa'] = 0
 	else:
 		conf.env['alsa'] = 0
-		
+
 	# checks required for database backends
 	if 'sqlite3' in env['database']:
 		conf.checkSimpleLib(['sqlite3'], 'sqlite3.h')
@@ -713,7 +714,7 @@ if not ('-c' in sys.argv or '-h' in sys.argv):
 		if conf.checkSimpleLib(['swfdec-0.9'], 'swfdec-0.9/swfdec/swfdec.h', required = 0):
 			conf.env['CCFLAGS'].extend(['-D__HAVE_MMSFLASH__'])
 			swfdecversion='0.9'
-		else: 
+		else:
 			if conf.checkSimpleLib(['swfdec-0.8'], 'swfdec-0.8/swfdec/swfdec.h'):
 				conf.env['CCFLAGS'].extend(['-D__HAVE_MMSFLASH__'])
 				swfdecversion='0.8'
@@ -725,7 +726,7 @@ if not ('-c' in sys.argv or '-h' in sys.argv):
 			conf.checkSimpleLib(['uuid'], 'uuid/uuid.h', required = 0)
 			conf.env['CCFLAGS'].extend(['-D__HAVE_MMSSIP__'])
 
-		
+
 	# checks required if building with email support
 	if(env['enable_mail']):
 		conf.checkSimpleLib(['vmime'], 'vmime.h')
@@ -739,7 +740,7 @@ if not ('-c' in sys.argv or '-h' in sys.argv):
 	# checks required if building with swscale support
 	if(env['enable_swscale']):
 		conf.checkSimpleLib(['libswscale'], 'libswscale/swscale.h')
-		conf.env['CCFLAGS'].extend(['-D__HAVE_SWSCALE__']) 
+		conf.env['CCFLAGS'].extend(['-D__HAVE_SWSCALE__'])
 
 	# checks required if building activity monitor
 	if(env['enable_actmon']):
@@ -754,7 +755,7 @@ if not ('-c' in sys.argv or '-h' in sys.argv):
 		env = env2
 		env['LIBS'].extend(['pthread', 'z'])
 		printSummary()
-		
+
 	if 'check' in BUILD_TARGETS:
 		Exit(0)
 
@@ -773,7 +774,7 @@ if 'install' in BUILD_TARGETS:
 		disko_pc_libs_private = ''
 
 	disko_pc_libs_private += ' -lpthread -lz'
-		
+
 	if env['big_lib'] or env['static_lib']:
 		disko_pc_libs = '-ldisko'
 	else:
@@ -781,7 +782,7 @@ if 'install' in BUILD_TARGETS:
 
 	if env.has_key('libiconv'):
 		disko_pc_libs_private += ' -liconv'
-	
+
 	if 'png' in env['images']:
 		disko_pc_requires += ', libpng >= 1.2'
 
@@ -802,23 +803,23 @@ if 'install' in BUILD_TARGETS:
 
 	if 'dfb' in env['graphics_backend']:
 		disko_pc_requires += ', directfb'
-	 
+
 	if 'x11' in env['graphics_backend']:
 		disko_pc_requires += ', x11, xv, xxf86vm, xcomposite, xrender'
 		if '-D__HAVE_OPENGL__' in env['CCFLAGS']:
 			disko_pc_requires += ', gl, glu'
-	
+
 	for l in ['GLEW', 'GLESv2' , 'EGL']:
 		if l in env['LIBS']:
 			disko_pc_libs += ' -l%s' % l
 
 	if env['alsa']:
 	 	disko_pc_requires += ', alsa'
-	
+
 	if env['media'] and env['media'] != 'none':
 		if not env['big_lib'] and not env['static_lib']:
 			disko_pc_libs += ' -lmmsmedia'
-		
+
 		if 'xine' in env['media']:
 			if('x11' in env['graphics_backend']):
 				disko_pc_requires += ', libxine >= 1.1.15'
@@ -839,19 +840,19 @@ if 'install' in BUILD_TARGETS:
 			disko_pc_libs += ' -lmmssip'
 		if('uuid' in env['LIBS']):
 			disko_pc_requires += ', uuid'
-		
+
 	if env['enable_mail']:
 		disko_pc_requires += ', vmime'
-		
+
 	if env['enable_fribidi']:
 		disko_pc_requires += ', fribidi'
-		
+
 	if env['enable_crypt']:
 		disko_pc_requires += ', openssl'
 
 	if 'sqlite3' in env['database']:
 		disko_pc_requires += ', sqlite3'
-		
+
 	if 'mysql' in env['database']:
 		disko_pc_requires += ', mysql'
 
@@ -884,7 +885,7 @@ if 'install' in BUILD_TARGETS:
 		else:
 			disko_pc.write(' ' + ' '.join(ccflag))
 	disko_pc.write('\n')
-	
+
 	disko_pc.close()
 
 #######################################################################
@@ -898,7 +899,7 @@ else:
 	all = env.Alias('all', ['lib'])
 install = env.Alias('install', [idir_prefix])
 Depends(install, all)
-env.Default(all)	
+env.Default(all)
 
 env.Install(idir_inc, env['TOP_DIR'] + '/inc/mms.h')
 env.Install(idir_inc, env['TOP_DIR'] + '/inc/disko.h')
@@ -952,4 +953,3 @@ if env['static_lib']:
 #######################################################################
 VariantDir('build/tools', 'tools', duplicate = 0)
 SConscript(Split(toolList), options = opts)
-

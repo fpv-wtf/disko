@@ -232,8 +232,8 @@ void mmsfb_stretchblit_yuy2_to_yv12(MMSFBSurfacePlanes *src_planes, int src_heig
 			printf("DISKO: Using libswscale with license %s\n", license);
 		}
 		sws_context = sws_getCachedContext(	sws_context,
-											pix_src_width, pix_src_height, PIX_FMT_YUYV422,
-											pix_dst_width, pix_dst_height, PIX_FMT_YUV420P,
+											pix_src_width, pix_src_height, AV_PIX_FMT_YUYV422,
+											pix_dst_width, pix_dst_height, AV_PIX_FMT_YUV420P,
 											flags, NULL, NULL, NULL);
 		if (!sws_context) {
 			// error, using disko YUY2->YV12 stretch blit fall back

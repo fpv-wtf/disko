@@ -31,9 +31,9 @@
  **************************************************************************/
 
 #include <cstring>
-extern "C" {
+//extern "C" {
 #include <libxml/parser.h>
-}
+//}
 #include "mmscore/mmsinit.h"
 #include "mms.h"
 

@@ -188,8 +188,8 @@ void mmsfb_stretchblit_yv12_to_yv12(MMSFBSurfacePlanes *src_planes, int src_heig
 		// note: if the parameters are changed, a new context will be created
 		//       else the previous context will be used
 		sws_context = sws_getCachedContext(	sws_context,
-											pix_src_width, pix_src_height, PIX_FMT_YUV420P,
-											pix_dst_width, pix_dst_height, PIX_FMT_YUV420P,
+											pix_src_width, pix_src_height, AV_PIX_FMT_YUV420P,
+											pix_dst_width, pix_dst_height, AV_PIX_FMT_YUV420P,
 											flags, NULL, NULL, NULL);
 		if (!sws_context) {
 			// error, using disko YV12 stretch blit fall back

@@ -35,6 +35,9 @@
 #include <errno.h>
 #include <cstring>
 
+#include <unistd.h>
+#include <stdio.h>
+
 #ifdef __HAVE_CURL__
 #include <curl/curl.h>
 #endif

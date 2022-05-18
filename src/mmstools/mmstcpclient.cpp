@@ -36,6 +36,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <cerrno>
+#include <unistd.h>
 
 MMSTCPClient::MMSTCPClient(string host, unsigned int port) {
     this->host = host;

@@ -92,7 +92,7 @@ MMSFBSurface *MMSFBSurfaceManager::createSurface(int w, int h, MMSFBSurfacePixel
     	delete surface;
     	surface = NULL;
 		MMSFB_SetError(0, "cannot initialize MMSFBSurface");
-		return false;
+		return NULL;
 	}
 
     // get size of surface memory
@@ -198,4 +198,3 @@ void MMSFBSurfaceManager::releaseTemporarySurface(MMSFBSurface *tempsuf) {
 		return;
 	this->tempsuf->unlock();
 }
-

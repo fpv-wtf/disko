@@ -54,7 +54,7 @@
 
 
 #ifdef  __HAVE_DIRECTFB__
-extern "C" {
+//extern "C" {
 #include <direct/debug.h>
 #include <direct/trace.h>
 
@@ -62,7 +62,7 @@ extern "C" {
 #include <directfb_keynames.h>
 #include <directfb_strings.h>
 #include <directfb_util.h>
-}
+//}
 #endif
 
 #ifdef MMSFB_TRACE_ENABLE

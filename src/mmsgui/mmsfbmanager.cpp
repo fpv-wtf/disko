@@ -74,10 +74,10 @@ bool MMSFBManager::init(int argc, char **argv, string appl_name, string appl_ico
 		myargv[i]=strdup(argv[i]);
 
 #ifdef  __HAVE_DIRECTFB__
-	if(config.getOutputType() == MMSFB_OT_X11) {
+	//if(config.getOutputType() == MMSFB_OT_X11) {
 		myargv[myargc]=strdup("--dfb:system=x11");
 		myargc++;
-	}
+	//}
 #endif
 
     DEBUGMSG("MMSGUI", "init mmsfb");
@@ -319,4 +319,3 @@ MMSFBLayer *MMSFBManager::getGraphicsLayer() {
 int MMSFBManager::getLayerCount() {
     return this->layercount;
 }
-

@@ -56,7 +56,7 @@ D_DEBUG_DOMAIN( MMS_Surface, "MMS/Surface", "MMS FB Surface" );
 bool MMSFBSurface::extendedaccel								= false;
 MMSFBSurfaceAllocMethod MMSFBSurface::allocmethod				= MMSFBSurfaceAllocMethod_malloc;
 
-#define INITCHECK  if((!mmsfb->isInitialized())||(!this->initialized)){MMSFB_SetError(0,"MMSFBSurface is not initialized");return false;}
+#define INITCHECK  if((!mmsfb->isInitialized())||(!this->initialized)){MMSFB_SetError(0,"MMSFBSurface is not initialized");return NULL;}
 
 #define CLIPSUBSURFACE \
 	MMSFBRegion reg, tmp; \
@@ -4785,7 +4785,7 @@ bool MMSFBSurface::stretchBlit(MMSFBSurface *source, MMSFBRectangle *src_rect, M
 					dfbres=((IDirectFBSurface *)tempsuf->getDFBSurface())->StretchBlit((IDirectFBSurface *)tempsuf->getDFBSurface(), (IDirectFBSurface *)source->getDFBSurface(), (DFBRectangle*)&src, (DFBRectangle*)&temp);
 					if (dfbres == DFB_OK) {
 						if (!this->is_sub_surface) {
-							if (extendedAccelBlit(tempsuf, &temp, dst.x, dst.y)) {
+							if (extendedAccelBlit(tempsuf, &temp, dst.x, dst.y, this->config.blittingflags)) {
 								blit_done = true;
 								ret = true;
 							}
@@ -4806,7 +4806,7 @@ bool MMSFBSurface::stretchBlit(MMSFBSurface *source, MMSFBRectangle *src_rect, M
 							SETSUBSURFACE_BLITTINGFLAGS;
 #endif
 
-							if (!extendedAccelBlit(tempsuf, &temp, dst.x, dst.y))
+							if (!extendedAccelBlit(tempsuf, &temp, dst.x, dst.y, this->config.blittingflags))
 								this->dfb_surface->Blit(this->dfb_surface, (IDirectFBSurface *)tempsuf->getDFBSurface(), (DFBRectangle*)&temp, dst.x, dst.y);
 
 #ifndef USE_DFB_SUBSURFACE
@@ -9554,4 +9554,3 @@ bool MMSFBSurface::fillRectangleBGR555(int dst_height, int dx, int dy, int dw, i
 
 	return false;
 }
-
