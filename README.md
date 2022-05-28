@@ -4,7 +4,7 @@
 
 For information about disko take a look at the [diskohq.com mirror](https://diskohq-mirror.fpv.wtf/).
 
-## Dependencies:
+## Dependencies
 
 
 On a Debian based system, those are the dependencies I had to install (this might not be a full list since I am sure I had some of the dependencies already installed):
@@ -31,6 +31,14 @@ sudo apt-get install \
 
 Running `check` will basically tell you what's missing in regards to libraries. That being said not all newly installed libraries were picked up immediately and `.sconsign.dblite` needed to be deleted in order for the dependencies to be picked up.
 
+## Python 2.7
+
+The scons scripts for disko require python 2.7. One way to achieve this:
+
+    virtualenv -p $(which python2.7) venv
+    source venv/bin/activate
+    pip install scons
+
 ## Config
 
 ### For X11 with OpenGl2:
@@ -54,6 +62,7 @@ scons graphics_backend=dfb,x11 graphics_outputtype=stdfb,gl2 pixelformats=all en
 
 ```
 scons
+source venv/bin/activate
 sudo scons install
 ```
 
