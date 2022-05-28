@@ -1,0 +1,592 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/index.php" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, ui framework, GUI library, linux, embedded ui framework, open source, LGPL" />
+  <meta name="description" content="Disko is a LGPL licensed and linux based ui application framework for embedded devices." />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title> - FireBoard</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <script type="text/javascript" src="/components/com_fireboard/template/disko/js/jquery-latest.pack.js"></script>
+  <script type="text/javascript">
+//1: show, 0 : hide
+jr_expandImg_url = "/components/com_fireboard/template/default/images/english/";</script>
+  <script type="text/javascript" src="/components/com_fireboard/template/disko/js/bojForumCore.js"></script>
+  <link type="text/css" rel="stylesheet" href="/components/com_fireboard/template/disko/forum.css" />
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+			var headLines = document.getElementsByTagName('h1');
+			var p = null;
+			var n = null;
+			var c = null;
+			for(i = 0; i < headLines.length; ++i) {
+				c = headLines[i].getAttributeNode('class');
+				p = headLines[i].parentNode;
+
+				var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+				newSrc.nodeValue = '/templates/diskohq/images/arrow_bg.png';
+				newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headLines[i].insertBefore(newImg, headLines[i].firstChild);
+
+			}
+						var headlines = jQuery('#page h2');
+						for(i = 0; i < headlines.length; ++i) {
+								var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+								newSrc.nodeValue = '/templates/diskohq/images/arrow_bg_blue.png';
+				newClass.nodeValue += ' arrowBlue';
+								newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headlines[i].insertBefore(newImg, headlines[i].firstChild);
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent item7"><a href="/products/disko-framework/overview"><span>Products</span></a></li><li class="parent item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a></li><li id="current" class="active item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+<!-- closed in footer.html -->
+<div id="fireboard">
+
+<!-- BerLinux - we don't use a header with the new layout -->
+<!--<div class="shortDivider"></div>
+<h1 class="descriptionHeadline" style="float:right; width:100%; margin-bottom:10px;">Disko forums</h1><br />
+-->
+
+
+    <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0"  class = "fb_profilebox">
+        <tbody id = "topprofilebox_tbody">
+            <tr class = "fb_sectiontableentry1">
+                <td class = "td-1  fbm fb_profileboxcnt" style="vertical-align:bottom; border-right: 0px;">
+                    <img src="/components/com_fireboard/template/disko/images/diskoforum.png" alt="Disko Forum logo" style="padding-left:14px; padding-bottom:14px; float:left;" />
+                </td>
+                <td style="padding-right:14px; padding-bottom:10px; vertical-align:bottom; text-align:right; border-left: 0px;">
+                    <a href = "/component/user/login">Login</a>
+                    &nbsp;|&nbsp;
+                    <a href = "/component/user/?task=register">Register</a>
+                    &nbsp;|&nbsp;
+                    <a href = "/component/user/reset">Lost Password</a>
+                </td>
+                                 
+            </tr>
+        </tbody>
+    </table>
+
+<!-- B: announcementBox -->
+
+<!-- F: announcementBox -->
+<!-- B: Pathway -->
+<!-- Pathway -->
+
+    <div class = "fb_forum-pathway" style="font-weight:normal; color: #787878; background: #262929; float:right;">
+         </div><div class="forum-pathway-2">     </div>
+
+    </div>
+
+<!-- / Pathway -->
+<!-- F: Pathway -->
+            <!-- B: List Cat -->
+<div class="fb__bt_cvr1" id="fb_block11">
+<div class="fb__bt_cvr2">
+<div class="fb__bt_cvr3">
+<div class="fb__bt_cvr4">
+<div class="fb__bt_cvr5">
+            <table class="fb_categorytable fb_blocktable"  style="margin-top:35px; margin-bottom:10px;"  width="100%" id = "fb_cat11" cellspacing = "0" cellpadding = "0" border="0">
+
+                    <tbody id = "catid_11">
+
+                    
+                                <tr style="border-left:1px solid #5a5a5a;" class = "fb_sectiontableentry2" id="fb_cat2">
+                                    <td style="width:58px;">
+                                        <img src="/components/com_fireboard/template/default/images/english/icons/forum_folder.png" border="0" style="margin-left: 10px; margin-top: 3px; border: 0px solid green; "  alt="" title="No New Posts" />
+                                                                            </td>
+
+                                    <td class = "td-2" align="left" style="width:315px; padding-top:3px; padding-left:7px; text-align:left;">
+                                        <div>
+                                            <a href = "/forum_func=showcat&amp;catid=2"> <span style="font-size:17px; line-height:21px; font-weight:normal;">News & Announcements</span> </a><br />
+<!-- BerLinux: show description after the title -->
+                                            <span style="color: #c3c3c3;">
+                                                In here the Disko developers post recent news to keep you up-to-date about the development progress.                                            </span>
+
+                                            
+                                                                                    </div>
+<!-- BerLinux: We don't need the description
+                                        
+                                            <div class = "fb_thead-desc fbm">
+In here the Disko developers post recent news to keep you up-to-date about the development progress.                                            </div>
+
+                                        -->
+
+                                                                            </td>
+
+                                    <td class = "td-3  fbm" style="width:37px; padding-top:3px; padding-left:7px; text-align:left;"><span style="font-size:17px; line-height:21px;">10</span><br /><span  style="color: #c3c3c3;">Topics</span></td>
+
+                                   <td class = "td-4  fbm" style="width:37px; padding-top:3px; padding-left:7px; text-align:left;">
+<span style="font-size:17px; line-height:21px;">5</span><br /><span  style="color: #c3c3c3;">Posts</span>                                    </td>
+
+                                    
+                                        <td class = "td-5" align="left" style="width:316px; padding-left:5px; padding-top:3px; border-right: 0px solid #5a5a5a;">
+                                            <div class = "fb_latest-subject-by fbs" style="margin-left:3px; color: #c3c3c3; padding-top:2px;">
+Latest post: by 
+ <a href = "/forum_func=fbprofile&amp;task=showprf&amp;userid=67" style="color: #c3c3c3;">alanz</a>
+
+                                    on 12/28/2008 16:14 <a href = "/forum_func=view&amp;catid=2&amp;id=67#67">  </a>
+                                            </div>
+                                            <div class = "fb_latest-subject fbm" style="margin-left:3px;">
+                                                <a href = "/forum_func=view&amp;catid=2&amp;id=67#67">
+    <!-- Berlinux, we don't need a long header  -->     
+    <span style="font-size:14px; line-height:22px;">
+    Re:Inquiry about Disko 1.5 and Morp...</span></a>
+                                            </div>
+                                        </td>
+                                </tr>
+
+                                    
+                                <tr style="border-left:1px solid #5a5a5a;" class = "fb_sectiontableentry1" id="fb_cat4">
+                                    <td style="width:58px;">
+                                        <img src="/components/com_fireboard/template/default/images/english/icons/forum_folder.png" border="0" style="margin-left: 10px; margin-top: 3px; border: 0px solid green; "  alt="" title="No New Posts" />
+                                                                            </td>
+
+                                    <td class = "td-2" align="left" style="width:315px; padding-top:3px; padding-left:7px; text-align:left;">
+                                        <div>
+                                            <a href = "/forum_func=showcat&amp;catid=4"> <span style="font-size:17px; line-height:21px; font-weight:normal;">Ideas & Requirements</span> </a><br />
+<!-- BerLinux: show description after the title -->
+                                            <span style="color: #c3c3c3;">
+                                                If you have any proposals or requests for the future of Disko, post them in here.                                            </span>
+
+                                            
+                                                                                    </div>
+<!-- BerLinux: We don't need the description
+                                        
+                                            <div class = "fb_thead-desc fbm">
+If you have any proposals or requests for the future of Disko, post them in here.                                            </div>
+
+                                        -->
+
+                                                                            </td>
+
+                                    <td class = "td-3  fbm" style="width:37px; padding-top:3px; padding-left:7px; text-align:left;"><span style="font-size:17px; line-height:21px;">9</span><br /><span  style="color: #c3c3c3;">Topics</span></td>
+
+                                   <td class = "td-4  fbm" style="width:37px; padding-top:3px; padding-left:7px; text-align:left;">
+<span style="font-size:17px; line-height:21px;">32</span><br /><span  style="color: #c3c3c3;">Posts</span>                                    </td>
+
+                                    
+                                        <td class = "td-5" align="left" style="width:316px; padding-left:5px; padding-top:3px; border-right: 0px solid #5a5a5a;">
+                                            <div class = "fb_latest-subject-by fbs" style="margin-left:3px; color: #c3c3c3; padding-top:2px;">
+Latest post: by 
+ <a href = "/forum_func=fbprofile&amp;task=showprf&amp;userid=822" style="color: #c3c3c3;">andre</a>
+
+                                    on 12/31/2009 19:29 <a href = "/forum_func=view&amp;catid=4&amp;id=458#458">  </a>
+                                            </div>
+                                            <div class = "fb_latest-subject fbm" style="margin-left:3px;">
+                                                <a href = "/forum_func=view&amp;catid=4&amp;id=458#458">
+    <!-- Berlinux, we don't need a long header  -->     
+    <span style="font-size:14px; line-height:22px;">
+    Re:Online reference doc</span></a>
+                                            </div>
+                                        </td>
+                                </tr>
+
+                                    
+                                <tr style="border-left:1px solid #5a5a5a;" class = "fb_sectiontableentry2" id="fb_cat6">
+                                    <td style="width:58px;">
+                                        <img src="/components/com_fireboard/template/default/images/english/icons/forum_folder.png" border="0" style="margin-left: 10px; margin-top: 3px; border: 0px solid green; "  alt="" title="No New Posts" />
+                                                                            </td>
+
+                                    <td class = "td-2" align="left" style="width:315px; padding-top:3px; padding-left:7px; text-align:left;">
+                                        <div>
+                                            <a href = "/forum_func=showcat&amp;catid=6"> <span style="font-size:17px; line-height:21px; font-weight:normal;">Bug Reports</span> </a><br />
+<!-- BerLinux: show description after the title -->
+                                            <span style="color: #c3c3c3;">
+                                                Found a bug? Don't keep it for yourself. Share it here!                                            </span>
+
+                                            
+                                                                                    </div>
+<!-- BerLinux: We don't need the description
+                                        
+                                            <div class = "fb_thead-desc fbm">
+Found a bug? Don\\\'t keep it for yourself. Share it here!                                            </div>
+
+                                        -->
+
+                                                                            </td>
+
+                                    <td class = "td-3  fbm" style="width:37px; padding-top:3px; padding-left:7px; text-align:left;"><span style="font-size:17px; line-height:21px;">28</span><br /><span  style="color: #c3c3c3;">Topics</span></td>
+
+                                   <td class = "td-4  fbm" style="width:37px; padding-top:3px; padding-left:7px; text-align:left;">
+<span style="font-size:17px; line-height:21px;">124</span><br /><span  style="color: #c3c3c3;">Posts</span>                                    </td>
+
+                                    
+                                        <td class = "td-5" align="left" style="width:316px; padding-left:5px; padding-top:3px; border-right: 0px solid #5a5a5a;">
+                                            <div class = "fb_latest-subject-by fbs" style="margin-left:3px; color: #c3c3c3; padding-top:2px;">
+Latest post: by 
+ <a href = "/forum_func=fbprofile&amp;task=showprf&amp;userid=68" style="color: #c3c3c3;">Matthias</a>
+
+                                    on 06/06/2010 21:10 <a href = "/forum_func=view&amp;catid=6&amp;id=558#558">  </a>
+                                            </div>
+                                            <div class = "fb_latest-subject fbm" style="margin-left:3px;">
+                                                <a href = "/forum_func=view&amp;catid=6&amp;id=558#558">
+    <!-- Berlinux, we don't need a long header  -->     
+    <span style="font-size:14px; line-height:22px;">
+    Re:releasing all of DirectFB alloca...</span></a>
+                                            </div>
+                                        </td>
+                                </tr>
+
+                                    
+                                <tr style="border-left:1px solid #5a5a5a;" class = "fb_sectiontableentry1" id="fb_cat8">
+                                    <td style="width:58px;">
+                                        <img src="/components/com_fireboard/template/default/images/english/icons/forum_folder.png" border="0" style="margin-left: 10px; margin-top: 3px; border: 0px solid green; "  alt="" title="No New Posts" />
+                                                                            </td>
+
+                                    <td class = "td-2" align="left" style="width:315px; padding-top:3px; padding-left:7px; text-align:left;">
+                                        <div>
+                                            <a href = "/forum_func=showcat&amp;catid=8"> <span style="font-size:17px; line-height:21px; font-weight:normal;">Questions</span> </a><br />
+<!-- BerLinux: show description after the title -->
+                                            <span style="color: #c3c3c3;">
+                                                Questions that don't fit anywhere else.                                            </span>
+
+                                            
+                                                                                    </div>
+<!-- BerLinux: We don't need the description
+                                        
+                                            <div class = "fb_thead-desc fbm">
+Questions that don\\\'t fit anywhere else.                                            </div>
+
+                                        -->
+
+                                                                            </td>
+
+                                    <td class = "td-3  fbm" style="width:37px; padding-top:3px; padding-left:7px; text-align:left;"><span style="font-size:17px; line-height:21px;">71</span><br /><span  style="color: #c3c3c3;">Topics</span></td>
+
+                                   <td class = "td-4  fbm" style="width:37px; padding-top:3px; padding-left:7px; text-align:left;">
+<span style="font-size:17px; line-height:21px;">287</span><br /><span  style="color: #c3c3c3;">Posts</span>                                    </td>
+
+                                    
+                                        <td class = "td-5" align="left" style="width:316px; padding-left:5px; padding-top:3px; border-right: 0px solid #5a5a5a;">
+                                            <div class = "fb_latest-subject-by fbs" style="margin-left:3px; color: #c3c3c3; padding-top:2px;">
+Latest post: by 
+ <a href = "/forum_func=fbprofile&amp;task=showprf&amp;userid=65" style="color: #c3c3c3;">Stefan</a>
+
+                                    on 06/16/2010 12:22 <a href = "/forum_func=view&amp;catid=8&amp;id=569#569">  </a>
+                                            </div>
+                                            <div class = "fb_latest-subject fbm" style="margin-left:3px;">
+                                                <a href = "/forum_func=view&amp;catid=8&amp;id=569#569">
+    <!-- Berlinux, we don't need a long header  -->     
+    <span style="font-size:14px; line-height:22px;">
+    Re:absolute positioning and event h...</span></a>
+                                            </div>
+                                        </td>
+                                </tr>
+
+                                    
+                                <tr style="border-left:1px solid #5a5a5a;" class = "fb_sectiontableentry2" id="fb_cat10">
+                                    <td style="width:58px;">
+                                        <img src="/components/com_fireboard/template/default/images/english/icons/forum_folder.png" border="0" style="margin-left: 10px; margin-top: 3px; border: 0px solid green; "  alt="" title="No New Posts" />
+                                                                            </td>
+
+                                    <td class = "td-2" align="left" style="width:315px; padding-top:3px; padding-left:7px; text-align:left;">
+                                        <div>
+                                            <a href = "/forum_func=showcat&amp;catid=10"> <span style="font-size:17px; line-height:21px; font-weight:normal;">Off-Topic</span> </a><br />
+<!-- BerLinux: show description after the title -->
+                                            <span style="color: #c3c3c3;">
+                                                                                            </span>
+
+                                            
+                                                                                    </div>
+<!-- BerLinux: We don't need the description
+                                        -->
+
+                                                                            </td>
+
+                                    <td class = "td-3  fbm" style="width:37px; padding-top:3px; padding-left:7px; text-align:left;"><span style="font-size:17px; line-height:21px;">0</span><br /><span  style="color: #c3c3c3;">Topics</span></td>
+
+                                   <td class = "td-4  fbm" style="width:37px; padding-top:3px; padding-left:7px; text-align:left;">
+<span style="font-size:17px; line-height:21px;">0</span><br /><span  style="color: #c3c3c3;">Posts</span>                                    </td>
+
+                                    
+                                        <td class = "td-5"  align="left" style="padding-left:7px;">
+No Posts                                        </td>
+
+                                        </tr>
+
+                                    </tbody>
+            </table>
+ 
+ 
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+<!-- F: List Cat -->
+
+
+<div class="fb__bt_cvr1">
+<div class="fb__bt_cvr2">
+<div class="fb__bt_cvr3">
+<div class="fb__bt_cvr4">
+<div class="fb__bt_cvr5">
+<table class = "fb_blocktable" id = "fb_recentposts" border = "0" cellspacing = "0" cellpadding = "0" width="100%">
+<!--
+    <thead>
+        <tr>
+            <th colspan = "5">
+                <div class = "fb_title_cover fbm">
+                    <span class = "fb_title fbxl">Recent Posts</span>
+                </div>
+
+                <img id = "BoxSwitch_recentposts__recentposts_tbody" class = "hideshow" src = "/components/com_fireboard/template/default/images/english/shrink.gif" alt = ""/>
+            </th>
+        </tr>
+    </thead>
+-->
+    <tbody id = "recentposts_tbody">
+        <tr>
+            <td valign = "top">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0"><tr  class = "fb_sth" style="height:24px;"><th class="th-2  fb_sectiontableheader fbs" align="left" style="width:370px; background: #3f3f3f; padding-left:7px; padding-top:7px; font-weight: normal;">Recently Posted</th><th class="th-3  fb_sectiontableheader fbs" align="center" style="width:120px; background: #3f3f3f; padding-left:7px; padding-top:7px; font-weight: normal;">Author</th><th class="th-4  fb_sectiontableheader fbs"   align="left" style="width:120px; background: #3f3f3f; padding-left:7px; padding-top:7px; font-weight: normal;">Forum</th><th class="th-5  fb_sectiontableheader fbs" align="left" style="background: #3f3f3f; padding-left:7px; padding-top:7px; font-weight: normal;" >Date</th>                    <tr class = "fb_sectiontableentry$k" style="height:26px;">
+                <td class="td-2 fbm"  align="left" style="padding-left:7px; padding-top:5px;"> <a class="fbrecent fbm" style="color: #d2d2d2;" href='/forum_func=view&amp;id=569&amp;catid=8#569' >Re:absolute positioning and event handling</a></td><td  class="td-3 fbm"  align="center"  style="padding-left:7px; padding-top:5px; color: #d2d2d2;"><a href="/forum_func=fbprofile&amp;task=showprf&amp;userid=65" style="color: #d2d2d2;">Stefan</a></td><td class="td-4 fbm"  align="left" style="padding-left:7px; padding-top:5px; color: #d2d2d2;">Questions</td><td  class="td-5 fbm"  align="left" style="padding-left: 7px; padding-top:5px; color: #d2d2d2;" >16/06/2010 12:22</td></tr>                    <tr class = "fb_sectiontableentry$k" style="height:26px;">
+                <td class="td-2 fbm"  align="left" style="padding-left:7px; padding-top:5px;"> <a class="fbrecent fbm" style="color: #d2d2d2;" href='/forum_func=view&amp;id=568&amp;catid=8#568' >absolute positioning and event handling</a></td><td  class="td-3 fbm"  align="center"  style="padding-left:7px; padding-top:5px; color: #d2d2d2;"><a href="/forum_func=fbprofile&amp;task=showprf&amp;userid=856" style="color: #d2d2d2;">judith</a></td><td class="td-4 fbm"  align="left" style="padding-left:7px; padding-top:5px; color: #d2d2d2;">Questions</td><td  class="td-5 fbm"  align="left" style="padding-left: 7px; padding-top:5px; color: #d2d2d2;" >16/06/2010 09:36</td></tr>                    <tr class = "fb_sectiontableentry$k" style="height:26px;">
+                <td class="td-2 fbm"  align="left" style="padding-left:7px; padding-top:5px;"> <a class="fbrecent fbm" style="color: #d2d2d2;" href='/forum_func=view&amp;id=566&amp;catid=8#566' >Re:nested menus</a></td><td  class="td-3 fbm"  align="center"  style="padding-left:7px; padding-top:5px; color: #d2d2d2;"><a href="/forum_func=fbprofile&amp;task=showprf&amp;userid=68" style="color: #d2d2d2;">Matthias</a></td><td class="td-4 fbm"  align="left" style="padding-left:7px; padding-top:5px; color: #d2d2d2;">Questions</td><td  class="td-5 fbm"  align="left" style="padding-left: 7px; padding-top:5px; color: #d2d2d2;" >08/06/2010 18:19</td></tr>                    <tr class = "fb_sectiontableentry$k" style="height:26px;">
+                <td class="td-2 fbm"  align="left" style="padding-left:7px; padding-top:5px;"> <a class="fbrecent fbm" style="color: #d2d2d2;" href='/forum_func=view&amp;id=563&amp;catid=8#563' >Re:duration popup window</a></td><td  class="td-3 fbm"  align="center"  style="padding-left:7px; padding-top:5px; color: #d2d2d2;"><a href="/forum_func=fbprofile&amp;task=showprf&amp;userid=68" style="color: #d2d2d2;">Matthias</a></td><td class="td-4 fbm"  align="left" style="padding-left:7px; padding-top:5px; color: #d2d2d2;">Questions</td><td  class="td-5 fbm"  align="left" style="padding-left: 7px; padding-top:5px; color: #d2d2d2;" >08/06/2010 18:01</td></tr>                    <tr class = "fb_sectiontableentry$k" style="height:26px;">
+                <td class="td-2 fbm"  align="left" style="padding-left:7px; padding-top:5px;"> <a class="fbrecent fbm" style="color: #d2d2d2;" href='/forum_func=view&amp;id=562&amp;catid=8#562' >nested menus</a></td><td  class="td-3 fbm"  align="center"  style="padding-left:7px; padding-top:5px; color: #d2d2d2;"><a href="/forum_func=fbprofile&amp;task=showprf&amp;userid=862" style="color: #d2d2d2;">neeohw</a></td><td class="td-4 fbm"  align="left" style="padding-left:7px; padding-top:5px; color: #d2d2d2;">Questions</td><td  class="td-5 fbm"  align="left" style="padding-left: 7px; padding-top:5px; color: #d2d2d2;" >08/06/2010 17:55</td></tr>                    <tr class = "fb_sectiontableentry$k" style="height:26px;">
+                <td class="td-2 fbm"  align="left" style="padding-left:7px; padding-top:5px;"> <a class="fbrecent fbm" style="color: #d2d2d2;" href='/forum_func=view&amp;id=561&amp;catid=8#561' >duration popup window</a></td><td  class="td-3 fbm"  align="center"  style="padding-left:7px; padding-top:5px; color: #d2d2d2;"><a href="/forum_func=fbprofile&amp;task=showprf&amp;userid=862" style="color: #d2d2d2;">neeohw</a></td><td class="td-4 fbm"  align="left" style="padding-left:7px; padding-top:5px; color: #d2d2d2;">Questions</td><td  class="td-5 fbm"  align="left" style="padding-left: 7px; padding-top:5px; color: #d2d2d2;" >07/06/2010 14:46</td></tr>                    <tr class = "fb_sectiontableentry$k" style="height:26px;">
+                <td class="td-2 fbm"  align="left" style="padding-left:7px; padding-top:5px;"> <a class="fbrecent fbm" style="color: #d2d2d2;" href='/forum_func=view&amp;id=560&amp;catid=8#560' >Re:smooth scrolling</a></td><td  class="td-3 fbm"  align="center"  style="padding-left:7px; padding-top:5px; color: #d2d2d2;"><a href="/forum_func=fbprofile&amp;task=showprf&amp;userid=65" style="color: #d2d2d2;">Stefan</a></td><td class="td-4 fbm"  align="left" style="padding-left:7px; padding-top:5px; color: #d2d2d2;">Questions</td><td  class="td-5 fbm"  align="left" style="padding-left: 7px; padding-top:5px; color: #d2d2d2;" >07/06/2010 12:17</td></tr></table>            </td>
+        </tr>
+    </tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- WHOIS ONLINE -->
+    <div style="font-weight:normal; color: #787878; background: #262929; float: left; padding-left: 7px;padding-top: 11px;">
+        Online               
+                        0						Members						and 
+                        16						Visitors    </div>
+<!--<div class="fb__bt_cvr1">
+<div class="fb__bt_cvr2">
+<div class="fb__bt_cvr3">
+<div class="fb__bt_cvr4">
+<div class="fb__bt_cvr5">
+    <table class = "fb_blocktable" id ="fb_whoisonline"  border = "0" cellspacing = "0" cellpadding = "0" width="100%">
+        <thead>
+            <tr>
+                <th align="left">
+                    <div class = "fb_title_cover fbm">
+                         <a class = "fb_title fbxl" href = "/forum_func=who">
+			<span class = "fb_title fbxl">
+						Online               
+                        <b>0</b> 
+						Members						and 
+                        <b>16</b> 
+						Visitors                        </a> 
+			</span>
+                    </div>
+                    <img id = "BoxSwitch_whoisonline__whoisonline_tbody" class = "hideshow" src = "/components/com_fireboard/template/default/images/english/shrink.gif" alt = ""/>
+                </th>
+            </tr>
+        </thead>
+
+        <tbody id = "whoisonline_tbody">
+            <tr class = "fb_sectiontableentry1">
+                <td class = "td-1 fbm" align="left">
+                                                                  
+               
+ 
+                   
+
+
+                                    </td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+</div>
+</div>
+</div>
+</div>-->
+<!-- /WHOIS ONLINE -->
+
+
+
+
+    <div style="font-weight:normal; color: #787878; background: #262929; float: right; padding-top: 11px; border:0px solid green;">  
+
+    <div style="margin-right: 30px; float: left;">Powered by <a href="http://www.bestofjoomla.com" target="_blank" style="color: #787878;">FireBoard</a></div>
+
+<a href="/index2.php_option=com_fireboard&amp;func=fb_rss&amp;no_html=1&amp;Itemid=24" target="_blank" style="float:right; display:block;"><img src="/components/com_fireboard/template/default/images/english/emoticons/rss.gif" border="0" alt="get the latest posts directly to your desktop" title="get the latest posts directly to your desktop" style="margin-right: 3px; width: 15px;.html" /></a></div>
+<div class="fb_footer">&nbsp;</div>
+</div> <!-- closes fireboard div -->
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>

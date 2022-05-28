@@ -1,0 +1,595 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/developers/documentation/tutorials/inputs.html" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, documentation, tutorials, inputs" />
+  <meta name="description" content="Disko a linux application framework for embedded devices" />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title>Disko Framework - Documentation - Input Tutorial</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <link rel="stylesheet" href="/templates/diskohq/css/documentation.css" type="text/css" />
+  <style type="text/css">
+    <!--
+
+	@import url(http://www.google.com/cse/api/overlay.css);
+	.cse-overlay {
+		position: absolute;
+		z-index:99;
+	}
+	body > .cse-overlay {
+		display: none;
+	}
+	body > .cse-overlay:first-child {
+		display: block;
+	}
+	.cse-overlay-bg {
+		z-index: 98;
+		opacity: 0.5;
+	}
+	.cse-resultsContainer a:hover {
+		color: #000;
+	}
+	.cse-resultsContainer .gs-snippet {
+		color: #777;
+	}
+	.cse-resultsContainer  .gs-visibleUrl {
+		font-size: 80%;
+	}
+    -->
+  </style>
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+						var headlines = jQuery('#documentationContent h2');
+						for(i = 0; i < headlines.length; ++i) {
+								headlines[i].firstChild.insertData(0, '– ');
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent item7"><a href="/products/disko-framework/overview"><span>Products</span></a></li><li class="parent active item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a><ul><li id="current" class="active item15"><a href="/developers/documentation/installation/ubuntu.html"><span>Documentation</span></a></li><li class="parent item16"><a href="/developers/downloads/disko"><span>Downloads</span></a></li></ul></li><li class="item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+
+<script type="text/javascript">
+	<!--
+	function showToc() {
+		var toc = document.getElementById('documentationToc');
+		var con = document.getElementById('documentationContent');
+		var tab = document.getElementById('documentationTable');
+		var lnk = document.getElementById('documentationTocLink');
+		if(toc) {
+			if(toc.style.visibility != 'collapse') {
+				toc.style.visibility     = 'collapse';
+				toc.style.display        = 'none';
+				con.style.width          = '100%';
+				tab.style.marginLeft     = '0';
+				tab.style.width          = '805px';
+				lnk.firstChild.nodeValue = 'show';
+			} else {
+				toc.style.visibility     = 'visible';
+				toc.style.display        = '';
+				con.style.width          = '642px';
+				tab.style.marginLeft     = '0';
+				tab.style.width          = '865px';
+				lnk.firstChild.nodeValue = 'hide';
+			}
+		}
+	}
+-->
+</script>
+
+<!--<a href="javascript:showToc()" id="documentationTocLink">hide</a>-->
+<table style="width: 100%; margin-left:0;" id="documentationTable">
+	<tr>
+		<td style="vertical-align: top; width: 153px; padding-right: 10px;" id="documentationToc">
+			<div style="margin-bottom: 35px;">
+
+<h1>
+	<img class="headlinePrefix" src="/templates/diskohq/images/arrow_bg.png" alt=""/>
+	Contents
+</h1>
+<ul class="table-of-contents-bullets">
+	<li>Getting started
+		<ul>
+			<li><a href="/developers/documentation/installation/ubuntu.html">Ubuntu packages</a></li>
+			<li><a href="/developers/documentation/installation/sources.html">Build from sources</a></li>
+			<li><a href="/developers/documentation/tutorials/helloworld.html">Hello World</a></li>
+			<!--<li><a  href="/developers/documentation/first-steps.html">Using Eclipse</a></li>-->
+			<li><a  href="/developers/documentation/reference-platforms.html">Platforms</a></li>
+			<li><a  href="/developers/documentation/roadmap.html">Roadmap</a></li>
+			<li><a  href="/developers/documentation/api-reference/index.html" target="disko-api">API</a></li>
+			<li><a  href="/developers/documentation/further-reading.html">Further reading</a></li>
+		</ul>
+	</li>
+	<li style="margin-top:8px;">GUI programming
+		<ul>
+
+			<!--<li><a href="/developers/documentation/gui-reference/index.html">Introduction</a></li>
+			<li><a href="/developers/documentation/gui-reference/description.html">Description</a></li>
+			<li><a href="/developers/documentation/gui-reference/elements.html">Elements</a></li>
+			<li><a href="/developers/documentation/gui-reference/gui-examples.html">XML Examples</a></li>
+			<li><a href="/developers/documentation/gui-reference/mmsdialog.html">Dialogs</a></li>
+			<li><a href="/developers/documentation/gui-reference/mmstheme.html">Themes</a></li>
+			<li><a href="/developers/documentation/gui-reference/template.html">Templates</a></li>
+			<li><a href="/developers/documentation/gui-reference/theme-processing.html">Theme processing</a></li>
+			<li><a href="/developers/documentation/gui-reference/windows/general.html">Windows</a></li>
+			<li><a href="/developers/documentation/gui-reference/widgets/general.html">Widgets</a></li>
+			<li> </li>-->
+			<li><a href="/developers/documentation/gui-reference/index.html">Introduction</a></li>
+			<li><a href="/developers/documentation/gui-reference/windows/general.html">Windows</a></li>
+			<li><a href="/developers/documentation/gui-reference/widgets/general.html">Widgets</a></li>
+			<li><a href="/developers/documentation/gui-reference/mmstheme.html">Themes</a></li>
+			<li><a href="/developers/documentation/gui-reference/template.html">Templates</a></li>
+			<li><a href="/developers/documentation/gui-reference/gui-examples.html">XML Examples</a></li>
+		</ul>
+	</li>
+	<li style="margin-top:8px;">Receipts &amp; Articles
+		<ul>
+			<li><a href="/developers/documentation/tutorials/helloworld.html">Hello World</a></li>
+			<li><a href="/developers/documentation/tutorials/dialogs.html">Using dialog files</a></li>
+			<li><a href="/developers/documentation/tutorials/themes.html">Using themes</a></li>
+			<li><a href="/developers/documentation/tutorials/windows.html">Using windows</a></li>
+			<li><a href="/developers/documentation/tutorials/inputs.html" class="active">Using inputs</a></li>
+			<li><a href="/developers/documentation/tutorials/plugins.html">Using plugins</a></li>
+			<li><a href="/developers/documentation/howtos/tcpservice.html">Disko IPC</a></li>
+			<li><a href="/developers/documentation/howtos/translations.html">Multilanguage</a></li>
+			<li><a href="/developers/documentation/howtos/usingframebuffer.html">Framebuffer setup</a></li>
+			<li><a href="/developers/documentation/howtos/layersandwindows.html">Layers &amp; Windows</a></li>
+			<li><a href="/developers/documentation/benchmarks/index.html">Benchmarks</a></li>
+			<li><a href="/developers/documentation/omap/beagleboard.html">Beagleboard</a></li>
+			<li><a href="/developers/documentation/howtos/utilizing_dragging_and_gestures.html">Drag &amp; gestures</a></li>
+			<li><a href="/developers/documentation/omap/archos5.html">Archos 5 IT</a></li>
+		</ul>
+	</li>
+</ul>
+			</div>
+						<script type="text/javascript">
+						<!--
+						
+							jQuery(function() {
+								jQuery('form.blGoogleSearch').find('input[type=text]').css('width', '135px');
+								jQuery('form.blGoogleSearch').find('input[type=submit]').css({
+									"background" : "url(/templates/diskohq/images/search.png) no-repeat",
+									"border" : "0",
+									"width" : "49px"
+								});
+								jQuery('form.blGoogleSearch').find('input[type=submit]').val("");
+								
+								jQuery('form.blGoogleSearch').parent().show();
+							});							
+							
+							function blPostGSearch(i) {
+								if (!i) {
+									i = 0;
+								}
+								
+								var el = jQuery('div.cse-overlay');
+								el.css({'left' : '150px', 'top' : '50px'});
+								
+								if (jQuery('.cse-resultsContainer').length == 0 || i < 5) {
+									window.setTimeout("blPostGSearch("+(i+1)+")", 0);
+								}
+								else {
+									jQuery('body').prepend(jQuery('.cse-overlay'));
+									jQuery('div.cse-overlay-bg').css('height', screen.height);
+									jQuery('div.cse-overlay .cse-closeResults').unbind('click');
+									jQuery('div.cse-overlay .cse-closeResults').click(function() {
+										jQuery('body').append(jQuery('.cse-overlay'));
+									});
+								}
+							}
+						-->
+						</script>
+
+<!-- Google CSE code begins -->
+
+<div style="display: none;">
+	<form id="searchbox_011888066618628073463:roszvssi9we" class="blGoogleSearch" onsubmit="return false;" action="">
+		<input type="text" class="g-q" name="q" size="20" style="color:black; width:135px;"/>
+		<input type="submit" value="Search" onclick="blPostGSearch()"/>
+		<input type="hidden" name="newwindow" value="0" /> 
+	</form>
+</div>
+<script type="text/javascript" src="http://www.google.com/coop/cse/brand?form=searchbox_011888066618628073463:roszvssi9we"></script>
+<script type="text/javascript" src="http://www.google.com/uds/api?file=uds.js&amp;v=1.0&amp;key=ABQIAAAAXhSh6dmfUTHjt7qAeufe2xQp2L91IAR1FgV0nETxn0m0APFJwBTgXMmeVmxm7Dc-oCcaqo8U_yPhsg"></script>
+<script type="text/javascript" src="http://www.google.com/cse/api/overlay.js"></script>
+<div id="results_011888066618628073463:roszvssi9we">
+	<div class="cse-closeResults">
+		<a>&times; close</a>
+	</div>
+	<div class="cse-resultsContainer" style="z-index:99;"></div>
+</div>
+<script type="text/javascript">
+	function OnLoad() {
+		cseo = new CSEOverlay("011888066618628073463:roszvssi9we",
+							document.getElementById("searchbox_011888066618628073463:roszvssi9we"),
+							document.getElementById("results_011888066618628073463:roszvssi9we"));
+		cseo.searchControl.setSearchStartingCallback(null, blPostGSearch, null); 
+	}
+	GSearch.setOnLoadCallback(OnLoad);
+</script>
+<!-- Google CSE Code ends -->
+		</td>
+		<td style="vertical-align: top;" id="documentationContent">
+			
+
+<h1 id="tutorials-inputs">Using Inputs</h1>
+<p>
+	Rich UI applications require of course some way of interacting with a user.
+	This tutorial will show two of the basic ways of catching and handling user input in Disko.
+</p>
+<div class="group">
+	<p>
+		To download the code for this tutorial, fetch it from the
+		git-repository by issuing:
+	</p>
+	<pre class="codelisting">
+git clone git://www.diskohq.org/disko-tutorials.git</pre>
+</div>
+<p>
+	Then you can follow this part by having a look at the
+	tutorials <em>firststeps/05</em> folder.
+</p>
+
+
+<h2>Preface</h2>
+<p>
+	Disko utilizes two essentially different ways of handling user input.
+	The default way of handling user input is by the GUI component when item
+	are pressed or some navigation from one item to another occurs. In this
+	case an input is handed to the item that is currently selected, if the item
+	is not able to handle the input, it is then handed over to the controlling
+	window of the dialog which tries to use the input to navigate between
+	different items it contains, if the input could not be handled it is
+	finally discarded. The second way of handling inputs is to directly
+	subscribe an input event to a specific callback. This will prevent the
+	GUI to receive the input at all. As there are very different needs for
+	different environments, Disko distinguishes between 2 fundamental input
+	schemes. Settopbox application for insance are driven by a
+	"keyboard only" approach of user inputs, a touchscreen terminals
+	have no keyboard at all, and completely rely on touch input. Therefore we
+	need to clarify 3 different terms: <em>Input mode</em>,
+	<em>Input subscription</em>, <em>Callback handling</em>
+</p>
+
+
+<h2>Input mode</h2>
+<div class="group">
+<p>
+	As mentioned above Disko distinguishes between two fundamental modes of
+	operation when it comes to inputs. They can be set by a parameter in the
+	applications configuration file <em>diskorc.xml:</em>.
+</p>
+<pre class="codelisting">
+&lt;diskorc version="1.6.0"&gt;
+    &lt;global&gt;
+    	...
+        &lt;parameter name="inputmode"   value="CLICK"/&gt; //or MOVE
+        ...
+    &lt;/global&gt;
+    ...
+&lt;/diskorc&gt;</pre>
+</div>
+
+<h3>MOVE</h3>
+<p>
+	This is the default setting for the <em>inputmode</em> parameter. It is used
+	for keyboard centric approaches. In this mode there is always a visibly
+	selected item, which eases the navigation of the GUI for the user. There is
+	always a consistent state as only one item can be selected at the same time.
+	The default keys that are involved to that are the cursor keys and return.
+</p>
+
+<h3>CLICK</h3>
+<p>
+	This setting is used for touch or mouse operation. In this mode there is no
+	predefined selection visible on the screen, but any icon that is clicked on
+	is briefly selected and the registered method is called by the GUI.
+</p>
+<p>
+	Try to play a bit with the setting in the diskorc.xml located in the
+	<em>firststeps/05</em> folder.
+</p>
+<p>
+	The resulting screens after the binary is started should look like this:
+	<img src="/documentation/tutorials/pics/move.png" class="block" alt="move"/>
+</p>
+<p>
+	As you can see in input mode <em>MOVE</em> the first item of the three item
+	menu is selected and appears yellow all the time. In input mode CLICK
+	there is no selection:
+	<img src="/documentation/tutorials/pics/click.png" class="block" alt="move"/>
+</p>
+
+
+<h2>Callback handling</h2>
+<p>
+	Disko uses the sigc++ library for function callback handling. A dialog is
+	typically constructed of one ore more widget that can be selected or
+	pressed. There is a set of standard callbacks that are implemented as
+	sigc++ signals which are emitted when the concerning action takes places.
+	The one interesting for our example is the <em>onReturn</em> signal.
+	This signal is emittable by each single widget that also can be selected
+	either by the navigation or a direct click.
+</p>
+
+<p>
+	For the example a simple menu defintion was added to the theme.xml of the
+	application (see <em>firststeps/05/themes/default</em>).
+</p>
+
+<div class="group">
+	<p>
+		The dialog <em>root.xml</em> was extended to define a simple menu
+		cotaining three elements:
+	</p>
+	<pre class="codelisting">
+&lt;mainwindow w="100%" h="100%" margin="0" alignment="center"
+            border.thickness="0" bgcolor="#00000000"
+            bgimage="./vladstudio_xeroxplain_800x600_gray.png"
+            opacity="255"&lt;
+&lt;vbox&gt;
+    &lt;menu class="default_menu" name="mymenu" &gt;
+        &lt;menuitem widget.itemtext.text="Button 1"
+                  widget.menubutton.data="Button Data 1" /&gt;
+        &lt;menuitem widget.itemtext.text="Button 2"
+                  widget.menubutton.data="Button Data 2"/&gt;
+        &lt;menuitem widget.itemtext.text="Button 3"
+                  widget.menubutton.data="Button Data 3"/&gt;
+    &lt;/menu&gt;
+&lt;/vbox&gt;
+&lt;/mainwindow&gt;</pre>
+</div>
+
+<p>
+	The labels for the items are set by the <em>widget.itemtext.text</em>
+	attribute which corresponds to the menu item template in the theme.xml.
+	The attribute <em>widget.menubutton.data</em> adds an identifier to the
+	button that will be used in the application to distinguish between the
+	different menuitems.
+</p>
+<div class="group">
+	<p>
+		To load the dialog a dialog manager will be used. After the dialog is loaded,
+		a pointer to the defined menu will be extracted from the window and the
+		callback is assigned:
+	</p>
+	<pre class="codelisting">
+MMSWidget *wid = window-&gt;searchForWidget("mymenu");
+wid-&gt;onReturn-&gt;connect(sigc::ptr_fun(onMenuReturn));</pre>
+</div>
+
+<p>
+	Giving an uniqe name to the widget is very important, to explicitly identify
+	a widget within the dialog!
+</p>
+
+<div class="group">
+	<p>
+		The callback looks as follows:
+	</p>
+	<pre class="codelisting">
+void onMenuReturn(MMSWidget *wid) {
+    MMSMenuWidget *menu = dynamic_cast&lt;MMSMenuWidget*&gt;(wid);
+
+    if(menu) {
+        MMSWidget *button = menu-&gt;getSelectedItem();
+
+        string widgetdata;
+        if(button-&gt;getData(widgetdata)) {
+            printf("Button pressed: %s\n", widgetdata.c_str());
+        }
+    }
+}</pre>
+</div>
+<p>
+	This method extracts the selected menu item from the menu and prints the
+	associated data string to stdout.
+</p>
+<p>
+	This is the basic principle of gui interaction there are other callbacks
+	that could be connected like <em>onClick</em> or <em>onSelectItem</em>.
+	The procedure is always the same.
+</p>
+
+
+<h2>Input subscription</h2>
+<p>
+	The input subscription is utilzed when an input is not used or usable for
+	screen interaction. The most obvious example would be the volume control
+	of a device. This is somthing that is processed by a backend component
+	rather than the GUI.
+	Remember: <strong>this input bypasses the GUI compeletely!</strong>
+</p>
+<div class="group">
+	<p>
+		An input is easily subscribed:
+	</p>
+	<pre class="codelisting">
+MMSInputSubscription subs(MMSKEY_SMALL_A);
+subs.callback.connect(sigc::ptr_fun(onSubscription));
+subs.registerMe();</pre>
+</div>
+
+<div class="group">
+	<p>
+		This subscribes the key 'a' to the method <em>onSubscription()</em>
+		which looks as follows:
+	</p>
+	<pre class="codelisting">
+void onSubscription(MMSInputSubscription *sub) {
+    printf("subscribed key pressed...\n");
+}</pre>
+</div>
+
+<p>That should cover all basics that are needed to start using the inputs.</p>
+
+		</td>
+	</tr>
+</table>
+<div style="clear:both;">&nbsp;</div>
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>
+ 

@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/developers/documentation/applications/doorbell.html" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, framework, linux, embedded devices, open source, documentation, doorbell, blackfin, bfin, uclinux, arrow, epc-bf527" />
+  <meta name="description" content="Disko a linux application framework for embedded devices" />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title>Disko Framework - Documentation</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <link rel="stylesheet" href="/templates/diskohq/css/documentation.css" type="text/css" />
+  <style type="text/css">
+    <!--
+
+	@import url(http://www.google.com/cse/api/overlay.css);
+	.cse-overlay {
+		position: absolute;
+		z-index:99;
+	}
+	body > .cse-overlay {
+		display: none;
+	}
+	body > .cse-overlay:first-child {
+		display: block;
+	}
+	.cse-overlay-bg {
+		z-index: 98;
+		opacity: 0.5;
+	}
+	.cse-resultsContainer a:hover {
+		color: #000;
+	}
+	.cse-resultsContainer .gs-snippet {
+		color: #777;
+	}
+	.cse-resultsContainer  .gs-visibleUrl {
+		font-size: 80%;
+	}
+    -->
+  </style>
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+						var headlines = jQuery('#documentationContent h2');
+						for(i = 0; i < headlines.length; ++i) {
+								headlines[i].firstChild.insertData(0, '– ');
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent item7"><a href="/products/disko-framework/overview"><span>Products</span></a></li><li class="parent active item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a><ul><li id="current" class="active item15"><a href="/developers/documentation/installation/ubuntu.html"><span>Documentation</span></a></li><li class="parent item16"><a href="/developers/downloads/disko"><span>Downloads</span></a></li></ul></li><li class="item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+
+<script type="text/javascript">
+	<!--
+	function showToc() {
+		var toc = document.getElementById('documentationToc');
+		var con = document.getElementById('documentationContent');
+		var tab = document.getElementById('documentationTable');
+		var lnk = document.getElementById('documentationTocLink');
+		if(toc) {
+			if(toc.style.visibility != 'collapse') {
+				toc.style.visibility     = 'collapse';
+				toc.style.display        = 'none';
+				con.style.width          = '100%';
+				tab.style.marginLeft     = '0';
+				tab.style.width          = '805px';
+				lnk.firstChild.nodeValue = 'show';
+			} else {
+				toc.style.visibility     = 'visible';
+				toc.style.display        = '';
+				con.style.width          = '642px';
+				tab.style.marginLeft     = '0';
+				tab.style.width          = '865px';
+				lnk.firstChild.nodeValue = 'hide';
+			}
+		}
+	}
+-->
+</script>
+
+<!--<a href="javascript:showToc()" id="documentationTocLink">hide</a>-->
+<table style="width: 100%; margin-left:0;" id="documentationTable">
+	<tr>
+		<td style="vertical-align: top; width: 153px; padding-right: 10px;" id="documentationToc">
+			<div style="margin-bottom: 35px;">
+
+<h1>
+	<img class="headlinePrefix" src="/templates/diskohq/images/arrow_bg.png" alt=""/>
+	Contents
+</h1>
+<ul class="table-of-contents-bullets">
+	<li>Getting started
+		<ul>
+			<li><a href="/developers/documentation/installation/ubuntu.html">Ubuntu packages</a></li>
+			<li><a href="/developers/documentation/installation/sources.html">Build from sources</a></li>
+			<li><a href="/developers/documentation/tutorials/helloworld.html">Hello World</a></li>
+			<!--<li><a  href="/developers/documentation/first-steps.html">Using Eclipse</a></li>-->
+			<li><a  href="/developers/documentation/reference-platforms.html">Platforms</a></li>
+			<li><a  href="/developers/documentation/roadmap.html">Roadmap</a></li>
+			<li><a  href="/developers/documentation/api-reference/index.html" target="disko-api">API</a></li>
+			<li><a  href="/developers/documentation/further-reading.html">Further reading</a></li>
+		</ul>
+	</li>
+	<li style="margin-top:8px;">GUI programming
+		<ul>
+
+			<!--<li><a href="/developers/documentation/gui-reference/index.html">Introduction</a></li>
+			<li><a href="/developers/documentation/gui-reference/description.html">Description</a></li>
+			<li><a href="/developers/documentation/gui-reference/elements.html">Elements</a></li>
+			<li><a href="/developers/documentation/gui-reference/gui-examples.html">XML Examples</a></li>
+			<li><a href="/developers/documentation/gui-reference/mmsdialog.html">Dialogs</a></li>
+			<li><a href="/developers/documentation/gui-reference/mmstheme.html">Themes</a></li>
+			<li><a href="/developers/documentation/gui-reference/template.html">Templates</a></li>
+			<li><a href="/developers/documentation/gui-reference/theme-processing.html">Theme processing</a></li>
+			<li><a href="/developers/documentation/gui-reference/windows/general.html">Windows</a></li>
+			<li><a href="/developers/documentation/gui-reference/widgets/general.html">Widgets</a></li>
+			<li> </li>-->
+			<li><a href="/developers/documentation/gui-reference/index.html">Introduction</a></li>
+			<li><a href="/developers/documentation/gui-reference/windows/general.html">Windows</a></li>
+			<li><a href="/developers/documentation/gui-reference/widgets/general.html">Widgets</a></li>
+			<li><a href="/developers/documentation/gui-reference/mmstheme.html">Themes</a></li>
+			<li><a href="/developers/documentation/gui-reference/template.html">Templates</a></li>
+			<li><a href="/developers/documentation/gui-reference/gui-examples.html">XML Examples</a></li>
+		</ul>
+	</li>
+	<li style="margin-top:8px;">Receipts &amp; Articles
+		<ul>
+			<li><a href="/developers/documentation/tutorials/helloworld.html">Hello World</a></li>
+			<li><a href="/developers/documentation/tutorials/dialogs.html">Using dialog files</a></li>
+			<li><a href="/developers/documentation/tutorials/themes.html">Using themes</a></li>
+			<li><a href="/developers/documentation/tutorials/windows.html">Using windows</a></li>
+			<li><a href="/developers/documentation/tutorials/inputs.html">Using inputs</a></li>
+			<li><a href="/developers/documentation/tutorials/plugins.html">Using plugins</a></li>
+			<li><a href="/developers/documentation/howtos/tcpservice.html">Disko IPC</a></li>
+			<li><a href="/developers/documentation/howtos/translations.html">Multilanguage</a></li>
+			<li><a href="/developers/documentation/howtos/usingframebuffer.html">Framebuffer setup</a></li>
+			<li><a href="/developers/documentation/howtos/layersandwindows.html">Layers &amp; Windows</a></li>
+			<li><a href="/developers/documentation/benchmarks/index.html">Benchmarks</a></li>
+			<li><a href="/developers/documentation/omap/beagleboard.html">Beagleboard</a></li>
+			<li><a href="/developers/documentation/howtos/utilizing_dragging_and_gestures.html">Drag &amp; gestures</a></li>
+			<li><a href="/developers/documentation/omap/archos5.html">Archos 5 IT</a></li>
+		</ul>
+	</li>
+</ul>
+			</div>
+						<script type="text/javascript">
+						<!--
+						
+							jQuery(function() {
+								jQuery('form.blGoogleSearch').find('input[type=text]').css('width', '135px');
+								jQuery('form.blGoogleSearch').find('input[type=submit]').css({
+									"background" : "url(/templates/diskohq/images/search.png) no-repeat",
+									"border" : "0",
+									"width" : "49px"
+								});
+								jQuery('form.blGoogleSearch').find('input[type=submit]').val("");
+								
+								jQuery('form.blGoogleSearch').parent().show();
+							});							
+							
+							function blPostGSearch(i) {
+								if (!i) {
+									i = 0;
+								}
+								
+								var el = jQuery('div.cse-overlay');
+								el.css({'left' : '150px', 'top' : '50px'});
+								
+								if (jQuery('.cse-resultsContainer').length == 0 || i < 5) {
+									window.setTimeout("blPostGSearch("+(i+1)+")", 0);
+								}
+								else {
+									jQuery('body').prepend(jQuery('.cse-overlay'));
+									jQuery('div.cse-overlay-bg').css('height', screen.height);
+									jQuery('div.cse-overlay .cse-closeResults').unbind('click');
+									jQuery('div.cse-overlay .cse-closeResults').click(function() {
+										jQuery('body').append(jQuery('.cse-overlay'));
+									});
+								}
+							}
+						-->
+						</script>
+
+<!-- Google CSE code begins -->
+
+<div style="display: none;">
+	<form id="searchbox_011888066618628073463:roszvssi9we" class="blGoogleSearch" onsubmit="return false;" action="">
+		<input type="text" class="g-q" name="q" size="20" style="color:black; width:135px;"/>
+		<input type="submit" value="Search" onclick="blPostGSearch()"/>
+		<input type="hidden" name="newwindow" value="0" /> 
+	</form>
+</div>
+<script type="text/javascript" src="http://www.google.com/coop/cse/brand?form=searchbox_011888066618628073463:roszvssi9we"></script>
+<script type="text/javascript" src="http://www.google.com/uds/api?file=uds.js&amp;v=1.0&amp;key=ABQIAAAAXhSh6dmfUTHjt7qAeufe2xQp2L91IAR1FgV0nETxn0m0APFJwBTgXMmeVmxm7Dc-oCcaqo8U_yPhsg"></script>
+<script type="text/javascript" src="http://www.google.com/cse/api/overlay.js"></script>
+<div id="results_011888066618628073463:roszvssi9we">
+	<div class="cse-closeResults">
+		<a>&times; close</a>
+	</div>
+	<div class="cse-resultsContainer" style="z-index:99;"></div>
+</div>
+<script type="text/javascript">
+	function OnLoad() {
+		cseo = new CSEOverlay("011888066618628073463:roszvssi9we",
+							document.getElementById("searchbox_011888066618628073463:roszvssi9we"),
+							document.getElementById("results_011888066618628073463:roszvssi9we"));
+		cseo.searchControl.setSearchStartingCallback(null, blPostGSearch, null); 
+	}
+	GSearch.setOnLoadCallback(OnLoad);
+</script>
+<!-- Google CSE Code ends -->
+		</td>
+		<td style="vertical-align: top;" id="documentationContent">
+			
+
+<h1>Doorbell application</h1>
+
+<h2>Introduction</h2>
+<p>
+Doorbell is a VOIP-based outdoor doorbell that can be run on SIP-based
+telephone systems (PBX).
+</p><p>
+The application was developed to demonstrate the potential of the Disko
+UI framework for the 
+<a target="_new" href="http://www.embedded-platform.com/default.asp?page=download&title=Download%20page#g_proc">Arrow® BF527</a>
+development kit/display kit using the board support package supplied by <a target="_new" href="http://www.emlix.de">emlix</a>,
+but can also be compiled for other platforms.
+It is relatively easy to use the software base for developing a commercially
+viable product.
+</p><p>
+<img src="http://diskohq.com/images/stories/disko/blackfin_disko.png" class="block" alt="doorbell on epc-bf527"/>
+</p><p>
+The doorbell is licensed under 
+<a target="_new" href="http://www.gnu.org/licenses/gpl-2.0.html">GPL</a> and is
+available as a free 
+<a href="http://diskohq.com/?option=com_content&view=article&id=15">download</a>. 
+</p>
+
+<p>
+The following sections describe how to build the doorbell application 
+from the sources as well as the requirements to do so.
+</p>
+<h2>Using Disko with the emlix board support package</h2>
+<p>
+The provided binary package must be extracted in the root directory of the booted root filesystem. It extracts the application in <span class="inline-code">/opt/doorbell</span> and overwrites the boot script at <span class="inline-code">/etc/init.d/rcS</span> to setup the gpio buttons and boot directly into the application. Any changes that have been made upfront the installation, must be reapplied afterwards.
+</p>
+<h2>Patching the Hardware</h2>
+<p>
+There are some changes to the hardware needed to get audio capture working correctly with the latest mainline Kernel release. To achieve this <span class="inline-code">DAUD0-CKR</span> and <span class="inline-code">DAUD0-CKT</span> must be bridged.
+</p>
+<h2>Installing Disko</h2>
+<p>
+Of course you need to install the disko framework. There are different 
+ways to achieve this, all described here. You can either download a
+precompiled binary package or build it from the sources.
+The downloads are available <a href="http://diskohq.com/developers/downloads">here</a>.
+If you want to use the source tarball, check the
+<a href="http://diskohq.com/developers/documentation/installation/sources.html?option=com_bl_documentation&view=display&Itemid=15&file=docu/installation/sources.html">installation instructions</a>.
+</p>
+
+<h2>Installing Minisip</h2>
+<p>
+Since we are using the <a target="_new" href="http://www.minisip.org">Minisip</a>
+library as the SIP stack implementation it has to be installed as well.
+Unfortunately there are no binary packages available, thus manual compilation
+is necessary. There is a comprehensive 
+<a href="http://www.minisip.org/develop_build.html">installation guide</a>
+available.
+</p>
+
+<h2>Installing the doorbell</h2>
+<div class="group">
+<p>
+Building the doorbell is pretty easy. If you have successfully installed
+Disko and Minisip as described before, you can install the doorbell
+application by issuing the following commands:
+</p>
+<pre class="codelisting">
+cd &lt;path to doorbell sources&gt;
+make
+make [prefix=...] install
+</pre>
+<p>
+The parameter <span class="inline-code">prefix</span> is used to install
+the application in a different directory than the current one.
+</p>
+</div>
+
+<h2>Configuring the doorbell</h2>
+<p>
+There are two places to configure the doorbell application.
+</p>
+<div class="group">
+<p>
+Basic features can be adjusted by changing values in a small 
+<a target="_new" href="http://www.sqlite.org">sqlite3</a> database 
+located at <span class="inline-code">&lt;doorbell&gt;/share/configdb</span>.
+The table PluginProperties contains the following values:
+</p>
+<table class="default">
+  <tr>
+    <th style="width:60px;">Name</th>
+    <th style="width:240px;">Description</th>
+    <th style="width:100px;">Default value</th>
+  </tr><tr>
+    <td>OpenDoorCmd</td>
+    <td>Specifies a command to be executed, if the door should be
+    opened (by providing the correct PIN number, or pressing '#' on the
+    other side).</td>
+    <td>/usr/bin/opendoor.sh</td>
+  </tr><tr>
+    <td>LodgerList</td>
+    <td>The location of the file containing the lodgers. Each entry 
+    consists of phone number, PIN number for opening the door and
+    (optionally) an away notification message.</td>
+    <td>./etc/user.txt</td>
+  </tr><tr>
+    <td>Longitude</td>
+    <td>The longitude of your location. This is used to calculate the
+    times of sunrise and sunset to change between day and night theme.</td>
+    <td>13.4</td>
+  </tr><tr>
+    <td>Latitude</td>
+    <td>The latitude of your location. This is used to calculate the
+    times of sunrise and sunset to change between day and night theme.</td>
+    <td>52.5167</td>
+  </tr>
+</table>
+</div>
+
+<p>
+To change the settings for the SIP stack that is used by the application,
+edit the file <span class="inline-code">&lt;doorbell&gt;/etc/config.xml</span>.
+The parameters are documented within this file. This includes setting
+audio devices, account information and network connection settings.
+</p>
+
+<h2>Starting the doorbell</h2>
+<div class="group">
+<p>
+To execute the doorbell application, simply enter the following commands:
+</p>
+<pre class="codelisting">
+cd &lt;path to doorbell installation&gt;
+./bin/doorbell
+</pre>
+</div>
+
+<div class="group">
+<p>
+For testing purpose there are some command-line options available:
+</p>
+<table class="default">
+  <tr>
+    <th style="width:60px;">Option</th>
+    <th style="width:220px;">Description</th>
+  </tr><tr>
+    <td>-nosign</td>
+    <td>suppresses registering at the sip server</td>
+  </tr><tr>
+    <td>-night</td>
+    <td>use the night theme</td>
+  </tr><tr>
+    <td>-day</td>
+    <td>use the day theme</td>
+  </tr><tr>
+    <td>-nointro</td>
+    <td>skip the intro</td>
+  </tr><tr>
+    <td>-testswitch</td>
+    <td>switch day/night theme every 10 seconds</td>
+  </tr>
+</table>
+</div>
+
+<h2>Further links</h2>
+<ul>
+	<li><a target="_new" href="http://www.minisip.org/">Minisip</a></li>
+</ul>
+
+		</td>
+	</tr>
+</table>
+<div style="clear:both;">&nbsp;</div>
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>
+ 

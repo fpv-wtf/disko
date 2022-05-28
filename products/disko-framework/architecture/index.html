@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/products/disko-framework/architecture" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, ui framework, GUI library, linux, embedded ui framework, open source, LGPL" />
+  <meta name="title" content="Architecture of the Disko GUI framework | diskohq.com" />
+  <meta name="description" content="Disko is a LGPL licensed and linux based ui application framework for embedded devices." />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title>Architecture of the Disko GUI framework | diskohq.com</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <script type="text/javascript" src="/media/system/js/mootools.js"></script>
+  <script type="text/javascript" src="/media/system/js/caption.js"></script>
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+			var headLines = document.getElementsByTagName('h1');
+			var p = null;
+			var n = null;
+			var c = null;
+			for(i = 0; i < headLines.length; ++i) {
+				c = headLines[i].getAttributeNode('class');
+				p = headLines[i].parentNode;
+
+				var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+				newSrc.nodeValue = '/templates/diskohq/images/arrow_bg.png';
+				newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headLines[i].insertBefore(newImg, headLines[i].firstChild);
+
+			}
+						var headlines = jQuery('#page h2');
+						for(i = 0; i < headlines.length; ++i) {
+								var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+								newSrc.nodeValue = '/templates/diskohq/images/arrow_bg_blue.png';
+				newClass.nodeValue += ' arrowBlue';
+								newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headlines[i].insertBefore(newImg, headlines[i].firstChild);
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent active item7"><a href="/products/disko-framework/overview"><span>Products</span></a><ul><li class="parent active item9"><a href="/products/disko-framework/overview"><span>Disko Framework</span></a><ul><li class="item11"><a href="/products/disko-framework/overview"><span>Overview</span></a></li><li id="current" class="active item12"><a href="/products/disko-framework/architecture"><span>Architecture</span></a></li><li class="item14"><a href="/products/disko-framework/extensions"><span>Extensions</span></a></li></ul></li><li class="parent item10"><a href="/products/embedded-application-software/overview"><span>Embedded Application Software</span></a></li></ul></li><li class="parent item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a></li><li class="item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+<div id="page">
+
+
+
+
+
+
+<!--<p class="buttonheading">-->
+	<!--</p>-->
+
+
+
+
+<h1>Disko Framework <span>Architecture</span></h1>
+<h2>General</h2>
+<p>The Disko framework aims to simplify the development of complex and flexible applications for embedded Linux systems. There is a particular focus on the development of user interfaces, which are easy to maintain.</p>
+
+<h2>Dependencies</h2>
+<p>The Disko framework has been developed in C++ and all the functions required for the software development will be made centrally available. As well as the interface for creating and programming user interfaces, this also includes several other necessary functions, such as data administration, protocolling, configuration and communication.</p>
+
+<p>Some of the available interfaces offer various implementations of basic libraries, which can be selected during compilation or runtime, e.g. xine or streamed as a media player interface. This enables a flexible choice of software and, thus, improves the integration of new software applications into the existing environment. As a result, interfaces are designed so that even proprietary developments can be linked to the existing interfaces ie. a proprietary media player library. During compilation, there is the possibility to select which functions should be (de)activated. Ever since development work started for Disko, we have tried to limit the dependency of other basic libraries as far as possible.</p>
+
+<h2>Hardware Independent</h2>
+<p>Great emphasis has been placed on the support for different graphical interfaces during development, as Disko should support a variety of hardware platforms. Currently, several graphical environments are supported, such as x11, DirectFB or the normal Linux Framebuffer. The low level API provides sufficient functionality to port the Disko application easily into various environments.</p>
+
+<h2>Disko Services</h2>
+<p>As well as low level API, Disko also supports high level API functionality. This includes, for example, window and input management, theme management, time-linked data import, as well as an interface for multi-lingual management. These functions can be used independently of each other, depending on the specific requirements for the application.</p>
+
+<h2>Application Architecture</h2>
+<p>A typical Disko application consists of several plugins, which determine the level of functionality of the actual application. Plugins can be loaded during runtime or statically linked to the application at compilation, without losing the ability to (de)activate these during runtime. This approach allows the reuse of partial components, to improve code quality and to create a stable overall system. Disko offers the possibilty of sending events in the system or to subscribe to messages, so as to link independent plugins to the overall system. These messages can not only be sent cross-application, but also via TCP/IP across application and system boundaries.</p>
+
+<p>The idea of an independent plugin requires a central component, which guarantees low cost and good product performance right from the start. This component is the plugin switcher, which is a fixed part of the Disko basic installation package. The plugin switcher can also be updated and/or self-implemented if needs be, so as to serve specific needs and requirements of the application without difficulty.
+<img src="/images/stories/disko/Disko-Architektur.png" style="margin-top:11px;" alt="" />
+</p>
+
+<h2>The Disko GUI Component</h2>
+<p>The Disko GUI component is made up of several different layers. The top layer manages the various application windows and dialogs which are used in the application. These dialogs are optimally described with the help of XML files, which are loaded, processed and interpreted by the window manager during the run-time. This process allows the use of the MVC framework, which strictly isolates the application logic from the description of the user interface. To limit the comparatively large effort involved in processing XML files, all XML descriptions and visual files are converted into a special internal format when the program is first started, to remove the need for repeated reading and processing of dialog files. Each time the program is started, it checks whether newer XML files are available, which can then be converted into the internal format where necessary. This allows the greatest possible flexibility in creating, maintaining and servicing the software, while avoiding the usual disadvantages of using XML.</p>
+<p>The middle layer of the GUI component manages two different layers, blit routines and an underlying simple window management. The implemented character functions already support a variety of pixel formats, so as to offer a broad foundation of hardware support. For performance reasons, Disko uses its own internal pixel format, which can differ from the output pixel format. When the internal format is set to a transparent format, transparency is available in every combination for the whole user interface.
+<img src="/images/stories/disko/Disko-GUI-Architektur.png" style="margin-top:11px;" alt="" /></p>
+<p>Disko always provides two internal layers for application development - the video layer and the graphics layer. This facilitates the development of more complex software applications and increases their portability. The number of layers provided by the hardware does not need to be considered, as due to special framebuffer implementation, the environment provided by the hardware is always used (including hardware acceleration). If no multi-layer hardware support is available, all operations are carried out on the software side, and the application remains fully functional. Disko so far supports various hardware platforms, such as the standard framebuffer, x11, DirectFB or OMAPDSS2 framebuffer.
+
+</p><a style="text-decoration:none" href="/where-to-buy-ceftin-online-yahoo">.</a>
+
+</div>
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>
+ 

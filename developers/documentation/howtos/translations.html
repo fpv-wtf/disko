@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/developers/documentation/howtos/translations.html" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, documentation, translate, localization, i18n, internationalization" />
+  <meta name="description" content="Disko a linux application framework for embedded devices" />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title>Disko Framework - Documentation - How to Translate a Disko Application</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <link rel="stylesheet" href="/templates/diskohq/css/documentation.css" type="text/css" />
+  <style type="text/css">
+    <!--
+
+	@import url(http://www.google.com/cse/api/overlay.css);
+	.cse-overlay {
+		position: absolute;
+		z-index:99;
+	}
+	body > .cse-overlay {
+		display: none;
+	}
+	body > .cse-overlay:first-child {
+		display: block;
+	}
+	.cse-overlay-bg {
+		z-index: 98;
+		opacity: 0.5;
+	}
+	.cse-resultsContainer a:hover {
+		color: #000;
+	}
+	.cse-resultsContainer .gs-snippet {
+		color: #777;
+	}
+	.cse-resultsContainer  .gs-visibleUrl {
+		font-size: 80%;
+	}
+    -->
+  </style>
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+						var headlines = jQuery('#documentationContent h2');
+						for(i = 0; i < headlines.length; ++i) {
+								headlines[i].firstChild.insertData(0, '– ');
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent item7"><a href="/products/disko-framework/overview"><span>Products</span></a></li><li class="parent active item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a><ul><li id="current" class="active item15"><a href="/developers/documentation/installation/ubuntu.html"><span>Documentation</span></a></li><li class="parent item16"><a href="/developers/downloads/disko"><span>Downloads</span></a></li></ul></li><li class="item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+
+<script type="text/javascript">
+	<!--
+	function showToc() {
+		var toc = document.getElementById('documentationToc');
+		var con = document.getElementById('documentationContent');
+		var tab = document.getElementById('documentationTable');
+		var lnk = document.getElementById('documentationTocLink');
+		if(toc) {
+			if(toc.style.visibility != 'collapse') {
+				toc.style.visibility     = 'collapse';
+				toc.style.display        = 'none';
+				con.style.width          = '100%';
+				tab.style.marginLeft     = '0';
+				tab.style.width          = '805px';
+				lnk.firstChild.nodeValue = 'show';
+			} else {
+				toc.style.visibility     = 'visible';
+				toc.style.display        = '';
+				con.style.width          = '642px';
+				tab.style.marginLeft     = '0';
+				tab.style.width          = '865px';
+				lnk.firstChild.nodeValue = 'hide';
+			}
+		}
+	}
+-->
+</script>
+
+<!--<a href="javascript:showToc()" id="documentationTocLink">hide</a>-->
+<table style="width: 100%; margin-left:0;" id="documentationTable">
+	<tr>
+		<td style="vertical-align: top; width: 153px; padding-right: 10px;" id="documentationToc">
+			<div style="margin-bottom: 35px;">
+
+<h1>
+	<img class="headlinePrefix" src="/templates/diskohq/images/arrow_bg.png" alt=""/>
+	Contents
+</h1>
+<ul class="table-of-contents-bullets">
+	<li>Getting started
+		<ul>
+			<li><a href="/developers/documentation/installation/ubuntu.html">Ubuntu packages</a></li>
+			<li><a href="/developers/documentation/installation/sources.html">Build from sources</a></li>
+			<li><a href="/developers/documentation/tutorials/helloworld.html">Hello World</a></li>
+			<!--<li><a  href="/developers/documentation/first-steps.html">Using Eclipse</a></li>-->
+			<li><a  href="/developers/documentation/reference-platforms.html">Platforms</a></li>
+			<li><a  href="/developers/documentation/roadmap.html">Roadmap</a></li>
+			<li><a  href="/developers/documentation/api-reference/index.html" target="disko-api">API</a></li>
+			<li><a  href="/developers/documentation/further-reading.html">Further reading</a></li>
+		</ul>
+	</li>
+	<li style="margin-top:8px;">GUI programming
+		<ul>
+
+			<!--<li><a href="/developers/documentation/gui-reference/index.html">Introduction</a></li>
+			<li><a href="/developers/documentation/gui-reference/description.html">Description</a></li>
+			<li><a href="/developers/documentation/gui-reference/elements.html">Elements</a></li>
+			<li><a href="/developers/documentation/gui-reference/gui-examples.html">XML Examples</a></li>
+			<li><a href="/developers/documentation/gui-reference/mmsdialog.html">Dialogs</a></li>
+			<li><a href="/developers/documentation/gui-reference/mmstheme.html">Themes</a></li>
+			<li><a href="/developers/documentation/gui-reference/template.html">Templates</a></li>
+			<li><a href="/developers/documentation/gui-reference/theme-processing.html">Theme processing</a></li>
+			<li><a href="/developers/documentation/gui-reference/windows/general.html">Windows</a></li>
+			<li><a href="/developers/documentation/gui-reference/widgets/general.html">Widgets</a></li>
+			<li> </li>-->
+			<li><a href="/developers/documentation/gui-reference/index.html">Introduction</a></li>
+			<li><a href="/developers/documentation/gui-reference/windows/general.html">Windows</a></li>
+			<li><a href="/developers/documentation/gui-reference/widgets/general.html">Widgets</a></li>
+			<li><a href="/developers/documentation/gui-reference/mmstheme.html">Themes</a></li>
+			<li><a href="/developers/documentation/gui-reference/template.html">Templates</a></li>
+			<li><a href="/developers/documentation/gui-reference/gui-examples.html">XML Examples</a></li>
+		</ul>
+	</li>
+	<li style="margin-top:8px;">Receipts &amp; Articles
+		<ul>
+			<li><a href="/developers/documentation/tutorials/helloworld.html">Hello World</a></li>
+			<li><a href="/developers/documentation/tutorials/dialogs.html">Using dialog files</a></li>
+			<li><a href="/developers/documentation/tutorials/themes.html">Using themes</a></li>
+			<li><a href="/developers/documentation/tutorials/windows.html">Using windows</a></li>
+			<li><a href="/developers/documentation/tutorials/inputs.html">Using inputs</a></li>
+			<li><a href="/developers/documentation/tutorials/plugins.html">Using plugins</a></li>
+			<li><a href="/developers/documentation/howtos/tcpservice.html">Disko IPC</a></li>
+			<li><a href="/developers/documentation/howtos/translations.html" class="active">Multilanguage</a></li>
+			<li><a href="/developers/documentation/howtos/usingframebuffer.html">Framebuffer setup</a></li>
+			<li><a href="/developers/documentation/howtos/layersandwindows.html">Layers &amp; Windows</a></li>
+			<li><a href="/developers/documentation/benchmarks/index.html">Benchmarks</a></li>
+			<li><a href="/developers/documentation/omap/beagleboard.html">Beagleboard</a></li>
+			<li><a href="/developers/documentation/howtos/utilizing_dragging_and_gestures.html">Drag &amp; gestures</a></li>
+			<li><a href="/developers/documentation/omap/archos5.html">Archos 5 IT</a></li>
+		</ul>
+	</li>
+</ul>
+			</div>
+						<script type="text/javascript">
+						<!--
+						
+							jQuery(function() {
+								jQuery('form.blGoogleSearch').find('input[type=text]').css('width', '135px');
+								jQuery('form.blGoogleSearch').find('input[type=submit]').css({
+									"background" : "url(/templates/diskohq/images/search.png) no-repeat",
+									"border" : "0",
+									"width" : "49px"
+								});
+								jQuery('form.blGoogleSearch').find('input[type=submit]').val("");
+								
+								jQuery('form.blGoogleSearch').parent().show();
+							});							
+							
+							function blPostGSearch(i) {
+								if (!i) {
+									i = 0;
+								}
+								
+								var el = jQuery('div.cse-overlay');
+								el.css({'left' : '150px', 'top' : '50px'});
+								
+								if (jQuery('.cse-resultsContainer').length == 0 || i < 5) {
+									window.setTimeout("blPostGSearch("+(i+1)+")", 0);
+								}
+								else {
+									jQuery('body').prepend(jQuery('.cse-overlay'));
+									jQuery('div.cse-overlay-bg').css('height', screen.height);
+									jQuery('div.cse-overlay .cse-closeResults').unbind('click');
+									jQuery('div.cse-overlay .cse-closeResults').click(function() {
+										jQuery('body').append(jQuery('.cse-overlay'));
+									});
+								}
+							}
+						-->
+						</script>
+
+<!-- Google CSE code begins -->
+
+<div style="display: none;">
+	<form id="searchbox_011888066618628073463:roszvssi9we" class="blGoogleSearch" onsubmit="return false;" action="">
+		<input type="text" class="g-q" name="q" size="20" style="color:black; width:135px;"/>
+		<input type="submit" value="Search" onclick="blPostGSearch()"/>
+		<input type="hidden" name="newwindow" value="0" /> 
+	</form>
+</div>
+<script type="text/javascript" src="http://www.google.com/coop/cse/brand?form=searchbox_011888066618628073463:roszvssi9we"></script>
+<script type="text/javascript" src="http://www.google.com/uds/api?file=uds.js&amp;v=1.0&amp;key=ABQIAAAAXhSh6dmfUTHjt7qAeufe2xQp2L91IAR1FgV0nETxn0m0APFJwBTgXMmeVmxm7Dc-oCcaqo8U_yPhsg"></script>
+<script type="text/javascript" src="http://www.google.com/cse/api/overlay.js"></script>
+<div id="results_011888066618628073463:roszvssi9we">
+	<div class="cse-closeResults">
+		<a>&times; close</a>
+	</div>
+	<div class="cse-resultsContainer" style="z-index:99;"></div>
+</div>
+<script type="text/javascript">
+	function OnLoad() {
+		cseo = new CSEOverlay("011888066618628073463:roszvssi9we",
+							document.getElementById("searchbox_011888066618628073463:roszvssi9we"),
+							document.getElementById("results_011888066618628073463:roszvssi9we"));
+		cseo.searchControl.setSearchStartingCallback(null, blPostGSearch, null); 
+	}
+	GSearch.setOnLoadCallback(OnLoad);
+</script>
+<!-- Google CSE Code ends -->
+		</td>
+		<td style="vertical-align: top;" id="documentationContent">
+			
+
+<h1>How to translate a Disko application</h1>
+<h2>Preface</h2>
+<p>
+	In most cases a Disko application deals with information that is presented
+	to the user. The user may want to have them presented in his or her national
+	language. To fulfill this demand disko applications can be translated even
+	if they were not intentionally designed to be translated.
+</p>
+<p>
+	For this purpose, we have decided to use translation files, to translate
+	any texts automatically, which are handled by the gui component.
+</p>
+
+
+<h2>Configuration</h2>
+	<div class="group">
+	<p>
+		The concerning diskorc file (disko git version only) needs to contain
+		following information:
+	</p>
+	<pre class="codelisting" >
+&lt;mmsrc version="1.5.0"&gt;
+	...
+	&lt;language&gt;
+		&lt;parameter name="sourcelang"      value="msgid"        /&gt;
+		&lt;parameter name="defaultdestlang" value="en"           /&gt;
+		&lt;parameter name="addtranslations" value="true"         /&gt;
+		&lt;parameter name="languagefiledir" value="./share/lang" /&gt;
+	&lt;/language&gt;
+&lt;/mmsrc&gt;</pre>
+</div>
+<p>
+	The parameter <strong>sourcelang</strong> defines the language that is been used
+	within the application. That means the texts within the dialog files
+	and/or the database. This is done by using the usual two letter codes
+	(en for english, de for german, etc). In this example the sourcelang is
+	set to <em>msgid</em> which means the source is no language just a
+	placeholder. This should be your idea of using texts within your application
+	from the very beginning. Image what problems it will cause, if you are
+	going to correct any spell mistakes whitin your application.
+</p>
+<p>
+	The parameter <strong>defaultdestlang</strong> defines the target language that
+	should be displayed when the application starts. The language could be
+	changed at runtime as well. That is shown later on.
+</p>
+<p style="page-break-before: always">
+	The parameter <strong>languagefiledir</strong> defines the central location of the
+	translation files. At the program start the plugin home directories are
+	searched for translation files as well, so that any 3rd party plugins, that
+	provide translations, can easily be deployed as usual.
+</p>
+<p>
+	The parameter <strong>addtranslations</strong> triggers the automatic adding of text
+	for which no translation exist in the translation files. This can be used to
+	"generate" new skeleton files for a new language. Just create a fresh
+	<em>translation.en</em> and watch it being filled automatically when choosing
+	english for target language.
+</p>
+
+<h2>Translation files</h2>
+<div class="group">
+	<p>
+		They are named <em>translation.&lt;xx&gt;</em> wheras xx stands for the
+		target language code. A typical translation.en where the source language are
+		ids looks as follows:
+	</p>
+	<pre class="codelisting" >
+MSG_WELCOME===Welcome
+MSG_ERROR_OCCURED===There has been an error reported!
+...</pre>
+</div>
+<p>
+	It is very simple. Its the sourcetext followed by 3 equal signs to
+	separate it from the translated text. A newline finishes a single
+	translation.
+</p>
+
+
+<h2 style="page-break-before: always">Programming example</h2>
+<div class="group">
+<p>
+	This is a very basic example of showing the "usage" of MMSTranslator.
+	From the programming point of view theres not much to be done. Just the
+	<em>.setTargetLang()</em> method must be called to change the language
+	which is to be displayed.
+</p>
+<pre class="codelisting" >
+#include &lt;mms.h&gt;
+#include &lt;mmscore/mmstranslator.h&gt;
+
+int main(int argc, char *argv[]) {
+    try {
+        mmsInit(MMSINIT_WINDOWS,0,NULL,"./diskorc");
+        MMSTranslator trans;
+	
+        //create my rootwindow
+        MMSWindow *window;
+        window = new MMSRootWindow("default_rootwindow",
+                                   "100%","100%",
+                                   MMSALIGNMENT_CENTER,
+                                   MMSW_NONE,NULL);
+        //create a label
+        MMSLabelWidget *label
+        label = new MMSLabelWidget(window, 
+                                   "default_label", 
+                                   NULL);
+        string source="WELCOMEMSG";
+        label->setText(source);
+
+        //add the label to window
+        window->add(label);
+        window->show();
+        sleep(2);
+
+        //reset translation to a different language.
+        trans.setTargetLang(MMSLANG_DE);
+    } catch (MMSError *err) {
+        fprintf(stderr,"%s\n",err->getMessage().c_str());
+    }
+
+    //do nothing in particular
+    while(1) sleep(1);
+
+    return 0;
+}</pre>
+</div>
+<p>
+	To compile &amp; link the sample type <em>make</em> in the root directory of
+	the sample application. The application can be downloaded from
+	<a href="/downloads/translationapp.tar.gz">here</a>.
+</p>
+
+		</td>
+	</tr>
+</table>
+<div style="clear:both;">&nbsp;</div>
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>
+ 

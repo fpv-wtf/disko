@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/developers/documentation/gui-reference/class.html" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, framework, linux, embedded devices, open source, documentation, gui, reference, class" />
+  <meta name="description" content="Disko a linux application framework for embedded devices" />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title>Disko Framework - Documentation - GUI-Reference</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <link rel="stylesheet" href="/templates/diskohq/css/documentation.css" type="text/css" />
+  <style type="text/css">
+    <!--
+
+	@import url(http://www.google.com/cse/api/overlay.css);
+	.cse-overlay {
+		position: absolute;
+		z-index:99;
+	}
+	body > .cse-overlay {
+		display: none;
+	}
+	body > .cse-overlay:first-child {
+		display: block;
+	}
+	.cse-overlay-bg {
+		z-index: 98;
+		opacity: 0.5;
+	}
+	.cse-resultsContainer a:hover {
+		color: #000;
+	}
+	.cse-resultsContainer .gs-snippet {
+		color: #777;
+	}
+	.cse-resultsContainer  .gs-visibleUrl {
+		font-size: 80%;
+	}
+    -->
+  </style>
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+						var headlines = jQuery('#documentationContent h2');
+						for(i = 0; i < headlines.length; ++i) {
+								headlines[i].firstChild.insertData(0, '– ');
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent item7"><a href="/products/disko-framework/overview"><span>Products</span></a></li><li class="parent active item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a><ul><li id="current" class="active item15"><a href="/developers/documentation/installation/ubuntu.html"><span>Documentation</span></a></li><li class="parent item16"><a href="/developers/downloads/disko"><span>Downloads</span></a></li></ul></li><li class="item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+
+<script type="text/javascript">
+	<!--
+	function showToc() {
+		var toc = document.getElementById('documentationToc');
+		var con = document.getElementById('documentationContent');
+		var tab = document.getElementById('documentationTable');
+		var lnk = document.getElementById('documentationTocLink');
+		if(toc) {
+			if(toc.style.visibility != 'collapse') {
+				toc.style.visibility     = 'collapse';
+				toc.style.display        = 'none';
+				con.style.width          = '100%';
+				tab.style.marginLeft     = '0';
+				tab.style.width          = '805px';
+				lnk.firstChild.nodeValue = 'show';
+			} else {
+				toc.style.visibility     = 'visible';
+				toc.style.display        = '';
+				con.style.width          = '642px';
+				tab.style.marginLeft     = '0';
+				tab.style.width          = '865px';
+				lnk.firstChild.nodeValue = 'hide';
+			}
+		}
+	}
+-->
+</script>
+
+<!--<a href="javascript:showToc()" id="documentationTocLink">hide</a>-->
+<table style="width: 100%; margin-left:0;" id="documentationTable">
+	<tr>
+		<td style="vertical-align: top; width: 153px; padding-right: 10px;" id="documentationToc">
+			<div style="margin-bottom: 35px;">
+
+<h1>
+	<img class="headlinePrefix" src="/templates/diskohq/images/arrow_bg.png" alt=""/>
+	Contents
+</h1>
+<ul class="table-of-contents-bullets">
+	<li>Getting started
+		<ul>
+			<li><a href="/developers/documentation/installation/ubuntu.html">Ubuntu packages</a></li>
+			<li><a href="/developers/documentation/installation/sources.html">Build from sources</a></li>
+			<li><a href="/developers/documentation/tutorials/helloworld.html">Hello World</a></li>
+			<!--<li><a  href="/developers/documentation/first-steps.html">Using Eclipse</a></li>-->
+			<li><a  href="/developers/documentation/reference-platforms.html">Platforms</a></li>
+			<li><a  href="/developers/documentation/roadmap.html">Roadmap</a></li>
+			<li><a  href="/developers/documentation/api-reference/index.html" target="disko-api">API</a></li>
+			<li><a  href="/developers/documentation/further-reading.html">Further reading</a></li>
+		</ul>
+	</li>
+	<li style="margin-top:8px;">GUI programming
+		<ul>
+
+			<!--<li><a href="/developers/documentation/gui-reference/index.html">Introduction</a></li>
+			<li><a href="/developers/documentation/gui-reference/description.html">Description</a></li>
+			<li><a href="/developers/documentation/gui-reference/elements.html">Elements</a></li>
+			<li><a href="/developers/documentation/gui-reference/gui-examples.html">XML Examples</a></li>
+			<li><a href="/developers/documentation/gui-reference/mmsdialog.html">Dialogs</a></li>
+			<li><a href="/developers/documentation/gui-reference/mmstheme.html">Themes</a></li>
+			<li><a href="/developers/documentation/gui-reference/template.html">Templates</a></li>
+			<li><a href="/developers/documentation/gui-reference/theme-processing.html">Theme processing</a></li>
+			<li><a href="/developers/documentation/gui-reference/windows/general.html">Windows</a></li>
+			<li><a href="/developers/documentation/gui-reference/widgets/general.html">Widgets</a></li>
+			<li> </li>-->
+			<li><a href="/developers/documentation/gui-reference/index.html">Introduction</a></li>
+			<li><a href="/developers/documentation/gui-reference/windows/general.html">Windows</a></li>
+			<li><a href="/developers/documentation/gui-reference/widgets/general.html">Widgets</a></li>
+			<li><a href="/developers/documentation/gui-reference/mmstheme.html">Themes</a></li>
+			<li><a href="/developers/documentation/gui-reference/template.html">Templates</a></li>
+			<li><a href="/developers/documentation/gui-reference/gui-examples.html">XML Examples</a></li>
+		</ul>
+	</li>
+	<li style="margin-top:8px;">Receipts &amp; Articles
+		<ul>
+			<li><a href="/developers/documentation/tutorials/helloworld.html">Hello World</a></li>
+			<li><a href="/developers/documentation/tutorials/dialogs.html">Using dialog files</a></li>
+			<li><a href="/developers/documentation/tutorials/themes.html">Using themes</a></li>
+			<li><a href="/developers/documentation/tutorials/windows.html">Using windows</a></li>
+			<li><a href="/developers/documentation/tutorials/inputs.html">Using inputs</a></li>
+			<li><a href="/developers/documentation/tutorials/plugins.html">Using plugins</a></li>
+			<li><a href="/developers/documentation/howtos/tcpservice.html">Disko IPC</a></li>
+			<li><a href="/developers/documentation/howtos/translations.html">Multilanguage</a></li>
+			<li><a href="/developers/documentation/howtos/usingframebuffer.html">Framebuffer setup</a></li>
+			<li><a href="/developers/documentation/howtos/layersandwindows.html">Layers &amp; Windows</a></li>
+			<li><a href="/developers/documentation/benchmarks/index.html">Benchmarks</a></li>
+			<li><a href="/developers/documentation/omap/beagleboard.html">Beagleboard</a></li>
+			<li><a href="/developers/documentation/howtos/utilizing_dragging_and_gestures.html">Drag &amp; gestures</a></li>
+			<li><a href="/developers/documentation/omap/archos5.html">Archos 5 IT</a></li>
+		</ul>
+	</li>
+</ul>
+			</div>
+						<script type="text/javascript">
+						<!--
+						
+							jQuery(function() {
+								jQuery('form.blGoogleSearch').find('input[type=text]').css('width', '135px');
+								jQuery('form.blGoogleSearch').find('input[type=submit]').css({
+									"background" : "url(/templates/diskohq/images/search.png) no-repeat",
+									"border" : "0",
+									"width" : "49px"
+								});
+								jQuery('form.blGoogleSearch').find('input[type=submit]').val("");
+								
+								jQuery('form.blGoogleSearch').parent().show();
+							});							
+							
+							function blPostGSearch(i) {
+								if (!i) {
+									i = 0;
+								}
+								
+								var el = jQuery('div.cse-overlay');
+								el.css({'left' : '150px', 'top' : '50px'});
+								
+								if (jQuery('.cse-resultsContainer').length == 0 || i < 5) {
+									window.setTimeout("blPostGSearch("+(i+1)+")", 0);
+								}
+								else {
+									jQuery('body').prepend(jQuery('.cse-overlay'));
+									jQuery('div.cse-overlay-bg').css('height', screen.height);
+									jQuery('div.cse-overlay .cse-closeResults').unbind('click');
+									jQuery('div.cse-overlay .cse-closeResults').click(function() {
+										jQuery('body').append(jQuery('.cse-overlay'));
+									});
+								}
+							}
+						-->
+						</script>
+
+<!-- Google CSE code begins -->
+
+<div style="display: none;">
+	<form id="searchbox_011888066618628073463:roszvssi9we" class="blGoogleSearch" onsubmit="return false;" action="">
+		<input type="text" class="g-q" name="q" size="20" style="color:black; width:135px;"/>
+		<input type="submit" value="Search" onclick="blPostGSearch()"/>
+		<input type="hidden" name="newwindow" value="0" /> 
+	</form>
+</div>
+<script type="text/javascript" src="http://www.google.com/coop/cse/brand?form=searchbox_011888066618628073463:roszvssi9we"></script>
+<script type="text/javascript" src="http://www.google.com/uds/api?file=uds.js&amp;v=1.0&amp;key=ABQIAAAAXhSh6dmfUTHjt7qAeufe2xQp2L91IAR1FgV0nETxn0m0APFJwBTgXMmeVmxm7Dc-oCcaqo8U_yPhsg"></script>
+<script type="text/javascript" src="http://www.google.com/cse/api/overlay.js"></script>
+<div id="results_011888066618628073463:roszvssi9we">
+	<div class="cse-closeResults">
+		<a>&times; close</a>
+	</div>
+	<div class="cse-resultsContainer" style="z-index:99;"></div>
+</div>
+<script type="text/javascript">
+	function OnLoad() {
+		cseo = new CSEOverlay("011888066618628073463:roszvssi9we",
+							document.getElementById("searchbox_011888066618628073463:roszvssi9we"),
+							document.getElementById("results_011888066618628073463:roszvssi9we"));
+		cseo.searchControl.setSearchStartingCallback(null, blPostGSearch, null); 
+	}
+	GSearch.setOnLoadCallback(OnLoad);
+</script>
+<!-- Google CSE Code ends -->
+		</td>
+		<td style="vertical-align: top;" id="documentationContent">
+			
+
+<h1 id="gui-class">Element class</h1>
+
+<h2>Description</h2>
+This element works only for <a href="/documentation/gui-reference/mmstheme.html">&lt;mmstheme&gt;</a>.
+With the special element <span class="inline-code">&lt;class&gt;</span>
+you can define various classes of the same base element. Each class has
+a unique name. This name can be used to connect an <a href="/documentation/gui-reference/elements.html">element</a> 
+within the dialog file to a special class defined in the theme file.
+
+<h2>XML-Tag</h2>
+<pre class="inline-code">
+&lt;class&gt;
+</pre>
+
+<h2>Attributes</h2>
+
+<table class="example">
+	<tr>
+		<th>Attribute</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td>name</td>
+		<td>Unique name of the class.</td>
+	</tr>
+	<tr>
+		<td>type</td>
+		<td>The type describes which base element the class represents. 
+		    For example you can use <span class="inline-code">type="mainwindow", type="label", type="menu"</span>
+			and so on (see <a href="/documentation/gui-reference/elements.html">elements</a>). Based
+			on the element type you can work with element-specific attributes.
+		</td>
+	</tr>
+</table>
+
+<h2>Remarks</h2>
+This element can only be used within <a href="/documentation/gui-reference/mmstheme.html">&lt;mmstheme&gt;</a>.
+
+<h2>Examples</h2>
+
+<ul>
+	<li><a href="/documentation/gui-reference/gui-examples.html#example6">A <span class="inline-code">&lt;progressbar&gt;</span> theme class</a></li>
+</ul>
+
+<h2>Related elements</h2>
+<a href="/documentation/gui-reference/mmstheme.html">&lt;mmstheme&gt;</a>, see <a href="/elements.html">elements</a><br />
+<br />
+
+		</td>
+	</tr>
+</table>
+<div style="clear:both;">&nbsp;</div>
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>
+ 

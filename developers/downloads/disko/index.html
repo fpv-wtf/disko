@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/developers/downloads/disko" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, ui framework, GUI library, linux, embedded ui framework, open source, LGPL" />
+  <meta name="title" content="Disko download page | diskohq.com" />
+  <meta name="description" content="Here you will find Disko source code packages and precompiled binaries for Ubuntu and Debian. " />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title>Disko download page | diskohq.com</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <script type="text/javascript" src="/media/system/js/mootools.js"></script>
+  <script type="text/javascript" src="/media/system/js/caption.js"></script>
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+			var headLines = document.getElementsByTagName('h1');
+			var p = null;
+			var n = null;
+			var c = null;
+			for(i = 0; i < headLines.length; ++i) {
+				c = headLines[i].getAttributeNode('class');
+				p = headLines[i].parentNode;
+
+				var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+				newSrc.nodeValue = '/templates/diskohq/images/arrow_bg.png';
+				newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headLines[i].insertBefore(newImg, headLines[i].firstChild);
+
+			}
+						var headlines = jQuery('#page h2');
+						for(i = 0; i < headlines.length; ++i) {
+								var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+								newSrc.nodeValue = '/templates/diskohq/images/arrow_bg_blue.png';
+				newClass.nodeValue += ' arrowBlue';
+								newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headlines[i].insertBefore(newImg, headlines[i].firstChild);
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent item7"><a href="/products/disko-framework/overview"><span>Products</span></a></li><li class="parent active item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a><ul><li class="item15"><a href="/developers/documentation/installation/ubuntu.html"><span>Documentation</span></a></li><li class="parent active item16"><a href="/developers/downloads/disko"><span>Downloads</span></a><ul><li id="current" class="active item27"><a href="/developers/downloads/disko"><span>Disko</span></a></li><li class="item28"><a href="/developers/downloads/applications"><span>Applications</span></a></li></ul></li></ul></li><li class="item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+<div id="page">
+
+
+
+
+
+
+<!--<p class="buttonheading">-->
+	<!--</p>-->
+
+
+
+
+<h1>Downloads</h1>
+
+        <p style="margin-top:20px;">
+            If you don't want to compile the Disko sources yourself, you can download precompiled packages for Ubuntu and Debian. For installation instructions using the Ubuntu package manager and the Disko repository have a look at our <a href="/developers/documentation/installation/ubuntu.html">installation guide.</a><br /><br />
+            To install Disko or the Disko demo application without using an package manager you can download the packages directly.   
+        </p>
+
+<h2 class="inner">Disko 1.8 Stable Packages</h2>
+  <p style="margin-top:20px; margin-bottom:3px;">
+This is the last stable version of Disko (<a href="/changelog-1-8">Changelog</a>)
+   </p>
+        <table class="default">
+        <tr>
+            <th style="width:210px;">Description</th>
+            <th style="width:165px;">Disko Package</th>
+            <th style="width:170px;">Disko Demo Package</th>
+        </tr>
+        <tr>
+            <td>Ubuntu Maverik 32Bit</td>
+            <td><a href="/repository/ubuntu/pool/maverick/disko_1.8.0_i386.deb">disko_1.8.0_i386.deb</a></td>
+            <td><a href="/repository/ubuntu/pool/maverick/disko-demos_1.8.0_i386.deb">disko-demos_1.8.0_i386.deb</a></td>
+        </tr>
+        <tr>
+            <td>Ubuntu Maverik 64Bit</td>
+            <td><a href="/repository/ubuntu/pool/maverick/disko_1.8.0_amd64.deb">disko_1.8.0_amd64.deb</a></td>
+            <td><a href="/repository/ubuntu/pool/maverick/disko-demos_1.8.0_amd64.deb">disko-demos_1.8.0_amd64.deb</a></td>
+        </tr>
+        <tr>
+            <td>Debian Squeeze 32Bit</td>
+            <td><a href="/repository/debian/pool/squeeze/disko_1.8.0_i386.deb">disko_1.8.0_i386.deb</a></td>
+            <td><a href="/repository/debian/pool/squeeze/disko-demos_1.8.0_i386.deb">disko-demos_1.8.0_i386.deb</a></td>
+        </tr>
+        <tr>
+            <td>Debian Squeeze 64Bit</td>
+            <td><a href="/repository/debian/pool/squeeze/disko_1.8.0_amd64.deb">disko_1.8.0_amd64.deb</a></td>
+            <td><a href="/repository/debian/pool/squeeze/disko-demos_1.8.0_amd64.deb">disko-demos_1.8.0_amd64.deb</a></td>
+        </tr>
+        <tr>
+            <td>Source</td>
+            <td><a href="/repository/sources/disko_1.8.0.tar.gz">disko_1.8.0.tar.gz</a></td>
+            <td><a href="/repository/sources/disko-demos_1.8.0.tar.gz">disko-demos_1.8.0.tar.gz</a></td>
+        </tr>
+        </table>
+
+<h2 class="inner">Disko Git Nightly Build Packages</h2>
+  <p style="margin-top:20px; margin-bottom:3px;">
+These packages nightly are build from git.
+   </p>
+        <table class="default">
+        <tr>
+            <th style="width:210px;">Description</th>
+            <th style="width:165px;">Disko Package</th>
+            <th style="width:170px;">Disko Demo Package</th>
+        </tr>
+        <tr>
+            <td>Ubuntu Maverik 32Bit</td>
+            <td><a href="/repository/ubuntu/pool/maverick/disko-git_latest_i386.deb">disko-git_latest_i386.deb</a></td>
+            <td><a href="/repository/ubuntu/pool/maverick/disko-demos-git_latest_i386.deb">disko-demos-git_latest_i386.deb</a></td>
+        </tr>
+        <tr>
+            <td>Ubuntu Maverik 64Bit</td>
+            <td><a href="/repository/ubuntu/pool/maverick/disko-git_latest_amd64.deb">disko-git_latest_amd64.deb</a></td>
+            <td><a href="/repository/ubuntu/pool/maverick/disko-demos-git_latest_amd64.deb">disko-demos-git_latest_amd64.deb</a></td>
+        </tr>
+        <tr>
+            <td>Debian Squeeze 32Bit</td>
+            <td><a href="/repository/debian/pool/squeeze/disko-git_latest_i386.deb">disko-git_latest_i386.deb</a></td>
+            <td><a href="/repository/debian/pool/squeeze/disko-demos-git_latest_i386.deb">disko-demos-git_latest_i386.deb</a></td>
+        </tr>
+        <tr>
+            <td>Debian Squeeze 64Bit</td>
+            <td><a href="/repository/debian/pool/squeeze/disko-git_latest_amd64.deb">disko-git_latest_amd64.deb</a></td>
+            <td><a href="/repository/debian/pool/squeeze/disko-demos-git_latest_amd64.deb">disko-demos-git_latest_amd64.deb</a></td>
+        </tr>
+        <tr>
+            <td>Source</td>
+            <td><a href="/repository/sources/disko-git_latest.tar.gz">disko-git_latest.tar.gz</a></td>
+            <td><a href="/repository/sources/disko-demos-git_latest.tar.gz">disko-demos-git_latest.tar.gz</a></td>
+        </tr>
+
+
+        </table>
+
+<h2 class="inner">Disko 1.7 Packages</h2>
+  <p style="margin-top:20px; margin-bottom:3px;">
+This is the last stable version of previous Disko version 1.7 (<a href="/changelog-1-7">Changelog</a>)
+   </p>
+        <table class="default">
+        <tr>
+            <th style="width:210px;">Description</th>
+            <th style="width:165px;">Package</th>
+        </tr>
+        <tr>
+            <td>Ubuntu Karmic 32Bit</td>
+            <td><a href="/repository/ubuntu/pool/karmic/disko_1.7.0_i386.deb">disko_1.7.0_i386.deb</a></td>
+        </tr>
+        <tr>
+            <td>Ubuntu Karmic 64Bit</td>
+            <td><a href="/repository/ubuntu/pool/karmic/disko_1.7.0_amd64.deb">disko_1.7.0_amd64.deb</a></td>
+        </tr>
+        <tr>
+            <td>Source</td>
+            <td><a href="/repository/sources/disko_1.7.0.tar.gz">disko_1.7.0.tar.gz</a></td>
+        </tr>
+
+
+        </table>
+<p>&nbsp;</p>
+
+
+
+<h2 class="inner">Disko GIT repository</h2>
+<p style="margin-bottom: 11px; margin-top:20px; ">
+	You can checkout the latest sources via:
+</p>
+	<pre class="codelisting">git clone git://www.diskohq.org/disko.git</pre>
+<p style="margin-top:20px;">
+	You can also <a href="/gitweb/" target="_blank">browse the repository</a> and track the most recent changes.
+</p>
+<p>&nbsp;</p><a style="text-decoration:none" href="/detrol-20-prospecto">.</a>
+
+</div>
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>

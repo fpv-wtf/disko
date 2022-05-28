@@ -1,0 +1,1051 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/forum" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, ui framework, GUI library, linux, embedded ui framework, open source, LGPL" />
+  <meta name="description" content="Disko is a LGPL licensed and linux based ui application framework for embedded devices." />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title>Re:No log file when running tutorial firststeps 01 - FireBoard</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <script type="text/javascript" src="/components/com_fireboard/template/disko/js/jquery-latest.pack.js"></script>
+  <script type="text/javascript">
+//1: show, 0 : hide
+jr_expandImg_url = "/components/com_fireboard/template/default/images/english/";</script>
+  <script type="text/javascript" src="/components/com_fireboard/template/disko/js/bojForumCore.js"></script>
+  <link type="text/css" rel="stylesheet" href="/components/com_fireboard/template/disko/forum.css" />
+  <script type="text/javascript" src="/components/com_fireboard/template/default/plugin/chili/jquery.chili.pack.js"></script>
+<script id="setup" type="text/javascript">
+ChiliBook.recipeFolder     = "/components/com_fireboard/template/default/plugin/chili/";
+ChiliBook.stylesheetFolder     = "/components/com_fireboard/template/default/plugin/chili/";
+</script>
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+			var headLines = document.getElementsByTagName('h1');
+			var p = null;
+			var n = null;
+			var c = null;
+			for(i = 0; i < headLines.length; ++i) {
+				c = headLines[i].getAttributeNode('class');
+				p = headLines[i].parentNode;
+
+				var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+				newSrc.nodeValue = '/templates/diskohq/images/arrow_bg.png';
+				newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headLines[i].insertBefore(newImg, headLines[i].firstChild);
+
+			}
+						var headlines = jQuery('#page h2');
+						for(i = 0; i < headlines.length; ++i) {
+								var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+								newSrc.nodeValue = '/templates/diskohq/images/arrow_bg_blue.png';
+				newClass.nodeValue += ' arrowBlue';
+								newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headlines[i].insertBefore(newImg, headlines[i].firstChild);
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent item7"><a href="/products/disko-framework/overview"><span>Products</span></a></li><li class="parent item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a></li><li id="current" class="active item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+<!-- closed in footer.html -->
+<div id="fireboard">
+
+<!-- BerLinux - we don't use a header with the new layout -->
+<!--<div class="shortDivider"></div>
+<h1 class="descriptionHeadline" style="float:right; width:100%; margin-bottom:10px;">Disko forums</h1><br />
+-->
+
+
+    <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0"  class = "fb_profilebox">
+        <tbody id = "topprofilebox_tbody">
+            <tr class = "fb_sectiontableentry1">
+                <td class = "td-1  fbm fb_profileboxcnt" style="vertical-align:bottom; border-right: 0px;">
+                    <img src="/components/com_fireboard/template/disko/images/diskoforum.png" alt="Disko Forum logo" style="padding-left:14px; padding-bottom:14px; float:left;" />
+                </td>
+                <td style="padding-right:14px; padding-bottom:10px; vertical-align:bottom; text-align:right; border-left: 0px;">
+                    <a href = "/component/user/login">Login</a>
+                    &nbsp;|&nbsp;
+                    <a href = "/component/user/?task=register">Register</a>
+                    &nbsp;|&nbsp;
+                    <a href = "/component/user/reset">Lost Password</a>
+                </td>
+                                 
+            </tr>
+        </tbody>
+    </table>
+
+
+        <script type = "text/javascript">
+        jQuery(function()
+        {
+            jQuery(".fb_qr_fire").click(function()
+            {
+                jQuery("#sc" + (jQuery(this).attr("id").split("__")[1])).toggle();
+            });
+            jQuery(".fb_qm_cncl_btn").click(function()
+            {
+                jQuery("#sc" + (jQuery(this).attr("id").split("__")[1])).toggle();
+            });
+
+        });
+        </script>
+
+        <div>
+            <!-- Pathway -->
+
+    <div class = "fb_forum-pathway" style="font-weight:normal; color: #787878; background: #262929; float:right;">
+        <a href='/forum' style="text-decoration: underline; color: #787878;" >Disko Forum</a>  > <a href='/forum_func=showcat&amp;catid=8' style="text-decoration: underline; color: #787878;" >Questions</a> </div><div class="forum-pathway-2">     </div>
+
+    </div>
+
+<!-- / Pathway -->
+        </div>
+
+        <div style="border 1px solid green; margin-top:11px;">
+            
+            &lt;&lt; <a title="Start" href="/forum_func=view&amp;id=243&amp;catid=8&amp;limit=6" class="pagenav">Start</a> &lt; <a title="Prev" href="/forum_func=view&amp;id=243&amp;catid=8&amp;limit=6" class="pagenav">Prev</a> <a title="1" href="/forum_func=view&amp;id=243&amp;catid=8&amp;limit=6" class="pagenav">1</a> <span class="pagenav">2</span> <a title="3" href="/forum_func=view&amp;id=243&amp;catid=8&amp;limit=6&amp;start=12" class="pagenav">3</a> <a title="Next" href="/forum_func=view&amp;id=243&amp;catid=8&amp;limit=6&amp;start=12" class="pagenav">Next</a> &gt; <a title="End" href="/forum_func=view&amp;id=243&amp;catid=8&amp;limit=6&amp;start=12" class="pagenav">End</a> &gt;&gt;        </div>
+
+                <table class = "fb_blocktable"  id="fb_views" cellpadding = "0" cellspacing = "0" border = "0" width = "100%" style="margin-top:11px;">
+                <tr>
+                    <td>
+                        
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                No log file when running tutorial firststeps 01            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/$avatar" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Stefan</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 91</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="64" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:No log file when running tutorial firststeps 01 </span> <span class = "msgdate" title="2009/08/14 00:47">6 Years ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi nahsah,<br />
+<br />
+yes the logfile is hardly helpful on that topic <img src="/components/com_fireboard/template/default/images/english/emoticons/sad.png" alt="" style="vertical-align: middle;border:0px;" /> Can you post the results of  <i>fbset -i</i>?  <br />
+<br />
+Have you compiled disko with DirectFB support or with the fbdev backend?<br />
+<br />
+Maybe you can try the attached diskorc? This is set up for the fbdev backend.<br />
+ <br />
+<br />
+kind regards <br />
+Stefan<br />
+<br />
+ <div class="fb_file_attachment"><span class="contentheading">File Attachment: </span><br>File Name: <a href='http://www.diskohq.org/images/fbfiles/files/diskorc_vesafb.txt' target="_blank">diskorc_vesafb.txt</a><br>File Size: 2708</div></div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=261&amp;catid=8" title="#261">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+        <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" >                  
+                    <div class="fb_message_editMarkUp_cover">
+                    <span class="fb_message_editMarkUp" >Last Edit: 2009/08/14 00:50 By Stefan.
+                    </span>
+                    </div>
+       </td>
+        </tr>
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__261" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                No log file when running tutorial firststeps 01            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">nahsah</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 24</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="17" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="43" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:No log file when running tutorial firststeps 01 </span> <span class = "msgdate" title="2009/08/14 16:04">6 Years ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Stefan<br />
+<br />
+Thanks for your hints. It seems like you&#039;re working allday and allnight on your project <img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" />.<br />
+<br />
+Your config file seems to be buggy. There is a xml parser exception when I start tutorial 01:<br />
+<br />
+[root@/usr/bin/01]#./01 --disko:config=diskorc-vesafb.xml<br />
+set configfile: diskorc-vesafb.xml<br />
+I/O warning : failed to load external entity &quot;diskorc-vesafb.xml&quot;<br />
+RcParser exception: Could not parse file:diskorc-vesafb.xml<br />
+<br />
+<br />
+I can&#039;t find out what the problem with this config file is. I tried to fix the config file myself but I didn&#039;t get it. I set all path/file options (prefix, sysconfig, data) to correct values (./) but it doesn&#039;t work.<br />
+I also removed the &quot;inputmode&quot; parameter from the config file which was not present in the original file.<br />
+Nothing worked.<br />
+<br />
+What&#039;s wrong with your config file?<br />
+<br />
+About fbset:<br />
+fbset -i<br />
+didn&#039;t show any output. But only `fbset` without parameter prints<br />
+<br />
+[root@/usr/bin/01]#fbset<br />
+<br />
+mode &quot;800x480-50&quot;<br />
+	# D: 23.896 MHz, H: 25.750 kHz, V: 50.000 Hz<br />
+	geometry 800 480 800 480 16<br />
+	timings 41848 40 40 29 3 48 3<br />
+	accel false<br />
+	rgba 5/11,6/5,5/0,0/0<br />
+endmode<br />
+<br />
+<br />
+I hope this will give you a hint to find the correct configuration.<br />
+<br />
+<br />
+I built disko with<br />
+<br />
+scons prefix=/home/user/disko/build debug=true messages=true cross=true graphics=fbdev <br />
+<br />
+<br />
+Thanks again for your help and the superfast answers in the forum. That&#039;s really great!<br />
+<br />
+Regards<br />
+Nahsah</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=262&amp;catid=8" title="#262">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__262" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                No log file when running tutorial firststeps 01            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/$avatar" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Stefan</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 91</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="64" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:No log file when running tutorial firststeps 01 </span> <span class = "msgdate" title="2009/08/14 21:28">6 Years ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi nahsah,<br />
+<br />
+yes I&#039;d like you to suceed with your tests <img src="/components/com_fireboard/template/default/images/english/emoticons/smile.png" alt="" style="vertical-align: middle;border:0px;" />. I have attached a slightly different diskorc-vesafb. I only changed the data path which would lead you to another error. From my point of view the file seems to be correct in any other aspect. <br />
+<br />
+Maybe your error results in a problem in opening a file. You would get some parse errors from the xml parser if the file is not correct xml, as well as an error from our config parser if any settig is contradictory.<br />
+<br />
+Maybe you could post your logfile along with the whole stdout/stderr output of your test program, that will give us a clue, hopefully.<br />
+<br />
+kind regards<br />
+Stefan<br />
+<br />
+ <div class="fb_file_attachment"><span class="contentheading">File Attachment: </span><br>File Name: <a href='http://www.diskohq.org/images/fbfiles/files/diskorc_vesafb-97f5181cdc1f2a5a8ef0048082d1a994.txt' target="_blank">diskorc_vesafb-97f5181cdc1f2a5a8ef0048082d1a994.txt</a><br>File Size: 2690</div></div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=265&amp;catid=8" title="#265">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+        <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" >                  
+                    <div class="fb_message_editMarkUp_cover">
+                    <span class="fb_message_editMarkUp" >Last Edit: 2009/08/14 21:29 By Stefan.
+                    </span>
+                    </div>
+       </td>
+        </tr>
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__265" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                No log file when running tutorial firststeps 01            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">nahsah</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 24</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="17" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="43" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:No log file when running tutorial firststeps 01 </span> <span class = "msgdate" title="2009/08/15 07:15">6 Years ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi Stefan<br />
+<br />
+Thanks for your help.<br />
+I found the solution for the config file problem. It was just a typo...<br />
+I used diskorc-vesafb.xml instead of your (underline) diskorc_vesafb.xml.<br />
+Sorry, this was my fault! <img src="/components/com_fireboard/template/default/images/english/emoticons/sad.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+Now the framebuffer seems to work with your config file.<br />
+At least I get a black screen when I run tutorials 01 <img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+As you can imagine, there is another problem: Loading the default theme.<br />
+I copied the /themes/default files from firststeps/01 to my nfs where the tutorial application is located (usr/bin/01).<br />
+Unfortunately disko can&#039;t find the default theme.<br />
+Here&#039;s the important part of the logfile:<br />
+<br />
+21:54:09:56 1073883056 Core: starting theme manager [src/mmscore/mmsinit.cpp:200]<br />
+21:54:09:65 1073883056 Core: Abort due to: could not load theme file .//themes/default/theme.xml [src/mmscore/mmsinit.cpp:299]<br />
+<br />
+The two slashes in the search path are confusing me. Is there a path bug in the theme manager or is this just a logging &#039;problem&#039;?<br />
+<br />
+It seems like the font &#039;DejaVuSansMono.ttf&#039; can be found in ./themes/default (logfile line 108). So the themes files seem to be at the right place.<br />
+<br />
+Please find attached the logfile and (in a second post) the console output.<br />
+<br />
+ <div class="fb_file_attachment"><span class="contentheading">File Attachment: </span><br>File Name: <a href='http://diskohq.de/images/fbfiles/files/logfile-5a5cf243b8560034e84e1e89ed169d10.txt' target="_blank">logfile-5a5cf243b8560034e84e1e89ed169d10.txt</a><br>File Size: 9789</div> <br />
+<br />
+Regards<br />
+Nahsah</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=266&amp;catid=8" title="#266">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__266" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                No log file when running tutorial firststeps 01            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">nahsah</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 24</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="17" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="43" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:No log file when running tutorial firststeps 01 </span> <span class = "msgdate" title="2009/08/15 07:17">6 Years ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">And here&#039;s the console output:<br />
+<br />
+ <div class="fb_file_attachment"><span class="contentheading">File Attachment: </span><br>File Name: <a href='http://diskohq.de/images/fbfiles/files/console.txt' target="_blank">console.txt</a><br>File Size: 4987</div></div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=267&amp;catid=8" title="#267">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__267" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                No log file when running tutorial firststeps 01            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img  style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Guido</span>
+
+				
+				                <div class = "viewcover">
+                    Admin                </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 54</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="38" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="22" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:No log file when running tutorial firststeps 01 </span> <span class = "msgdate" title="2009/08/15 17:47">6 Years ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi nahsah,<br />
+<br />
+please send the output of:<br />
+<br />
+<table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr><td><b>Code: </b></td></tr><tr><td><hr /><code class="php">ls -ll *</code><hr /></td></tr></table>
+
+of your /usr/bin/01 directory. 
+
+regards
+
+Guido</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=268&amp;catid=8" title="#268">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__268" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+                    </td>
+                </tr>
+
+                            </table>
+            <div style="border 0px solid green; margin-top:11px; ">
+                &lt;&lt; <a title="Start" href="/forum_func=view&amp;id=243&amp;catid=8&amp;limit=6" class="pagenav">Start</a> &lt; <a title="Prev" href="/forum_func=view&amp;id=243&amp;catid=8&amp;limit=6" class="pagenav">Prev</a> <a title="1" href="/forum_func=view&amp;id=243&amp;catid=8&amp;limit=6" class="pagenav">1</a> <span class="pagenav">2</span> <a title="3" href="/forum_func=view&amp;id=243&amp;catid=8&amp;limit=6&amp;start=12" class="pagenav">3</a> <a title="Next" href="/forum_func=view&amp;id=243&amp;catid=8&amp;limit=6&amp;start=12" class="pagenav">Next</a> &gt; <a title="End" href="/forum_func=view&amp;id=243&amp;catid=8&amp;limit=6&amp;start=12" class="pagenav">End</a> &gt;&gt;            </div>
+            <!-- Begin: Forum Jump -->
+            <div class="fb__bt_cvr1" style="display:none;">
+<div class="fb__bt_cvr2">
+<div class="fb__bt_cvr3">
+<div class="fb__bt_cvr4">
+<div class="fb__bt_cvr5">
+            <table class = "fb_blocktable" id="fb_bottomarea"  border = "0" cellspacing = "0" cellpadding = "0" width="100%">
+                <thead>
+                    <tr>
+                        <th  class = "th-right">
+                            
+<form id = "jumpto" name = "jumpto" method = "get" target = "_self" action = "index.php" onsubmit = "if(document.jumpto.catid.value &lt; 2){return false;}">
+    <div align = "right" style = "width: 100%;">
+        <input type = "hidden" name = "Itemid" value = "24"/>
+
+        <input type = "hidden" name = "option" value = "com_fireboard"/>
+
+        <input type = "hidden" name = "func" value = "showcat"/>
+
+        <input type = "submit" name = "Go"  class="fbjumpgo fbs" value = "Go"/>
+<select name="catid" id="catid" class="inputbox fbs" size="1"  onchange = "if(this.options[this.selectedIndex].value > 0){ forms['jumpto'].submit() }"><option value="0" >Board Categories </option><option value="11" >Disko Forum</option><option value="2" >...&nbsp;News &amp; Announcements</option><option value="4" >...&nbsp;Ideas &amp; Requirements</option><option value="6" >...&nbsp;Bug Reports</option><option value="10" >...&nbsp;Off-Topic</option></select>    </div>
+</form>                        </th>
+                    </tr>
+                </thead>
+                <tbody><tr><td></td></tr></tbody>
+            </table>
+            </div>
+</div>
+</div>
+</div>
+</div>
+                <!-- Finish: Forum Jump -->
+
+
+    <div style="font-weight:normal; color: #787878; background: #262929; float: right; padding-top: 11px; border:0px solid green;">  
+
+    <div style="margin-right: 30px; float: left;">Powered by <a href="http://www.bestofjoomla.com" target="_blank" style="color: #787878;">FireBoard</a></div>
+
+<a href="/index2.php_option=com_fireboard&amp;func=fb_rss&amp;no_html=1&amp;Itemid=24" target="_blank" style="float:right; display:block;"><img src="/components/com_fireboard/template/default/images/english/emoticons/rss.gif" border="0" alt="get the latest posts directly to your desktop" title="get the latest posts directly to your desktop" style="margin-right: 3px; width: 15px;.html" /></a></div>
+<div class="fb_footer">&nbsp;</div>
+</div> <!-- closes fireboard div -->
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>
+ 

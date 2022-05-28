@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/changelog-1-7" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, ui framework, GUI library, linux, embedded ui framework, open source, LGPL" />
+  <meta name="title" content="Disko Changelog 1.7.0" />
+  <meta name="description" content="Disko is a LGPL licensed and linux based ui application framework for embedded devices." />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title>Disko Changelog 1.7.0</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <script type="text/javascript" src="/media/system/js/mootools.js"></script>
+  <script type="text/javascript" src="/media/system/js/caption.js"></script>
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+			var headLines = document.getElementsByTagName('h1');
+			var p = null;
+			var n = null;
+			var c = null;
+			for(i = 0; i < headLines.length; ++i) {
+				c = headLines[i].getAttributeNode('class');
+				p = headLines[i].parentNode;
+
+				var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+				newSrc.nodeValue = '/templates/diskohq/images/arrow_bg.png';
+				newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headLines[i].insertBefore(newImg, headLines[i].firstChild);
+
+			}
+						var headlines = jQuery('#page h2');
+						for(i = 0; i < headlines.length; ++i) {
+								var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+								newSrc.nodeValue = '/templates/diskohq/images/arrow_bg_blue.png';
+				newClass.nodeValue += ' arrowBlue';
+								newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headlines[i].insertBefore(newImg, headlines[i].firstChild);
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent item7"><a href="/products/disko-framework/overview"><span>Products</span></a></li><li class="parent item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a></li><li class="item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+<div id="page">
+
+
+
+
+
+
+<!--<p class="buttonheading">-->
+	<!--</p>-->
+
+
+
+
+<h1>Disko Changelog 1.7</h1>
+
+<h2>New Features &amp; Improvements</h2>
+<h3>General</h3>
+<ul>
+<li>Function: translation now extensible in a generic way</li>
+<li>Function: new MMSPulser (to give soft logarithmic or linear callback pulses)</li>
+<li>Function: live Themeswitch</li>
+<li>Function: added Disko default theme, that can be changed via XML</li>
+<li>Function: configuration parser now accepts command line switches:
+	<ul>
+		<li>--disko:graphics.videolayer.pixelformat=&lt;pixelformat&gt;</li>
+		<li>--disko:graphics.graphicslayer.pixelformat=&lt;pixelformat&gt;</li>
+		<li>--disko:graphics.fullscreen=&lt;fullscreen modes&gt;</li>
+		<li>--disko:graphics.hideapplication=true/false</li>
+	</ul>
+</li>
+</ul>
+
+<h3>GUI</h3>
+<ul>
+<li>Function: ARGB->BGR24 blend coloralpha routine</li>
+<li>Function: BGR24->BGR24 blend coloralpha routine</li>
+<li>Function. RGB32->RGB32 blend coloralpha routine</li>
+<li>Function: Support for BGR555</li>
+<li>Function: added stretching via libswscale for I420, YV12, YUY2</li>
+<li>Function: added JPEG support, added TIFF support</li>
+</ul>
+
+<h3>Window</h3>
+<ul>
+<li>Memory Usage, Performance: now supports single buffering</li>
+<li>Performance: moveTo() now has refresh parameter</li>
+<li>Performance: background windows get no alpha channel</li>
+<li>Eyecandy: show and hide action now use MMSPulser for smooth scrolling</li>
+<li>Eyecandy: windows can now be stretched in any direction</li>
+</ul>
+
+<h3>Surface</h3>
+<ul>
+<li>Performance: improvements with global opacity settings</li>
+<li>Performance: ARGB FillRectangle optimizations</li>
+</ul>
+
+<h3>Widget</h3>
+<ul>
+<li>Eyecandy: MenuWidget uses MMSPulser for smooth scrolling</li>
+<li>Performance: MMSTextBoxWidget faster text layout algorithm</li>
+<li>Performance: refresh Widget only if cursors is really drawn</li>
+<li>Function: Textbox can now be filled from file</li>
+</ul>
+
+<h3>Input</h3>
+<ul>
+<li>Function: added simple gesture recognition for inputs</li>
+</ul>
+
+
+<h3>Taff Tool</h3>
+<ul>
+<li>added parameter for pixelformat (supported: ARGB, AiRGB, RGB16, AYUY)</li>
+<li>added parameter for mirror size</li>
+</ul>
+
+<h2>Fixes</h2>
+
+<h3>Disko</h3>
+<ul>
+<li>MMSTimer: fixes (deadlock when calling stop in the same thread context, restart bug if stop is called twice</li>
+<li>MMSTAffFIle: do not regenerate TAFF if modification date is in the future</li>
+<li>MMSWindow: deadlock fixed, out of range exception fixed</li>
+<li>MMSWindow: fixed too strong opacity in child window stack</li>
+<li>MMSInput: removed unnecessary stack handover causing many mallocs to zero</li>
+<li>MMSInput: fixed bug in ringbuffer handling, fixing lockups after some time</li>
+<li>MMSFBSurfaceManager: cache unused surfaces only 3s</li>
+</ul>
+
+<h3>Build system</h3>
+<ul>
+<li>API incompatibility with libxml2 &lt; 2.7.0</li>
+<li>not setting own default values if CXXFLAGS is set</li>
+<li>check C++ compiler existence</li>
+<li>tools can now be statically linked</li>
+<li>picture backend is complete optional, fallback is the internal taff format</li>
+</ul><a style="text-decoration:none" href="/buy-brahmi-doctor-online">.</a>
+
+</div>
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>
+ 

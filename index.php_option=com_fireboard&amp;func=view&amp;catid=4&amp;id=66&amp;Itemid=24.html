@@ -1,0 +1,1052 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/index.php" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, ui framework, GUI library, linux, embedded ui framework, open source, LGPL" />
+  <meta name="description" content="Disko is a LGPL licensed and linux based ui application framework for embedded devices." />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title>Re:Make MorphineTV/Disko display mode indenpendent - FireBoard</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <script type="text/javascript" src="/components/com_fireboard/template/disko/js/jquery-latest.pack.js"></script>
+  <script type="text/javascript">
+//1: show, 0 : hide
+jr_expandImg_url = "/components/com_fireboard/template/default/images/english/";</script>
+  <script type="text/javascript" src="/components/com_fireboard/template/disko/js/bojForumCore.js"></script>
+  <link type="text/css" rel="stylesheet" href="/components/com_fireboard/template/disko/forum.css" />
+  <script type="text/javascript" src="/components/com_fireboard/template/default/plugin/chili/jquery.chili.pack.js"></script>
+<script id="setup" type="text/javascript">
+ChiliBook.recipeFolder     = "/components/com_fireboard/template/default/plugin/chili/";
+ChiliBook.stylesheetFolder     = "/components/com_fireboard/template/default/plugin/chili/";
+</script>
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+			var headLines = document.getElementsByTagName('h1');
+			var p = null;
+			var n = null;
+			var c = null;
+			for(i = 0; i < headLines.length; ++i) {
+				c = headLines[i].getAttributeNode('class');
+				p = headLines[i].parentNode;
+
+				var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+				newSrc.nodeValue = '/templates/diskohq/images/arrow_bg.png';
+				newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headLines[i].insertBefore(newImg, headLines[i].firstChild);
+
+			}
+						var headlines = jQuery('#page h2');
+						for(i = 0; i < headlines.length; ++i) {
+								var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+								newSrc.nodeValue = '/templates/diskohq/images/arrow_bg_blue.png';
+				newClass.nodeValue += ' arrowBlue';
+								newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headlines[i].insertBefore(newImg, headlines[i].firstChild);
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent item7"><a href="/products/disko-framework/overview"><span>Products</span></a></li><li class="parent item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a></li><li class="item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+<!-- closed in footer.html -->
+<div id="fireboard">
+
+<!-- BerLinux - we don't use a header with the new layout -->
+<!--<div class="shortDivider"></div>
+<h1 class="descriptionHeadline" style="float:right; width:100%; margin-bottom:10px;">Disko forums</h1><br />
+-->
+
+
+    <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0"  class = "fb_profilebox">
+        <tbody id = "topprofilebox_tbody">
+            <tr class = "fb_sectiontableentry1">
+                <td class = "td-1  fbm fb_profileboxcnt" style="vertical-align:bottom; border-right: 0px;">
+                    <img src="/components/com_fireboard/template/disko/images/diskoforum.png" alt="Disko Forum logo" style="padding-left:14px; padding-bottom:14px; float:left;" />
+                </td>
+                <td style="padding-right:14px; padding-bottom:10px; vertical-align:bottom; text-align:right; border-left: 0px;">
+                    <a href = "/component/user/login">Login</a>
+                    &nbsp;|&nbsp;
+                    <a href = "/component/user/?task=register">Register</a>
+                    &nbsp;|&nbsp;
+                    <a href = "/component/user/reset">Lost Password</a>
+                </td>
+                                 
+            </tr>
+        </tbody>
+    </table>
+
+
+        <script type = "text/javascript">
+        jQuery(function()
+        {
+            jQuery(".fb_qr_fire").click(function()
+            {
+                jQuery("#sc" + (jQuery(this).attr("id").split("__")[1])).toggle();
+            });
+            jQuery(".fb_qm_cncl_btn").click(function()
+            {
+                jQuery("#sc" + (jQuery(this).attr("id").split("__")[1])).toggle();
+            });
+
+        });
+        </script>
+
+        <div>
+            <!-- Pathway -->
+
+    <div class = "fb_forum-pathway" style="font-weight:normal; color: #787878; background: #262929; float:right;">
+        <a href='/forum' style="text-decoration: underline; color: #787878;" >Disko Forum</a>  > <a href='/forum_func=showcat&amp;catid=4' style="text-decoration: underline; color: #787878;" >Ideas & Requirements</a> </div><div class="forum-pathway-2">     </div>
+
+    </div>
+
+<!-- / Pathway -->
+        </div>
+
+        <div style="border 1px solid green; margin-top:11px;">
+            
+                    </div>
+
+                <table class = "fb_blocktable"  id="fb_views" cellpadding = "0" cellspacing = "0" border = "0" width = "100%" style="margin-top:11px;">
+                <tr>
+                    <td>
+                        
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Make MorphineTV/Disko display mode indenpendent            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">alanz</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 21</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="15" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="45" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Make MorphineTV/Disko display mode indenpendent </span> <span class = "msgdate" title="2008/12/28 16:11">6 Years, 8 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi, Guido,<br />
+<br />
+In general STB SoC solution, a propriatery framebuffer driver will be comapnied with DirectFB. During insmod framebuffer driver, a display mode used as parameters will be transferred in framebuffer driver that will use it to determine how much frame data buffer will be allocated. EX. for 1920 x 1080, the frame data buffer will be larger than 1280 x 720&#039;s frame data buffer. This input display mode parameter is the global setting for both video and OSD output. So for a HD solution, the 1920 x 1080 or 1280 x 720 should be appropriate setting for the total composite output including video, and OSD on TV screen. But MorphineTV does not have to work in the same display resolution such as 1920 x 1080. But I found that if I define different mode for example 800 x 600 in morphinerc.xml, a fail message reported from framebuffer driver when doing mmsfbxxx. So I have to set the same display resolution as defined in framebuffer driver. I suggest that MorphineTV should work in itself&#039;s mode which will be optimized for UI display, and this resolution will just use a portion of frame data buffer allocated by framebuffer driver.<br />
+<br />
+Best regards,<br />
+Alan Zhang</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=66&amp;catid=4" title="#66">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__66" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Make MorphineTV/Disko display mode indenpendent            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img  style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Guido</span>
+
+				
+				                <div class = "viewcover">
+                    Admin                </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 54</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="38" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="22" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Make MorphineTV/Disko display mode indenpendent </span> <span class = "msgdate" title="2008/12/28 17:32">6 Years, 8 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi Alan,<br />
+<br />
+we discussed your requirement but we need more detailed information to make a decision. <br />
+<br />
+Do you plan to setup the layers with two different resolutions? For example, the Videolayer in 1024x768 and the OSD layer in 720x576?<br />
+<br />
+regards<br />
+<br />
+guido</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=68&amp;catid=4" title="#68">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__68" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Make MorphineTV/Disko display mode indenpendent            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">alanz</span>
+
+				
+				                <div class = "viewcover">
+                    Admin                </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 21</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="15" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="45" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Make MorphineTV/Disko display mode indenpendent </span> <span class = "msgdate" title="2008/12/29 03:53">6 Years, 8 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi, Guido,<br />
+<br />
+I do not use VideoLayer in DirectFB because the pipeline for decoding,displaying video is maintained by a dedicated resources in CX2450x, and the these drivers are proprietary, not Linux-DVB APIs compliant. The ultimate TV signal is composited of several layers including Video, OSD, Background, Cursor etc. So as you can see that the final output unit must work in 1920 x 1080 or 1280 x 720 mode for optimizing displaying HD video, and this impacts the HD OSD layer also works in 1920 x 1080 mode. This HD OSD working mode does not mean that the OSD image objects have be to 1920 x 1080 resolution, they can be 720 x 576 for example, so just a sub-region of the total OSD resolution. This mechanism is supported by the chipset&#039;s driver, but it seems that MorphineTV/Disko does not just map its OSD images objects in the region that is defined in morphinerc.xml if below 1920 x 1080, and seems that MorphineTV/Disko will invoke DirectFB&#039;s low level func to set the resolution.<br />
+<br />
+Best regards,<br />
+Alan Zhang</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=69&amp;catid=4" title="#69">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__69" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Make MorphineTV/Disko display mode indenpendent            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img  style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Guido</span>
+
+				
+				                <div class = "viewcover">
+                    Admin                </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 54</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="38" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="22" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Make MorphineTV/Disko display mode indenpendent </span> <span class = "msgdate" title="2009/01/02 13:57">6 Years, 8 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi Alan,<br />
+<br />
+first of all we wish you a happy new year!!<br />
+<br />
+We discussed your problem but we have problems to understand your requirement. Do you have a short code example that we can use as template?<br />
+<br />
+A second way is to discuss your feature via chat. Do you use a chat client like ICQ or skype?<br />
+<br />
+regards<br />
+<br />
+Guido</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=70&amp;catid=4" title="#70">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__70" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Make MorphineTV/Disko display mode indenpendent            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">alanz</span>
+
+				
+				                <div class = "viewcover">
+                    Admin                </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 21</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="15" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="45" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Make MorphineTV/Disko display mode indenpendent </span> <span class = "msgdate" title="2009/01/02 15:49">6 Years, 8 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi,Guido,<br />
+In fact, after I adjusted the code in DirectFBInit() to merge the cx24500 drivers&#039; init and pipeline establishment, all the left things are running just like a normal DirectFB application. I attach my startup shell script file and morphinerc.xml file so you can see what is my configuration.<br />
+<br />
+I really want to communicate with you guys via MSN on DISKO/MorphineTV application in STB, but NXP forbids IM inside intranet that is what I am fixing out via RealTunnel. I hope it will be fixed. My MSN account is my registered email address in DISKO forum that you can see.<br />
+<br />
+Best regards,<br />
+Alan<br />
+<br />
+-------------------Shell Scripts-----------------------<br />
+#!/bin/sh<br />
+/bin/rm -rf /dev/notifyq           2&gt;&amp;1 &gt;/dev/null <br />
+/bin/rm -rf /dev/user_kal          2&gt;&amp;1 &gt;/dev/null  <br />
+/bin/rm -rf /dev/cnxt/cnxt_gen_drv 2&gt;&amp;1 &gt;/dev/null  <br />
+/bin/rm -rf /dev/fb0               2&gt;&amp;1 &gt;/dev/null<br />
+<br />
+/bin/mkdir -p /dev/cnxt<br />
+<br />
+/bin/mknod /dev/cnxt/cnxt_gen_drv c 254 0<br />
+/bin/mknod /dev/notifyq c 254 1<br />
+/bin/mknod /dev/user_kal c 254 2<br />
+/bin/mknod /dev/iolib c 253 0<br />
+/bin/mknod /dev/fb0 c 29 0<br />
+<br />
+/sbin/insmod /appfs/lib/modules/cnxt_kernel_kal.ko<br />
+/sbin/insmod /appfs/lib/modules/cnxt_base_drv.ko init=0<br />
+<br />
+/sbin/insmod /appfs/lib/modules/cnxt_lnx_drv.ko<br />
+<br />
+/sbin/insmod /appfs/lib/modules/cnxt_fb_drv.ko cnxtfb_standalone=1 cnxtfb_width=1920 cnxtfb_height=1080<br />
+<br />
+/bin/mkdir  /dev/shm<br />
+/bin/mount tmpfs /dev/shm -ttmpfs<br />
+/bin/echo -e &quot;depth=32\npixelformat=ARGB\nno-vt\nno-debug\n&quot; &gt; /etc/directfbrc<br />
+/bin/echo -e &quot;mode \&quot;1920x1080 60Hz 32bit\&quot;\n# D: 31.50 MHz, H: 37.500 kHz, V: 75.00 Hz\ngeometry 1920 1080 1920 2160 32\ntimings 31747 120 16 16 1 64 3\nendmode&quot; &gt; /etc/fb.modes<br />
+# /bin/echo -e &quot;mode \&quot;800x600 60Hz 32bit\&quot;\n# D: 31.50 MHz, H: 37.500 kHz, V: 75.00 Hz\ngeometry 800 600 800 1200 32\ntimings 31747 120 16 16 1 64 3\nendmode&quot; &gt; /etc/fb.modes<br />
+export PATH=$PATH:/appfs/bin:/appfs/sbin<br />
+export LD_LIBRARY_PATH=/lib:/appfs/lib:/appfs/lib/morphine.tv:/appfs/lib/disko<br />
+<br />
+/bin/echo &quot;At the moment, we will setup env for Morphine.TV&quot;<br />
+/appfs/etc/rc.d/init.d/messagebus start<br />
+/appfs/etc/rc.d/init.d/haldaemon start<br />
+<br />
+cd /appfs/bin<br />
+# echo &quot;Applying local configuration to the morphinerc.xml...&quot;<br />
+# ./scripts/updatemorphinerc.sh /appfs/etc/morphinerc.xml /appfs/share/morphine.tv/db /appfs/share/morphine.tv /appfs/etc /appfs<br />
+<br />
+if [ ! -f /appfs/share/morphine.tv/db/mmsconfigdb ]; then<br />
+echo &amp;quot;Creating database files...&amp;quot;<br />
+./sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &amp;lt;./scripts/createconfigdb.sql<br />
+./sqlite3 /appfs/share/morphine.tv/db/mmsdatadb &amp;lt;./scripts/createdatadb.sql<br />
+<br />
+echo &amp;quot;Creating database files for plugins...&amp;quot;<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &amp;lt;./scripts/registerme_tv.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &amp;lt;./scripts/registerme_dvd.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &amp;lt;./scripts/registerme_video.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &amp;lt;./scripts/registerme_music.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &amp;lt;./scripts/registerme_cd.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &amp;lt;./scripts/registerme_photo.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &amp;lt;./scripts/registerme_weather.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &amp;lt;./scripts/registerme_mixer.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &amp;lt;./scripts/registerme_halplugin.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &amp;lt;./scripts/registerme_filechooser.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &amp;lt;./scripts/registerme_epgimport.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &amp;lt;./scripts/registerme_videoimport.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &amp;lt;./scripts/registerme_tvchannelimport.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &amp;lt;./scripts/registerme_musicimport.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &amp;lt;./scripts/registerme_photoimport.sql<br />
+<br />
+fi<br />
+<br />
+echo &amp;quot;Now, start Morphine.TV application for fun...&amp;quot;<br />
+./morphine --config=/appfs/etc/morphinerc.xml $@<br />
+<br />
+------------------- morphinerc.xml -----------------------------<br />
+<br />
+&amp;lt;mmsrc version=&amp;quot;1.1.0&amp;quot;&amp;gt;<br />
+    &amp;lt;global&amp;gt;<br />
+        &amp;lt;parameter name=&amp;quot;logfile&amp;quot;     value=&amp;quot;/appfs/share/morphine.tv/logs/logfile&amp;quot; /&amp;gt;<br />
+        &amp;lt;parameter name=&amp;quot;inputmap&amp;quot;    value=&amp;quot;default&amp;quot; /&amp;gt;<br />
+        &amp;lt;parameter name=&amp;quot;prefix&amp;quot;      value=&amp;quot;/appfs&amp;quot; /&amp;gt;<br />
+        &amp;lt;parameter name=&amp;quot;syi,Guido,<br />
+In fact, after I adjusted the code in DirectFBInit() to merge the cx24500 drivers&#039; init and pipeline establishment, all the left things are running just like a normal DirectFB application. I attach my startup shell script file and morphinerc.xml file so you can see what is my configuration.<br />
+<br />
+I really want to communicate with you guys via MSN on DISKO/MorphineTV application in STB, but NXP forbids IM inside intranet that is what I am fixing out via RealTunnel. I hope it will be fixed. My MSN account is my registered email address in DISKO forum that you can see.<br />
+<br />
+Best regards,<br />
+Alan<br />
+<br />
+-------------------Shell Scripts-----------------------<br />
+#!/bin/sh<br />
+/bin/rm -rf /dev/notifyq           2&gt;&amp;1 &gt;/dev/null <br />
+/bin/rm -rf /dev/user_kal          2&gt;&amp;1 &gt;/dev/null  <br />
+/bin/rm -rf /dev/cnxt/cnxt_gen_drv 2&gt;&amp;1 &gt;/dev/null  <br />
+/bin/rm -rf /dev/fb0               2&gt;&amp;1 &gt;/dev/null<br />
+<br />
+/bin/mkdir -p /dev/cnxt<br />
+<br />
+/bin/mknod /dev/cnxt/cnxt_gen_drv c 254 0<br />
+/bin/mknod /dev/notifyq c 254 1<br />
+/bin/mknod /dev/user_kal c 254 2<br />
+/bin/mknod /dev/iolib c 253 0<br />
+/bin/mknod /dev/fb0 c 29 0<br />
+<br />
+/sbin/insmod /appfs/lib/modules/cnxt_kernel_kal.ko<br />
+/sbin/insmod /appfs/lib/modules/cnxt_base_drv.ko init=0<br />
+<br />
+/sbin/insmod /appfs/lib/modules/cnxt_lnx_drv.ko<br />
+<br />
+/sbin/insmod /appfs/lib/modules/cnxt_fb_drv.ko cnxtfb_standalone=1 cnxtfb_width=1920 cnxtfb_height=1080<br />
+<br />
+/bin/mkdir  /dev/shm<br />
+/bin/mount tmpfs /dev/shm -ttmpfs<br />
+/bin/echo -e &quot;depth=32\npixelformat=ARGB\nno-vt\nno-debug\n&quot; &gt; /etc/directfbrc<br />
+/bin/echo -e &quot;mode \&quot;1920x1080 60Hz 32bit\&quot;\n# D: 31.50 MHz, H: 37.500 kHz, V: 75.00 Hz\ngeometry 1920 1080 1920 2160 32\ntimings 31747 120 16 16 1 64 3\nendmode&quot; &gt; /etc/fb.modes<br />
+# /bin/echo -e &quot;mode \&quot;800x600 60Hz 32bit\&quot;\n# D: 31.50 MHz, H: 37.500 kHz, V: 75.00 Hz\ngeometry 800 600 800 1200 32\ntimings 31747 120 16 16 1 64 3\nendmode&quot; &gt; /etc/fb.modes<br />
+export PATH=$PATH:/appfs/bin:/appfs/sbin<br />
+export LD_LIBRARY_PATH=/lib:/appfs/lib:/appfs/lib/morphine.tv:/appfs/lib/disko<br />
+<br />
+/bin/echo &quot;At the moment, we will setup env for Morphine.TV&quot;<br />
+/appfs/etc/rc.d/init.d/messagebus start<br />
+/appfs/etc/rc.d/init.d/haldaemon start<br />
+<br />
+cd /appfs/bin<br />
+# echo &quot;Applying local configuration to the morphinerc.xml...&quot;<br />
+# ./scripts/updatemorphinerc.sh /appfs/etc/morphinerc.xml /appfs/share/morphine.tv/db /appfs/share/morphine.tv /appfs/etc /appfs<br />
+<br />
+if [ ! -f /appfs/share/morphine.tv/db/mmsconfigdb ]; then<br />
+echo &quot;Creating database files...&quot;<br />
+./sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &lt;./scripts/createconfigdb.sql<br />
+./sqlite3 /appfs/share/morphine.tv/db/mmsdatadb &lt;./scripts/createdatadb.sql<br />
+<br />
+echo &quot;Creating database files for plugins...&quot;<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &lt;./scripts/registerme_tv.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &lt;./scripts/registerme_dvd.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &lt;./scripts/registerme_video.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &lt;./scripts/registerme_music.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &lt;./scripts/registerme_cd.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &lt;./scripts/registerme_photo.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &lt;./scripts/registerme_weather.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &lt;./scripts/registerme_mixer.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &lt;./scripts/registerme_halplugin.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &lt;./scripts/registerme_filechooser.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &lt;./scripts/registerme_epgimport.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &lt;./scripts/registerme_videoimport.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &lt;./scripts/registerme_tvchannelimport.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &lt;./scripts/registerme_musicimport.sql<br />
+/appfs/bin/sqlite3 /appfs/share/morphine.tv/db/mmsconfigdb &lt;./scripts/registerme_photoimport.sql<br />
+<br />
+fi<br />
+<br />
+echo &quot;Now, start Morphine.TV application for fun...&quot;<br />
+./morphine --config=/appfs/etc/morphinerc.xml $@<br />
+<br />
+------------------- morphinerc.xml -----------------------------<br />
+<br />
+&lt;mmsrc version=&quot;1.1.0&quot;&gt;<br />
+    &lt;global&gt;<br />
+        &lt;parameter name=&quot;logfile&quot;     value=&quot;/appfs/share/morphine.tv/logs/logfile&quot; /&gt;<br />
+        &lt;parameter name=&quot;inputmap&quot;    value=&quot;default&quot; /&gt;<br />
+        &lt;parameter name=&quot;prefix&quot;      value=&quot;/appfs&quot; /&gt;<br />
+        &lt;parameter name=&quot;sysconfig&quot;   value=&quot;/appfs/etc&quot; /&gt;<br />
+        &lt;parameter name=&quot;data&quot;        value=&quot;/appfs/share/morphine.tv&quot; /&gt;<br />
+        &lt;parameter name=&quot;theme&quot;       value=&quot;default&quot; /&gt;<br />
+        &lt;parameter name=&quot;firstplugin&quot; value=&quot;TV Plugin&quot; /&gt;<br />
+        &lt;parameter name=&quot;shutdown&quot;    value=&quot;false&quot;/&gt;<br />
+        &lt;parameter name=&quot;shutdowncmd&quot; value=&quot;&quot;/&gt;<br />
+    &lt;/global&gt;<br />
+    &lt;dbsettings type=&quot;config&quot;&gt;<br />
+        &lt;parameter name=&quot;database&quot;    value=&quot;/appfs/share/morphine.tv/db/mmsconfigdb&quot; /&gt;<br />
+    &lt;/dbsettings&gt;<br />
+    &lt;dbsettings type=&quot;data&quot;&gt;<br />
+	    &lt;parameter name=&quot;database&quot;    value=&quot;/appfs/share/morphine.tv/db/mmsdatadb&quot; /&gt;<br />
+    &lt;/dbsettings&gt;<br />
+    &lt;dfbsettings &gt;<br />
+        &lt;parameter name=&quot;xres&quot;                       value=&quot;1920&quot;   /&gt;<br />
+        &lt;parameter name=&quot;yres&quot;                       value=&quot;1080&quot;   /&gt;<br />
+        &lt;parameter name=&quot;outputtype&quot;                 value=&quot;vesafb&quot;   /&gt;<br />
+        &lt;parameter name=&quot;videolayerid&quot;               value=&quot;0&quot;     /&gt;<br />
+        &lt;parameter name=&quot;videolayerpixelformat&quot;      value=&quot;ARGB&quot;  /&gt;<br />
+        &lt;parameter name=&quot;videolayeroptions&quot;          value=&quot;&quot;             /&gt;<br />
+        &lt;parameter name=&quot;videolayerbuffermode&quot;       value=&quot;BACKSYSTEM&quot;    /&gt;<br />
+        &lt;parameter name=&quot;graphicslayerid&quot;            value=&quot;0&quot;     /&gt;<br />
+        &lt;parameter name=&quot;graphicslayerpixelformat&quot;   value=&quot;ARGB&quot;  /&gt;<br />
+        &lt;parameter name=&quot;graphicslayeroptions&quot;       value=&quot;&quot;  /&gt;<br />
+        &lt;parameter name=&quot;graphicslayerbuffermode&quot;    value=&quot;BACKSYSTEM&quot;    /&gt;<br />
+        &lt;parameter name=&quot;vrect.x&quot;                    value=&quot;0&quot;     /&gt;<br />
+        &lt;parameter name=&quot;vrect.y&quot;                    value=&quot;0&quot;     /&gt;<br />
+        &lt;parameter name=&quot;vrect.w&quot;                    value=&quot;1920&quot;   /&gt;<br />
+        &lt;parameter name=&quot;vrect.h&quot;                    value=&quot;1080&quot;   /&gt;<br />
+        &lt;parameter name=&quot;touchrect.x&quot;                value=&quot;0&quot;     /&gt;<br />
+        &lt;parameter name=&quot;touchrect.y&quot;                value=&quot;0&quot;     /&gt;<br />
+        &lt;parameter name=&quot;touchrect.w&quot;                value=&quot;0&quot;     /&gt;<br />
+        &lt;parameter name=&quot;touchrect.h&quot;                value=&quot;0&quot;     /&gt;<br />
+        &lt;parameter name=&quot;pointer&quot;                    value=&quot;false&quot;   /&gt;<br />
+        &lt;parameter name=&quot;graphicswindowpixelformat&quot;  value=&quot;ARGB&quot;/&gt;<br />
+        &lt;parameter name=&quot;graphicssurfacepixelformat&quot; value=&quot;ARGB&quot;    /&gt;<br />
+        &lt;parameter name=&quot;extendedaccel&quot;              value=&quot;true&quot;    /&gt;<br />
+    &lt;/dfbsettings&gt;<br />
+&lt;/mmsrc&gt;</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=71&amp;catid=4" title="#71">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__71" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+                    </td>
+                </tr>
+
+                            </table>
+            <div style="border 0px solid green; margin-top:11px; ">
+                            </div>
+            <!-- Begin: Forum Jump -->
+            <div class="fb__bt_cvr1" style="display:none;">
+<div class="fb__bt_cvr2">
+<div class="fb__bt_cvr3">
+<div class="fb__bt_cvr4">
+<div class="fb__bt_cvr5">
+            <table class = "fb_blocktable" id="fb_bottomarea"  border = "0" cellspacing = "0" cellpadding = "0" width="100%">
+                <thead>
+                    <tr>
+                        <th  class = "th-right">
+                            
+<form id = "jumpto" name = "jumpto" method = "get" target = "_self" action = "index.php" onsubmit = "if(document.jumpto.catid.value &lt; 2){return false;}">
+    <div align = "right" style = "width: 100%;">
+        <input type = "hidden" name = "Itemid" value = "24"/>
+
+        <input type = "hidden" name = "option" value = "com_fireboard"/>
+
+        <input type = "hidden" name = "func" value = "showcat"/>
+
+        <input type = "submit" name = "Go"  class="fbjumpgo fbs" value = "Go"/>
+<select name="catid" id="catid" class="inputbox fbs" size="1"  onchange = "if(this.options[this.selectedIndex].value > 0){ forms['jumpto'].submit() }"><option value="0" >Board Categories </option><option value="11" >Disko Forum</option><option value="2" >...&nbsp;News &amp; Announcements</option><option value="6" >...&nbsp;Bug Reports</option><option value="8" >...&nbsp;Questions</option><option value="10" >...&nbsp;Off-Topic</option></select>    </div>
+</form>                        </th>
+                    </tr>
+                </thead>
+                <tbody><tr><td></td></tr></tbody>
+            </table>
+            </div>
+</div>
+</div>
+</div>
+</div>
+                <!-- Finish: Forum Jump -->
+
+
+    <div style="font-weight:normal; color: #787878; background: #262929; float: right; padding-top: 11px; border:0px solid green;">  
+
+    <div style="margin-right: 30px; float: left;">Powered by <a href="http://www.bestofjoomla.com" target="_blank" style="color: #787878;">FireBoard</a></div>
+
+<a href="/index2.php_option=com_fireboard&amp;func=fb_rss&amp;no_html=1&amp;Itemid=24" target="_blank" style="float:right; display:block;"><img src="/components/com_fireboard/template/default/images/english/emoticons/rss.gif" border="0" alt="get the latest posts directly to your desktop" title="get the latest posts directly to your desktop" style="margin-right: 3px; width: 15px;.html" /></a></div>
+<div class="fb_footer">&nbsp;</div>
+</div> <!-- closes fireboard div -->
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>
+ 

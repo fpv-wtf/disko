@@ -1,0 +1,1009 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/forum" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, ui framework, GUI library, linux, embedded ui framework, open source, LGPL" />
+  <meta name="description" content="Disko is a LGPL licensed and linux based ui application framework for embedded devices." />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title>Re:New member to forum - FireBoard</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <script type="text/javascript" src="/components/com_fireboard/template/disko/js/jquery-latest.pack.js"></script>
+  <script type="text/javascript">
+//1: show, 0 : hide
+jr_expandImg_url = "/components/com_fireboard/template/default/images/english/";</script>
+  <script type="text/javascript" src="/components/com_fireboard/template/disko/js/bojForumCore.js"></script>
+  <link type="text/css" rel="stylesheet" href="/components/com_fireboard/template/disko/forum.css" />
+  <script type="text/javascript" src="/components/com_fireboard/template/default/plugin/chili/jquery.chili.pack.js"></script>
+<script id="setup" type="text/javascript">
+ChiliBook.recipeFolder     = "/components/com_fireboard/template/default/plugin/chili/";
+ChiliBook.stylesheetFolder     = "/components/com_fireboard/template/default/plugin/chili/";
+</script>
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+			var headLines = document.getElementsByTagName('h1');
+			var p = null;
+			var n = null;
+			var c = null;
+			for(i = 0; i < headLines.length; ++i) {
+				c = headLines[i].getAttributeNode('class');
+				p = headLines[i].parentNode;
+
+				var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+				newSrc.nodeValue = '/templates/diskohq/images/arrow_bg.png';
+				newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headLines[i].insertBefore(newImg, headLines[i].firstChild);
+
+			}
+						var headlines = jQuery('#page h2');
+						for(i = 0; i < headlines.length; ++i) {
+								var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+								newSrc.nodeValue = '/templates/diskohq/images/arrow_bg_blue.png';
+				newClass.nodeValue += ' arrowBlue';
+								newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headlines[i].insertBefore(newImg, headlines[i].firstChild);
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent item7"><a href="/products/disko-framework/overview"><span>Products</span></a></li><li class="parent item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a></li><li id="current" class="active item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+<!-- closed in footer.html -->
+<div id="fireboard">
+
+<!-- BerLinux - we don't use a header with the new layout -->
+<!--<div class="shortDivider"></div>
+<h1 class="descriptionHeadline" style="float:right; width:100%; margin-bottom:10px;">Disko forums</h1><br />
+-->
+
+
+    <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0"  class = "fb_profilebox">
+        <tbody id = "topprofilebox_tbody">
+            <tr class = "fb_sectiontableentry1">
+                <td class = "td-1  fbm fb_profileboxcnt" style="vertical-align:bottom; border-right: 0px;">
+                    <img src="/components/com_fireboard/template/disko/images/diskoforum.png" alt="Disko Forum logo" style="padding-left:14px; padding-bottom:14px; float:left;" />
+                </td>
+                <td style="padding-right:14px; padding-bottom:10px; vertical-align:bottom; text-align:right; border-left: 0px;">
+                    <a href = "/component/user/login">Login</a>
+                    &nbsp;|&nbsp;
+                    <a href = "/component/user/?task=register">Register</a>
+                    &nbsp;|&nbsp;
+                    <a href = "/component/user/reset">Lost Password</a>
+                </td>
+                                 
+            </tr>
+        </tbody>
+    </table>
+
+
+        <script type = "text/javascript">
+        jQuery(function()
+        {
+            jQuery(".fb_qr_fire").click(function()
+            {
+                jQuery("#sc" + (jQuery(this).attr("id").split("__")[1])).toggle();
+            });
+            jQuery(".fb_qm_cncl_btn").click(function()
+            {
+                jQuery("#sc" + (jQuery(this).attr("id").split("__")[1])).toggle();
+            });
+
+        });
+        </script>
+
+        <div>
+            <!-- Pathway -->
+
+    <div class = "fb_forum-pathway" style="font-weight:normal; color: #787878; background: #262929; float:right;">
+        <a href='/forum' style="text-decoration: underline; color: #787878;" >Disko Forum</a>  > <a href='/forum_func=showcat&amp;catid=8' style="text-decoration: underline; color: #787878;" >Questions</a> </div><div class="forum-pathway-2">     </div>
+
+    </div>
+
+<!-- / Pathway -->
+        </div>
+
+        <div style="border 1px solid green; margin-top:11px;">
+            
+            &lt;&lt; <span class="pagenav">Start</span> &lt; <span class="pagenav">Prev</span> <span class="pagenav">1</span> <a title="2" href="/forum_func=view&amp;id=222&amp;catid=8&amp;start=6" class="pagenav">2</a> <a title="Next" href="/forum_func=view&amp;id=222&amp;catid=8&amp;start=6" class="pagenav">Next</a> &gt; <a title="End" href="/forum_func=view&amp;id=222&amp;catid=8&amp;start=6" class="pagenav">End</a> &gt;&gt;        </div>
+
+                <table class = "fb_blocktable"  id="fb_views" cellpadding = "0" cellspacing = "0" border = "0" width = "100%" style="margin-top:11px;">
+                <tr>
+                    <td>
+                        
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                New member to forum            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Duran</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 37</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="27" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="33" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">New member to forum </span> <span class = "msgdate" title="2009/08/04 09:57">6 Years, 1 Month ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Dear all,<br />
+<br />
+I&#039;m a new member to forum. My name is Joaquim Duran.<br />
+<br />
+I&#039;ve compiled disko from git in a fedora 11 distro. I&#039;ve found several<br />
+troubles:<br />
+<br />
+1 - Fedora 11 comes with gcc 4.4.0. I&#039;ve done the following change to source code to compile it:<br />
+<br />
+diff --git a/src/mmstools/mmsfile.cpp b/src/mmstools/mmsfile.cpp<br />
+index 3373cc5..e94421a 100755<br />
+--- a/src/mmstools/mmsfile.cpp<br />
++++ b/src/mmstools/mmsfile.cpp<br />
+@@ -462,7 +462,7 @@ bool MMSFile::rewindFile() {<br />
+     switch(this-&gt;type) {<br />
+         case MMSFT_FILE:<br />
+             if (this-&gt;file) {<br />
+-                std::rewind(this-&gt;file);<br />
++                rewind(this-&gt;file);<br />
+                 return true;<br />
+             }<br />
+             this-&gt;lasterror = EBADF;<br />
+<br />
+2 - Fedora 11 comes with swfdec 0.9 but the library is not detected. It&#039;s possible to change disko to accept swfdec &gt;= 0.8? is there any issue? If you want to test incompatibilities with 0.9, send me the patch to test de compilation.<br />
+<br />
+3 - Also, I&#039;ve compiled the tutorials. When runing tutorial 01 uncer x11, the following message appears:<br />
+<br />
+Starting Disko Tutorial: firststeps/01...<br />
+w: 1152, h: 864<br />
+DISKO: Available xv adaptors:<br />
+X Error of failed request:  XvBadPort<br />
+  Major opcode of failed request:  132 (XVideo)<br />
+  Minor opcode of failed request:  16 ()<br />
+  Serial number of failed request:  36<br />
+  Current serial number in output stream:  36<br />
+<br />
+In the log of X11, Xv extension is loaled, but the output of xvinfo command is:<br />
+<br />
+X-Video Extension version 2.2<br />
+screen #0<br />
+ no adaptors present<br />
+<br />
+How can I configure X11 to avoid this problem?<br />
+<br />
+Thanks in advance.<br />
+<br />
+Joaquim Duran</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=222&amp;catid=8" title="#222">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__222" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                New member to forum            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/$avatar" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Stefan</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 91</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="64" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:New member to forum </span> <span class = "msgdate" title="2009/08/04 11:56">6 Years, 1 Month ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi Joaquim,<br />
+<br />
+welcome to Disko. I hope you like it a lot.<br />
+<br />
+@1) I can certainly add the changes to compile with gcc 4.4.x.<br />
+<br />
+@2) we experienced some problems in the past between the single releases of swfdec with the api, so we decided to stick with this single version.<br />
+I added support to swfdec-09 to the SCons build system in the git. Please give it a try and please tell us your results.<br />
+<br />
+@3) You can change the diskorc.xml to use the X11 xshm interface, just edit the file and change the parameter outputtype from xvshm to xshm. <br />
+How to configure your X11 strongly depends on your graphics card setup. I bet you are using an ATI <img src="/components/com_fireboard/template/default/images/english/emoticons/smile.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+kind regads<br />
+Stefan</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=223&amp;catid=8" title="#223">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__223" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                New member to forum            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Duran</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 37</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="27" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="33" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:New member to forum </span> <span class = "msgdate" title="2009/08/04 14:19">6 Years, 1 Month ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hello,<br />
+<br />
+2: I&#039;ve compiled disko and disko-tutoarial/flash with no problem using swfdec-09. I&#039;ve executed the flas exmpale and no links probles has appreaded. The problems is about point 3.<br />
+<br />
+3: Currently the outputtype was set to x11. Changing the output type to those that you indicated didn&#039;t improve the problem.<br />
+<br />
+You&#039;re rigth, I&#039;ve an ATI card. Currently propieraty ATI drivers couldn&#039;t be installed in Fedora 11. Currently I&#039;m using VESA driver to &#039;fix&#039; temporally the problem, so no acceleration is provided. Is it a very big issue to run disko applications?<br />
+<br />
+Joaquim Duran</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=224&amp;catid=8" title="#224">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__224" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                New member to forum            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/$avatar" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Stefan</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 91</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="64" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:New member to forum </span> <span class = "msgdate" title="2009/08/04 14:30">6 Years, 1 Month ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi Joaquim,<br />
+<br />
+@2) thats nice. So we will allow 0.8 or 0.9 in disko from now on. <br />
+<br />
+@3) Could you please post your diskorc.xml file. Iam pretty sure that we&#039;re gonna fix this. <br />
+<br />
+As concerned to the vesa driver: of course you can run Disko applications in that environment. The problem is, that graphics are definitely not as pretty as they could be. You will also notice a much bigger CPU usage. That&#039;s of course not only for Disko application, but for your whole Desktop environment. <br />
+<br />
+kind regards<br />
+Stefan</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=225&amp;catid=8" title="#225">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__225" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                New member to forum            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Duran</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 37</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="27" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="33" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:New member to forum </span> <span class = "msgdate" title="2009/08/05 00:16">6 Years, 1 Month ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hello,<br />
+<br />
+I attach the diskorc.xml and the log file from example 01.<br />
+<br />
+Joaquim Duran</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=232&amp;catid=8" title="#232">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__232" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                New member to forum            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Duran</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 37</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="27" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="33" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:New member to forum </span> <span class = "msgdate" title="2009/08/05 00:26">6 Years, 1 Month ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hello,<br />
+<br />
+The files were not included. Let&#039;s try once again: diskorc.xml<br />
+<br />
+Joaquim Duran <div class="fb_file_attachment"><span class="contentheading">File Attachment: </span><br>File Name: <a href='http://www.diskohq.org/images/fbfiles/files/diskorc.txt' target="_blank">diskorc.txt</a><br>File Size: 4101</div></div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=233&amp;catid=8" title="#233">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__233" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+                    </td>
+                </tr>
+
+                            </table>
+            <div style="border 0px solid green; margin-top:11px; ">
+                &lt;&lt; <span class="pagenav">Start</span> &lt; <span class="pagenav">Prev</span> <span class="pagenav">1</span> <a title="2" href="/forum_func=view&amp;id=222&amp;catid=8&amp;start=6" class="pagenav">2</a> <a title="Next" href="/forum_func=view&amp;id=222&amp;catid=8&amp;start=6" class="pagenav">Next</a> &gt; <a title="End" href="/forum_func=view&amp;id=222&amp;catid=8&amp;start=6" class="pagenav">End</a> &gt;&gt;            </div>
+            <!-- Begin: Forum Jump -->
+            <div class="fb__bt_cvr1" style="display:none;">
+<div class="fb__bt_cvr2">
+<div class="fb__bt_cvr3">
+<div class="fb__bt_cvr4">
+<div class="fb__bt_cvr5">
+            <table class = "fb_blocktable" id="fb_bottomarea"  border = "0" cellspacing = "0" cellpadding = "0" width="100%">
+                <thead>
+                    <tr>
+                        <th  class = "th-right">
+                            
+<form id = "jumpto" name = "jumpto" method = "get" target = "_self" action = "index.php" onsubmit = "if(document.jumpto.catid.value &lt; 2){return false;}">
+    <div align = "right" style = "width: 100%;">
+        <input type = "hidden" name = "Itemid" value = "24"/>
+
+        <input type = "hidden" name = "option" value = "com_fireboard"/>
+
+        <input type = "hidden" name = "func" value = "showcat"/>
+
+        <input type = "submit" name = "Go"  class="fbjumpgo fbs" value = "Go"/>
+<select name="catid" id="catid" class="inputbox fbs" size="1"  onchange = "if(this.options[this.selectedIndex].value > 0){ forms['jumpto'].submit() }"><option value="0" >Board Categories </option><option value="11" >Disko Forum</option><option value="2" >...&nbsp;News &amp; Announcements</option><option value="4" >...&nbsp;Ideas &amp; Requirements</option><option value="6" >...&nbsp;Bug Reports</option><option value="10" >...&nbsp;Off-Topic</option></select>    </div>
+</form>                        </th>
+                    </tr>
+                </thead>
+                <tbody><tr><td></td></tr></tbody>
+            </table>
+            </div>
+</div>
+</div>
+</div>
+</div>
+                <!-- Finish: Forum Jump -->
+
+
+    <div style="font-weight:normal; color: #787878; background: #262929; float: right; padding-top: 11px; border:0px solid green;">  
+
+    <div style="margin-right: 30px; float: left;">Powered by <a href="http://www.bestofjoomla.com" target="_blank" style="color: #787878;">FireBoard</a></div>
+
+<a href="/index2.php_option=com_fireboard&amp;func=fb_rss&amp;no_html=1&amp;Itemid=24" target="_blank" style="float:right; display:block;"><img src="/components/com_fireboard/template/default/images/english/emoticons/rss.gif" border="0" alt="get the latest posts directly to your desktop" title="get the latest posts directly to your desktop" style="margin-right: 3px; width: 15px;.html" /></a></div>
+<div class="fb_footer">&nbsp;</div>
+</div> <!-- closes fireboard div -->
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>
+ 

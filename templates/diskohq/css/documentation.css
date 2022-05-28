@@ -1,0 +1,197 @@
+/* table of content ************************************************* */
+#documentationToc {
+	visibility: visible;
+	font-size: 12px;
+	line-height: 15px;
+	/*display: none;*/
+}
+
+#documentationToc a.active {
+	color: #9aebfd;
+}
+
+#documentationToc ul.table-of-contents-bullets,
+#documentationToc ul.table-of-contents-bullets ul {
+	margin: 0;
+	padding: 0;
+    color: #2dacde;
+	font-size: 14px;
+	line-height: 16px;
+	list-style-type: none;
+}
+#documentationToc ul.table-of-contents-bullets ul {
+	padding: 0 0 0 1em;
+}
+
+
+/* content ********************************************************** */
+/* top and bottom margins of various elements at end of this file */
+
+#documentationContent a {
+	color: #2dacde;
+	text-decoration: none;
+}
+
+#documentationContent dt {
+	font-weight: bold;
+}
+#documentationContent dd {
+	margin: 0 0 3px 1em;
+	padding: 0;
+}
+
+#documentationContent img.block {
+	display: block;
+	margin: 0;
+}
+
+/* lists */
+#documentationContent ul {
+	padding: 0 0 0 15px;
+	margin: 15px 0 15px 0;
+}
+
+#documentationContent ul.example-bullets,
+#documentationContent ul.example-bullets ul {
+	/* I prefer with bullets */
+	/*margin: 0 0 0 2px;*/
+	list-style-type: none;
+	padding: 0;
+}
+
+#documentationContent ul.example-bulltes ul {
+	 padding: 0 0 0 1em;
+}
+
+/* pre */
+#documentationContent pre.codelisting {
+	background:  #5a5a5a;
+	width: 632px;
+	padding: 8px 11px 8px 11px;
+	color: #d2d2d2;
+	font-family: monospace;
+	margin: 15px 0 15px 0;
+	white-space: pre-wrap;
+}
+
+#documentationContent span.inline-code {
+	font-family: Courier, monospace;
+	font-weight: bold;
+}
+
+/*#documentationContent .example {
+    background:  #262929;
+    width: 635px;
+    padding-left: 0px;
+    padding-top:8px;
+    padding-bottom:8px;
+    color: #ffffff;
+}*/
+
+/*ul.table-of-contents-bullets {
+    font-size:14px;
+    color: #2dacde;
+    text-decoration: none;
+}*/
+
+/*#documentationContent .example-bullets a {
+    font-size:12px;
+    color:white;
+    text-decoration: underline;
+}*/
+
+/* Tabellen */
+
+/*#documentationContent table.example {
+	border-collapse: collapse;
+	border-spacing: 0;
+	padding: 0;
+	margin: 0;
+}*/
+
+#documentationContent table.example td {
+	background: #8c8c8c;
+	color: #ffffff;
+	font-weight: normal;
+	padding: 5px 5px 2px 5px;
+	border: 3px solid #262929;
+	border-width: 0 3px 3px 0;
+	font-size: 11px;
+	line-height: 13px;
+	vertical-align: middle;
+}
+
+#documentationContent table.example thead td,
+#documentationContent table.example th {
+	background: #5a5a5a;
+	color: #ffffff;
+	text-align: left;
+	font-weight: bold;
+	border: 3px solid #262929;
+	border-width: 0 3px 3px 0;
+	padding: 5px 5px 3px 5px;
+	font-size: 10px;
+	line-height: 12px;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+
+#documentationContent table.example a {
+    color: #ffffff;
+    text-decoration: underline;
+}
+#documentationContent h1 {
+	padding-left: 0;
+	font-weight: normal;
+}
+
+#documentationContent h2 {
+	font-size: 12px;
+    line-height: 15px;
+	font-weight: bold;
+	color: #ffffff;
+	margin: 30px 0 15px 0;
+	padding: 0;
+}
+
+#documentationContent h3 {
+	font-size: 10px;
+    font-weight: bold;
+	text-decoration: none;
+    color: #ffffff;
+	margin: 20px 0 10px 0;
+	padding: 0;
+}
+
+
+#documentationContent dt {
+	float: left;
+	margin-right: 15px;
+}
+#documentationContent dd {
+	
+}
+
+/* the top and bottom margins */
+#documentationContent ul,
+#documentationContent ol,
+#documentationContent dl,
+#documentationContent pre,
+#documentationContent p,
+#documentationContent img,
+#documentationContent div.group {
+	margin-top: 15px;
+	margin-bottom: 15px;
+}
+
+#documentationContent div.group ul,
+#documentationContent div.group ol,
+#documentationContent div.group dl,
+#documentationContent div.group pre,
+#documentationContent div.group p,
+#documentationContent div.group img {
+	margin-top: 3px !important;
+	margin-bottom: 3px !important;
+}
+

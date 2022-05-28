@@ -1,0 +1,1088 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/index.php" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, ui framework, GUI library, linux, embedded ui framework, open source, LGPL" />
+  <meta name="description" content="Disko is a LGPL licensed and linux based ui application framework for embedded devices." />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title>Re:Cross Compiler DISKO-1.6.0 to DM6446 - FireBoard</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <script type="text/javascript" src="/components/com_fireboard/template/disko/js/jquery-latest.pack.js"></script>
+  <script type="text/javascript">
+//1: show, 0 : hide
+jr_expandImg_url = "/components/com_fireboard/template/default/images/english/";</script>
+  <script type="text/javascript" src="/components/com_fireboard/template/disko/js/bojForumCore.js"></script>
+  <link type="text/css" rel="stylesheet" href="/components/com_fireboard/template/disko/forum.css" />
+  <script type="text/javascript" src="/components/com_fireboard/template/default/plugin/chili/jquery.chili.pack.js"></script>
+<script id="setup" type="text/javascript">
+ChiliBook.recipeFolder     = "/components/com_fireboard/template/default/plugin/chili/";
+ChiliBook.stylesheetFolder     = "/components/com_fireboard/template/default/plugin/chili/";
+</script>
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+			var headLines = document.getElementsByTagName('h1');
+			var p = null;
+			var n = null;
+			var c = null;
+			for(i = 0; i < headLines.length; ++i) {
+				c = headLines[i].getAttributeNode('class');
+				p = headLines[i].parentNode;
+
+				var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+				newSrc.nodeValue = '/templates/diskohq/images/arrow_bg.png';
+				newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headLines[i].insertBefore(newImg, headLines[i].firstChild);
+
+			}
+						var headlines = jQuery('#page h2');
+						for(i = 0; i < headlines.length; ++i) {
+								var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+								newSrc.nodeValue = '/templates/diskohq/images/arrow_bg_blue.png';
+				newClass.nodeValue += ' arrowBlue';
+								newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headlines[i].insertBefore(newImg, headlines[i].firstChild);
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent item7"><a href="/products/disko-framework/overview"><span>Products</span></a></li><li class="parent item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a></li><li class="item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+<!-- closed in footer.html -->
+<div id="fireboard">
+
+<!-- BerLinux - we don't use a header with the new layout -->
+<!--<div class="shortDivider"></div>
+<h1 class="descriptionHeadline" style="float:right; width:100%; margin-bottom:10px;">Disko forums</h1><br />
+-->
+
+
+    <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0"  class = "fb_profilebox">
+        <tbody id = "topprofilebox_tbody">
+            <tr class = "fb_sectiontableentry1">
+                <td class = "td-1  fbm fb_profileboxcnt" style="vertical-align:bottom; border-right: 0px;">
+                    <img src="/components/com_fireboard/template/disko/images/diskoforum.png" alt="Disko Forum logo" style="padding-left:14px; padding-bottom:14px; float:left;" />
+                </td>
+                <td style="padding-right:14px; padding-bottom:10px; vertical-align:bottom; text-align:right; border-left: 0px;">
+                    <a href = "/component/user/login">Login</a>
+                    &nbsp;|&nbsp;
+                    <a href = "/component/user/?task=register">Register</a>
+                    &nbsp;|&nbsp;
+                    <a href = "/component/user/reset">Lost Password</a>
+                </td>
+                                 
+            </tr>
+        </tbody>
+    </table>
+
+
+        <script type = "text/javascript">
+        jQuery(function()
+        {
+            jQuery(".fb_qr_fire").click(function()
+            {
+                jQuery("#sc" + (jQuery(this).attr("id").split("__")[1])).toggle();
+            });
+            jQuery(".fb_qm_cncl_btn").click(function()
+            {
+                jQuery("#sc" + (jQuery(this).attr("id").split("__")[1])).toggle();
+            });
+
+        });
+        </script>
+
+        <div>
+            <!-- Pathway -->
+
+    <div class = "fb_forum-pathway" style="font-weight:normal; color: #787878; background: #262929; float:right;">
+        <a href='/forum' style="text-decoration: underline; color: #787878;" >Disko Forum</a>  > <a href='/forum_func=showcat&amp;catid=8' style="text-decoration: underline; color: #787878;" >Questions</a> </div><div class="forum-pathway-2">     </div>
+
+    </div>
+
+<!-- / Pathway -->
+        </div>
+
+        <div style="border 1px solid green; margin-top:11px;">
+            
+            &lt;&lt; <a title="Start" href="/component/fireboard/?func=view&amp;catid=8&amp;id=503" class="pagenav">Start</a> &lt; <a title="Prev" href="/component/fireboard/?func=view&amp;catid=8&amp;id=503&amp;start=6" class="pagenav">Prev</a> <a title="1" href="/component/fireboard/?func=view&amp;catid=8&amp;id=503" class="pagenav">1</a> <a title="2" href="/component/fireboard/?func=view&amp;catid=8&amp;id=503&amp;start=6" class="pagenav">2</a> <span class="pagenav">3</span> <span class="pagenav">Next</span> &gt; <span class="pagenav">End</span> &gt;&gt;        </div>
+
+                <table class = "fb_blocktable"  id="fb_views" cellpadding = "0" cellspacing = "0" border = "0" width = "100%" style="margin-top:11px;">
+                <tr>
+                    <td>
+                        
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Re:Cross Compiler DISKO-1.6.0 to DM6446            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Bermuda</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 21</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="15" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="45" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Cross Compiler DISKO-1.6.0 to DM6446 </span> <span class = "msgdate" title="2010/04/09 14:44">5 Years, 5 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Thanks.<br />
+<br />
+I modify sanity.bbclass<br />
+<br />
+and finally ~ done. Now is building.<br />
+<br />
+THANKS VERY MUCH : )<br />
+<br />
+<br />
+=====================<br />
+<br />
+I remember that I still have to cross compiler the libaries?<br />
+<br />
+because I have not get my Beagleboard. so I can&#039;t test it.<br />
+<br />
+[QUESTION 1]<br />
+My question is that with the &quot;bitbake&quot; method I dont have to cross compiler each libary manully? (by ./configure --host=arm-linux....and make) right??<br />
+<br />
+======================<br />
+<br />
+[QUESTION 2]<br />
+With the cross compiler of lib. <br />
+<br />
+Where can I set the lib path for disko if I use the scons and make command to build the disko?<br />
+<br />
+(something like Make -I/home/user/lib/??)<br />
+<br />
+because the disko.conf and scons -h seems no arguements for this,<br />
+<br />
+also --host=arm_v5t_le is unrecognized. <br />
+<br />
+(I still working...on porting this to DM6446.)</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=502&amp;catid=8" title="#502">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__502" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Re:Cross Compiler DISKO-1.6.0 to DM6446            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img  style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Matthias</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 64</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="46" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="14" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                    <img src="/components/com_fireboard/template/default/images/english/icons/msgmale.gif" border="0" alt="Gender: Male" title="Gender: Male" />                                        <a href="http://www.diskohq.org" target="_blank"><img src="/components/com_fireboard/template/default/images/english/icons/msgwebsite.gif" border="0" alt="Disko" title="Disko" /></a>                                                             					                    <img src="/components/com_fireboard/template/default/images/english/icons/msglocation.gif" border="0" alt="Location: Berlin, Germany" title="Location: Berlin, Germany" />                    <img src="/components/com_fireboard/template/default/images/english/icons/msgbirthdate.gif" border="0" alt="Birthdate: 1979-04-25" title="Birthdate: 1979-04-25" />
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Cross Compiler DISKO-1.6.0 to DM6446 </span> <span class = "msgdate" title="2010/04/09 16:28">5 Years, 5 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">With bitbake disko-image the whole root-filesystem is created including disko and a small test application. So you don&#039;t have to worry about cross-compiling disko and its dependencies.<br />
+<br />
+If you want to cross-compile disko manually, you can set the environment variables $CXX, $CXXFLAGS and $LDFLAGS to use the correct compiler and set include and library paths.</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=503&amp;catid=8" title="#503">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__503" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Re:Cross Compiler DISKO-1.6.0 to DM6446            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Bermuda</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 21</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="15" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="45" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Cross Compiler DISKO-1.6.0 to DM6446 </span> <span class = "msgdate" title="2010/04/10 10:02">5 Years, 5 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Thanks for Matthias. Now I almost know the way to crocoss compiler this.. I guess..<br />
+<br />
+===<br />
+<br />
+By typing the command<br />
+<br />
+[bitbake disko-oimage]<br />
+<br />
+It&#039;s seems there is still problem as following :<br />
+<br />
+NOTE: Running task 1253 of 5234 (ID: 5229, /home/bermuda/oe/openembedded/recipes/xorg-proto/fixesproto_4.1.1.bb, do_distribute_sources)<br />
+Segmentation fault<br />
+NOTE: Task failed: localedef returned an error (command was PATH=&quot;/home/bermuda/oe/angstrom-dev/staging/i686-linux/usr/bin/armv7a-angstrom-linux-gnueabi:/home/bermuda/oe/angstrom-dev/staging/i686-linux/usr/bin/armv7a-angstrom-linux-gnueabi:/home/bermuda/oe/angstrom-dev/staging/i686-linux/usr/sbin:/home/
+bermuda/oe/angstrom-dev/staging/i686-linux/usr/bin:/home/bermuda/oe/angstrom-dev/cross/armv7a//bin:/home/bermuda/oe/angstrom-dev/staging/i686-linux/sbin:/home/bermuda/oe/angstrom-dev/staging/i686-linux/bin:/home/bermuda/oe/openembedded/bitbake/bin:/
+home/bermuda/oe/openembedded/bitbake/bin:/home/bermuda/oe/bitbake-1.8.18/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games&quot; I18NPATH=&quot;/home/bermuda/oe/angstrom-dev/work/armv7a-angstrom-linux-gnueabi/glibc-2.9-r35.3/locale-tree//usr/share/i18n&quot; qemu-arm -s 1048576 -r 2.6.24 -L /home/bermuda/oe/angstrom-dev/work/armv7a-angstrom-linux-gnueabi/glibc-2.9-r35.3/locale-tree -E LD_LIBRARY_PATH=/home/bermuda/oe/angstrom-dev/work/armv7a-angstrom-linux-gnueabi/glibc-2.9-r35.3/locale-tree/lib -cpu cortex-a8 /home/bermuda/oe/angstrom-dev/work/armv7a-angstrom-linux-gnueabi/glibc-2.9-r35.3/locale-tree/bin/localedef --force --old-style --no-archive --prefix=/home/bermuda/oe/angstrom-dev/work/armv7a-angstrom-linux-gnueabi/glibc-2.9-r35.3/locale-tree --inputfile=/usr/share/i18n/locales/es_NI --charmap=UTF-8 es_NI).<br />
+ERROR: TaskFailed event exception, aborting<br />
+ERROR: Build of /home/bermuda/oe/openembedded/recipes/glibc/glibc_2.9.bb do_package failed<br />
+ERROR: Task 234 (/home/bermuda/oe/openembedded/recipes/glibc/glibc_2.9.bb, do_package) failed<br />
+NOTE: Waiting for 2 active tasks to finish<br />
+NOTE: 1: /home/bermuda/oe/openembedded/recipes/xorg-proto/fixesproto_4.1.1.bb, do_distribute_sources (995)<br />
+NOTE: 2: /home/bermuda/oe/openembedded/recipes/perl/perl-native_5.8.8.bb, do_configure (29363)<br />
+NOTE: Waiting for 1 active tasks to finish<br />
+NOTE: 1: /home/bermuda/oe/openembedded/recipes/perl/perl-native_5.8.8.bb, do_configure (29363)<br />
+NOTE: Tasks Summary: Attempted 1250 tasks of which 1239 didn&#039;t need to be rerun and 1 failed.<br />
+ERROR: &#039;/home/bermuda/oe/openembedded/recipes/glibc/glibc_2.9.bb&#039; failed<br />
+<br />
+<br />
+I have tried to google but still no answer.</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=504&amp;catid=8" title="#504">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+        <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" >                  
+                    <div class="fb_message_editMarkUp_cover">
+                    <span class="fb_message_editMarkUp" >Last Edit: 2010/04/10 11:46 By Bermuda.
+                    </span>
+                    </div>
+       </td>
+        </tr>
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__504" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Re:Cross Compiler DISKO-1.6.0 to DM6446            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img  style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Matthias</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 64</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="46" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="14" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                    <img src="/components/com_fireboard/template/default/images/english/icons/msgmale.gif" border="0" alt="Gender: Male" title="Gender: Male" />                                        <a href="http://www.diskohq.org" target="_blank"><img src="/components/com_fireboard/template/default/images/english/icons/msgwebsite.gif" border="0" alt="Disko" title="Disko" /></a>                                                             					                    <img src="/components/com_fireboard/template/default/images/english/icons/msglocation.gif" border="0" alt="Location: Berlin, Germany" title="Location: Berlin, Germany" />                    <img src="/components/com_fireboard/template/default/images/english/icons/msgbirthdate.gif" border="0" alt="Birthdate: 1979-04-25" title="Birthdate: 1979-04-25" />
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Cross Compiler DISKO-1.6.0 to DM6446 </span> <span class = "msgdate" title="2010/04/12 15:22">5 Years, 5 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Alright, this looks like a bug in the angstrom-distribution regarding the<br />
+xorg-proto recipes. Are you using the stable or the development version<br />
+of angstrom?<br />
+And please try bitbake -DDD disko-image again, this prints more verbose<br />
+information. Maybe you can recognize the error.</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=505&amp;catid=8" title="#505">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__505" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Re:Cross Compiler DISKO-1.6.0 to DM6446            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Bermuda</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 21</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="15" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="45" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Cross Compiler DISKO-1.6.0 to DM6446 </span> <span class = "msgdate" title="2010/04/14 06:49">5 Years, 5 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">[VERSION]<br />
+I&#039;, not sure the version about the version of angstrom, but here<br />
+<br />
+in the angstrom-2008.1.conf I see as follow:<br />
+<br />
+should I modify??<br />
+<br />
+#DISTRO_VERSION = &quot;2009.X&quot;<br />
+DISTRO_VERSION = &quot;2010.4-test-${DATE}&quot;<br />
+DISTRO_REVISION = &quot;3&quot;<br />
+DISTRO_PR = &quot;.5&quot;<br />
+<br />
+<br />
+<br />
+[bitbake -DDD disko-image]<br />
+<br />
+make[2]: Nothing to be done for `all&#039;.<br />
+make[2]: Leaving directory `/home/bermuda/oe/angstrom-dev/work/i686-linux/guile-native-1.8.7-r0/guile-1.8.7/am&#039;<br />
+make[2]: Entering directory `/home/bermuda/oe/angstrom-dev/work/i686-linux/guile-native-1.8.7-r0/guile-1.8.7&#039;<br />
+make[2]: Leaving directory `/home/bermuda/oe/angstrom-dev/work/i686-linux/guile-native-1.8.7-r0/guile-1.8.7&#039;<br />
+make[1]: Leaving directory `/home/bermuda/oe/angstrom-dev/work/i686-linux/guile-native-1.8.7-r0/guile-1.8.7&#039;<br />
+DEBUG: Parsing /home/bermuda/oe/openembedded/recipes/guile/guile-native_1.8.7.bb (full)<br />
+DEBUG: BB /home/bermuda/oe/openembedded/recipes/guile/guile-native_1.8.7.bb: handle(data)<br />
+DEBUG: BB /home/bermuda/oe/openembedded/recipes/guile/guile-native.inc: handle(data, include)<br />
+DEBUG: BB :0: inheriting classes/autotools.bbclass<br />
+DEBUG: BB /home/bermuda/oe/openembedded/classes/autotools.bbclass: handle(data, include)<br />
+DEBUG: BB :0: inheriting classes/siteinfo.bbclass<br />
+DEBUG: BB /home/bermuda/oe/openembedded/classes/siteinfo.bbclass: handle(data, include)<br />
+DEBUG: BB :0: inheriting classes/native.bbclass<br />
+DEBUG: BB /home/bermuda/oe/openembedded/classes/native.bbclass: handle(data, include)<br />
+DEBUG: update_data()<br />
+DEBUG: update_data()<br />
+DEBUG: update_data()<br />
+DEBUG: Executing task do_compile<br />
+DEBUG: update_data()<br />
+DEBUG: mkdirhier(/home/bermuda/oe/angstrom-dev/work/i686-linux/guile-native-1.8.7-r0/guile-1.8.7)<br />
+DEBUG: mkdirhier(/home/bermuda/oe/angstrom-dev/work/i686-linux/guile-native-1.8.7-r0/guile-1.8.7)<br />
+DEBUG: mkdirhier(/home/bermuda/oe/angstrom-dev/work/i686-linux/guile-native-1.8.7-r0/temp)<br />
+DEBUG: mkdirhier(/home/bermuda/oe/angstrom-dev/stamps/i686-linux)<br />
+ERROR: Task 234 (/home/bermuda/oe/openembedded/recipes/glibc/glibc_2.9.bb, do_package) failed<br />
+NOTE: Waiting for 2 active tasks to finish<br />
+NOTE: 1: /home/bermuda/oe/openembedded/recipes/guile/guile-native_1.8.7.bb, do_compile (21563)<br />
+NOTE: 2: /home/bermuda/oe/openembedded/recipes/gcc/gcc-cross_4.3.3.bb, do_install (21262)<br />
+NOTE: Waiting for 1 active tasks to finish<br />
+NOTE: 1: /home/bermuda/oe/openembedded/recipes/guile/guile-native_1.8.7.bb, do_compile (21563)<br />
+NOTE: Tasks Summary: Attempted 1046 tasks of which 1045 didn&#039;t need to be rerun and 1 failed.<br />
+ERROR: &#039;/home/bermuda/oe/openembedded/recipes/glibc/glibc_2.9.bb&#039; failed<br />
+<br />
+Here is the last part of me debug message.<br />
+<br />
+Is there any way to fix this?<br />
+<br />
+<br />
+<br />
+==FIXED==<br />
+The problem has been fixed by modify angstrom version to stable.</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=506&amp;catid=8" title="#506">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+        <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" >                  
+                    <div class="fb_message_editMarkUp_cover">
+                    <span class="fb_message_editMarkUp" >Last Edit: 2010/04/14 16:27 By Bermuda.
+                    </span>
+                    </div>
+       </td>
+        </tr>
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__506" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Re:Cross Compiler DISKO-1.6.0 to DM6446            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Bermuda</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 21</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="15" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="45" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Cross Compiler DISKO-1.6.0 to DM6446 </span> <span class = "msgdate" title="2010/04/16 07:40">5 Years, 4 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">I have get some trouble in do_compiler in<br />
+<br />
+/angstrom-dev/work/armv7a-angstrom-linux-gnueabi/disko-testprog-1.0-r2/temp/log.do_compile.21091<br />
+<br />
+<br />
+at first the error message is <br />
+[main.cpp:31:31: error: mmsmedia/mmsvideo.h: No such file or directory]<br />
+<br />
+after I copy th folder mmsmedia by typing<br />
+<br />
+cp -rf ${OE_HOME}/angstrom-dev/work/armv7a-angstrom-linux-gnueabi/disko-1.6.0-git-r3/git/inc/mmsmedia ${OE_HOME}/angstrom-dev/staging/armv7a-angstrom-linux-gnueabi/usr/include/disko<br />
+<br />
+it&#039;s still make error like this:<br />
+<br />
+==message==<br />
+NOTE: make -j3 -e MAKEFLAGS=<br />
+arm-angstrom-linux-gnueabi-g++ -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp main.cpp -o disko-test -isystem/home/bermuda/oe/angstrom-dev/staging/armv7a-angstrom-linux-gnueabi/usr/include -fexpensive-optimizations -frename-registers -fomit-frame-pointer -O2 -ggdb3 -L/home/bermuda/oe/angstrom-dev/staging/armv7a-angstrom-linux-gnueabi/usr/lib -Wl,-rpath-link,/home/bermuda/oe/angstrom-dev/staging/armv7a-angstrom-linux-gnueabi/usr/lib -Wl,-O1 -Wl,--hash-style=gnu `pkg-config --cflags --libs disko`<br />
+/tmp/cc74SL1D.o: In function `main&#039;:<br />
+/home/bermuda/oe/angstrom-dev/work/armv7a-angstrom-linux-gnueabi/disko-testprog-1.0-r2/disko-testprog-1.0/main.cpp:62: undefined reference to `MMSVideo::MMSVideo(MMSWindow*, bool)&#039;<br />
+/home/bermuda/oe/angstrom-dev/work/armv7a-angstrom-linux-gnueabi/disko-testprog-1.0-r2/disko-testprog-1.0/main.cpp:63: undefined reference to `MMSVideo:<img src="/components/com_fireboard/template/default/images/english/emoticons/dizzy.png" alt="" style="vertical-align: middle;border:0px;" />tartPlaying(std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;, bool)&#039;<br />
+collect2: ld returned 1 exit status<br />
+make: *** [all] Error 1<br />
+FATAL: oe_runmake failed<br />
+<br />
+How can I fix this?</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=507&amp;catid=8" title="#507">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__507" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+                    </td>
+                </tr>
+
+                            </table>
+            <div style="border 0px solid green; margin-top:11px; ">
+                &lt;&lt; <a title="Start" href="/component/fireboard/?func=view&amp;catid=8&amp;id=503" class="pagenav">Start</a> &lt; <a title="Prev" href="/component/fireboard/?func=view&amp;catid=8&amp;id=503&amp;start=6" class="pagenav">Prev</a> <a title="1" href="/component/fireboard/?func=view&amp;catid=8&amp;id=503" class="pagenav">1</a> <a title="2" href="/component/fireboard/?func=view&amp;catid=8&amp;id=503&amp;start=6" class="pagenav">2</a> <span class="pagenav">3</span> <span class="pagenav">Next</span> &gt; <span class="pagenav">End</span> &gt;&gt;            </div>
+            <!-- Begin: Forum Jump -->
+            <div class="fb__bt_cvr1" style="display:none;">
+<div class="fb__bt_cvr2">
+<div class="fb__bt_cvr3">
+<div class="fb__bt_cvr4">
+<div class="fb__bt_cvr5">
+            <table class = "fb_blocktable" id="fb_bottomarea"  border = "0" cellspacing = "0" cellpadding = "0" width="100%">
+                <thead>
+                    <tr>
+                        <th  class = "th-right">
+                            
+<form id = "jumpto" name = "jumpto" method = "get" target = "_self" action = "index.php" onsubmit = "if(document.jumpto.catid.value &lt; 2){return false;}">
+    <div align = "right" style = "width: 100%;">
+        <input type = "hidden" name = "Itemid" value = "24"/>
+
+        <input type = "hidden" name = "option" value = "com_fireboard"/>
+
+        <input type = "hidden" name = "func" value = "showcat"/>
+
+        <input type = "submit" name = "Go"  class="fbjumpgo fbs" value = "Go"/>
+<select name="catid" id="catid" class="inputbox fbs" size="1"  onchange = "if(this.options[this.selectedIndex].value > 0){ forms['jumpto'].submit() }"><option value="0" >Board Categories </option><option value="11" >Disko Forum</option><option value="2" >...&nbsp;News &amp; Announcements</option><option value="4" >...&nbsp;Ideas &amp; Requirements</option><option value="6" >...&nbsp;Bug Reports</option><option value="10" >...&nbsp;Off-Topic</option></select>    </div>
+</form>                        </th>
+                    </tr>
+                </thead>
+                <tbody><tr><td></td></tr></tbody>
+            </table>
+            </div>
+</div>
+</div>
+</div>
+</div>
+                <!-- Finish: Forum Jump -->
+
+
+    <div style="font-weight:normal; color: #787878; background: #262929; float: right; padding-top: 11px; border:0px solid green;">  
+
+    <div style="margin-right: 30px; float: left;">Powered by <a href="http://www.bestofjoomla.com" target="_blank" style="color: #787878;">FireBoard</a></div>
+
+<a href="/index2.php_option=com_fireboard&amp;func=fb_rss&amp;no_html=1&amp;Itemid=24" target="_blank" style="float:right; display:block;"><img src="/components/com_fireboard/template/default/images/english/emoticons/rss.gif" border="0" alt="get the latest posts directly to your desktop" title="get the latest posts directly to your desktop" style="margin-right: 3px; width: 15px;.html" /></a></div>
+<div class="fb_footer">&nbsp;</div>
+</div> <!-- closes fireboard div -->
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>
+ 

@@ -1,0 +1,195 @@
+div#main { float:left; width: 805px; }
+
+#fireboard a { text-decoration: none; font-weight: normal; font-family: Helvetica, Arial, sans-serif; font-size: 12px;}
+#fireboard a:link { /*color: #fc6700;*/ color: #ffffff;; }
+#fireboard a:visited { text-decoration: none; color: #ffffff;}
+#fireboard a:hover { text-decoration: underline; color: #ffffff; }
+
+#fireboard table { border-collapse: collapse; padding: 0; margin: 0; border-spacing: 0; border: 0px;}
+#fireboard td,
+#fireboard th { padding: 0; margin: 0; vertical-align: middle;}
+#fireboard th { text-transform: none; text-align: left ; padding-right: 2px; }
+
+/* some defaults */
+#fireboard table#fb_postmessage th,
+#fireboard table#fb_views th,
+#fireboard table#fb_flattable th,
+#fireboard table#fb_threadviewtable th,
+#fireboard table#fb_bottomarea th,
+#fireboard table#fb_whoisonline th,
+#fireboard table#fb_recentposts th,
+#fireboard table#fb_views .fb_blocktable,
+#fireboard table.fb_categorytable th { border-right: 3px solid #2d3232; border-bottom: 4px solid #2d3232; background: #5a5a5a; color: #ffffff; font-weight: bold;}
+#fireboard table#fb_views thead th,
+#fireboard table#fb_whoisonline thead th,
+#fireboard table#fb_recentposts thead th,
+#fireboard table.fb_categorytable thead th { padding: 3px; }
+#fireboard table#fb_postmessage thead th 
+
+#fireboard table#fb_views tbody th,
+#fireboard table#fb_bottomarea tbody th,
+#fireboard table#fb_bottomarea tbody td,
+#fireboard table#fb_whoisonline tbody th,
+#fireboard table#fb_whoisonline tbody td,
+#fireboard table.fb_categorytable tbody td,
+#fireboard table.fb_categorytable tbody th,
+#fireboard table#fb_recentposts tbody th,
+#fireboard table#fb_recentposts tbody td table td {border-right: 3px solid #262929; border-bottom: 3px solid #262929; color: #ffffff; padding: 2px; background: #5a5a5a; vertical-align:top; }
+#fireboard table#fb_bottomarea tbody td.td-1,
+#fireboard table#fb_bottomarea thead th.th-left,
+#fireboard table#fb_recentposts tbody th.th-1,
+#fireboard table#fb_recentposts tbody td.td-1,
+#fireboard table.fb_categorytable tbody th.th-1,
+#fireboard table.fb_categorytable tbody td.td-1 { border-right: 3px solid #262929; border-bottom: 3px solid #262929; color: #ffffff; }
+#fireboard table#fb_bottomarea tbody td.td-2,
+#fireboard table#fb_bottomarea thead th.th-right,
+#fireboard table#fb_recentposts tbody th.th-6,
+#fireboard table#fb_recentposts tbody td.td-6,
+#fireboard table.fb_categorytable tbody th.th-5,
+#fireboard table.fb_categorytable tbody td.td-5 { border-right: 3px solid #262929; border-bottom: 3px solid #262929; color: #ffffff; }
+#fireboard table.fb_categorytable tbody th.th-4,
+#fireboard table.fb_categorytable tbody td.td-3,
+#fireboard table.fb_categorytable tbody td.td-4 {text-align: right; padding-right: 6px; }
+#fireboard div.fb_title_cover { float: left; color: #ffffff; font-weight: normal; line-height: normal; padding: 2px; text-align: left;}
+#fireboard div.fb_title_cover span,
+#fireboard div.fb_title_cover a { display: block; font-weight: bold; font-size: 12px;}
+#fireboard img.hideshow { float: right; margin: 0; padding: 0; cursor: pointer; position: relative; z-index: 1; }
+
+#fireboard .td-1,
+#fireboard .td-2,
+#fireboard .td-3,
+#fireboard .td-4,
+#fireboard .td-5,
+#fireboard .td-6 { background: #5a5a5a; vertical-align:top; border-right: 3px solid #262929; border-bottom: 3px solid #262929;}
+
+/* forum header */ 
+#fireboard table.fb_profilebox td {
+    border: 1px solid #2dacde;
+    background: #262929;
+    color: #2dacde;
+    height: 58px;
+}
+
+#fireboard table.fb_profilebox a {
+    background: #262929;
+    color: #2dacde;
+    height:80px;
+}
+/* end forum header */ 
+
+/* category list */
+#fireboard table.fb_categorytable { margin: 8px 0 0 0; }
+
+/* recent posts */
+#fireboard table#fb_recentposts { margin: 20px 0 0 0; }
+#fireboard table#fb_recentposts ul.tabbernav { margin-left: 140px; border-bottom: 0px solid #cccccc; position: relative;}
+#fireboard table#fb_recentposts ul.tabbernav li { position: relative; top: -2px; }
+#fireboard table#fb_recentposts ul.tabbernav li a { border: 1px solid #8c8c8c; background: #5a5a5a;}
+#fireboard table#fb_recentposts ul.tabbernav li.tabberactive a { background: #8c8c8c;}
+#fireboard table#fb_recentposts ul.tabbernav li a:hover { background: #ffffff; }
+#fireboard table#fb_recentposts td.td-3 { text-align: left; }
+#fireboard table#fb_recentposts td.td-6 { text-align: right; }
+
+/* who is online */
+#fireboard table#fb_whoisonline { margin: 20px 0 0 0; }
+#fireboard table#fb_whoisonline tbody td { border: 1px solid #cccccc; padding: 2px;}
+
+/* bottom */
+#fireboard table#fb_bottomarea { margin: 20px 0 0 0; border: 1px solid #cccccc; }
+#fireboard table#fb_bottomarea thead th { padding: 4px; }
+#fireboard table#fb_bottomarea thead th.th-left { text-align: left; }
+#fireboard table#fb_bottomarea thead th.th-right { text-align: right; }
+
+#fireboard div.fb_credits { position: relative; text-align: center; margin: 8px 0 0 0;}
+#fireboard div.fb_footer { text-align: center; }
+#fireboard img.rsslink { position: absolute; right:3px; top:0px; }
+
+/* pathway */
+#fireboard div#fb_bottom_pathway,
+#fireboard div.fb_forum-pathway { background: #5a5a5a; color: #ffffff; padding: 4px; border: 0px solid #cccccc; margin: 8px 0 0 0; }
+/* thread view */
+#fireboard div.headerdesc { border-right: 0px solid #cccccc; border-bottom: 0px solid #cccccc; border-left: 0px solid #cccccc; margin-bottom: 8px; padding: 4px;}
+#fireboard table#fb_flattable,
+#fireboard table#fb_threadviewtable { border: 0px solid #cccccc; }
+
+#fireboard table#fb_flattable td,
+#fireboard table#fb_threadviewtable td {border-bottom: 1px solid #cccccc; border-top: 1px solid #cccccc;}
+#fireboard table#fb_threadviewtable td td {border: none;}
+#fireboard table#fb_flattable th.th-4,
+#fireboard table#fb_flattable td.td-4,
+#fireboard table#fb_flattable td.td-5 {text-align: right; padding-right: 6px;}
+#fireboard img.stickyicon,
+#fireboard img.attachicon {float: right; border: 0px; margin: 2px;}
+#fireboard img.catavatar{width: 20px; height: 20px; margin-left: 4px;}
+
+#fireboard td#fb_spot,
+#fireboard td#fb_fspot {/*font-weight: bold;*/ padding: 2px;}
+#fireboard td#fb_spot span {color: #cc0000;}
+
+#fireboard td.jr-topnav-right { text-align: right; }
+#fireboard td.jr-topnav-right ul { list-style-type: none; }
+#fireboard td.jr-topnav-right ul li { display: inline; }
+
+/* forum menu */
+#fireboard #fb_ft-cover {position: relative; float: right; text-align: right;}
+#fireboard table.jr-ft { width: 100%; }
+#fireboard td.ft-td1 { width: 100%; }
+#fireboard td.ft-td2 { width: 150px; }
+#fireboard #forumtools_control { width: 150px; }
+#fireboard .forumtools_contentBox { border:  0px solid #cccccc; display: none; position: absolute; right: 2px; background: #eaeaea; overflow: hidden; width: 150px;}
+#fireboard .forumtools_content { position: relative; width: 100%; text-align: left; padding: 1px; }
+#fireboard #subBox1 ul { margin: 0; padding: 0; }
+#fireboard #subBox1 ul li { padding: 3px 5px; background: none; }
+#fireboard #subBox1 ul li a:link,
+#fireboard #subBox1 ul li a:visited { text-decoration: none; /*font-weight: bold;*/ }
+#fireboard #subBox1 ul li a:hover { text-decoration: underline; }
+#fireboard a.forumtools:link,
+#fireboard a.forumtools:visited { padding-right: 2px; /*font-weight: bold;*/ text-decoration: none; }
+#fireboard a.forumtools:hover{ text-decoration: underline; }
+
+/* view */
+#fireboard table#fb_views { margin: 8px 0 8px 0; border: 0px solid #cccccc; }
+#fireboard table#fb_views tbody td table tbody td { padding: 4px; vertical-align: top; }
+
+/* edit */
+#fireboard table#fb_postmessage { margin: 8px 0 0 0; border: 1px solid #cccccc; }
+#fireboard table#fb_postmessage tbody td {padding: 2px;}
+#fireboard table#fb_postmessage td.fb_leftcolumn { text-align: right; vertical-align: top; }
+#fireboard table#fb_postmessage td table td { border: none; }
+#fireboard table#fb_postmessage textarea#message { width: 95%; border: 1px solid #ffffff; overflow: auto; height: 300px; }
+#fireboard table#fb_postmessage input.fb_inputbox { width: 95%; border: 1px solid #ffffff; }
+#fireboard table#fb_postmessage td.fb_posthint input.fb_inputbox { border: none; font-family: monospace; }
+
+#fireboard .msgtext, #fireboard .msgtitle, 
+#fireboard td .fb-msgview-right, #fireboard td .fb-msgview-left
+, #fireboard td .fb-msgview-left-b, #fireboard td .fb-msgview-left-c
+, #fireboard td .fb-msgview-right-b, #fireboard td .fb-msgview-right-c { overflow: hidden; background: #8c8c8c; border: 0px solid #8c8c8c; }
+/* post layouts*/
+
+#fireboard blockquote {
+    background:  #5a5a5a;
+    display:block;
+    padding:6px;
+    width: 613px;
+ }
+
+#fireboard .php {
+    background:  #5a5a5a;
+    width: 642px;
+    padding:6px;
+    display:block;
+    margin:8px;
+    padding:6px;
+    color: #ffffff;
+}
+
+#fireboard .jr-pagenav ul {
+    list-style-type: none;
+}
+
+.bl_button {
+    border: 1px solid;
+    padding:2px;
+    margin-right: 4px;
+}
+

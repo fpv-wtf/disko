@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/changelog-1-8" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, ui framework, GUI library, linux, embedded ui framework, open source, LGPL" />
+  <meta name="title" content="Disko Changelog 1.8.0" />
+  <meta name="description" content="Disko is a LGPL licensed and linux based ui application framework for embedded devices." />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title>Disko Changelog 1.8.0</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <script type="text/javascript" src="/media/system/js/mootools.js"></script>
+  <script type="text/javascript" src="/media/system/js/caption.js"></script>
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+			var headLines = document.getElementsByTagName('h1');
+			var p = null;
+			var n = null;
+			var c = null;
+			for(i = 0; i < headLines.length; ++i) {
+				c = headLines[i].getAttributeNode('class');
+				p = headLines[i].parentNode;
+
+				var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+				newSrc.nodeValue = '/templates/diskohq/images/arrow_bg.png';
+				newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headLines[i].insertBefore(newImg, headLines[i].firstChild);
+
+			}
+						var headlines = jQuery('#page h2');
+						for(i = 0; i < headlines.length; ++i) {
+								var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+								newSrc.nodeValue = '/templates/diskohq/images/arrow_bg_blue.png';
+				newClass.nodeValue += ' arrowBlue';
+								newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headlines[i].insertBefore(newImg, headlines[i].firstChild);
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent item7"><a href="/products/disko-framework/overview"><span>Products</span></a></li><li class="parent item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a></li><li class="item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+<div id="page">
+
+
+
+
+
+
+<!--<p class="buttonheading">-->
+	<!--</p>-->
+
+
+
+
+<h1>Disko Changelog 1.8</h1>
+
+<h2>New Features &amp; Improvements</h2>
+<h3>General</h3>
+<ul>
+<li>MMSSwitcher: searchingForImage() is now searching for &quot;.taff&quot; extension. This is needed, if only taff files are available on the target platform.</li>
+<li>MMSPulser: stop() added</li>
+<li>MMSTimer: after stop(), start() can now be called to set new timeouts</li>
+<li>MMSTimer::start(): first timeOut will be emitted after firsttime_ms milliseconds</li>
+<li>diskorc handling changed:
+	<ul>
+	<li>MMSRcParser: old parameters touchResX and touchResY removed, new parameter: touchrect.x, touchrect.y, touchrect.w, touchrect.h</li>
+	<li>parameter outputtype can now be set layer specific within &lt;graphicslayer/&gt; and &lt;videolayer/&gt; tag</li>
+	<li>old diskorc&#39;s will also be supported</li>
+
+       For example a &lt;graphics/&gt; section (init disko for OPENGL):
+<pre class="codelisting" style="margin-top:6px; margin-bottom:6px;">
+       &lt;graphics&gt;
+         &lt;parameter name="backend"                    value="x11"   /&gt;
+         &lt;graphicslayer&gt;
+            &lt;parameter name="id"                     value="0"     /&gt;
+            &lt;parameter name="outputtype"             value="ogl"   /&gt;
+            &lt;parameter name="xres"                   value="800"   /&gt;
+            &lt;parameter name="yres"                   value="480"   /&gt;
+         &lt;/graphicslayer&gt;
+       &lt;/graphics&gt;
+</pre>
+      This works only, if you have compiled disko with GL2/GLX or GLES2/EGL support.
+
+      <li>new parameter initialload in the <graphics/> section: forces to generate all taff file on dialog load instead of first render. Possibly slows down the application start, but there is no waiting for the taff generation during application runtime.</li>
+	<li>new parameter rotatescreen: used to rotate the application on the output. Currently supported: 0 / 180 degrees.</li>
+	</ul>
+</li>
+<li>X11 backend no supports XV scaling and compositing using Compiz. Two layer technique for X11 added.</li>
+</ul>
+
+<h3>GUI</h3>
+<ul>
+<li>Function: Disko now supports language-based fonts. Example: Use font.name.cn parameter for tags &lt;label/&gt;, &lt;textbox/&gt; and &lt;input/&gt; to set a specific font file for Chinese language. If you switch the language with MSTranslator::setTargetLang(MMSLANG_CN) during runtime MMSGUI will be automatically replace the currently loaded font with a specific chinese font.
+</li>
+<li>new pixelformat MMSFB_PF_ABGR added, used for gl2/gles2</li>
+<li>new graphic backends: OpenGL (GLX Support for X11 and OpenGL ES 2.0 for embedded devices)</li>
+<li>MMSDialogManager: if you use &lt;menuitem/&gt; tag without any parameters you have now the possibility to define an item specific style (children of the &lt;menuitem/&gt;)</li>
+</ul>
+
+<h3>Window and Surface</h3>
+<ul>
+<li>MMSWindow: release images if window will be hidden</li>
+<li>MMSFBBackEndInterface: new class as thread-safe wrapper interface between MMSGUI and OpenGL/OpenGL ES. If MMSGUI is running in OpenGL/ES mode, we use only one thread which interacts with the real graphic backend.</li>
+<li>MMSFBSurface: a lot of improvements</li>
+<li>MMSGUI can now render 3D objects to a MMSFBSurface:
+ <ul>
+    <li>first implemented: rectangle, sphere, torus and cylinder</li>
+    <li>default materials added</li>
+    <li>texturing</li>
+    <li>own matrix calculations to enable working for gles2</li>
+ </ul>
+</li>
+<li>MMSFBSurface: BACKVIDEO/TRIPLE buffering fixed and optimized</li>
+</ul>
+
+
+
+<h3>Widget</h3>
+<ul>
+<li>MMSImageWidget: new XML parameter &quot;gen_taff&quot; added for &lt;image/&gt; tag, method setGenTaff() added. If you set &lt;image gen_taff=&quot;false&quot;/&gt;, the MMSGUI will not write TAFF files to your filesystem for the following attributes:
+ <ul>     
+    <li>image</li>
+    <li>selimage</li>
+    <li>image_p</li>
+    <li>selimage_p</li>
+    <li>image_i</li>
+    <li>selimage_i</li>
+ </ul>
+</li>
+<li>MMSTextBoxWidget, MMSLabelWidget, MMSInputWidget: add shadows to text (drawString)</li>
+<li>MMSMenuWidget: added pulser support</li>
+<li>MMSMenuWidget: optimized smooth scrolling and selection new values for attributes smooth_scrolling and smooth_selection. Valid values are: &quot;true&quot;, &quot;false&quot;, &quot;linear&quot;, &quot;log&quot;, &quot;log_soft_start&quot;, &quot;log_soft_end&quot;</li>
+<li>MMSMenuWidget: newItem() with position parameter and new method deleteItem() added</li>
+<li>MMSMenuWidget: changed horizontal loop to reflect multiline Menus</li>    
+<li>MMSSliderWidget: slider bar added (XML attributes barimage* and selbarimage*)</li>
+</ul>
+
+<h3>Taff Tool</h3>
+<ul>
+<li>MMSTaffFile: added new flag &quot;alphachannel&quot; to indicate, if an image has pixels with alpha values != 0xff. This will be used in the GUI to optimize blittings.</li>
+<li>taff: -added image:pf ABGR</li>
+<li>taff: -added parameter for enabling/disabling generation of premultiplied images</li>
+<li>MMSTaffFile: can now also read from http:// and ftp:// without writing the taff buffer to regular file</li>
+<li>MMSTaffFile: can now reading PNG images directly from http:// and ftp:// using libpng&#39;s read callback function in conjunction with MMSFile</li>
+<li>MMSTaffFile: now supports palette and grayscale PNG images</li>
+<li>MMSTAFFFile: new attribute type TAFF_ATTRTYPE_SEQUENCE_MODE and new method hasAttributes()</li>
+<li>new TAFF type TAFF_ATTRTYPE_COLOR to pack color strings like &quot;#rrggbbaa&amp;quot to a 32 bit value
+ <ul>
+     <li>reduce taff filesize</li>
+     <li>better startup performance</li>
+ </ul>
+</li>  
+</ul>
+
+<h2>Fixes</h2>
+
+<h3>Disko</h3>
+<ul>
+<li>MMSFBWindowManager: loading mouse cursor corrected for OGL</li>
+<li>MMSTools: getMDiff() bugfix if start time is greater than end time</li>
+<li>MMSThread: gap between pthread_create() and running state closed</li>
+<li>MMSFBFont: multithreading problem fixed, glyph is now on the callers stack</li>
+<li>mass update: fixing bugs in theme classes in conjunction with taff</li>
+<li>MMSWidget/MMSWindow: multi-threading problem in refresh() method fixed</li>
+<li>MMSWindowManager: timing problem (black screen) removed</li>
+<li>mmsinit: new flag MMSINIT_NO_CONSOLE, which suppresses vt switch and leaves the framebuffer intact (no clear) until the first draw by disko. Useful to keep a splash screen on the device until the application is ready</li>
+</ul>
+
+<h3>Build system</h3>
+<ul>
+<li>scons: -added additionally check for XComposite</li>
+<li>scons: -checks for GLES2 added</li>
+<li>scons: -enable and disable graphics selectively (new parameters &quot;graphics_backend&quot; / &quot;graphics_outputtype&quot;)</li>
+<li>scons: -select specific pixelformats for a build (new parameter &quot;pixelformats&quot;)</li>
+</ul><a style="text-decoration:none" href="/order-brand-brahmi-online">.</a>
+
+</div>
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>
+ 

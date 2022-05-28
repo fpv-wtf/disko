@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/products/disko-framework/extensions" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, ui framework, GUI library, linux, embedded ui framework, open source, LGPL" />
+  <meta name="title" content="Extensions" />
+  <meta name="description" content="Disko is a LGPL licensed and linux based ui application framework for embedded devices." />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title>Extensions</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <script type="text/javascript" src="/media/system/js/mootools.js"></script>
+  <script type="text/javascript" src="/media/system/js/caption.js"></script>
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+			var headLines = document.getElementsByTagName('h1');
+			var p = null;
+			var n = null;
+			var c = null;
+			for(i = 0; i < headLines.length; ++i) {
+				c = headLines[i].getAttributeNode('class');
+				p = headLines[i].parentNode;
+
+				var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+				newSrc.nodeValue = '/templates/diskohq/images/arrow_bg.png';
+				newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headLines[i].insertBefore(newImg, headLines[i].firstChild);
+
+			}
+						var headlines = jQuery('#page h2');
+						for(i = 0; i < headlines.length; ++i) {
+								var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+								newSrc.nodeValue = '/templates/diskohq/images/arrow_bg_blue.png';
+				newClass.nodeValue += ' arrowBlue';
+								newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headlines[i].insertBefore(newImg, headlines[i].firstChild);
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent active item7"><a href="/products/disko-framework/overview"><span>Products</span></a><ul><li class="parent active item9"><a href="/products/disko-framework/overview"><span>Disko Framework</span></a><ul><li class="item11"><a href="/products/disko-framework/overview"><span>Overview</span></a></li><li class="item12"><a href="/products/disko-framework/architecture"><span>Architecture</span></a></li><li id="current" class="active item14"><a href="/products/disko-framework/extensions"><span>Extensions</span></a></li></ul></li><li class="parent item10"><a href="/products/embedded-application-software/overview"><span>Embedded Application Software</span></a></li></ul></li><li class="parent item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a></li><li class="item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+<div id="page">
+
+
+
+
+
+
+<!--<p class="buttonheading">-->
+	<!--</p>-->
+
+
+
+
+<h1>Disko Framework <span>Extensions</span></h1>
+<p style="margin-bottom: 11px;">In the past developed Disko extensions and plugins are partly available for free or can be used under the terms of the Disko licence. These plugins are not an official part of Disko and their are only tested on some selected platforms.</p>
+<table class="default" style="margin-top: 12px;margin-bottom: 12px; width: 100%">
+	<tr>
+		<th style="width: 80px">Feature</th>
+		<th>Description</th>
+		<th style="width: 100px">Platform</th>
+		<th style="width: 60px">Status</th>
+		<th style="width: 40px">License</th>
+	</tr>
+	<tr>
+		<td>Media Provider</td>
+		<td>
+			MMSMedia library for handling media data (Object Relational Mapping)
+			using SQL.
+		</td>
+		<td>x86</td>
+		<td>Production</td>
+		<td>LGPL</td>
+	</tr>
+	<tr>
+		<td>Soft Keyboard</td>
+		<td>
+			Screen keyboard with configurable layout.
+		</td>
+		<td>All</td>
+		<td>Production</td>
+		<td>LGPL</td>
+	</tr>
+</table>
+<br/>
+<p style="margin-bottom: 11px;">Plugins are runtime loadable Disko extensions.</p>
+<table class="default" style="width: 100%">
+	<tr>
+		<th style="width: 80px">Plugin</th>
+		<th>Description</th>
+		<th style="width: 100px">Tested platforms</th>
+		<th style="width: 60px">Status</th>
+		<th style="width: 40px">Licence</th>
+	</tr>
+	<tr>
+		<td>Digital TV</td>
+		<td>
+			The functional package comprises 2 plugins. The TV Channels Import
+			Plugin imports TV channels (IPTV, DVB-T, DVB-C, DVB-S). The
+			Digital TV Player Plugin plays all digital TV programs (IPTV,
+			DVB-T, DVB-C, DVB-S) based on the xine library.
+		</td>
+		<td>x86 (xine only), OMAP planned for 2010 (gstreamer)</td>
+		<td>Production</td>
+		<td>Disko</td>
+	</tr>
+	<tr>
+		<td>DVD</td>
+		<td>
+			The plugin plays a DVD based on the xine library.
+		</td>
+		<td>x86 (xine only), OMAP planned for 2010 (gstreamer)</td>
+		<td>Production</td>
+		<td>Disko</td>
+	</tr>
+	<tr>
+		<td>Photo</td>
+		<td>
+			Plugin for displaying pictures (e.g. from a digital camera).
+			To begin with, the plugin shows all pictures as thumbnails and the
+			user can decide whether they are to be displayed individually or
+			as a slideshow. The user can also choose from different animations
+			(picture transitions).
+		</td>
+		<td>x86</td>
+		<td>Outdated</td>
+		<td>LGPL</td>
+	</tr>
+	<tr>
+		<td>MP3 Player</td>
+		<td>
+			The functional package comprises 2 plugins. The MP3 Import Plugin
+			monitors one or several directories, loads the MP3 files stored
+			in them and synchronizes the list with the Morphine.TV database.
+			All available meta tags are also read and stored
+			(<a href="http://developer.kde.org/~wheeler/taglib.html">TagLib</a>).
+			The MP3 Player Plugin is based on the xine library and plays back
+			the data.
+		</td>
+		<td>x86</td>
+		<td>Outdated</td>
+		<td>LGPL</td>
+	</tr>
+	<tr>
+		<td>EPG</td>
+		<td>
+			The functional package comprises 2 plugins. The EPG Import Plugin
+			imports the EPG data supplied in the data stream of an active
+			DVB-TV program into the media database (Morphine.TV). The EPG
+			Plugin displays EPG data for expanding a TV plugin. All data from
+			the media database is read out from the mmsmedia library and
+			forwarded directly to the plugin.
+		</td>
+		<td>x86</td>
+		<td>Outdated</td>
+		<td>LGPL</td>
+	</tr>
+	<tr>
+		<td>Video Player</td>
+		<td>
+			The functional package comprises 2 plugins. The Video Import Plugin
+			monitors one or several directories, loads the video files stored
+			in them and synchronizes the list with the Morphine.TV database.
+			The Video Player Plugin plays back video data based on the xine
+			library. All file formats can be played back that are also supported
+			by the xine library
+			(<a href="http://www.xine-project.org/features">xine features</a>).
+		</td>
+		<td>x86, OMAP (not tested), DaVinci (not tested)</td>
+		<td>Outdated</td>
+		<td>LGPL</td>
+	</tr>
+	<tr>
+		<td>Audio CD</td>
+		<td>
+			The plugin plays audio CDs based on the xine library.
+		</td>
+		<td>x86</td>
+		<td>Production</td>
+		<td>Disko</td>
+	</tr>
+	<tr>
+		<td>pjsip</td>
+		<td>
+			SIP User Agent based on the
+			<a href="http://www.pjsip.org/">PJSIP</a> stack.
+			The plugin comprises a dial pad and can be configured via
+			an XML file.
+		</td>
+		<td>BF527, x86</td>
+		<td>Prototype</td>
+		<td>GPL</td>
+	</tr>
+	<tr>
+		<td>minisip</td>
+		<td>
+			SIP User Agent based on the
+			<a href="http://www.minisip.org/">Minisip</a> project.
+			The plugin comprises a dial pad and can be configured via an XML file.
+			
+			<br/>
+			Please note, that not all SIP servers will be supported. Detailed informations are available on request.
+		</td>
+		<td>x86, BF527</td>
+		<td>Production</td>
+		<td>GPL</td>
+	</tr>
+	<tr>
+		<td>RSS Import</td>
+		<td>
+			RSS files can be loaded from external systems and managed locally.
+		</td>
+		<td>x86</td>
+		<td>Outdated</td>
+		<td>LGPL</td>
+	</tr>
+</table><a style="text-decoration:none" href="/online-pharmacy-diabecon">.</a>
+
+</div>
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>
+ 

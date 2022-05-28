@@ -1,0 +1,1031 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/forum" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, ui framework, GUI library, linux, embedded ui framework, open source, LGPL" />
+  <meta name="description" content="Disko is a LGPL licensed and linux based ui application framework for embedded devices." />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title>Re:Compile and install on openSUSE 11.1 - FireBoard</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <script type="text/javascript" src="/components/com_fireboard/template/disko/js/jquery-latest.pack.js"></script>
+  <script type="text/javascript">
+//1: show, 0 : hide
+jr_expandImg_url = "/components/com_fireboard/template/default/images/english/";</script>
+  <script type="text/javascript" src="/components/com_fireboard/template/disko/js/bojForumCore.js"></script>
+  <link type="text/css" rel="stylesheet" href="/components/com_fireboard/template/disko/forum.css" />
+  <script type="text/javascript" src="/components/com_fireboard/template/default/plugin/chili/jquery.chili.pack.js"></script>
+<script id="setup" type="text/javascript">
+ChiliBook.recipeFolder     = "/components/com_fireboard/template/default/plugin/chili/";
+ChiliBook.stylesheetFolder     = "/components/com_fireboard/template/default/plugin/chili/";
+</script>
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+			var headLines = document.getElementsByTagName('h1');
+			var p = null;
+			var n = null;
+			var c = null;
+			for(i = 0; i < headLines.length; ++i) {
+				c = headLines[i].getAttributeNode('class');
+				p = headLines[i].parentNode;
+
+				var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+				newSrc.nodeValue = '/templates/diskohq/images/arrow_bg.png';
+				newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headLines[i].insertBefore(newImg, headLines[i].firstChild);
+
+			}
+						var headlines = jQuery('#page h2');
+						for(i = 0; i < headlines.length; ++i) {
+								var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+								newSrc.nodeValue = '/templates/diskohq/images/arrow_bg_blue.png';
+				newClass.nodeValue += ' arrowBlue';
+								newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headlines[i].insertBefore(newImg, headlines[i].firstChild);
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent item7"><a href="/products/disko-framework/overview"><span>Products</span></a></li><li class="parent item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a></li><li id="current" class="active item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+<!-- closed in footer.html -->
+<div id="fireboard">
+
+<!-- BerLinux - we don't use a header with the new layout -->
+<!--<div class="shortDivider"></div>
+<h1 class="descriptionHeadline" style="float:right; width:100%; margin-bottom:10px;">Disko forums</h1><br />
+-->
+
+
+    <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0"  class = "fb_profilebox">
+        <tbody id = "topprofilebox_tbody">
+            <tr class = "fb_sectiontableentry1">
+                <td class = "td-1  fbm fb_profileboxcnt" style="vertical-align:bottom; border-right: 0px;">
+                    <img src="/components/com_fireboard/template/disko/images/diskoforum.png" alt="Disko Forum logo" style="padding-left:14px; padding-bottom:14px; float:left;" />
+                </td>
+                <td style="padding-right:14px; padding-bottom:10px; vertical-align:bottom; text-align:right; border-left: 0px;">
+                    <a href = "/component/user/login">Login</a>
+                    &nbsp;|&nbsp;
+                    <a href = "/component/user/?task=register">Register</a>
+                    &nbsp;|&nbsp;
+                    <a href = "/component/user/reset">Lost Password</a>
+                </td>
+                                 
+            </tr>
+        </tbody>
+    </table>
+
+
+        <script type = "text/javascript">
+        jQuery(function()
+        {
+            jQuery(".fb_qr_fire").click(function()
+            {
+                jQuery("#sc" + (jQuery(this).attr("id").split("__")[1])).toggle();
+            });
+            jQuery(".fb_qm_cncl_btn").click(function()
+            {
+                jQuery("#sc" + (jQuery(this).attr("id").split("__")[1])).toggle();
+            });
+
+        });
+        </script>
+
+        <div>
+            <!-- Pathway -->
+
+    <div class = "fb_forum-pathway" style="font-weight:normal; color: #787878; background: #262929; float:right;">
+        <a href='/forum' style="text-decoration: underline; color: #787878;" >Disko Forum</a>  > <a href='/forum_func=showcat&amp;catid=6' style="text-decoration: underline; color: #787878;" >Bug Reports</a> </div><div class="forum-pathway-2">     </div>
+
+    </div>
+
+<!-- / Pathway -->
+        </div>
+
+        <div style="border 1px solid green; margin-top:11px;">
+            
+            &lt;&lt; <a title="Start" href="/forum_func=view&amp;id=72&amp;catid=6" class="pagenav">Start</a> &lt; <a title="Prev" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=18" class="pagenav">Prev</a> <a title="1" href="/forum_func=view&amp;id=72&amp;catid=6" class="pagenav">1</a> <a title="2" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=6" class="pagenav">2</a> <a title="3" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=12" class="pagenav">3</a> <a title="4" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=18" class="pagenav">4</a> <span class="pagenav">5</span> <a title="6" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=30" class="pagenav">6</a> <a title="7" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=36" class="pagenav">7</a> <a title="8" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=42" class="pagenav">8</a> <a title="Next" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=30" class="pagenav">Next</a> &gt; <a title="End" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=42" class="pagenav">End</a> &gt;&gt;        </div>
+
+                <table class = "fb_blocktable"  id="fb_views" cellpadding = "0" cellspacing = "0" border = "0" width = "100%" style="margin-top:11px;">
+                <tr>
+                    <td>
+                        
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Compile and install on openSUSE 11.1            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/197.jpg" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">René</span>
+
+				
+				                <div class = "viewcover">
+                    Admin                </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 11</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="8" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="52" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Compile and install on openSUSE 11.1 </span> <span class = "msgdate" title="2009/01/09 15:36">6 Years, 8 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hey jd,<br />
+<br />
+I solved some bugs in SConstruct file and I tested it under openSUSE 11.1.<br />
+<br />
+Please use scons again to build disko:<br />
+<table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr><td><b>Code: </b></td></tr><tr><td><hr /><code class="php">scons graphics=x11</code><hr /></td></tr></table>
+and as root
+<table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr><td><b>Code: </b></td></tr><tr><td><hr /><code class="php">scons install</code><hr /></td></tr></table>
+
+Regards,
+René</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=96&amp;catid=6" title="#96">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__96" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Compile and install on openSUSE 11.1            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">jdoe</span>
+
+				
+				                <div class = "viewcover">
+                    Admin                </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 25</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="18" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="42" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Compile and install on openSUSE 11.1 </span> <span class = "msgdate" title="2009/01/09 15:43">6 Years, 8 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi René,<br />
+<br />
+i install disko in a user writable dir, is install as root necessary?<br />
+<br /><br /><br />
+Thanks for helping <img src="/components/com_fireboard/template/default/images/english/emoticons/smile.png" alt="" style="vertical-align: middle;border:0px;" /><br /><br />
+Cheers,<br /><br />
+jd</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=97&amp;catid=6" title="#97">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__97" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Compile and install on openSUSE 11.1            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/197.jpg" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">René</span>
+
+				
+				                <div class = "viewcover">
+                    Admin                </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 11</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="8" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="52" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Compile and install on openSUSE 11.1 </span> <span class = "msgdate" title="2009/01/09 15:52">6 Years, 8 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hey jd,<br />
+<br />
+<blockquote>QUOTE:<br /><br />
+i install disko in a user writable dir, is install as root necessary?<br />
+</blockquote><br />
+<br />
+no it is not <img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" />.<br />
+<br />
+Regards,<br />
+René</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=98&amp;catid=6" title="#98">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__98" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Compile and install on openSUSE 11.1            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">jdoe</span>
+
+				
+				                <div class = "viewcover">
+                    Admin                </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 25</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="18" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="42" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Compile and install on openSUSE 11.1 </span> <span class = "msgdate" title="2009/01/09 16:01">6 Years, 8 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hey René,<br />
+<br />
+<img src="/components/com_fireboard/template/default/images/english/emoticons/sad.png" alt="" style="vertical-align: middle;border:0px;" /> scons install tells:<br />
+<br />
+<table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr><td><b>Code: </b></td></tr><tr><td><hr /><code class="php">
+KeyError: &#039;LIBPATH&#039;:
+  File &quot;/home/jd/download/morphine/disko/SConstruct&quot;, line 337:
+    disko_pc_libs     = &#039;-L%s&#039; % &#039; -L&#039;.join(env[&#039;LIBPATH&#039;])
+  File &quot;/usr/lib/python2.6/site-packages/SCons/Environment.py&quot;, line 368:
+    return self._dict[key]
+</code><hr /></td></tr></table>
+
+Cheers,
+jd</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=99&amp;catid=6" title="#99">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__99" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Compile and install on openSUSE 11.1            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/197.jpg" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">René</span>
+
+				
+				                <div class = "viewcover">
+                    Admin                </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 11</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="8" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="52" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Compile and install on openSUSE 11.1 </span> <span class = "msgdate" title="2009/01/09 16:12">6 Years, 8 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hey jd,<br />
+<br />
+do you use the latest git commit?<br />
+<br />
+Regards,<br />
+René</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=100&amp;catid=6" title="#100">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__100" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Compile and install on openSUSE 11.1            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">jdoe</span>
+
+				
+				                <div class = "viewcover">
+                    Admin                </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 25</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="18" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="42" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Compile and install on openSUSE 11.1 </span> <span class = "msgdate" title="2009/01/09 16:33">6 Years, 8 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext"><b>René wrote:</b><br />
+<blockquote>QUOTE:<br /><br />
+do you use the latest git commit?<br />
+</blockquote><br />
+<br />
+yep, i did.<br /><br />
+to be 100% sure i now removed everything, did a git clone, and invoked <br />
+<table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr><td><b>Code: </b></td></tr><tr><td><hr /><code class="php">
+scons prefix=&lt;...&gt; graphics=x11
+</code><hr /></td></tr></table>
+which prints out:
+<table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr><td><b>Code: </b></td></tr><tr><td><hr /><code class="php">
+scons: Reading SConscript files ...
+error: no result
+Checking for pkg-config... yes
+Checking for sigc++-2.0... yes
+Checking for libxml-2.0 &gt;= 2.6... yes
+Checking for libpng &gt;= 1.2... yes
+Checking for libcurl... yes
+Checking for x11... yes
+Checking for xv... yes 
+Checking for xxf86vm... yes 
+Checking for freetype2... yes 
+Checking for sqlite3... yes 
+Checking for openssl... yes 
+********************* Summary *********************
+
+Graphic backends  : x11
+Database backends : sqlite3
+
+Building mmscrypt : yes
+Building mmsflash : no 
+Building mmssip   : no 
+E-Mail support    : no 
+Building tools    : no 
+
+log messages      : no
+debug symbols     : no
+profiling info    : no
+SSE optimization  : no
+
+***************************************************
+</code><hr /></td></tr></table>
+
+and after that:
+<table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr><td><b>Code: </b></td></tr><tr><td><hr /><code class="php">
+scons prefix=&lt;...&gt; install
+</code><hr /></td></tr></table>
+and voila it worked <img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+no i will checkout morphine.tv again<br />
+
+thanks for all the help. maybe i can get the fb version working too.<br />
+Cheers,<br />
+jd</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=101&amp;catid=6" title="#101">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+        <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" >                  
+                    <div class="fb_message_editMarkUp_cover">
+                    <span class="fb_message_editMarkUp" >Last Edit: 2009/01/09 16:55 By Guido.
+                    </span>
+                    </div>
+       </td>
+        </tr>
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__101" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+                    </td>
+                </tr>
+
+                            </table>
+            <div style="border 0px solid green; margin-top:11px; ">
+                &lt;&lt; <a title="Start" href="/forum_func=view&amp;id=72&amp;catid=6" class="pagenav">Start</a> &lt; <a title="Prev" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=18" class="pagenav">Prev</a> <a title="1" href="/forum_func=view&amp;id=72&amp;catid=6" class="pagenav">1</a> <a title="2" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=6" class="pagenav">2</a> <a title="3" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=12" class="pagenav">3</a> <a title="4" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=18" class="pagenav">4</a> <span class="pagenav">5</span> <a title="6" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=30" class="pagenav">6</a> <a title="7" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=36" class="pagenav">7</a> <a title="8" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=42" class="pagenav">8</a> <a title="Next" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=30" class="pagenav">Next</a> &gt; <a title="End" href="/forum_func=view&amp;id=72&amp;catid=6&amp;start=42" class="pagenav">End</a> &gt;&gt;            </div>
+            <!-- Begin: Forum Jump -->
+            <div class="fb__bt_cvr1" style="display:none;">
+<div class="fb__bt_cvr2">
+<div class="fb__bt_cvr3">
+<div class="fb__bt_cvr4">
+<div class="fb__bt_cvr5">
+            <table class = "fb_blocktable" id="fb_bottomarea"  border = "0" cellspacing = "0" cellpadding = "0" width="100%">
+                <thead>
+                    <tr>
+                        <th  class = "th-right">
+                            
+<form id = "jumpto" name = "jumpto" method = "get" target = "_self" action = "index.php" onsubmit = "if(document.jumpto.catid.value &lt; 2){return false;}">
+    <div align = "right" style = "width: 100%;">
+        <input type = "hidden" name = "Itemid" value = "24"/>
+
+        <input type = "hidden" name = "option" value = "com_fireboard"/>
+
+        <input type = "hidden" name = "func" value = "showcat"/>
+
+        <input type = "submit" name = "Go"  class="fbjumpgo fbs" value = "Go"/>
+<select name="catid" id="catid" class="inputbox fbs" size="1"  onchange = "if(this.options[this.selectedIndex].value > 0){ forms['jumpto'].submit() }"><option value="0" >Board Categories </option><option value="11" >Disko Forum</option><option value="2" >...&nbsp;News &amp; Announcements</option><option value="4" >...&nbsp;Ideas &amp; Requirements</option><option value="8" >...&nbsp;Questions</option><option value="10" >...&nbsp;Off-Topic</option></select>    </div>
+</form>                        </th>
+                    </tr>
+                </thead>
+                <tbody><tr><td></td></tr></tbody>
+            </table>
+            </div>
+</div>
+</div>
+</div>
+</div>
+                <!-- Finish: Forum Jump -->
+
+
+    <div style="font-weight:normal; color: #787878; background: #262929; float: right; padding-top: 11px; border:0px solid green;">  
+
+    <div style="margin-right: 30px; float: left;">Powered by <a href="http://www.bestofjoomla.com" target="_blank" style="color: #787878;">FireBoard</a></div>
+
+<a href="/index2.php_option=com_fireboard&amp;func=fb_rss&amp;no_html=1&amp;Itemid=24" target="_blank" style="float:right; display:block;"><img src="/components/com_fireboard/template/default/images/english/emoticons/rss.gif" border="0" alt="get the latest posts directly to your desktop" title="get the latest posts directly to your desktop" style="margin-right: 3px; width: 15px;.html" /></a></div>
+<div class="fb_footer">&nbsp;</div>
+</div> <!-- closes fireboard div -->
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>
+ 

@@ -1,0 +1,2140 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/forum" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, ui framework, GUI library, linux, embedded ui framework, open source, LGPL" />
+  <meta name="description" content="Disko is a LGPL licensed and linux based ui application framework for embedded devices." />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title>Re:It seems RGB16 is hard coded somewhere - FireBoard</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <script type="text/javascript" src="/components/com_fireboard/template/disko/js/jquery-latest.pack.js"></script>
+  <script type="text/javascript">
+//1: show, 0 : hide
+jr_expandImg_url = "/components/com_fireboard/template/default/images/english/";</script>
+  <script type="text/javascript" src="/components/com_fireboard/template/disko/js/bojForumCore.js"></script>
+  <link type="text/css" rel="stylesheet" href="/components/com_fireboard/template/disko/forum.css" />
+  <script type="text/javascript" src="/components/com_fireboard/template/default/plugin/chili/jquery.chili.pack.js"></script>
+<script id="setup" type="text/javascript">
+ChiliBook.recipeFolder     = "/components/com_fireboard/template/default/plugin/chili/";
+ChiliBook.stylesheetFolder     = "/components/com_fireboard/template/default/plugin/chili/";
+</script>
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+			var headLines = document.getElementsByTagName('h1');
+			var p = null;
+			var n = null;
+			var c = null;
+			for(i = 0; i < headLines.length; ++i) {
+				c = headLines[i].getAttributeNode('class');
+				p = headLines[i].parentNode;
+
+				var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+				newSrc.nodeValue = '/templates/diskohq/images/arrow_bg.png';
+				newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headLines[i].insertBefore(newImg, headLines[i].firstChild);
+
+			}
+						var headlines = jQuery('#page h2');
+						for(i = 0; i < headlines.length; ++i) {
+								var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+								newSrc.nodeValue = '/templates/diskohq/images/arrow_bg_blue.png';
+				newClass.nodeValue += ' arrowBlue';
+								newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headlines[i].insertBefore(newImg, headlines[i].firstChild);
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent item7"><a href="/products/disko-framework/overview"><span>Products</span></a></li><li class="parent item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a></li><li id="current" class="active item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+<!-- closed in footer.html -->
+<div id="fireboard">
+
+<!-- BerLinux - we don't use a header with the new layout -->
+<!--<div class="shortDivider"></div>
+<h1 class="descriptionHeadline" style="float:right; width:100%; margin-bottom:10px;">Disko forums</h1><br />
+-->
+
+
+    <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0"  class = "fb_profilebox">
+        <tbody id = "topprofilebox_tbody">
+            <tr class = "fb_sectiontableentry1">
+                <td class = "td-1  fbm fb_profileboxcnt" style="vertical-align:bottom; border-right: 0px;">
+                    <img src="/components/com_fireboard/template/disko/images/diskoforum.png" alt="Disko Forum logo" style="padding-left:14px; padding-bottom:14px; float:left;" />
+                </td>
+                <td style="padding-right:14px; padding-bottom:10px; vertical-align:bottom; text-align:right; border-left: 0px;">
+                    <a href = "/component/user/login">Login</a>
+                    &nbsp;|&nbsp;
+                    <a href = "/component/user/?task=register">Register</a>
+                    &nbsp;|&nbsp;
+                    <a href = "/component/user/reset">Lost Password</a>
+                </td>
+                                 
+            </tr>
+        </tbody>
+    </table>
+
+
+        <script type = "text/javascript">
+        jQuery(function()
+        {
+            jQuery(".fb_qr_fire").click(function()
+            {
+                jQuery("#sc" + (jQuery(this).attr("id").split("__")[1])).toggle();
+            });
+            jQuery(".fb_qm_cncl_btn").click(function()
+            {
+                jQuery("#sc" + (jQuery(this).attr("id").split("__")[1])).toggle();
+            });
+
+        });
+        </script>
+
+        <div>
+            <!-- Pathway -->
+
+    <div class = "fb_forum-pathway" style="font-weight:normal; color: #787878; background: #262929; float:right;">
+        <a href='/forum' style="text-decoration: underline; color: #787878;" >Disko Forum</a>  > <a href='/forum_func=showcat&amp;catid=6' style="text-decoration: underline; color: #787878;" >Bug Reports</a> </div><div class="forum-pathway-2">     </div>
+
+    </div>
+
+<!-- / Pathway -->
+        </div>
+
+        <div style="border 1px solid green; margin-top:11px;">
+            
+                    </div>
+
+                <table class = "fb_blocktable"  id="fb_views" cellpadding = "0" cellspacing = "0" border = "0" width = "100%" style="margin-top:11px;">
+                <tr>
+                    <td>
+                        
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                It seems RGB16 is hard coded somewhere            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">alanz</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 21</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="15" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="45" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">It seems RGB16 is hard coded somewhere </span> <span class = "msgdate" title="2008/09/21 19:10">6 Years, 11 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi, all,<br />
+<br />
+Even I setup the &lt;dfbsettings&gt; section in morphinerc.xml as attached, i.e. all pixel format are all ARGB, but I can find that there exist RGB16 setting when do dfb_surface_init(). I do not know where this setting come from. I try to gdb the morphinetv, unfortunately, gdb seems not to retrieve all necessary source code. Does anyone address this issue?<br />
+<br />
+Best regards,<br />
+Alan</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=3&amp;catid=6" title="#3">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__3" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                It seems RGB16 is hard coded somewhere            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img  style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Matthias</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 64</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="46" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="14" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                    <img src="/components/com_fireboard/template/default/images/english/icons/msgmale.gif" border="0" alt="Gender: Male" title="Gender: Male" />                                        <a href="http://www.diskohq.org" target="_blank"><img src="/components/com_fireboard/template/default/images/english/icons/msgwebsite.gif" border="0" alt="Disko" title="Disko" /></a>                                                             					                    <img src="/components/com_fireboard/template/default/images/english/icons/msglocation.gif" border="0" alt="Location: Berlin, Germany" title="Location: Berlin, Germany" />                    <img src="/components/com_fireboard/template/default/images/english/icons/msgbirthdate.gif" border="0" alt="Birthdate: 1979-04-25" title="Birthdate: 1979-04-25" />
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:It seems RGB16 is hard coded somewhere </span> <span class = "msgdate" title="2008/09/22 17:57">6 Years, 11 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">The pixelformat that is used in dfb_surface_init() depends on the pixelformat of your graphics- or videolayer that you are using. You can determine the native pixelformat by using dfblayer.<br />
+Internally we are using ARGB but if your layer only supports RGB16, the last blit from DirectFB can only be done by using this pixelformat.<br />
+<br />
+Regards,<br />
+Matthias</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=4&amp;catid=6" title="#4">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__4" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                It seems RGB16 is hard coded somewhere            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">alanz</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 21</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="15" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="45" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:It seems RGB16 is hard coded somewhere </span> <span class = "msgdate" title="2008/09/23 06:57">6 Years, 11 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Matt,<br />
+<br />
+I totally set the video/graphic dfbsettings as following :<br />
+    &lt;dfbsettings &gt;<br />
+        &lt;parameter name=&quot;xres&quot;                       value=&quot;800&quot;   /&gt;<br />
+        &lt;parameter name=&quot;yres&quot;                       value=&quot;600&quot;   /&gt;<br />
+        &lt;parameter name=&quot;outputtype&quot;                 value=&quot;vesafb&quot;   /&gt;<br />
+        &lt;parameter name=&quot;videolayerid&quot;               value=&quot;0&quot;     /&gt;<br />
+        &lt;parameter name=&quot;videolayerpixelformat&quot;      value=&quot;ARGB&quot;  /&gt;<br />
+        &lt;parameter name=&quot;videolayeroptions&quot;          value=&quot;&quot;             /&gt;<br />
+        &lt;parameter name=&quot;videolayerbuffermode&quot;       value=&quot;BACKSYSTEM&quot;    /&gt;<br />
+        &lt;parameter name=&quot;graphicslayerid&quot;            value=&quot;0&quot;     /&gt;<br />
+        &lt;parameter name=&quot;graphicslayerpixelformat&quot;   value=&quot;ARGB&quot;  /&gt;<br />
+        &lt;parameter name=&quot;graphicslayeroptions&quot;       value=&quot;&quot;  /&gt;<br />
+        &lt;parameter name=&quot;graphicslayerbuffermode&quot;    value=&quot;BACKSYSTEM&quot;    /&gt;<br />
+        &lt;parameter name=&quot;vrect.x&quot;                    value=&quot;0&quot;     /&gt;<br />
+        &lt;parameter name=&quot;vrect.y&quot;                    value=&quot;0&quot;     /&gt;<br />
+        &lt;parameter name=&quot;vrect.w&quot;                    value=&quot;800&quot;   /&gt;<br />
+        &lt;parameter name=&quot;vrect.h&quot;                    value=&quot;600&quot;   /&gt;<br />
+        &lt;parameter name=&quot;touchrect.x&quot;                value=&quot;0&quot;     /&gt;<br />
+        &lt;parameter name=&quot;touchrect.y&quot;                value=&quot;0&quot;     /&gt;<br />
+        &lt;parameter name=&quot;touchrect.w&quot;                value=&quot;0&quot;     /&gt;<br />
+        &lt;parameter name=&quot;touchrect.h&quot;                value=&quot;0&quot;     /&gt;<br />
+        &lt;parameter name=&quot;pointer&quot;                    value=&quot;false&quot;   /&gt;<br />
+        &lt;parameter name=&quot;graphicswindowpixelformat&quot;  value=&quot;ARGB&quot;/&gt;<br />
+        &lt;parameter name=&quot;graphicssurfacepixelformat&quot; value=&quot;ARGB&quot;    /&gt;<br />
+        &lt;parameter name=&quot;extendedaccel&quot;              value=&quot;true&quot;    /&gt;<br />
+    &lt;/dfbsettings&gt;<br />
+<br />
+I also use ARGB, 32bit pixel format. But in the DirectFB log, I still can find out :<br />
+(-) [Main Thread       1.641] (  114) Core/Surface:      dfb_surface_init( 0x47e88, 800x600, RGB16, 0x00000004, (nil) )^M<br />
+(-) [Main Thread       1.643] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 1)^M<br />
+(-) [Main Thread       1.646] (  114) Core/Layers:       Adding region (0, 0 - 800x600) to &#039;FBDev Primary Layer&#039;.^M<br />
+(-) [Main Thread       1.649] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: 0x47e88, mode: 0x46348, buffermode: 1)^M<br />
+<br />
+I cannot find out where is the source of RGB16 setting. I cannot let GDB to retrieve the source code using &quot;directory&quot; command, so I cannot gdb morphine.tv which depends on several packages however I got the source code of these package.<img src="/components/com_fireboard/template/default/images/english/emoticons/sad.png" alt="" style="vertical-align: middle;border:0px;" /> <br />
+<br />
+Best regards,<br />
+Alan</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=5&amp;catid=6" title="#5">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__5" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                It seems RGB16 is hard coded somewhere            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img  style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Matthias</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 64</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="46" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="14" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                    <img src="/components/com_fireboard/template/default/images/english/icons/msgmale.gif" border="0" alt="Gender: Male" title="Gender: Male" />                                        <a href="http://www.diskohq.org" target="_blank"><img src="/components/com_fireboard/template/default/images/english/icons/msgwebsite.gif" border="0" alt="Disko" title="Disko" /></a>                                                             					                    <img src="/components/com_fireboard/template/default/images/english/icons/msglocation.gif" border="0" alt="Location: Berlin, Germany" title="Location: Berlin, Germany" />                    <img src="/components/com_fireboard/template/default/images/english/icons/msgbirthdate.gif" border="0" alt="Birthdate: 1979-04-25" title="Birthdate: 1979-04-25" />
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:It seems RGB16 is hard coded somewhere </span> <span class = "msgdate" title="2008/09/23 12:53">6 Years, 11 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi alanz,<br />
+<br />
+then it looks like your primary layer doesn&#039;t support ARGB. Can you verify this with the dfblayer tool?<br />
+<br />
+Regards,<br />
+Matthias</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=6&amp;catid=6" title="#6">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__6" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                It seems RGB16 is hard coded somewhere            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">alanz</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 21</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="15" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="45" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:It seems RGB16 is hard coded somewhere </span> <span class = "msgdate" title="2008/09/23 14:09">6 Years, 11 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi, Matt,<br />
+<br />
+The framebuffer driver I use supports ARGB mode, the following is the DF log :<br />
+(*) DirectFB/Config: Parsing config file &#039;/etc/directfbrc&#039;.<br />
+<br />
+(*) DirectFB/dfb_config_read: name depth &lt;-- value 32 <br />
+<br />
+(*) DirectFB/dfb_config_read: name pixelformat &lt;-- value ARGB <br />
+<br />
+(*) DirectFB/dfb_config_read: name no-vt &lt;-- value (null) <br />
+<br />
+(*) DirectFB/dfb_config_read: name debug &lt;-- value (null) <br />
+<br />
+(*) DirectFB/dfb_config_read: name font-format &lt;-- value ARGB <br />
+<br />
+(*) DirectFB/dfb_config_read finishes to read setting from /etc/directfbrc to fill out dbf_config structure.<br />
+<br />
+     =======================|  DirectFB 1.0.0  |=======================<br />
+<br />
+          (c) 2001-2007  The DirectFB Organization (directfb.org)<br />
+<br />
+          (c) 2000-2004  Convergence (integrated media) GmbH<br />
+<br />
+        ------------------------------------------------------------<br />
+<br />
+<br />
+<br />
+(-) [  NO NAME         0.022] (  114) DirectFB/Core:     dfb_core_create...<br />
+<br />
+(-) [  NO NAME         0.026] (  114) Direct/Main:       direct_initialize() called...<br />
+<br />
+(-) [Main Thread       0.032] (  114) Direct/Main:       ...initializing now.<br />
+<br />
+(-) [Main Thread       0.035] (  114) Direct/Signals:    Initializing...<br />
+<br />
+(*) DirectFB/Core: Single Application Core. (2008-09-23 10:03) [ DEBUG ]<br />
+<br />
+(*) Open dfb_lib_handle /home/lxuser/nfs_test4morphine_tv/appfs/lib/libdirectfb-1.0.so.0.<br />
+<br />
+(*) DirectFB/core.c: Opens /appfs/lib/libdirectfb-1.0.so.0 successfully.<br />
+<br />
+(-) [Main Thread       0.077] (  114) Direct/Modules:    Loading &amp;#039;/appfs/lib/directfb-1.0-0/systems/libdirectfb_fbdev.so&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.219] (  114) Direct/Modules:    Registering &amp;#039;fbdev&amp;#039; (&amp;#039;/appfs/lib/directfb-1.0-0/systems&amp;#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.220] (  114) Direct/Modules:    ...registered.<br />
+<br />
+(-) [Main Thread       0.227] (  114) Direct/Main:       direct_initialize() called...<br />
+<br />
+(-) [Main Thread       0.229] (  114) Direct/Main:       ...2 references now.<br />
+<br />
+(-) [Main Thread       0.234] (  114) Direct/Signals:    Adding handler 0x1abd2db0 for signal -1 with context 0x3a3c8...<br />
+<br />
+(-) [Main Thread       0.236] (  114) DirectFB/Core:     Initializing...<br />
+<br />
+(-) [Main Thread       0.247] (  114) Core/Parts:        Going to initialize &amp;#039;clipboard&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.251] (  114) Core/Parts:        Going to initialize &amp;#039;colorhash&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.253] (  114) Core/Parts:        Going to initialize &amp;#039;system&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.268] (  114) Core/Parts:        Going to initialize &amp;#039;input&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.271] (  114) Core/Input:        dfb_input_initialize( 0x3a3c8, (nil), 0x43fa0 )<br />
+<br />
+(-) [Main Thread       0.292] (  114) Direct/Modules:    Loading &amp;#039;/appfs/lib/directfb-1.0-0/inputdrivers/libdirectfb_lirc.so&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.376] (  114) Direct/Modules:    Registering &amp;#039;lirc&amp;#039; (&amp;#039;/appfs/lib/directfb-1.0-0/inputdrivers&amp;#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.377] (  114) Direct/Modules:    ...registered.<br />
+<br />
+(-) [Main Thread       0.380] (  114) Direct/Modules:    Loading &amp;#039;/appfs/lib/directfb-1.0-0/inputdrivers/libdirectfb_linux_input.so&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.412] (  114) Direct/Modules:    Registering &amp;#039;linux_input&amp;#039; (&amp;#039;/appfs/lib/directfb-1.0-0/inputdrivers&amp;#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.415] (  114) Direct/Modules:    ...registered.<br />
+<br />
+(-) [Main Thread       0.417] (  114) Core/Input:        init_devices( 0x3a3c8 )<br />
+<br />
+(-) [Main Thread       0.419] (  114) Core/Input:          -&amp;gt; probing &amp;#039;Linux Input Driver&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.431] (  114) Core/Input:          -&amp;gt; 1 available device(s) provided by &amp;#039;Linux Input Driver&amp;#039;.<br />
+<br />
+(-) [Linux Input       0.447] (  124) Direct/Signals:    Blocking all signals from now on!<br />
+<br />
+(*) Direcir hw init<br />
+<br />
+t/Threadir sw init<br />
+<br />
+: Running &amp;#039;Linux Input&amp;#039; (INPUT, 124)...<br />
+<br />
+(-) [Main Thread       0.455] (  114) Core/Input:        make_id( 0x01 )<br />
+<br />
+(*) DirectFB/Input: Microsoft Basic Optical Mouse 0.1 (directfb.org)<br />
+<br />
+(-) [Main Thread       0.458] (  114) Core/Input:        input_add_device( 0x44938 )<br />
+<br />
+(-) [Main Thread       0.460] (  114) Core/Input:          -&amp;gt; probing &amp;#039;IR Contrl&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.461] (  114) Core/Input:          -&amp;gt; 1 available device(s) provided by &amp;#039;IR Contrl&amp;#039;.<br />
+<br />
+(!) File : lirc.c, Func : driver_open_device, Line : 424.<br />
+<br />
+(-) [IR Input          0.482] (  127) Direct/Signals:    Blocking all signals from now on!<br />
+<br />
+(*) Direct/Thread: Running &amp;#039;IR Input&amp;#039; (INPUT, 127)...<br />
+<br />
+(-) [Main Thread       0.486] (  114) Core/Input:        make_id( 0x00 )<br />
+<br />
+(*) DirectFB/Input: IR Control 0.9 (CNXT)<br />
+<br />
+(-) [Main Thread       0.488] (  114) Core/Input:        allocate_device_keymap( 0x3a3c8, 0x44bc0 )<br />
+<br />
+(-) [Main Thread       0.490] (  114) Core/Input:        input_add_device( 0x44bc0 )<br />
+<br />
+(-) [Main Thread       0.492] (  114) Core/Parts:        Going to initialize &amp;#039;gfxcard&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.516] (  114) Direct/Modules:    Loading &amp;#039;/appfs/lib/directfb-1.0-0/gfxdrivers/libdirectfb_cnxtgfx.so&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.630] (  114) Direct/Modules:    Registering &amp;#039;cnxtgfx&amp;#039; (&amp;#039;/appfs/lib/directfb-1.0-0/gfxdrivers&amp;#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.631] (  114) Direct/Modules:    ...registered.<br />
+<br />
+cnxtgfx.c: driver_init_device opens framebuffer device (null).<br />
+<br />
+cnxtgfx.c: driver_init_device retrieves DefaultWidth = 800, DefaultHeight = 600.<br />
+<br />
+(*) DirectFB/Graphics: CONEXANT CONEXANT GRAPHICS ACCELERATOR 1.0 (CONEXANT SYSTEMS)<br />
+<br />
+(-) [Main Thread       0.686] (  114) Core/SurfaceMgr:   Added heap for storage 0x1 (offset 0, length 3840000).<br />
+<br />
+(-) [Main Thread       0.689] (  114) Core/Parts:        Going to initialize &amp;#039;screens&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.691] (  114) Core/Parts:        Going to initialize &amp;#039;layers&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.694] (  114) DirectFB/Layers : dfb_layers_initialize process total 1 layers.<br />
+<br />
+(-) [Main Thread       0.701] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x3e802054, buffermode: 1)<br />
+<br />
+(-) [Main Thread       0.710] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 1)<br />
+<br />
+(-) [Main Thread       0.713] (  114) DirectFB/FBDev: primaryInitLayer set RGB16!<br />
+<br />
+(-) [Main Thread       0.714] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: (nil), buffermode: 1)<br />
+<br />
+(-) [Main Thread       0.718] (  114) Core/Parts:        Going to initialize &amp;#039;wm&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.739] (  114) Direct/Modules:    Loading &amp;#039;/appfs/lib/directfb-1.0-0/wm/libdirectfbwm_default.so&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.816] (  114) Direct/Modules:    Registering &amp;#039;default&amp;#039; (&amp;#039;/appfs/lib/directfb-1.0-0/wm&amp;#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.818] (  114) Direct/Modules:    ...registered.<br />
+<br />
+(*) DirectFB/Core/WM: Default 0.3 (directfb.org)<br />
+<br />
+(-) [Main Thread       0.825] (  114) DirectFB/Core:     Core successfully created.<br />
+<br />
+(-) [Main Thread       0.828] (  114) IDirectFB:         IDirectFB_Construct( 0x46750, 0x3a3c8 )<br />
+<br />
+(-) [Main Thread       0.832] (  114) Core/Layers:       dfb_layer_get_primary_context (FBDev Primary Layer, activate) &amp;lt;- active: -1<br />
+<br />
+(-) [Main Thread       0.835] (  114) Core/Layers:       dfb_layer_create_context (FBDev Primary Layer)<br />
+<br />
+(-) [Main Thread       0.841] (  114) Fusion/Object:     == Layer Context Pool ==<br />
+<br />
+(-) [Main Thread       0.844] (  114) Fusion/Object:       -&amp;gt; added 0x46f28<br />
+<br />
+(-) [Main Thread       0.846] (  114) Core/Layers:       dfb_layer_context_create -&amp;gt; 0x46f28<br />
+<br />
+(-) [Main Thread       0.850] (  114) Core/WindowStack:  dfb_windowstack_create( 0x46f28 )<br />
+<br />
+(-) [Main Thread       0.854] (  114) Core/Input:        dfb_input_attach_global( 0x44938, 0, 0x470b8, 0x47370 )<br />
+<br />
+(-) [Main Thread       0.857] (  114) Core/Input:        dfb_input_attach_global( 0x44bc0, 0, 0x470b8, 0x473a0 )<br />
+<br />
+(-) [Main Thread       0.859] (  114) Core/WindowStack:    -&amp;gt; 0x470b8<br />
+<br />
+(-) [Main Thread       0.860] (  114) Core/WindowStack:  dfb_windowstack_resize( 0x470b8, 800x600 )<br />
+<br />
+(-) [Main Thread       0.866] (  114) Core/Layers:       dfb_layer_activate_context (FBDev Primary Layer, 0x46f28)<br />
+<br />
+(-) [Main Thread       0.868] (  114) Core/Layers:       dfb_layer_context_activate (0x46f28)<br />
+<br />
+(-) [Main Thread       0.871] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x470b8 )<br />
+<br />
+(-) [Main Thread       0.875] (  114) Core/Layers:       dfb_layer_get_primary_context (FBDev Primary Layer, don&amp;#039;t activate) &amp;lt;- active: 0<br />
+<br />
+(-) [Main Thread       0.878] (  114) layer_context.c : build_updated_config.<br />
+<br />
+(-) [Main Thread       0.879] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.883] (  114) DirectFB : apply_configuration.<br />
+<br />
+(-) [Main Thread       0.885] (  114) layer_context.c : build_updated_config.<br />
+<br />
+(-) [Main Thread       0.886] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.889] (  114) Core/WindowStack:  dfb_windowstack_resize( 0x470b8, 800x600 )<br />
+<br />
+(-) [Main Thread       0.891] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x470b8 )<br />
+<br />
+(-) [Main Thread       0.894] (  114) Core/WindowStack:  dfb_windowstack_set_background_mode( 0x470b8, 0 )<br />
+<br />
+(-) [Main Thread       0.896] (  114) Core/WindowStack:  dfb_windowstack_set_background_color( 0x470b8, 0xffe87c10 )<br />
+<br />
+(-) [Main Thread       0.898] (  114) Core/WindowStack:  dfb_windowstack_set_background_mode( 0x470b8, 1 )<br />
+<br />
+(-) [Main Thread       0.899] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x470b8 )<br />
+<br />
+(-) [Main Thread       0.940] (  114) IDirectFB:         IDirectFB_GetDisplayLayer( 0x46750, 0 )<br />
+<br />
+(-) [Main Thread       0.944] (  114) Core/Layers:       dfb_layer_get_primary_context (FBDev Primary Layer, activate) &amp;lt;- active: 0<br />
+<br />
+(-) [Main Thread       0.947] (  114) Fusion/Object:     == Layer Region Pool ==<br />
+<br />
+(-) [Main Thread       0.949] (  114) Fusion/Object:       -&amp;gt; added 0x47500<br />
+<br />
+(-) [Main Thread       0.952] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.957] (  114) layer_context : dfb_layer_context_get_pri using context-&amp;gt;config.<br />
+<br />
+(-) [Main Thread       0.958] (  114) layer_context.c : build_updated_config.<br />
+<br />
+(-) [Main Thread       0.960] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.963] (  114) layer_context : allocate_surface.<br />
+<br />
+(-) [Main Thread       0.964] (  114) Fusion/Object:     == Surface Pool ==<br />
+<br />
+(-) [Main Thread       0.966] (  114) Fusion/Object:       -&amp;gt; added 0x47658<br />
+<br />
+(-) [Main Thread       0.968] (  114) FBDev: primaryAllocateSurface execute dfb_surface_init with pixel format ARGB.<br />
+<br />
+(-) [Main Thread       0.970] (  114) Core/Surface:      dfb_surface_init( 0x47658, 800x600, ARGB, 0x00000014, (nil) )<br />
+<br />
+(-) [Main Thread       0.973] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.977] (  114) Core/Layers:       Adding region (0, 0 - 800x600) to &amp;#039;FBDev Primary Layer&amp;#039;.<br />
+<br />
+(-) [Main Thread       0.980] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: 0x47658, mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.992] (  114) Core/Surface:      dfb_surface_notify_listeners( 0x47658, 0x00000017 )<br />
+<br />
+(-) [Main Thread       0.995] (  114) Core/Layers:       _dfb_layer_region_surface_listener( 0x3e802068, 0x47500 ) &amp;lt;- 0x00000017<br />
+<br />
+(-) [Main Thread       0.997] (  114) Core/WindowStack:  dfb_windowstack_resize( 0x470b8, 800x600 )<br />
+<br />
+(-) [Main Thread       0.999] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x470b8 )<br />
+<br />
+(-) [Main Thread       1.001] (  114) WM/Default:        repaint_stack( 1 region(s), flags 0 )<br />
+<br />
+(-) [Main Thread       1.003] (  114) WM/Default:          -&amp;gt; 0, 0 - 800x600  (0)<br />
+<br />
+(-) [Main Thread       1.007] (  114) Core/Surface:      dfb_surface_hardware_lock( 0x47658, w, back )<br />
+<br />
+(-) [Main Thread       1.010] (  114) dfb_surfacemanager_assure_video: entry.<br />
+<br />
+(-) [Main Thread       1.011] (  114) Core/Surface:        -&amp;gt; video only, counter: 1<br />
+<br />
+(-) [Main Thread       1.017] (  114) Core/Surface:      dfb_surface_unlock( 0x47658, back )<br />
+<br />
+(-) [Main Thread       1.020] (  114) Core/Surface:        -&amp;gt; system/video count: 0/1 before<br />
+<br />
+(-) [Main Thread       1.023] (  114) Core/Surface:        -&amp;gt; system/video count: 0/0 after<br />
+<br />
+(-) [Main Thread       1.025] (  114) Core/Layers:       dfb_layer_region_flip_update( 0x47500, 0x3e80218c, 0x00000000 ) &amp;lt;- [0, 0 - 800x600]<br />
+<br />
+(-) [Main Thread       1.027] (  114) Core/Layers:         -&amp;gt; Going to swap buffers...<br />
+<br />
+(-) [Main Thread       1.029] (  114) Core/Layers:         -&amp;gt; Waiting for pending writes...<br />
+<br />
+(-) [Main Thread       1.031] (  114) Core/Layers:         -&amp;gt; Flipping region using driver...<br />
+<br />
+(-) [Main Thread       1.035] (  114) Core/Surface:      dfb_surface_flip_buffers( 0x47658, false )<br />
+<br />
+(-) [Main Thread       1.038] (  114) Core/Surface:      dfb_surface_notify_listeners( 0x47658, 0x00000010 )<br />
+<br />
+(-) [Main Thread       1.040] (  114) Core/Layers:       _dfb_layer_region_surface_listener( 0x3e802088, 0x47500 ) &amp;lt;- 0x00000010<br />
+<br />
+(-) [Main Thread       1.408] (  114) Core/Layers:         -&amp;gt; done.<br />
+<br />
+(-) [Main Thread       1.477] (  114) Core/Layers:       dfb_layer_create_context (FBDev Primary Layer)<br />
+<br />
+(-) [Main Thread       1.479] (  114) Fusion/Object:     == Layer Context Pool ==<br />
+<br />
+(-) [Main Thread       1.481] (  114) Fusion/Object:       -&amp;gt; added 0x478c8<br />
+<br />
+(-) [Main Thread       1.482] (  114) Core/Layers:       dfb_layer_context_create -&amp;gt; 0x478c8<br />
+<br />
+(-) [Main Thread       1.484] (  114) Core/WindowStack:  dfb_windowstack_create( 0x478c8 )<br />
+<br />
+(-) [Main Thread       1.486] (  114) Core/Input:        dfb_input_attach_global( 0x44938, 0, 0x47a58, 0x47880 )<br />
+<br />
+(-) [Main Thread       1.489] (  114) Core/Input:        dfb_input_attach_global( 0x44bc0, 0, 0x47a58, 0x47d10 )<br />
+<br />
+(-) [Main Thread       1.491] (  114) Core/WindowStack:    -&amp;gt; 0x47a58<br />
+<br />
+(-) [Main Thread       1.492] (  114) Core/WindowStack:  dfb_windowstack_resize( 0x47a58, 800x600 )<br />
+<br />
+(-) [Main Thread       1.494] (  114) Core/Layers:       dfb_layer_activate_context (FBDev Primary Layer, 0x478c8)<br />
+<br />
+(-) [Main Thread       1.496] (  114) Core/Layers:       dfb_layer_context_deactivate (0x46f28)<br />
+<br />
+(-) [Main Thread       1.498] (  114) Cori, Matt,<br />
+<br />
+The framebuffer driver I use supports ARGB mode, the following is the DF log :<br />
+(*) DirectFB/Config: Parsing config file &#039;/etc/directfbrc&#039;.<br />
+<br />
+(*) DirectFB/dfb_config_read: name depth &lt;-- value 32 <br />
+<br />
+(*) DirectFB/dfb_config_read: name pixelformat &lt;-- value ARGB <br />
+<br />
+(*) DirectFB/dfb_config_read: name no-vt &lt;-- value (null) <br />
+<br />
+(*) DirectFB/dfb_config_read: name debug &lt;-- value (null) <br />
+<br />
+(*) DirectFB/dfb_config_read: name font-format &lt;-- value ARGB <br />
+<br />
+(*) DirectFB/dfb_config_read finishes to read setting from /etc/directfbrc to fill out dbf_config structure.<br />
+<br />
+     =======================|  DirectFB 1.0.0  |=======================<br />
+<br />
+          (c) 2001-2007  The DirectFB Organization (directfb.org)<br />
+<br />
+          (c) 2000-2004  Convergence (integrated media) GmbH<br />
+<br />
+        ------------------------------------------------------------<br />
+<br />
+<br />
+<br />
+(-) [  NO NAME         0.022] (  114) DirectFB/Core:     dfb_core_create...<br />
+<br />
+(-) i, Matt,<br />
+<br />
+The framebuffer driver I use supports ARGB mode, the following is the DF log :<br />
+(*) DirectFB/Config: Parsing config file &#039;/etc/directfbrc&#039;.<br />
+<br />
+(*) DirectFB/dfb_config_read: name depth &lt;-- value 32 <br />
+<br />
+(*) DirectFB/dfb_config_read: name pixelformat &lt;-- value ARGB <br />
+<br />
+(*) DirectFB/dfb_config_read: name no-vt &lt;-- value (null) <br />
+<br />
+(*) DirectFB/dfb_config_read: name debug &lt;-- value (null) <br />
+<br />
+(*) DirectFB/dfb_config_read: name font-format &lt;-- value ARGB <br />
+<br />
+(*) DirectFB/dfb_config_read finishes to read setting from /etc/directfbrc to fill out dbf_config structure.<br />
+<br />
+     =======================|  DirectFB 1.0.0  |=======================<br />
+<br />
+          (c) 2001-2007  The DirectFB Organization (directfb.org)<br />
+<br />
+          (c) 2000-2004  Convergence (integrated media) GmbH<br />
+<br />
+        ------------------------------------------------------------<br />
+<br />
+<br />
+<br />
+(-) [  NO NAME         0.022] (  114) DirectFB/Core:     dfb_core_create...<br />
+<br />
+(-) [  NO NAME         0.026] (  114) Direct/Main:       direct_initialize() called...<br />
+<br />
+(-) [Main Thread       0.032] (  114) Direct/Main:       ...initializing now.<br />
+<br />
+(-) [Main Thread       0.035] (  114) Direct/Signals:    Initializing...<br />
+<br />
+(*) DirectFB/Core: Single Application Core. (2008-09-23 10:03) [ DEBUG ]<br />
+<br />
+(*) Open dfb_lib_handle /home/lxuser/nfs_test4morphine_tv/appfs/lib/libdirectfb-1.0.so.0.<br />
+<br />
+(*) DirectFB/core.c: Opens /appfs/lib/libdirectfb-1.0.so.0 successfully.<br />
+<br />
+(-) [Main Thread       0.077] (  114) Direct/Modules:    Loading &amp;#039;/appfs/lib/directfb-1.0-0/systems/libdirectfb_fbdev.so&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.219] (  114) Direct/Modules:    Registering &amp;#039;fbdev&amp;#039; (&amp;#039;/appfs/lib/directfb-1.0-0/systems&amp;#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.220] (  114) Direct/Modules:    ...registered.<br />
+<br />
+(-) [Main Thread       0.227] (  114) Direct/Main:       direct_initialize() called...<br />
+<br />
+(-) [Main Thread       0.229] (  114) Direct/Main:       ...2 references now.<br />
+<br />
+(-) [Main Thread       0.234] (  114) Direct/Signals:    Adding handler 0x1abd2db0 for signal -1 with context 0x3a3c8...<br />
+<br />
+(-) [Main Thread       0.236] (  114) DirectFB/Core:     Initializing...<br />
+<br />
+(-) [Main Thread       0.247] (  114) Core/Parts:        Going to initialize &amp;#039;clipboard&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.251] (  114) Core/Parts:        Going to initialize &amp;#039;colorhash&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.253] (  114) Core/Parts:        Going to initialize &amp;#039;system&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.268] (  114) Core/Parts:        Going to initialize &amp;#039;input&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.271] (  114) Core/Input:        dfb_input_initialize( 0x3a3c8, (nil), 0x43fa0 )<br />
+<br />
+(-) [Main Thread       0.292] (  114) Direct/Modules:    Loading &amp;#039;/appfs/lib/directfb-1.0-0/inputdrivers/libdirectfb_lirc.so&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.376] (  114) Direct/Modules:    Registering &amp;#039;lirc&amp;#039; (&amp;#039;/appfs/lib/directfb-1.0-0/inputdrivers&amp;#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.377] (  114) Direct/Modules:    ...registered.<br />
+<br />
+(-) [Main Thread       0.380] (  114) Direct/Modules:    Loading &amp;#039;/appfs/lib/directfb-1.0-0/inputdrivers/libdirectfb_linux_input.so&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.412] (  114) Direct/Modules:    Registering &amp;#039;linux_input&amp;#039; (&amp;#039;/appfs/lib/directfb-1.0-0/inputdrivers&amp;#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.415] (  114) Direct/Modules:    ...registered.<br />
+<br />
+(-) [Main Thread       0.417] (  114) Core/Input:        init_devices( 0x3a3c8 )<br />
+<br />
+(-) [Main Thread       0.419] (  114) Core/Input:          -&amp;gt; probing &amp;#039;Linux Input Driver&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.431] (  114) Core/Input:          -&amp;gt; 1 available device(s) provided by &amp;#039;Linux Input Driver&amp;#039;.<br />
+<br />
+(-) [Linux Input       0.447] (  124) Direct/Signals:    Blocking all signals from now on!<br />
+<br />
+(*) Direcir hw init<br />
+<br />
+t/Threadir sw init<br />
+<br />
+: Running &amp;#039;Linux Input&amp;#039; (INPUT, 124)...<br />
+<br />
+(-) [Main Thread       0.455] (  114) Core/Input:        make_id( 0x01 )<br />
+<br />
+(*) DirectFB/Input: Microsoft Basic Optical Mouse 0.1 (directfb.org)<br />
+<br />
+(-) [Main Thread       0.458] (  114) Core/Input:        input_add_device( 0x44938 )<br />
+<br />
+(-) [Main Thread       0.460] (  114) Core/Input:          -&amp;gt; probing &amp;#039;IR Contrl&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.461] (  114) Core/Input:          -&amp;gt; 1 available device(s) provided by &amp;#039;IR Contrl&amp;#039;.<br />
+<br />
+(!) File : lirc.c, Func : driver_open_device, Line : 424.<br />
+<br />
+(-) [IR Input          0.482] (  127) Direct/Signals:    Blocking all signals from now on!<br />
+<br />
+(*) Direct/Thread: Running &amp;#039;IR Input&amp;#039; (INPUT, 127)...<br />
+<br />
+(-) [Main Thread       0.486] (  114) Core/Input:        make_id( 0x00 )<br />
+<br />
+(*) DirectFB/Input: IR Control 0.9 (CNXT)<br />
+<br />
+(-) [Main Thread       0.488] (  114) Core/Input:        allocate_device_keymap( 0x3a3c8, 0x44bc0 )<br />
+<br />
+(-) [Main Thread       0.490] (  114) Core/Input:        input_add_device( 0x44bc0 )<br />
+<br />
+(-) [Main Thread       0.492] (  114) Core/Parts:        Going to initialize &amp;#039;gfxcard&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.516] (  114) Direct/Modules:    Loading &amp;#039;/appfs/lib/directfb-1.0-0/gfxdrivers/libdirectfb_cnxtgfx.so&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.630] (  114) Direct/Modules:    Registering &amp;#039;cnxtgfx&amp;#039; (&amp;#039;/appfs/lib/directfb-1.0-0/gfxdrivers&amp;#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.631] (  114) Direct/Modules:    ...registered.<br />
+<br />
+cnxtgfx.c: driver_init_device opens framebuffer device (null).<br />
+<br />
+cnxtgfx.c: driver_init_device retrieves DefaultWidth = 800, DefaultHeight = 600.<br />
+<br />
+(*) DirectFB/Graphics: CONEXANT CONEXANT GRAPHICS ACCELERATOR 1.0 (CONEXANT SYSTEMS)<br />
+<br />
+(-) [Main Thread       0.686] (  114) Core/SurfaceMgr:   Added heap for storage 0x1 (offset 0, length 3840000).<br />
+<br />
+(-) [Main Thread       0.689] (  114) Core/Parts:        Going to initialize &amp;#039;screens&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.691] (  114) Core/Parts:        Going to initialize &amp;#039;layers&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.694] (  114) DirectFB/Layers : dfb_layers_initialize process total 1 layers.<br />
+<br />
+(-) [Main Thread       0.701] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x3e802054, buffermode: 1)<br />
+<br />
+(-) [Main Thread       0.710] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 1)<br />
+<br />
+(-) [Main Thread       0.713] (  114) DirectFB/FBDev: primaryInitLayer set RGB16!<br />
+<br />
+(-) [Main Thread       0.714] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: (nil), buffermode: 1)<br />
+<br />
+(-) [Main Thread       0.718] (  114) Core/Parts:        Going to initialize &amp;#039;wm&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.739] (  114) Direct/Modules:    Loading &amp;#039;/appfs/lib/directfb-1.0-0/wm/libdirectfbwm_default.so&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.816] (  114) Direct/Modules:    Registering &amp;#039;default&amp;#039; (&amp;#039;/appfs/lib/directfb-1.0-0/wm&amp;#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.818] (  114) Direct/Modules:    ...registered.<br />
+<br />
+(*) DirectFB/Core/WM: Default 0.3 (directfb.org)<br />
+<br />
+(-) [Main Thread       0.825] (  114) DirectFB/Core:     Core successfully created.<br />
+<br />
+(-) [Main Thread       0.828] (  114) IDirectFB:         IDirectFB_Construct( 0x46750, 0x3a3c8 )<br />
+<br />
+(-) [Main Thread       0.832] (  114) Core/Layers:       dfb_layer_get_primary_context (FBDev Primary Layer, activate) &amp;lt;- active: -1<br />
+<br />
+(-) [Main Thread       0.835] (  114) Core/Layers:       dfb_layer_create_context (FBDev Primary Layer)<br />
+<br />
+(-) [Main Thread       0.841] (  114) Fusion/Object:     == Layer Context Pool ==<br />
+<br />
+(-) [Main Thread       0.844] (  114) Fusion/Object:       -&amp;gt; added 0x46f28<br />
+<br />
+(-) [Main Thread       0.846] (  114) Core/Layers:       dfb_layer_context_create -&amp;gt; 0x46f28<br />
+<br />
+(-) [Main Thread       0.850] (  114) Core/WindowStack:  dfb_windowstack_create( 0x46f28 )<br />
+<br />
+(-) [Main Thread       0.854] (  114) Core/Input:        dfb_input_attach_global( 0x44938, 0, 0x470b8, 0x47370 )<br />
+<br />
+(-) [Main Thread       0.857] (  114) Core/Input:        dfb_input_attach_global( 0x44bc0, 0, 0x470b8, 0x473a0 )<br />
+<br />
+(-) [Main Thread       0.859] (  114) Core/WindowStack:    -&amp;gt; 0x470b8<br />
+<br />
+(-) [Main Thread       0.860] (  114) Core/WindowStack:  dfb_windowstack_resize( 0x470b8, 800x600 )<br />
+<br />
+(-) [Main Thread       0.866] (  114) Core/Layers:       dfb_layer_activate_context (FBDev Primary Layer, 0x46f28)<br />
+<br />
+(-) [Main Thread       0.868] (  114) Core/Layers:       dfb_layer_context_activate (0x46f28)<br />
+<br />
+(-) [Main Thread       0.871] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x470b8 )<br />
+<br />
+(-) [Main Thread       0.875] (  114) Core/Layers:       dfb_layer_get_primary_context (FBDev Primary Layer, don&amp;#039;t activate) &amp;lt;- active: 0<br />
+<br />
+(-) [Main Thread       0.878] (  114) layer_context.c : build_updated_config.<br />
+<br />
+(-) [Main Thread       0.879] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.883] (  114) DirectFB : apply_configuration.<br />
+<br />
+(-) [Main Thread       0.885] (  114) layer_context.c : build_updated_config.<br />
+<br />
+(-) [Main Thread       0.886] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.889] (  114) Core/WindowStack:  dfb_windowstack_resize( 0x470b8, 800x600 )<br />
+<br />
+(-) [Main Thread       0.891] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x470b8 )<br />
+<br />
+(-) [Main Thread       0.894] (  114) Core/WindowStack:  dfb_windowstack_set_background_mode( 0x470b8, 0 )<br />
+<br />
+(-) [Main Thread       0.896] (  114) Core/WindowStack:  dfb_windowstack_set_background_color( 0x470b8, 0xffe87c10 )<br />
+<br />
+(-) [Main Thread       0.898] (  114) Core/WindowStack:  dfb_windowstack_set_background_mode( 0x470b8, 1 )<br />
+<br />
+(-) [Main Thread       0.899] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x470b8 )<br />
+<br />
+(-) [Main Thread       0.940] (  114) IDirectFB:         IDirectFB_GetDisplayLayer( 0x46750, 0 )<br />
+<br />
+(-) [Main Thread       0.944] (  114) Core/Layers:       dfb_layer_get_primary_context (FBDev Primary Layer, activate) &amp;lt;- active: 0<br />
+<br />
+(-) [Main Thread       0.947] (  114) Fusion/Object:     == Layer Region Pool ==<br />
+<br />
+(-) [Main Thread       0.949] (  114) Fusion/Object:       -&amp;gt; added 0x47500<br />
+<br />
+(-) [Main Thread       0.952] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.957] (  114) layer_context : dfb_layer_context_get_pri using context-&amp;gt;config.<br />
+<br />
+(-) [Main Thread       0.958] (  114) layer_context.c : build_updated_config.<br />
+<br />
+(-) [Main Thread       0.960] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.963] (  114) layer_context : allocate_surface.<br />
+<br />
+(-) [Main Thread       0.964] (  114) Fusion/Object:     == Surface Pool ==<br />
+<br />
+(-) [Main Thread       0.966] (  114) Fusion/Object:       -&amp;gt; added 0x47658<br />
+<br />
+(-) [Main Thread       0.968] (  114) FBDev: primaryAllocateSurface execute dfb_surface_init with pixel format ARGB.<br />
+<br />
+(-) [Main Thread       0.970] (  114) Core/Surface:      dfb_surface_init( 0x47658, 800x600, ARGB, 0x00000014, (nil) )<br />
+<br />
+(-) [Main Thread       0.973] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.977] (  114) Core/Layers:       Adding region (0, 0 - 800x600) to &amp;#039;FBDev Primary Layer&amp;#039;.<br />
+<br />
+(-) [Main Thread       0.980] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: 0x47658, mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.992] (  114) Core/Surface:      dfb_surface_notify_listeners( 0x47658, 0x00000017 )<br />
+<br />
+(-) [Main Thread       0.995] (  114) Core/Layers:       _dfb_layer_region_surface_listener( 0x3e802068, 0x47500 ) &amp;lt;- 0x00000017<br />
+<br />
+(-) [Main Thread       0.997] (  114) Core/WindowStack:  dfb_windowstack_resize( 0x470b8, 800x600 )<br />
+<br />
+(-) [Main Thread       0.999] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x470b8 )<br />
+<br />
+(-) [Main Thread       1.001] (  114) WM/Default:        repaint_stack( 1 region(s), flags 0 )<br />
+<br />
+(-) [Main Thread       1.003] (  114) WM/Default:          -&amp;gt; 0, 0 - 800x600  (0)<br />
+<br />
+(-) [Main Thread       1.007] (  114) Core/Surface:      dfb_surface_hardware_lock( 0x47658, w, back )<br />
+<br />
+(-) [Main Thread       1.010] (  114) dfb_surfacemanager_assure_video: entry.<br />
+<br />
+(-) [Main Thread       1.011] (  114) Core/Surface:        -&amp;gt; video only, counter: 1<br />
+<br />
+(-) [Main Thread       1.017] (  114) Core/Surface:      dfb_surface_unlock( 0x47658, back )<br />
+<br />
+(-) [Main Thread       1.020] (  114) Core/Surface:        -&amp;gt; system/video count: 0/1 before<br />
+<br />
+(-) [Main Thread       1.023] (  114) Core/Surface:        -&amp;gt; system/video count: 0/0 after<br />
+<br />
+(-) [Main Thread       1.025] (  114) Core/Layers:       dfb_layer_region_flip_update( 0x47500, 0x3e80218c, 0x00000000 ) &amp;lt;- [0, 0 - 800x600]<br />
+<br />
+(-) [Main Thread       1.027] (  114) Core/Layers:         -&amp;gt; Going to swap buffers...<br />
+<br />
+(-) [Main Thread       1.029] (  114) Core/Layers:         -&amp;gt; Waiting for pending writes...<br />
+<br />
+(-) [Main Thread       1.031] (  114) Core/Layers:         -&amp;gt; Flipping region using driver...<br />
+<br />
+(-) [Main Thread       1.035] (  114) Core/Surface:      dfb_surface_flip_buffers( 0x47658, false )<br />
+<br />
+(-) [Main Thread       1.038] (  114) Core/Surface:      dfb_surface_notify_listeners( 0x47658, 0x00000010 )<br />
+<br />
+(-) [Main Thread       1.040] (  114) Core/Layers:       _dfb_layer_region_surface_listener( 0x3e802088, 0x47500 ) &amp;lt;- 0x00000010<br />
+<br />
+(-) [Main Thread       1.408] (  114) Core/Layers:         -&amp;gt; done.<br />
+<br />
+(-) [Main Thread       1.477] (  114) Core/Layers:       dfb_layer_create_context (FBDev Primary Layer)<br />
+<br />
+(-) [Main Thread       1.479] (  114) Fusion/Object:     == Layer Context Pool ==<br />
+<br />
+(-) [Main Thread       1.481] (  114) Fusion/Object:       -&amp;gt; added 0x478c8<br />
+<br />
+(-) [Main Thread       1.482] (  114) Core/Layers:       dfb_layer_context_create -&amp;gt; 0x478c8<br />
+<br />
+(-) [Main Thread       1.484] (  114) Core/WindowStack:  dfb_windowstack_create( 0x478c8 )<br />
+<br />
+(-) [Main Thread       1.486] (  114) Core/Input:        dfb_input_attach_global( 0x44938, 0, 0x47a58, 0x47880 )<br />
+<br />
+(-) [Main Thread       1.489] (  114) Core/Input:        dfb_input_attach_global( 0x44bc0, 0, 0x47a58, 0x47d10 )<br />
+<br />
+(-) [Main Thread       1.491] (  114) Core/WindowStack:    -&amp;gt; 0x47a58<br />
+<br />
+(-) [Main Thread       1.492] (  114) Core/WindowStack:  dfb_windowstack_resize( 0x47a58, 800x600 )<br />
+<br />
+(-) [Main Thread       1.494] (  114) Core/Layers:       dfb_layer_activate_context (FBDev Primary Layer, 0x478c8)<br />
+<br />
+(-) [Main Thread       1.496] (  114) Core/Layers:       dfb_layer_context_deactivate (0x46f28)<br />
+<br />
+(-) [Main Thread       1.498] (  114) Cori, Matt,<br />
+<br />
+The framebuffer driver I use supports ARGB mode, the following is the DF log :<br />
+(*) DirectFB/Config: Parsing config file &#039;/etc/directfbrc&#039;.<br />
+<br />
+(*) DirectFB/dfb_config_read: name depth &lt;-- value 32 <br />
+<br />
+(*) DirectFB/dfb_config_read: name pixelformat &lt;-- value ARGB <br />
+<br />
+(*) DirectFB/dfb_config_read: name no-vt &lt;-- value (null) <br />
+<br />
+(*) DirectFB/dfb_config_read: name debug &lt;-- value (null) <br />
+<br />
+(*) DirectFB/dfb_config_read: name font-format &lt;-- value ARGB <br />
+<br />
+(*) DirectFB/dfb_config_read finishes to read setting from /etc/directfbrc to fill out dbf_config structure.<br />
+<br />
+     =======================|  DirectFB 1.0.0  |=======================<br />
+<br />
+          (c) 2001-2007  The DirectFB Organization (directfb.org)<br />
+<br />
+          (c) 2000-2004  Convergence (integrated media) GmbH<br />
+<br />
+        ------------------------------------------------------------<br />
+<br />
+<br />
+<br />
+(-) [  NO NAME         0.022] (  114) DirectFB/Core:     dfb_core_create...<br />
+<br />
+(-) [  NO NAME         0.026] (  114) Direct/Main:       direct_initialize() called...<br />
+<br />
+(-) [Main Thread       0.032] (  114) Direct/Main:       ...initializing now.<br />
+<br />
+(-) [Main Thread       0.035] (  114) Direct/Signals:    Initializing...<br />
+<br />
+(*) DirectFB/Core: Single Application Core. (2008-09-23 10:03) [ DEBUG ]<br />
+<br />
+(*) Open dfb_lib_handle /home/lxuser/nfs_test4morphine_tv/appfs/lib/libdirectfb-1.0.so.0.<br />
+<br />
+(*) DirectFB/core.c: Opens /appfs/lib/libdirectfb-1.0.so.0 successfully.<br />
+<br />
+(-) [Main Thread       0.077] (  114) Direct/Modules:    Loading &amp;#039;/appfs/lib/directfb-1.0-0/systems/libdirectfb_fbdev.so&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.219] (  114) Direct/Modules:    Registering &amp;#039;fbdev&amp;#039; (&amp;#039;/appfs/lib/directfb-1.0-0/systems&amp;#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.220] (  114) Direct/Modules:    ...registered.<br />
+<br />
+(-) [Main Thread       0.227] (  114) Direct/Main:       direct_initialize() called...<br />
+<br />
+(-) [Main Thread       0.229] (  114) Direct/Main:       ...2 references now.<br />
+<br />
+(-) [Main Thread       0.234] (  114) Direct/Signals:    Adding handler 0x1abd2db0 for signal -1 with context 0x3a3c8...<br />
+<br />
+(-) [Main Thread       0.236] (  114) DirectFB/Core:     Initializing...<br />
+<br />
+(-) [Main Thread       0.247] (  114) Core/Parts:        Going to initialize &amp;#039;clipboard&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.251] (  114) Core/Parts:        Going to initialize &amp;#039;colorhash&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.253] (  114) Core/Parts:        Going to initialize &amp;#039;system&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.268] (  114) Core/Parts:        Going to initialize &amp;#039;input&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.271] (  114) Core/Input:        dfb_input_initialize( 0x3a3c8, (nil), 0x43fa0 )<br />
+<br />
+(-) [Main Thread       0.292] (  114) Direct/Modules:    Loading &amp;#039;/appfs/lib/directfb-1.0-0/inputdrivers/libdirectfb_lirc.so&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.376] (  114) Direct/Modules:    Registering &amp;#039;lirc&amp;#039; (&amp;#039;/appfs/lib/directfb-1.0-0/inputdrivers&amp;#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.377] (  114) Direct/Modules:    ...registered.<br />
+<br />
+(-) [Main Thread       0.380] (  114) Direct/Modules:    Loading &amp;#039;/appfs/lib/directfb-1.0-0/inputdrivers/libdirectfb_linux_input.so&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.412] (  114) Direct/Modules:    Registering &amp;#039;linux_input&amp;#039; (&amp;#039;/appfs/lib/directfb-1.0-0/inputdrivers&amp;#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.415] (  114) Direct/Modules:    ...registered.<br />
+<br />
+(-) [Main Thread       0.417] (  114) Core/Input:        init_devices( 0x3a3c8 )<br />
+<br />
+(-) [Main Thread       0.419] (  114) Core/Input:          -&amp;gt; probing &amp;#039;Linux Input Driver&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.431] (  114) Core/Input:          -&amp;gt; 1 available device(s) provided by &amp;#039;Linux Input Driver&amp;#039;.<br />
+<br />
+(-) [Linux Input       0.447] (  124) Direct/Signals:    Blocking all signals from now on!<br />
+<br />
+(*) Direcir hw init<br />
+<br />
+t/Threadir sw init<br />
+<br />
+: Running &amp;#039;Linux Input&amp;#039; (INPUT, 124)...<br />
+<br />
+(-) [Main Thread       0.455] (  114) Core/Input:        make_id( 0x01 )<br />
+<br />
+(*) DirectFB/Input: Microsoft Basic Optical Mouse 0.1 (directfb.org)<br />
+<br />
+(-) [Main Thread       0.458] (  114) Core/Input:        input_add_device( 0x44938 )<br />
+<br />
+(-) [Main Thread       0.460] (  114) Core/Input:          -&amp;gt; probing &amp;#039;IR Contrl&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.461] (  114) Core/Input:          -&amp;gt; 1 available device(s) provided by &amp;#039;IR Contrl&amp;#039;.<br />
+<br />
+(!) File : lirc.c, Func : driver_open_device, Line : 424.<br />
+<br />
+(-) [IR Input          0.482] (  127) Direct/Signals:    Blocking all signals from now on!<br />
+<br />
+(*) Direct/Thread: Running &amp;#039;IR Input&amp;#039; (INPUT, 127)...<br />
+<br />
+(-) [Main Thread       0.486] (  114) Core/Input:        make_id( 0x00 )<br />
+<br />
+(*) DirectFB/Input: IR Control 0.9 (CNXT)<br />
+<br />
+(-) [Main Thread       0.488] (  114) Core/Input:        allocate_device_keymap( 0x3a3c8, 0x44bc0 )<br />
+<br />
+(-) [Main Thread       0.490] (  114) Core/Input:        input_add_device( 0x44bc0 )<br />
+<br />
+(-) [Main Thread       0.492] (  114) Core/Parts:        Going to initialize &amp;#039;gfxcard&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.516] (  114) Direct/Modules:    Loading &amp;#039;/appfs/lib/directfb-1.0-0/gfxdrivers/libdirectfb_cnxtgfx.so&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.630] (  114) Direct/Modules:    Registering &amp;#039;cnxtgfx&amp;#039; (&amp;#039;/appfs/lib/directfb-1.0-0/gfxdrivers&amp;#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.631] (  114) Direct/Modules:    ...registered.<br />
+<br />
+cnxtgfx.c: driver_init_device opens framebuffer device (null).<br />
+<br />
+cnxtgfx.c: driver_init_device retrieves DefaultWidth = 800, DefaultHeight = 600.<br />
+<br />
+(*) DirectFB/Graphics: CONEXANT CONEXANT GRAPHICS ACCELERATOR 1.0 (CONEXANT SYSTEMS)<br />
+<br />
+(-) [Main Thread       0.686] (  114) Core/SurfaceMgr:   Added heap for storage 0x1 (offset 0, length 3840000).<br />
+<br />
+(-) [Main Thread       0.689] (  114) Core/Parts:        Going to initialize &amp;#039;screens&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.691] (  114) Core/Parts:        Going to initialize &amp;#039;layers&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.694] (  114) DirectFB/Layers : dfb_layers_initialize process total 1 layers.<br />
+<br />
+(-) [Main Thread       0.701] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x3e802054, buffermode: 1)<br />
+<br />
+(-) [Main Thread       0.710] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 1)<br />
+<br />
+(-) [Main Thread       0.713] (  114) DirectFB/FBDev: primaryInitLayer set RGB16!<br />
+<br />
+(-) [Main Thread       0.714] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: (nil), buffermode: 1)<br />
+<br />
+(-) [Main Thread       0.718] (  114) Core/Parts:        Going to initialize &amp;#039;wm&amp;#039; core...<br />
+<br />
+(-) [Main Thread       0.739] (  114) Direct/Modules:    Loading &amp;#039;/appfs/lib/directfb-1.0-0/wm/libdirectfbwm_default.so&amp;#039;...<br />
+<br />
+(-) [Main Thread       0.816] (  114) Direct/Modules:    Registering &amp;#039;default&amp;#039; (&amp;#039;/appfs/lib/directfb-1.0-0/wm&amp;#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.818] (  114) Direct/Modules:    ...registered.<br />
+<br />
+(*) DirectFB/Core/WM: Default 0.3 (directfb.org)<br />
+<br />
+(-) [Main Thread       0.825] (  114) DirectFB/Core:     Core successfully created.<br />
+<br />
+(-) [Main Thread       0.828] (  114) IDirectFB:         IDirectFB_Construct( 0x46750, 0x3a3c8 )<br />
+<br />
+(-) [Main Thread       0.832] (  114) Core/Layers:       dfb_layer_get_primary_context (FBDev Primary Layer, activate) &amp;lt;- active: -1<br />
+<br />
+(-) [Main Thread       0.835] (  114) Core/Layers:       dfb_layer_create_context (FBDev Primary Layer)<br />
+<br />
+(-) [Main Thread       0.841] (  114) Fusion/Object:     == Layer Context Pool ==<br />
+<br />
+(-) [Main Thread       0.844] (  114) Fusion/Object:       -&amp;gt; added 0x46f28<br />
+<br />
+(-) [Main Thread       0.846] (  114) Core/Layers:       dfb_layer_context_create -&amp;gt; 0x46f28<br />
+<br />
+(-) [Main Thread       0.850] (  114) Core/WindowStack:  dfb_windowstack_create( 0x46f28 )<br />
+<br />
+(-) [Main Thread       0.854] (  114) Core/Input:        dfb_input_attach_global( 0x44938, 0, 0x470b8, 0x47370 )<br />
+<br />
+(-) [Main Thread       0.857] (  114) Core/Input:        dfb_input_attach_global( 0x44bc0, 0, 0x470b8, 0x473a0 )<br />
+<br />
+(-) [Main Thread       0.859] (  114) Core/WindowStack:    -&amp;gt; 0x470b8<br />
+<br />
+(-) [Main Thread       0.860] (  114) Core/WindowStack:  dfb_windowstack_resize( 0x470b8, 800x600 )<br />
+<br />
+(-) [Main Thread       0.866] (  114) Core/Layers:       dfb_layer_activate_context (FBDev Primary Layer, 0x46f28)<br />
+<br />
+(-) [Main Thread       0.868] (  114) Core/Layers:       dfb_layer_context_activate (0x46f28)<br />
+<br />
+(-) [Main Thread       0.871] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x470b8 )<br />
+<br />
+(-) [Main Thread       0.875] (  114) Core/Layers:       dfb_layer_get_primary_context (FBDev Primary Layer, don&amp;#039;t activate) &amp;lt;- active: 0<br />
+<br />
+(-) [Main Thread       0.878] (  114) layer_context.c : build_updated_config.<br />
+<br />
+(-) [Main Thread       0.879] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.883] (  114) DirectFB : apply_configuration.<br />
+<br />
+(-) [Main Thread       0.885] (  114) layer_context.c : build_updated_config.<br />
+<br />
+(-) [Main Thread       0.886] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.889] (  114) Core/WindowStack:  dfb_windowstack_resize( 0x470b8, 800x600 )<br />
+<br />
+(-) [Main Thread       0.891] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x470b8 )<br />
+<br />
+(-) [Main Thread       0.894] (  114) Core/WindowStack:  dfb_windowstack_set_background_mode( 0x470b8, 0 )<br />
+<br />
+(-) [Main Thread       0.896] (  114) Core/WindowStack:  dfb_windowstack_set_background_color( 0x470b8, 0xffe87c10 )<br />
+<br />
+(-) [Main Thread       0.898] (  114) Core/WindowStack:  dfb_windowstack_set_background_mode( 0x470b8, 1 )<br />
+<br />
+(-) [Main Thread       0.899] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x470b8 )<br />
+<br />
+(-) [Main Thread       0.940] (  114) IDirectFB:         IDirectFB_GetDisplayLayer( 0x46750, 0 )<br />
+<br />
+(-) [Main Thread       0.944] (  114) Core/Layers:       dfb_layer_get_primary_context (FBDev Primary Layer, activate) &amp;lt;- active: 0<br />
+<br />
+(-) [Main Thread       0.947] (  114) Fusion/Object:     == Layer Region Pool ==<br />
+<br />
+(-) [Main Thread       0.949] (  114) Fusion/Object:       -&amp;gt; added 0x47500<br />
+<br />
+(-) [Main Thread       0.952] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.957] (  114) layer_context : dfb_layer_context_get_pri using context-&amp;gt;config.<br />
+<br />
+(-) [Main Thread       0.958] (  114) layer_context.c : build_updated_config.<br />
+<br />
+(-) [Main Thread       0.960] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.963] (  114) layer_context : allocate_surface.<br />
+<br />
+(-) [Main Thread       0.964] (  114) Fusion/Object:     == Surface Pool ==<br />
+<br />
+(-) [Main Thread       0.966] (  114) Fusion/Object:       -&amp;gt; added 0x47658<br />
+<br />
+(-) [Main Thread       0.968] (  114) FBDev: primaryAllocateSurface execute dfb_surface_init with pixel format ARGB.<br />
+<br />
+(-) [Main Thread       0.970] (  114) Core/Surface:      dfb_surface_init( 0x47658, 800x600, ARGB, 0x00000014, (nil) )<br />
+<br />
+(-) [Main Thread       0.973] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.977] (  114) Core/Layers:       Adding region (0, 0 - 800x600) to &amp;#039;FBDev Primary Layer&amp;#039;.<br />
+<br />
+(-) [Main Thread       0.980] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: 0x47658, mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.992] (  114) Core/Surface:      dfb_surface_notify_listeners( 0x47658, 0x00000017 )<br />
+<br />
+(-) [Main Thread       0.995] (  114) Core/Layers:       _dfb_layer_region_surface_listener( 0x3e802068, 0x47500 ) &amp;lt;- 0x00000017<br />
+<br />
+(-) [Main Thread       0.997] (  114) Core/WindowStack:  dfb_windowstack_resize( 0x470b8, 800x600 )<br />
+<br />
+(-) [Main Thread       0.999] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x470b8 )<br />
+<br />
+(-) [Main Thread       1.001] (  114) WM/Default:        repaint_stack( 1 region(s), flags 0 )<br />
+<br />
+(-) [Main Thread       1.003] (  114) WM/Default:          -&amp;gt; 0, 0 - 800x600  (0)<br />
+<br />
+(-) [Main Thread       1.007] (  114) Core/Surface:      dfb_surface_hardware_lock( 0x47658, w, back )<br />
+<br />
+(-) [Main Thread       1.010] (  114) dfb_surfacemanager_assure_video: entry.<br />
+<br />
+(-) [Main Thread       1.011] (  114) Core/Surface:        -&amp;gt; video only, counter: 1<br />
+<br />
+(-) [Main Thread       1.017] (  114) Core/Surface:      dfb_surface_unlock( 0x47658, back )<br />
+<br />
+(-) [Main Thread       1.020] (  114) Core/Surface:        -&amp;gt; system/video count: 0/1 before<br />
+<br />
+(-) [Main Thread       1.023] (  114) Core/Surface:        -&amp;gt; system/video count: 0/0 after<br />
+<br />
+(-) [Main Thread       1.025] (  114) Core/Layers:       dfb_layer_region_flip_update( 0x47500, 0x3e80218c, 0x00000000 ) &amp;lt;- [0, 0 - 800x600]<br />
+<br />
+(-) [Main Thread       1.027] (  114) Core/Layers:         -&amp;gt; Going to swap buffers...<br />
+<br />
+(-) [Main Thread       1.029] (  114) Core/Layers:         -&amp;gt; Waiting for pending writes...<br />
+<br />
+(-) [Main Thread       1.031] (  114) Core/Layers:         -&amp;gt; Flipping region using driver...<br />
+<br />
+(-) [Main Thread       1.035] (  114) Core/Surface:      dfb_surface_flip_buffers( 0x47658, false )<br />
+<br />
+(-) [Main Thread       1.038] (  114) Core/Surface:      dfb_surface_notify_listeners( 0x47658, 0x00000010 )<br />
+<br />
+(-) [Main Thread       1.040] (  114) Core/Layers:       _dfb_layer_region_surface_listener( 0x3e802088, 0x47500 ) &amp;lt;- 0x00000010<br />
+<br />
+(-) [Main Thread       1.408] (  114) Core/Layers:         -&amp;gt; done.<br />
+<br />
+(-) [Main Thread       1.477] (  114) Core/Layers:       dfb_layer_create_context (FBDev Primary Layer)<br />
+<br />
+(-) [Main Thread       1.479] (  114) Fusion/Object:     == Layer Context Pool ==<br />
+<br />
+(-) [Main Thread       1.481] (  114) Fusion/Object:       -&amp;gt; added 0x478c8<br />
+<br />
+(-) [Main Thread       1.482] (  114) Core/Layers:       dfb_layer_context_create -&amp;gt; 0x478c8<br />
+<br />
+(-) [Main Thread       1.484] (  114) Core/WindowStack:  dfb_windowstack_create( 0x478c8 )<br />
+<br />
+(-) [Main Thread       1.486] (  114) Core/Input:        dfb_input_attach_global( 0x44938, 0, 0x47a58, 0x47880 )<br />
+<br />
+(-) [Main Thread       1.489] (  114) Core/Input:        dfb_input_attach_global( 0x44bc0, 0, 0x47a58, 0x47d10 )<br />
+<br />
+(-) [Main Thread       1.491] (  114) Core/WindowStack:    -&amp;gt; 0x47a58<br />
+<br />
+(-) [Main Thread       1.492] (  114) Core/WindowStack:  dfb_windowstack_resize( 0x47a58, 800x600 )<br />
+<br />
+(-) [Main Thread       1.494] (  114) Core/Layers:       dfb_layer_activate_context (FBDev Primary Layer, 0x478c8)<br />
+<br />
+(-) [Main Thread       1.496] (  114) Core/Layers:       dfb_layer_context_deactivate (0x46f28)<br />
+<br />
+(-) [Main Thread       1.498] (  114) Core/Layers:       Removing region (0, 0 - 800x600) from &amp;#039;FBDev Primary Layer&amp;#039;.<br />
+<br />
+(-) [Main Thread       1.502] (  114) Core/Layers:       dfb_layer_context_activate (0x478c8)<br />
+<br />
+(-) [Main Thread       1.503] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x47a58 )<br />
+<br />
+(-) [Main Thread       1.506] (  114) Fusion/Object:     == Layer Region Pool ==<br />
+<br />
+(-) [Main Thread       1.508cnxtfbchanging from 32 to 16<br />
+<br />
+cnxtfbget image palette failed 5 <br />
+<br />
+cnxtfb cnxtfb_set_par: HD Unblank failed, err = 3<br />
+<br />
+cnxtfb cnxtfb_set_par: SD Unblank failed, err = 3<br />
+<br />
+cnxtfbIMAGE: image set palette return ERROR 5.<br />
+<br />
+---------------------------------------------------------<br />
+I used the same config to run gtk-demo, it is ok. Right now, I have to set checkpoints  (  114) Direct/Signals:    Initializing...<br />
+<br />
+(*) DirectFB/Core: Single Application Core. (2008-09-23 10:03) [ DEBUG ]<br />
+<br />
+(*) Open dfb_lib_handle /home/lxuser/nfs_test4morphine_tv/appfs/lib/libdirectfb-1.0.so.0.<br />
+<br />
+(*) DirectFB/core.c: Opens /appfs/lib/libdirectfb-1.0.so.0 successfully.<br />
+<br />
+(-) [Main Thread       0.077] (  114) Direct/Modules:    Loading &#039;/appfs/lib/directfb-1.0-0/systems/libdirectfb_fbdev.so&#039;...<br />
+<br />
+(-) [Main Thread       0.219] (  114) Direct/Modules:    Registering &#039;fbdev&#039; (&#039;/appfs/lib/directfb-1.0-0/systems&#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.220] (  114) Direct/Modules:    ...registered.<br />
+<br />
+(-) [Main Thread       0.227] (  114) Direct/Main:       direct_initialize() called...<br />
+<br />
+(-) [Main Thread       0.229] (  114) Direct/Main:       ...2 references now.<br />
+<br />
+(-) [Main Thread       0.234] (  114) Direct/Signals:    Adding handler 0x1abd2db0 for signal -1 with context 0x3a3c8...<br />
+<br />
+(-) [Main Thread       0.236] (  114) DirectFB/Core:     Initializing...<br />
+<br />
+(-) [Main Thread       0.247] (  114) Core/Parts:        Going to initialize &#039;clipboard&#039; core...<br />
+<br />
+(-) [Main Thread       0.251] (  114) Core/Parts:        Going to initialize &#039;colorhash&#039; core...<br />
+<br />
+(-) [Main Thread       0.253] (  114) Core/Parts:        Going to initialize &#039;system&#039; core...<br />
+<br />
+(-) [Main Thread       0.268] (  114) Core/Parts:        Going to initialize &#039;input&#039; core...<br />
+<br />
+(-) [Main Thread       0.271] (  114) Core/Input:        dfb_input_initialize( 0x3a3c8, (nil), 0x43fa0 )<br />
+<br />
+(-) [Main Thread       0.292] (  114) Direct/Modules:    Loading &#039;/appfs/lib/directfb-1.0-0/inputdrivers/libdirectfb_lirc.so&#039;...<br />
+<br />
+(-) [Main Thread       0.376] (  114) Direct/Modules:    Registering &#039;lirc&#039; (&#039;/appfs/lib/directfb-1.0-0/inputdrivers&#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.377] (  114) Direct/Modules:    ...registered.<br />
+<br />
+(-) [Main Thread       0.380] (  114) Direct/Modules:    Loading &#039;/appfs/lib/directfb-1.0-0/inputdrivers/libdirectfb_linux_input.so&#039;...<br />
+<br />
+(-) [Main Thread       0.412] (  114) Direct/Modules:    Registering &#039;linux_input&#039; (&#039;/appfs/lib/directfb-1.0-0/inputdrivers&#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.415] (  114) Direct/Modules:    ...registered.<br />
+<br />
+(-) [Main Thread       0.417] (  114) Core/Input:        init_devices( 0x3a3c8 )<br />
+<br />
+(-) [Main Thread       0.419] (  114) Core/Input:          -&gt; probing &#039;Linux Input Driver&#039;...<br />
+<br />
+(-) [Main Thread       0.431] (  114) Core/Input:          -&gt; 1 available device(s) provided by &#039;Linux Input Driver&#039;.<br />
+<br />
+(-) [Linux Input       0.447] (  124) Direct/Signals:    Blocking all signals from now on!<br />
+<br />
+(*) Direcir hw init<br />
+<br />
+t/Threadir sw init<br />
+<br />
+: Running &#039;Linux Input&#039; (INPUT, 124)...<br />
+<br />
+(-) [Main Thread       0.455] (  114) Core/Input:        make_id( 0x01 )<br />
+<br />
+(*) DirectFB/Input: Microsoft Basic Optical Mouse 0.1 (directfb.org)<br />
+<br />
+(-) [Main Thread       0.458] (  114) Core/Input:        input_add_device( 0x44938 )<br />
+<br />
+(-) [Main Thread       0.460] (  114) Core/Input:          -&gt; probing &#039;IR Contrl&#039;...<br />
+<br />
+(-) [Main Thread       0.461] (  114) Core/Input:          -&gt; 1 available device(s) provided by &#039;IR Contrl&#039;.<br />
+<br />
+(!) File : lirc.c, Func : driver_open_device, Line : 424.<br />
+<br />
+(-) [IR Input          0.482] (  127) Direct/Signals:    Blocking all signals from now on!<br />
+<br />
+(*) Direct/Thread: Running &#039;IR Input&#039; (INPUT, 127)...<br />
+<br />
+(-) [Main Thread       0.486] (  114) Core/Input:        make_id( 0x00 )<br />
+<br />
+(*) DirectFB/Input: IR Control 0.9 (CNXT)<br />
+<br />
+(-) [Main Thread       0.488] (  114) Core/Input:        allocate_device_keymap( 0x3a3c8, 0x44bc0 )<br />
+<br />
+(-) [Main Thread       0.490] (  114) Core/Input:        input_add_device( 0x44bc0 )<br />
+<br />
+(-) [Main Thread       0.492] (  114) Core/Parts:        Going to initialize &#039;gfxcard&#039; core...<br />
+<br />
+(-) [Main Thread       0.516] (  114) Direct/Modules:    Loading &#039;/appfs/lib/directfb-1.0-0/gfxdrivers/libdirectfb_cnxtgfx.so&#039;...<br />
+<br />
+(-) [Main Thread       0.630] (  114) Direct/Modules:    Registering &#039;cnxtgfx&#039; (&#039;/appfs/lib/directfb-1.0-0/gfxdrivers&#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.631] (  114) Direct/Modules:    ...registered.<br />
+<br />
+cnxtgfx.c: driver_init_device opens framebuffer device (null).<br />
+<br />
+cnxtgfx.c: driver_init_device retrieves DefaultWidth = 800, DefaultHeight = 600.<br />
+<br />
+(*) DirectFB/Graphics: CONEXANT CONEXANT GRAPHICS ACCELERATOR 1.0 (CONEXANT SYSTEMS)<br />
+<br />
+(-) [Main Thread       0.686] (  114) Core/SurfaceMgr:   Added heap for storage 0x1 (offset 0, length 3840000).<br />
+<br />
+(-) [Main Thread       0.689] (  114) Core/Parts:        Going to initialize &#039;screens&#039; core...<br />
+<br />
+(-) [Main Thread       0.691] (  114) Core/Parts:        Going to initialize &#039;layers&#039; core...<br />
+<br />
+(-) [Main Thread       0.694] (  114) DirectFB/Layers : dfb_layers_initialize process total 1 layers.<br />
+<br />
+(-) [Main Thread       0.701] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x3e802054, buffermode: 1)<br />
+<br />
+(-) [Main Thread       0.710] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 1)<br />
+<br />
+(-) [Main Thread       0.713] (  114) DirectFB/FBDev: primaryInitLayer set RGB16!<br />
+<br />
+(-) [Main Thread       0.714] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: (nil), buffermode: 1)<br />
+<br />
+(-) [Main Thread       0.718] (  114) Core/Parts:        Going to initialize &#039;wm&#039; core...<br />
+<br />
+(-) [Main Thread       0.739] (  114) Direct/Modules:    Loading &#039;/appfs/lib/directfb-1.0-0/wm/libdirectfbwm_default.so&#039;...<br />
+<br />
+(-) [Main Thread       0.816] (  114) Direct/Modules:    Registering &#039;default&#039; (&#039;/appfs/lib/directfb-1.0-0/wm&#039<img src="/components/com_fireboard/template/default/images/english/emoticons/wink.png" alt="" style="vertical-align: middle;border:0px;" /><br />
+<br />
+(-) [Main Thread       0.818] (  114) Direct/Modules:    ...registered.<br />
+<br />
+(*) DirectFB/Core/WM: Default 0.3 (directfb.org)<br />
+<br />
+(-) [Main Thread       0.825] (  114) DirectFB/Core:     Core successfully created.<br />
+<br />
+(-) [Main Thread       0.828] (  114) IDirectFB:         IDirectFB_Construct( 0x46750, 0x3a3c8 )<br />
+<br />
+(-) [Main Thread       0.832] (  114) Core/Layers:       dfb_layer_get_primary_context (FBDev Primary Layer, activate) &lt;- active: -1<br />
+<br />
+(-) [Main Thread       0.835] (  114) Core/Layers:       dfb_layer_create_context (FBDev Primary Layer)<br />
+<br />
+(-) [Main Thread       0.841] (  114) Fusion/Object:     == Layer Context Pool ==<br />
+<br />
+(-) [Main Thread       0.844] (  114) Fusion/Object:       -&gt; added 0x46f28<br />
+<br />
+(-) [Main Thread       0.846] (  114) Core/Layers:       dfb_layer_context_create -&gt; 0x46f28<br />
+<br />
+(-) [Main Thread       0.850] (  114) Core/WindowStack:  dfb_windowstack_create( 0x46f28 )<br />
+<br />
+(-) [Main Thread       0.854] (  114) Core/Input:        dfb_input_attach_global( 0x44938, 0, 0x470b8, 0x47370 )<br />
+<br />
+(-) [Main Thread       0.857] (  114) Core/Input:        dfb_input_attach_global( 0x44bc0, 0, 0x470b8, 0x473a0 )<br />
+<br />
+(-) [Main Thread       0.859] (  114) Core/WindowStack:    -&gt; 0x470b8<br />
+<br />
+(-) [Main Thread       0.860] (  114) Core/WindowStack:  dfb_windowstack_resize( 0x470b8, 800x600 )<br />
+<br />
+(-) [Main Thread       0.866] (  114) Core/Layers:       dfb_layer_activate_context (FBDev Primary Layer, 0x46f28)<br />
+<br />
+(-) [Main Thread       0.868] (  114) Core/Layers:       dfb_layer_context_activate (0x46f28)<br />
+<br />
+(-) [Main Thread       0.871] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x470b8 )<br />
+<br />
+(-) [Main Thread       0.875] (  114) Core/Layers:       dfb_layer_get_primary_context (FBDev Primary Layer, don&#039;t activate) &lt;- active: 0<br />
+<br />
+(-) [Main Thread       0.878] (  114) layer_context.c : build_updated_config.<br />
+<br />
+(-) [Main Thread       0.879] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.883] (  114) DirectFB : apply_configuration.<br />
+<br />
+(-) [Main Thread       0.885] (  114) layer_context.c : build_updated_config.<br />
+<br />
+(-) [Main Thread       0.886] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.889] (  114) Core/WindowStack:  dfb_windowstack_resize( 0x470b8, 800x600 )<br />
+<br />
+(-) [Main Thread       0.891] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x470b8 )<br />
+<br />
+(-) [Main Thread       0.894] (  114) Core/WindowStack:  dfb_windowstack_set_background_mode( 0x470b8, 0 )<br />
+<br />
+(-) [Main Thread       0.896] (  114) Core/WindowStack:  dfb_windowstack_set_background_color( 0x470b8, 0xffe87c10 )<br />
+<br />
+(-) [Main Thread       0.898] (  114) Core/WindowStack:  dfb_windowstack_set_background_mode( 0x470b8, 1 )<br />
+<br />
+(-) [Main Thread       0.899] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x470b8 )<br />
+<br />
+(-) [Main Thread       0.940] (  114) IDirectFB:         IDirectFB_GetDisplayLayer( 0x46750, 0 )<br />
+<br />
+(-) [Main Thread       0.944] (  114) Core/Layers:       dfb_layer_get_primary_context (FBDev Primary Layer, activate) &lt;- active: 0<br />
+<br />
+(-) [Main Thread       0.947] (  114) Fusion/Object:     == Layer Region Pool ==<br />
+<br />
+(-) [Main Thread       0.949] (  114) Fusion/Object:       -&gt; added 0x47500<br />
+<br />
+(-) [Main Thread       0.952] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.957] (  114) layer_context : dfb_layer_context_get_pri using context-&gt;config.<br />
+<br />
+(-) [Main Thread       0.958] (  114) layer_context.c : build_updated_config.<br />
+<br />
+(-) [Main Thread       0.960] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.963] (  114) layer_context : allocate_surface.<br />
+<br />
+(-) [Main Thread       0.964] (  114) Fusion/Object:     == Surface Pool ==<br />
+<br />
+(-) [Main Thread       0.966] (  114) Fusion/Object:       -&gt; added 0x47658<br />
+<br />
+(-) [Main Thread       0.968] (  114) FBDev: primaryAllocateSurface execute dfb_surface_init with pixel format ARGB.<br />
+<br />
+(-) [Main Thread       0.970] (  114) Core/Surface:      dfb_surface_init( 0x47658, 800x600, ARGB, 0x00000014, (nil) )<br />
+<br />
+(-) [Main Thread       0.973] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: (nil), mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.977] (  114) Core/Layers:       Adding region (0, 0 - 800x600) to &#039;FBDev Primary Layer&#039;.<br />
+<br />
+(-) [Main Thread       0.980] (  114) DirectFB/FBDev: dfb_fbdev_set_mode (surface: 0x47658, mode: 0x46348, buffermode: 2)<br />
+<br />
+(-) [Main Thread       0.992] (  114) Core/Surface:      dfb_surface_notify_listeners( 0x47658, 0x00000017 )<br />
+<br />
+(-) [Main Thread       0.995] (  114) Core/Layers:       _dfb_layer_region_surface_listener( 0x3e802068, 0x47500 ) &lt;- 0x00000017<br />
+<br />
+(-) [Main Thread       0.997] (  114) Core/WindowStack:  dfb_windowstack_resize( 0x470b8, 800x600 )<br />
+<br />
+(-) [Main Thread       0.999] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x470b8 )<br />
+<br />
+(-) [Main Thread       1.001] (  114) WM/Default:        repaint_stack( 1 region(s), flags 0 )<br />
+<br />
+(-) [Main Thread       1.003] (  114) WM/Default:          -&gt; 0, 0 - 800x600  (0)<br />
+<br />
+(-) [Main Thread       1.007] (  114) Core/Surface:      dfb_surface_hardware_lock( 0x47658, w, back )<br />
+<br />
+(-) [Main Thread       1.010] (  114) dfb_surfacemanager_assure_video: entry.<br />
+<br />
+(-) [Main Thread       1.011] (  114) Core/Surface:        -&gt; video only, counter: 1<br />
+<br />
+(-) [Main Thread       1.017] (  114) Core/Surface:      dfb_surface_unlock( 0x47658, back )<br />
+<br />
+(-) [Main Thread       1.020] (  114) Core/Surface:        -&gt; system/video count: 0/1 before<br />
+<br />
+(-) [Main Thread       1.023] (  114) Core/Surface:        -&gt; system/video count: 0/0 after<br />
+<br />
+(-) [Main Thread       1.025] (  114) Core/Layers:       dfb_layer_region_flip_update( 0x47500, 0x3e80218c, 0x00000000 ) &lt;- [0, 0 - 800x600]<br />
+<br />
+(-) [Main Thread       1.027] (  114) Core/Layers:         -&gt; Going to swap buffers...<br />
+<br />
+(-) [Main Thread       1.029] (  114) Core/Layers:         -&gt; Waiting for pending writes...<br />
+<br />
+(-) [Main Thread       1.031] (  114) Core/Layers:         -&gt; Flipping region using driver...<br />
+<br />
+(-) [Main Thread       1.035] (  114) Core/Surface:      dfb_surface_flip_buffers( 0x47658, false )<br />
+<br />
+(-) [Main Thread       1.038] (  114) Core/Surface:      dfb_surface_notify_listeners( 0x47658, 0x00000010 )<br />
+<br />
+(-) [Main Thread       1.040] (  114) Core/Layers:       _dfb_layer_region_surface_listener( 0x3e802088, 0x47500 ) &lt;- 0x00000010<br />
+<br />
+(-) [Main Thread       1.408] (  114) Core/Layers:         -&gt; done.<br />
+<br />
+(-) [Main Thread       1.477] (  114) Core/Layers:       dfb_layer_create_context (FBDev Primary Layer)<br />
+<br />
+(-) [Main Thread       1.479] (  114) Fusion/Object:     == Layer Context Pool ==<br />
+<br />
+(-) [Main Thread       1.481] (  114) Fusion/Object:       -&gt; added 0x478c8<br />
+<br />
+(-) [Main Thread       1.482] (  114) Core/Layers:       dfb_layer_context_create -&gt; 0x478c8<br />
+<br />
+(-) [Main Thread       1.484] (  114) Core/WindowStack:  dfb_windowstack_create( 0x478c8 )<br />
+<br />
+(-) [Main Thread       1.486] (  114) Core/Input:        dfb_input_attach_global( 0x44938, 0, 0x47a58, 0x47880 )<br />
+<br />
+(-) [Main Thread       1.489] (  114) Core/Input:        dfb_input_attach_global( 0x44bc0, 0, 0x47a58, 0x47d10 )<br />
+<br />
+(-) [Main Thread       1.491] (  114) Core/WindowStack:    -&gt; 0x47a58<br />
+<br />
+(-) [Main Thread       1.492] (  114) Core/WindowStack:  dfb_windowstack_resize( 0x47a58, 800x600 )<br />
+<br />
+(-) [Main Thread       1.494] (  114) Core/Layers:       dfb_layer_activate_context (FBDev Primary Layer, 0x478c8)<br />
+<br />
+(-) [Main Thread       1.496] (  114) Core/Layers:       dfb_layer_context_deactivate (0x46f28)<br />
+<br />
+(-) [Main Thread       1.498] (  114) Core/Layers:       Removing region (0, 0 - 800x600) from &#039;FBDev Primary Layer&#039;.<br />
+<br />
+(-) [Main Thread       1.502] (  114) Core/Layers:       dfb_layer_context_activate (0x478c8)<br />
+<br />
+(-) [Main Thread       1.503] (  114) Core/WindowStack:  dfb_windowstack_repaint_all( 0x47a58 )<br />
+<br />
+(-) [Main Thread       1.506] (  114) Fusion/Object:     == Layer Region Pool ==<br />
+<br />
+(-) [Main Thread       1.508cnxtfbchanging from 32 to 16<br />
+<br />
+cnxtfbget image palette failed 5 <br />
+<br />
+cnxtfb cnxtfb_set_par: HD Unblank failed, err = 3<br />
+<br />
+cnxtfb cnxtfb_set_par: SD Unblank failed, err = 3<br />
+<br />
+cnxtfbIMAGE: image set palette return ERROR 5.<br />
+<br />
+---------------------------------------------------------<br />
+I used the same config to run gtk-demo, it is ok. Right now, I have to set checkpoints in DF code to figure out where the config is passed (  114) Fusion/Object:     == Layer Region Pool ==<br />
+<br />
+(-) [Main Thread       1.508cnxtfbchanging from 32 to 16<br />
+<br />
+cnxtfbget image palette failed 5 <br />
+<br />
+cnxtfb cnxtfb_set_par: HD Unblank failed, err = 3<br />
+<br />
+cnxtfb cnxtfb_set_par: SD Unblank failed, err = 3<br />
+<br />
+cnxtfbIMAGE: image set palette return ERROR 5.<br />
+<br />
+---------------------------------------------------------<br />
+I used the same config to run gtk-demo, it is ok. Right now, I have to set checkpoints in DF code to figure out where the config is passed into dfb_surface_init() with RGB16.<br />
+<br />
+Best regards,<br />
+Alan</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=8&amp;catid=6" title="#8">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__8" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+                    </td>
+                </tr>
+
+                            </table>
+            <div style="border 0px solid green; margin-top:11px; ">
+                            </div>
+            <!-- Begin: Forum Jump -->
+            <div class="fb__bt_cvr1" style="display:none;">
+<div class="fb__bt_cvr2">
+<div class="fb__bt_cvr3">
+<div class="fb__bt_cvr4">
+<div class="fb__bt_cvr5">
+            <table class = "fb_blocktable" id="fb_bottomarea"  border = "0" cellspacing = "0" cellpadding = "0" width="100%">
+                <thead>
+                    <tr>
+                        <th  class = "th-right">
+                            
+<form id = "jumpto" name = "jumpto" method = "get" target = "_self" action = "index.php" onsubmit = "if(document.jumpto.catid.value &lt; 2){return false;}">
+    <div align = "right" style = "width: 100%;">
+        <input type = "hidden" name = "Itemid" value = "24"/>
+
+        <input type = "hidden" name = "option" value = "com_fireboard"/>
+
+        <input type = "hidden" name = "func" value = "showcat"/>
+
+        <input type = "submit" name = "Go"  class="fbjumpgo fbs" value = "Go"/>
+<select name="catid" id="catid" class="inputbox fbs" size="1"  onchange = "if(this.options[this.selectedIndex].value > 0){ forms['jumpto'].submit() }"><option value="0" >Board Categories </option><option value="11" >Disko Forum</option><option value="2" >...&nbsp;News &amp; Announcements</option><option value="4" >...&nbsp;Ideas &amp; Requirements</option><option value="8" >...&nbsp;Questions</option><option value="10" >...&nbsp;Off-Topic</option></select>    </div>
+</form>                        </th>
+                    </tr>
+                </thead>
+                <tbody><tr><td></td></tr></tbody>
+            </table>
+            </div>
+</div>
+</div>
+</div>
+</div>
+                <!-- Finish: Forum Jump -->
+
+
+    <div style="font-weight:normal; color: #787878; background: #262929; float: right; padding-top: 11px; border:0px solid green;">  
+
+    <div style="margin-right: 30px; float: left;">Powered by <a href="http://www.bestofjoomla.com" target="_blank" style="color: #787878;">FireBoard</a></div>
+
+<a href="/index2.php_option=com_fireboard&amp;func=fb_rss&amp;no_html=1&amp;Itemid=24" target="_blank" style="float:right; display:block;"><img src="/components/com_fireboard/template/default/images/english/emoticons/rss.gif" border="0" alt="get the latest posts directly to your desktop" title="get the latest posts directly to your desktop" style="margin-right: 3px; width: 15px;.html" /></a></div>
+<div class="fb_footer">&nbsp;</div>
+</div> <!-- closes fireboard div -->
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>
+ 

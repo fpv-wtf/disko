@@ -1,0 +1,958 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
+<head>
+	<link rel="stylesheet" href="/templates/diskohq/css/template.css" type="text/css" />
+
+
+	  <base href="/index.php" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Disko, Disko framework, ui framework, GUI library, linux, embedded ui framework, open source, LGPL" />
+  <meta name="description" content="Disko is a LGPL licensed and linux based ui application framework for embedded devices." />
+  <meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+  <title>Re:Failed to load libtv.so - FireBoard</title>
+  <link href="/templates/diskohq/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <script type="text/javascript" src="/components/com_fireboard/template/disko/js/jquery-latest.pack.js"></script>
+  <script type="text/javascript">
+//1: show, 0 : hide
+jr_expandImg_url = "/components/com_fireboard/template/default/images/english/";</script>
+  <script type="text/javascript" src="/components/com_fireboard/template/disko/js/bojForumCore.js"></script>
+  <link type="text/css" rel="stylesheet" href="/components/com_fireboard/template/disko/forum.css" />
+  <script type="text/javascript" src="/components/com_fireboard/template/default/plugin/chili/jquery.chili.pack.js"></script>
+<script id="setup" type="text/javascript">
+ChiliBook.recipeFolder     = "/components/com_fireboard/template/default/plugin/chili/";
+ChiliBook.stylesheetFolder     = "/components/com_fireboard/template/default/plugin/chili/";
+</script>
+
+	
+	<script type="text/javascript" src="/includes/js/jQuery/jquery-1.4.1.min.js"></script>
+	
+
+    <script type="text/javascript" src="/includes/js/wz_tooltip/wz_tooltip.js"></script>
+    <script type="text/javascript">
+    <!--
+    jQuery(function() {
+      tt_Init(); // init wz_tooltips. Has to be called in this function due to a bug in IE7
+    });
+    -->
+    </script>
+
+
+	<script type="text/javascript">
+		<!--
+		
+		jQuery.noConflict();
+		
+		/* IE 6 detection */
+		function redirectIE6() {
+			if(typeof(navigator) != "undefined") {
+				if(navigator.appName == 'Microsoft Internet Explorer') {
+					if(navigator.appVersion.indexOf('MSIE 6') > -1) {
+						window.location = '/ie6.html';
+					}
+				}
+			}
+		}
+		redirectIE6();
+
+		function repositionMenu() {
+			var menuDiv = document.getElementById('mainmenu');
+			var ul0 = menuDiv.getElementsByTagName('ul')[0];
+	
+			if(ul0) {
+				var div  = document.createElement('div');
+				var divA = document.createElement('div');
+				var divB = document.createElement('div');
+	
+				var id   = document.createAttribute('id');
+				var idA  = document.createAttribute('id');
+				var idB  = document.createAttribute('id');
+	
+				var ul1    = ul0.getElementsByTagName('ul')[0];
+	
+				id.nodeValue  = 'subMenuDiv';
+				idA.nodeValue = 'subMenuDiv-lvl1';
+				idB.nodeValue = 'subMenuDiv-lvl2';
+	
+				div.setAttributeNode(id);
+				divA.setAttributeNode(idA);
+				divB.setAttributeNode(idB);
+	
+				if(ul1) {
+					divA.appendChild(ul1);
+					var ul2 = ul1.getElementsByTagName('ul')[0];
+					if(ul2) {
+						divB.appendChild(ul2);
+					}
+				}
+	
+				div.appendChild(divA);
+				div.appendChild(divB);
+				
+				menuDiv.appendChild(div);
+			}
+		}
+
+
+		function redrawHeadline() {
+			var headLines = document.getElementsByTagName('h1');
+			var p = null;
+			var n = null;
+			var c = null;
+			for(i = 0; i < headLines.length; ++i) {
+				c = headLines[i].getAttributeNode('class');
+				p = headLines[i].parentNode;
+
+				var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+				newSrc.nodeValue = '/templates/diskohq/images/arrow_bg.png';
+				newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headLines[i].insertBefore(newImg, headLines[i].firstChild);
+
+			}
+						var headlines = jQuery('#page h2');
+						for(i = 0; i < headlines.length; ++i) {
+								var newImg = document.createElement('img');
+				var newClass = document.createAttribute('class');
+				var newSrc = document.createAttribute('src');
+				newClass.nodeValue = 'headlinePrefix';
+								newSrc.nodeValue = '/templates/diskohq/images/arrow_bg_blue.png';
+				newClass.nodeValue += ' arrowBlue';
+								newImg.setAttributeNode(newClass);
+				newImg.setAttributeNode(newSrc);
+				headlines[i].insertBefore(newImg, headlines[i].firstChild);
+							}
+		}
+		function showFull(id) {
+			var l = document.getElementById('system-readmore-position' + id);
+
+			
+
+			jQuery('#fullContent' + id).slideToggle('slow', function () {
+				l.firstChild.nodeValue = jQuery('#fullContent' + id + ':visible').length ? 'hide' : 'more';
+			});
+		}
+
+		-->
+	</script>
+</head>
+<body>
+	<div id="all">
+		<div id="header">
+				<div class="speakBubble" style="position: absolute; left: 760px; top: 20px; padding: 12px 0 0 0;">
+					<a target="_blank" href="https://github.com/fpv-wtf/disko">This is a <br/> mirror!</a>
+				</div>
+			<div id="logo">
+				<a href="/"><img id="disko-logo" src="/templates/diskohq/images/disko-logo.png" alt="disko"/></a>
+			</div>
+			<div id="topmenu">
+
+				<ul class="menu"><li class="item3"><a href="/contact"><span>Contact</span></a></li><li class="item6"><span class="separator"><span>  |  </span></span></li><li class="item4"><a href="/impressum"><span>Impressum</span></a></li></ul><br/>
+				<a target="twitter.com" href="http://twitter.com/diskoFramework"><img style="margin-top: 2px;float: right" src="/templates/diskohq/images/twitter-c.png" alt="Twitter"/></a>
+			</div>
+		</div><!-- end header -->
+		<div id="mainmenu">
+			<ul class="menu"><li class="item1"><a href="/"><span>Home</span></a></li><li class="parent item7"><a href="/products/disko-framework/overview"><span>Products</span></a></li><li class="parent item8"><a href="/developers/documentation/installation/ubuntu.html"><span>Developers</span></a></li><li class="item24"><a href="/forum"><span>Forum</span></a></li><li class="item25"><a href="http://www.youtube.com/user/DiskoFramework" target="_blank"><span>Gallery</span></a></li></ul>
+		</div>
+		<div id="contentarea">
+			<!--<div id="left">
+				
+			</div>--><!-- left -->
+			<!--<div id="wrapper">-->
+				<div id="main">
+										
+<!-- closed in footer.html -->
+<div id="fireboard">
+
+<!-- BerLinux - we don't use a header with the new layout -->
+<!--<div class="shortDivider"></div>
+<h1 class="descriptionHeadline" style="float:right; width:100%; margin-bottom:10px;">Disko forums</h1><br />
+-->
+
+
+    <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0"  class = "fb_profilebox">
+        <tbody id = "topprofilebox_tbody">
+            <tr class = "fb_sectiontableentry1">
+                <td class = "td-1  fbm fb_profileboxcnt" style="vertical-align:bottom; border-right: 0px;">
+                    <img src="/components/com_fireboard/template/disko/images/diskoforum.png" alt="Disko Forum logo" style="padding-left:14px; padding-bottom:14px; float:left;" />
+                </td>
+                <td style="padding-right:14px; padding-bottom:10px; vertical-align:bottom; text-align:right; border-left: 0px;">
+                    <a href = "/component/user/login">Login</a>
+                    &nbsp;|&nbsp;
+                    <a href = "/component/user/?task=register">Register</a>
+                    &nbsp;|&nbsp;
+                    <a href = "/component/user/reset">Lost Password</a>
+                </td>
+                                 
+            </tr>
+        </tbody>
+    </table>
+
+
+        <script type = "text/javascript">
+        jQuery(function()
+        {
+            jQuery(".fb_qr_fire").click(function()
+            {
+                jQuery("#sc" + (jQuery(this).attr("id").split("__")[1])).toggle();
+            });
+            jQuery(".fb_qm_cncl_btn").click(function()
+            {
+                jQuery("#sc" + (jQuery(this).attr("id").split("__")[1])).toggle();
+            });
+
+        });
+        </script>
+
+        <div>
+            <!-- Pathway -->
+
+    <div class = "fb_forum-pathway" style="font-weight:normal; color: #787878; background: #262929; float:right;">
+        <a href='/forum' style="text-decoration: underline; color: #787878;" >Disko Forum</a>  > <a href='/forum_func=showcat&amp;catid=6' style="text-decoration: underline; color: #787878;" >Bug Reports</a> </div><div class="forum-pathway-2">     </div>
+
+    </div>
+
+<!-- / Pathway -->
+        </div>
+
+        <div style="border 1px solid green; margin-top:11px;">
+            
+                    </div>
+
+                <table class = "fb_blocktable"  id="fb_views" cellpadding = "0" cellspacing = "0" border = "0" width = "100%" style="margin-top:11px;">
+                <tr>
+                    <td>
+                        
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Failed to load libtv.so            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">alanz</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 21</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="15" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="45" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Failed to load libtv.so </span> <span class = "msgdate" title="2008/09/26 11:49">6 Years, 11 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi,  all,<br />
+<br />
+I encountered a lib load failure when running morphine.tv on an ARM-based STB. The following are the logs :<br />
+<br />
+00:00:22:59 Core: Core startup... [src/main.cpp:101]<br />
+<br />
+00:00:22:59 Core: ConfigDB:                     /appfs/share/morphine.tv/db/mmsconfigdb () [src/main.cpp:102]<br />
+<br />
+00:00:22:61 Core: DataDB:                       /appfs/share/morphine.tv/db/mmsdatadb () [src/main.cpp:103]<br />
+<br />
+00:00:22:62 Core: Logfile:                      /appfs/share/morphine.tv/logs/logfile [src/main.cpp:104]<br />
+<br />
+00:00:22:64 Core: First plugin:                  [src/main.cpp:105]<br />
+<br />
+00:00:22:65 Core: Input map:                    default [src/main.cpp:106]<br />
+<br />
+00:00:22:66 Core: Prefix:                       /appfs [src/main.cpp:107]<br />
+<br />
+00:00:22:68 Core: Theme:                        default [src/main.cpp:108]<br />
+<br />
+00:00:22:69 Core: Resolution:                   800x600 [src/main.cpp:109]<br />
+<br />
+00:00:22:71 Core: Output type:                  vesafb [src/main.cpp:110]<br />
+<br />
+00:00:22:72 Core: Video layer id:               0 [src/main.cpp:111]<br />
+<br />
+00:00:22:73 Core: Video layer pixelformat:      ARGB [src/main.cpp:112]<br />
+<br />
+00:00:22:75 Core: Video layer options:           [src/main.cpp:113]<br />
+<br />
+00:00:22:76 Core: Video layer buffermode:       BACKSYSTEM [src/main.cpp:114]<br />
+<br />
+00:00:22:78 Core: Graphics layer id:            0 [src/main.cpp:115]<br />
+<br />
+00:00:22:79 Core: Graphics layer pixelformat:   ARGB [src/main.cpp:116]<br />
+<br />
+00:00:22:80 Core: Graphics layer options:        [src/main.cpp:117]<br />
+<br />
+00:00:22:82 Core: Graphics layer buffermode:    BACKSYSTEM [src/main.cpp:118]<br />
+<br />
+00:00:22:83 Core: Visible screen area:          0,0,800,600 [src/main.cpp:119]<br />
+<br />
+00:00:22:85 Core: Log to stdout:                no [src/main.cpp:123]<br />
+<br />
+00:00:22:86 Core: Input Interval:               0 ms [src/main.cpp:124]<br />
+<br />
+00:00:22:88 Core: Call shutdown command:        no [src/main.cpp:128]<br />
+<br />
+00:00:22:89 Core: Shutdown command:              [src/main.cpp:129]<br />
+<br />
+00:00:22:90 Core: Touch pad/screen area:        0,0,0,0 [src/main.cpp:131]<br />
+<br />
+00:00:22:92 Core: Show mouse pointer:           no [src/main.cpp:136]<br />
+<br />
+00:00:22:93 Core: Graphics window pixelformat:  ARGB [src/main.cpp:138]<br />
+<br />
+00:00:22:95 Core: Graphics surface pixelformat: ARGB [src/main.cpp:139]<br />
+<br />
+00:00:22:96 Core: Extended acceleration:        yes [src/main.cpp:142]<br />
+<br />
+00:00:22:98 Core: initialize frame buffer [src/main.cpp:146]<br />
+<br />
+00:00:22:99 MMSGUI: init mmsfb [mmsfbmanager.cpp:65]<br />
+<br />
+00:00:23:90 MMSGUI: get video layer [mmsfbmanager.cpp:69]<br />
+<br />
+00:00:23:92 MMSGUI: video layer and graphics layer are the same [mmsfbmanager.cpp:74]<br />
+<br />
+00:00:23:94 MMSGUI: configure graphics layer [mmsfbmanager.cpp:110]<br />
+<br />
+00:00:23:95 MMSGUI: set exclusive access [mmsfbmanager.cpp:112]<br />
+<br />
+00:00:24:03 MMSGUI: Layer properties: [fb/mmsfblayer.cpp:109]<br />
+<br />
+00:00:24:05 MMSGUI:  size:        800x600 [fb/mmsfblayer.cpp:110]<br />
+<br />
+00:00:24:06 MMSGUI:  pixelformat: ARGB [fb/mmsfblayer.cpp:112]<br />
+<br />
+00:00:24:08 MMSGUI:  buffermode:  BACKSYSTEM [fb/mmsfblayer.cpp:115]<br />
+<br />
+00:00:24:09 MMSGUI:  options:     NONE [fb/mmsfblayer.cpp:122]<br />
+<br />
+00:00:24:11 MMSGUI: MMSFBWindowManager: get layer surface [fb/mmsfbwindowmanager.cpp:92]<br />
+<br />
+00:00:24:12 MMSGUI: Surface properties: [fb/mmsfbsurface.cpp:346]<br />
+<br />
+00:00:24:14 MMSGUI:  size:         800x600 [fb/mmsfbsurface.cpp:348]<br />
+<br />
+00:00:24:15 MMSGUI:  pixelformat:  ARGB,ALPHACHANNEL [fb/mmsfbsurface.cpp:351]<br />
+<br />
+00:00:24:17 MMSGUI:  capabilities: [fb/mmsfbsurface.cpp:355]<br />
+<br />
+00:00:24:18 MMSGUI:   VIDEOONLY [fb/mmsfbsurface.cpp:362]<br />
+<br />
+00:00:24:20 MMSGUI:   DOUBLE [fb/mmsfbsurface.cpp:364]<br />
+<br />
+00:00:24:32 MMSGUI: creating temporary surface: 800x600 ,ARGB [mmsfbmanager.cpp:182]<br />
+<br />
+00:00:24:34 MMSFBSURFACEMANAGER: createTemporarySurface with Pixelformat ARGB.<br />
+<br />
+ [fb/mmsfbsurfacemanager.cpp:185]<br />
+<br />
+00:00:24:35 MMSFB: createSurface Pixelformat ARGB.<br />
+<br />
+ [fb/mmsfb.cpp:105]<br />
+<br />
+00:00:24:37 MMSFBSURFACEMANAGER: createSurface with Pixelformat ARGB.<br />
+<br />
+ [fb/mmsfbsurfacemanager.cpp:43]<br />
+<br />
+00:00:24:38 MMSGUI: createSurface 800x600 PixelFormat : ARGB Capabilities : 4098 [fb/mmsfbsurfacemanager.cpp:103]<br />
+<br />
+00:00:24:40 MMSGUI: Surface properties: [fb/mmsfbsurface.cpp:346]<br />
+<br />
+00:00:24:41 MMSGUI:  size:         800x600 [fb/mmsfbsurface.cpp:348]<br />
+<br />
+00:00:24:43 MMSGUI:  pixelformat:  ARGB,ALPHACHANNEL [fb/mmsfbsurface.cpp:351]<br />
+<br />
+00:00:24:44 MMSGUI:  capabilities: [fb/mmsfbsurface.cpp:355]<br />
+<br />
+00:00:24:46 MMSGUI:   SYSTEMONLY [fb/mmsfbsurface.cpp:360]<br />
+<br />
+00:00:24:47 MMSGUI:   PREMULTIPLIED [fb/mmsfbsurface.cpp:368]<br />
+<br />
+00:00:24:49 MMSGUI: Allocated surface memory: 1920000 Byte [fb/mmsfbsurfacemanager.cpp:125]<br />
+<br />
+00:00:24:50 Core: starting theme manager [src/main.cpp:150]<br />
+<br />
+00:00:24:62 Core: starting window manager [src/main.cpp:153]<br />
+<br />
+00:00:24:62 Core: creating background window [src/main.cpp:161]<br />
+<br />
+00:00:24:64 MMSGUI: get the grapics layer [mmswindow.cpp:173]<br />
+<br />
+00:00:24:65 MMSGUI: got flags:  [mmswindow.cpp:184]<br />
+<br />
+00:00:24:67 MMSGUI:  MMSW_NONE [mmswindow.cpp:192]<br />
+<br />
+00:00:24:68 MMSFBLAYER: createSurface( 8x1, , single buffer )<br />
+<br />
+ [fb/mmsfblayer.cpp:343]<br />
+<br />
+00:00:24:70 MMSFBLAYER: firsttime_createsurface with Pixelformat ARGB.<br />
+<br />
+ [fb/mmsfblayer.cpp:374]<br />
+<br />
+00:00:24:71 MMSFB: createSurface Pixelformat ARGB.<br />
+<br />
+ [fb/mmsfb.cpp:105]<br />
+<br />
+00:00:24:73 MMSFBSURFACEMANAGER: createSurface with Pixelformat ARGB.<br />
+<br />
+ [fb/mmsfbsurfacemanager.cpp:43]<br />
+<br />
+00:00:24:74 MMSGUI: createSurface 8x1 PixelFormat : ARGB Capabilities : 4098 [fb/mmsfbsurfacemanager.cpp:103]<br />
+<br />
+00:00:24:76 MMSGUI: Surface properties: [fb/mmsfbsurface.cpp:346]<br />
+<br />
+00:00:24:77 MMSGUI:  size:         8x1 [fb/mmsfbsurface.cpp:348]<br />
+<br />
+00:00:24:79 MMSGUI:  pixelformat:  ARGB,ALPHACHANNEL [fb/mmsfbsurface.cpp:351]<br />
+<br />
+00:00:24:80 MMSGUI:  capabilities: [fb/mmsfbsurface.cpp:355]<br />
+<br />
+00:00:24:82 MMSGUI:   SYSTEMONLY [fb/mmsfbsurface.cpp:360]<br />
+<br />
+00:00:24:83 MMSGUI:   PREMULTIPLIED [fb/mmsfbsurface.cpp:368]<br />
+<br />
+00:00:24:85 MMSGUI: Allocated surface memory: 1920032 Byte [fb/mmsfbsurfacemanager.cpp:125]<br />
+<br />
+00:00:25:58 MMSIMAGEMANAGER: getImage with Pixelformat ARGB.<br />
+<br />
+ [mmsimagemanager.cpp:419]<br />
+<br />
+00:00:25:60 MMSFBLAYER: createSurface( 800x600, ARGB, single buffer )<br />
+<br />
+ [fb/mmsfblayer.cpp:343]<br />
+<br />
+00:00:25:61 MMSFB: createSurface Pixelformat ARGB.<br />
+<br />
+ [fb/mmsfb.cpp:105]<br />
+<br />
+00:00:25:62 MMSFBSURFACEMANAGER: createSurface with Pixelformat ARGB.<br />
+<br />
+ [fb/mmsfbsurfacemanager.cpp:43]<br />
+<br />
+00:00:25:64 MMSGUI: createSurface 800x600 PixelFormat : ARGB Capabilities : 4098 [fb/mmsfbsurfacemanager.cpp:103]<br />
+<br />
+00:00:25:65 MMSGUI: Surface properties: [fb/mmsfbsurface.cpp:346]<br />
+<br />
+00:00:25:67 MMSGUI:  size:         800x600 [fb/mmsfbsurface.cpp:348]<br />
+<br />
+00:00:25:68 MMSGUI:  pixelformat:  ARGB,ALPHACHANNEL [fb/mmsfbsurface.cpp:351]<br />
+<br />
+00:00:25:70 MMSGUI:  capabilities: [fb/mmsfbsurface.cpp:355]<br />
+<br />
+00:00:25:71 MMSGUI:   SYSTEMONLY [fb/mmsfbsurface.cpp:360]<br />
+<br />
+00:00:25:73 MMSGUI:   PREMULTIPLIED [fb/mmsfbsurface.cpp:368]<br />
+<br />
+00:00:25:74 MMSGUI: Allocated surface memory: 3840032 Byte [fb/mmsfbsurfacemanager.cpp:125]<br />
+<br />
+00:00:25:78 MMSGUI: ImageManager has loaded: &#039;/appfs/share/morphine.tv//themes/default/defbg.png&#039; [mmsimagemanager.cpp:456]<br />
+<br />
+00:00:25:80 MMSGUI: got screen 800x600 [mmswindow.cpp:269]<br />
+<br />
+00:00:25:81 MMSGUI: use screen area 0, 0, 800, 600 [mmswindow.cpp:280]<br />
+<br />
+00:00:25:83 MMSGUI: creating window (0,0,800,600) with pixelformat ARGB (use alpha) [mmswindow.cpp:447]<br />
+<br />
+00:00:25:85 MMSFBLAYER: createWindow with Pixelformat ARGB.<br />
+<br />
+ [fb/mmsfblayer.cpp:500]<br />
+<br />
+00:00:25:86 MMSFB: createSurface Pixelformat ARGB.<br />
+<br />
+ [fb/mmsfb.cpp:105]<br />
+<br />
+00:00:25:88 MMSFBSURFACEMANAGER: createSurface with Pixelformat ARGB.<br />
+<br />
+ [fb/mmsfbsurfacemanager.cpp:43]<br />
+<br />
+00:00:25:89 MMSGUI: createSurface 800x600 PixelFormat : ARGB Capabilities : 4114 [fb/mmsfbsurfacemanager.cpp:103]<br />
+<br />
+00:00:25:91 MMSGUI: Surface properties: [fb/mmsfbsurface.cpp:346]<br />
+<br />
+00:00:25:92 MMSGUI:  size:         800x600 [fb/mmsfbsurface.cpp:348]<br />
+<br />
+00:00:25:94 MMSGUI:  pixelformat:  ARGB,ALPHACHANNEL [fb/mmsfbsurface.cpp:351]<br />
+<br />
+00:00:25:95 MMSGUI:  capabilities: [fb/mmsfbsurface.cpp:355]<br />
+<br />
+00:00:25:97 MMSGUI:   SYSTEMONLY [fb/mmsfbsurface.cpp:360]<br />
+<br />
+00:00:25:98 MMSGUI:   DOUBLE [fb/mmsfbsurface.cpp:364]<br />
+<br />
+00:00:26:00 MMSGUI:   PREMULTIPLIED [fb/mmsfbsurface.cpp:368]<br />
+<br />
+00:00:26:01 MMSGUI: Allocated surface memory: 7680032 Byte [fb/mmsfbsurfacemanager.cpp:125]<br />
+<br />
+00:00:26:03 Core: creating input manager [src/main.cpp:166]<br />
+<br />
+00:00:26:05 MMSGUI: MMSWindow: setFirstFocus to  [mmswindow.cpp:1953]<br />
+<br />
+00:00:26:06 MMSINPUTMANAGER: Ignore mapping set of avermedia node [mmsinputmapper.cpp:376]<br />
+<br />
+00:00:26:08 MMSGUI: MMSWindow: no children to focus for window  [mmswindow.cpp:2021]<br />
+<br />
+00:00:26:09 MMSINPUTMANAGER: using mapping set of default node [mmsinputmapper.cpp:358]<br />
+<br />
+00:00:26:11 MMSINPUTMANAGER: Parsing inputmap finished. [mmsinputmapper.cpp:387]<br />
+<br />
+00:00:26:12 Core: add input device [src/main.cpp:170]<br />
+<br />
+00:00:26:14 Core: creating master subscription [src/main.cpp:175]<br />
+<br />
+00:00:26:15 Core: creating PluginManager [src/main.cpp:178]<br />
+<br />
+00:00:26:22 Core: loading Backend Plugins... [src/main.cpp:181]<br />
+<br />
+00:00:26:27 MMSPluginDAO: Found 1 records. [mmsplugindao.cpp:272]<br />
+<br />
+00:00:26:28 MMSPluginDAO: Finish processing. [mmsplugindao.cpp:302]<br />
+<br />
+00:00:26:31 MMSCore:  Mixer [mmspluginmanager.cpp:116]<br />
+<br />
+00:00:26:39 Core: loading OSD Plugins... [src/main.cpp:184]<br />
+<br />
+00:00:26:41 MMSCore: getOSDPlugins from service [mmspluginmanager.cpp:60]<br />
+<br />
+00:00:26:42 PLUGINSERVICE: create dao [mmspluginservice.cpp:107]<br />
+<br />
+00:00:26:44 PLUGINSERVICE: create property dao [mmspluginservice.cpp:110]<br />
+<br />
+00:00:26:46 PLUGINSERVICE: get all OSD plugins [mmspluginservice.cpp:113]<br />
+<br />
+00:00:26:48 MMSPluginDAO: Found 1 records. [mmsplugindao.cpp:272]<br />
+<br />
+00:00:26:49 MMSPluginDAO: Finish processing. [mmsplugindao.cpp:302]<br />
+<br />
+00:00:26:51 PLUGINSERVICE: get the properties of: Weather Plugin (6) [mmspluginservice.cpp:119]<br />
+<br />
+00:00:26:52 PLUGINSERVICE: Working with 1 OSD plugins [mmspluginservice.cpp:123]<br />
+<br />
+00:00:26:63 MMSCore:  Weather Plugin [mmspluginmanager.cpp:67]<br />
+<br />
+00:00:26:64 Core: loading Central Plugins... [src/main.cpp:187]<br />
+<br />
+00:00:26:66 MMSPluginDAO: Found 5 records. [mmsplugindao.cpp:272]<br />
+<br />
+00:00:26:68 MMSPluginDAO: Finish processing. [mmsplugindao.cpp:302]<br />
+<br />
+00:00:26:69 PLUGINSERVICE: get the properties of the central plugins. [mmspluginservice.cpp:134]<br />
+<br />
+00:00:26:80 Core: Abort due to: shared library /appfs/lib/morphine.tv/tv/libtv.so cannot be loaded: File not found [src/main.cpp:275]<br />
+<br />
+00:00:26:81 MMSGUI: release mmsfb [mmsfbmanager.cpp:103]<br />
+<br />
+But the libtv.so is there :<br />
+# ls -al /appfs/lib/morphine.tv/tv/<br />
+<br />
+drwxr-xr-x    2 500      500          4096 Jan  1 00:00 .<br />
+<br />
+drwxr-xr-x   13 500      500          4096 Jan  1 00:00 ..<br />
+<br />
+-rwxr-xr-x    1 500      500       1225605 Jan  1 00:00 libtv.so<br />
+<br />
+Does anyone encounter this kind of problem before?<br />
+<br />
+Best regards,<br />
+Alan</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=9&amp;catid=6" title="#9">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__9" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Failed to load libtv.so            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/$avatar" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">Stefan</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 91</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="64" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Failed to load libtv.so </span> <span class = "msgdate" title="2008/09/26 16:53">6 Years, 11 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi alanz,<br />
+<br />
+we did not have such an error before. What does a <i>file</i> libtv.so say? Maybe there are some dependencies missing or can not be found at runtime. Maybe you should post the <i>ldd</i> output as well.<br />
+<br />
+regards<br />
+Stefan</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=10&amp;catid=6" title="#10">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__10" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+
+<table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+    <thead>
+        <tr class = "fb_sth" style="background: #3f3f3f; height:26px;">
+            <th colspan = "2" class = "view-th fb_sectiontableheader" style="text-align:left; padding-left: 7px; font-weight:normal; padding-top:4px;">
+                Failed to load libtv.so            
+            </th>
+        </tr>        
+    <thead>
+    <tbody>
+        <tr style="background: #5a5a5a;">
+              <td class = "fb-msgview-left" style="width:100px; padding-top:11px; padding-left:11px;">
+                <div class = "fb-msgview-l-cover">
+                    <span class="fb_avatar"><img style="margin-top:6px; margin-bottom:6px;" border="0" src="/images/fbfiles/avatars/anonym.png" alt="" /></span><br />
+                    <span class = "view-username" style="margin-top:6px;">alanz</span>
+
+				
+				                <div class = "viewcover">
+                                    </div>
+
+                <div class = "viewcover">
+                                    </div>
+
+                    
+                    <div class="viewcover"><strong>Posts: 21</strong></div><div class="viewcover"><table  border="0" cellspacing="0" cellpadding="0" align="center"><tr><td width="64"><img src="/components/com_fireboard/template/default/images/english/graph/col9m.png" height="4" width="15" alt="graph" style="border: 0px solid #333333" /><img src="/components/com_fireboard/template/default/images/english/emoticons/graph.gif" height="4" width="45" alt="graph" style="border: 0px solid #333333" /></td></tr></table></div>
+                   
+
+                    
+                    
+                                        <br />
+ 					                                                                                                                         					                                        
+                </div>
+            </td>
+
+            <td class = "fb-msgview-right" style="padding-top:11px; padding-left:11px;">
+                <table width = "100%" border = "0" cellspacing = "0" cellpadding = "0">
+                    <tr>
+                        <td align = "left" style="padding-bottom: 11px;">
+                                                        <span class = "msgtitle">Re:Failed to load libtv.so </span> <span class = "msgdate" title="2008/09/29 06:32">6 Years, 11 Months ago</span>
+                        </td>
+
+                        <td align = "right">
+                            <span class = "msgkarma">
+
+                            &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan = "2" valign = "top">
+                            <div class = "msgtext">Hi, Stefan,<br />
+<br />
+Thank you very much! I found that there missing :<br />
+<br />
+&quot;<br />
+install-core:<br />
+	@+make -C core install<br />
+	@+make -C cmd install<br />
+	@+make -C data install  // added by alanz<br />
+&quot;<br />
+in mms4l/morphine.tv/Makefile if I use &quot;make message=y debug=y install&quot; to build.<br />
+<br />
+So the problem is addressed.<br />
+<br />
+Best regards,<br />
+Alan</div>
+ 							
+                            
+                          
+                        </td>
+                    </tr>
+
+
+                </table>
+            </td>
+        </tr>
+      
+  <tr style="background: #5a5a5a;">
+            <td class = "fb-msgview-left-c">&nbsp;
+            </td>
+            <td class = "fb-msgview-right-c" style="padding-top:11px; padding-left:11px;">  
+                         <div class="fb_smalltext">   
+                                                   
+                            <a  href="/forum_func=report&amp;msg_id=11&amp;catid=6" title="#11">Report to moderator</a> &nbsp;
+                            <!--                            
+                            <img src="/components/com_fireboard/template/default/images/english/icons/ip.gif" border="0" alt="Logged" /> <span class="fb_smalltext"> Logged</span>
+                            &nbsp;-->
+                            </div>
+       </td>
+        </tr> 
+
+
+        <tr style="background: #5a5a5a;">
+            <td class="fb-msgview-left-b">&nbsp;
+
+            </td>
+
+            <td class="fb-msgview-right-b" align="right" style="padding-bottom:11px; padding-right:11px;">
+                <!--<span id="fb_qr_sc__11" class="fb_qr_fire bl_button" style="cursor:hand; cursor:pointer">
+
+                                </span>&nbsp;-->
+
+                The administrator has disabled public write access.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Begin: Message Module Positions -->
+
+
+
+
+<!-- Finish: Message Module Positions -->
+                    </td>
+                </tr>
+
+                            </table>
+            <div style="border 0px solid green; margin-top:11px; ">
+                            </div>
+            <!-- Begin: Forum Jump -->
+            <div class="fb__bt_cvr1" style="display:none;">
+<div class="fb__bt_cvr2">
+<div class="fb__bt_cvr3">
+<div class="fb__bt_cvr4">
+<div class="fb__bt_cvr5">
+            <table class = "fb_blocktable" id="fb_bottomarea"  border = "0" cellspacing = "0" cellpadding = "0" width="100%">
+                <thead>
+                    <tr>
+                        <th  class = "th-right">
+                            
+<form id = "jumpto" name = "jumpto" method = "get" target = "_self" action = "index.php" onsubmit = "if(document.jumpto.catid.value &lt; 2){return false;}">
+    <div align = "right" style = "width: 100%;">
+        <input type = "hidden" name = "Itemid" value = "24"/>
+
+        <input type = "hidden" name = "option" value = "com_fireboard"/>
+
+        <input type = "hidden" name = "func" value = "showcat"/>
+
+        <input type = "submit" name = "Go"  class="fbjumpgo fbs" value = "Go"/>
+<select name="catid" id="catid" class="inputbox fbs" size="1"  onchange = "if(this.options[this.selectedIndex].value > 0){ forms['jumpto'].submit() }"><option value="0" >Board Categories </option><option value="11" >Disko Forum</option><option value="2" >...&nbsp;News &amp; Announcements</option><option value="4" >...&nbsp;Ideas &amp; Requirements</option><option value="8" >...&nbsp;Questions</option><option value="10" >...&nbsp;Off-Topic</option></select>    </div>
+</form>                        </th>
+                    </tr>
+                </thead>
+                <tbody><tr><td></td></tr></tbody>
+            </table>
+            </div>
+</div>
+</div>
+</div>
+</div>
+                <!-- Finish: Forum Jump -->
+
+
+    <div style="font-weight:normal; color: #787878; background: #262929; float: right; padding-top: 11px; border:0px solid green;">  
+
+    <div style="margin-right: 30px; float: left;">Powered by <a href="http://www.bestofjoomla.com" target="_blank" style="color: #787878;">FireBoard</a></div>
+
+<a href="/index2.php_option=com_fireboard&amp;func=fb_rss&amp;no_html=1&amp;Itemid=24" target="_blank" style="float:right; display:block;"><img src="/components/com_fireboard/template/default/images/english/emoticons/rss.gif" border="0" alt="get the latest posts directly to your desktop" title="get the latest posts directly to your desktop" style="margin-right: 3px; width: 15px;.html" /></a></div>
+<div class="fb_footer">&nbsp;</div>
+</div> <!-- closes fireboard div -->
+
+				</div>
+
+
+				<!-- <div id="right">
+					
+				</div>--><!-- right -->
+				<!--<div class="wrap"></div>
+			</div>--><!-- wrapper -->
+			<div class="wrap">&nbsp;</div>
+		</div><!-- contentarea -->
+
+		<!--<div id="footer">
+			<p class="syndicate">
+				
+			</p>
+			<div class="wrap"></div>
+		</div>--><!-- footer -->
+
+	</div><!-- all -->
+	
+	<script type="text/javascript">
+		<!--
+		redrawHeadline();
+		repositionMenu();
+		//fixPre();
+
+		function msgHiding() {
+			var msgs = document.getElementById('messages');
+		
+			if(msgs) {
+				msgs.style.visibility = 'hidden';
+				msgs.style.display    = 'none';
+			}
+		}
+		window.setTimeout("msgHiding()", 5000);
+ 		
+//	slideToggle('slow', function () {
+// 				jQuery('#messages:visible');
+// 		});
+		
+
+		-->
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+	var pageTracker = _gat._getTracker("UA-1675780-3");
+	pageTracker._trackPageview();
+</script>
+</body>
+</html>
+ 
