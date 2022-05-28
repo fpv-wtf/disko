@@ -62,8 +62,9 @@ scons graphics_backend=dfb,x11 graphics_outputtype=stdfb,gl2 pixelformats=all en
 
 ```
 scons
+sudo su
 source venv/bin/activate
-sudo scons install
+scons install
 ```
 
 ## Compile Demo
